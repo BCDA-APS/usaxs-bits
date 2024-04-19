@@ -1,93 +1,112 @@
+
 """
-2D slits, 4 individual motorized blades.
-
-.. note:: The motor assignments are set in the IOC
-    when loading the ``2slit.db`` database.
-
-There are two representations of the same ``2slit.db`` database.
-Choose between a hierarchical (``Optics2Slit2D_HV()``)
-or flat structure (``Optics2Slit2D_InbOutBotTop()`):
-
-* ``Optics2Slit2D_HV()`` has a hierarchical structure::
-
-   slit1
-       h
-           xp, xn, size, center
-       v
-           xp, xn, size, center
-
-* ``Optics2Slit2D_InbOutBotTop()`` has a flat structure::
-
-   slit1
-       top
-       bot
-       out
-       inb
-       hsize
-       hcenter
-       vsize
-       vcenter
-
-Coordinates of each representation (viewing from detector towards source)::
-
-    Optics2Slit2D_HV        Optics2Slit2D_InbOutBotTop
-        v.xp                        top
-    h.xn    h.xp                inb     out
-        v.xn                        bot
-
-**Motor Assignments**
-
-This information is for reference only.  The Python configuration
-here does not need to know the motor assignments.  That is part
-of the IOC configuration.
-
-======   ==========  ==================
-motor    position    assignment
-======   ==========  ==================
-m41      v.xp        Slit1V:mXp
-m42      v.xn        Slit1V:mXn
-m5 (!)   h.xp        Slit1H:mXp
-m6 (!)   h.xn        Slit1H:mXn
-======   ==========  ==================
-
-.. warning: (!) Some motor assignments in the training IOC are misconfigured.
-   The misconfiguration happens in the IOC configuration in the
-   ``prjemian/custom-synapps-6.2`` docker image.
-   (https://hub.docker.com/r/prjemian/custom-synapps-6.2)
-
-   ==========   ==========  ============
-   in docker    should be   assignment
-   ==========   ==========  ============
-   m5           m43         Slit1H:mXp
-   m6           m44         Slit1H:mXn
-   ==========   ==========  ============
-
-   These assignments will be corrected in a future version of the
-   docker image: ``prjemian/synapps``.
-
-**References**
-
-* https://github.com/epics-modules/optics/blob/master/opticsApp/Db/2slit.db
-* https://bcda-aps.github.io/apstools/latest/api/synApps/_db_2slit.html#apstools.synApps.db_2slit.Optics2Slit2D_InbOutBotTop
-* https://github.com/prjemian/epics-docker/tree/main/v1.1/n5_custom_synApps#motor-assignments
+slits
 """
 
-__all__ = """
-    slit1
-""".split()
+__all__ = [
+    'guard_slit',
+    'usaxs_slit',
+    ]
 
 import logging
-
-# Choose between alternate interfaces to the same controls:
-from apstools.synApps import Optics2Slit2D_HV
-# from apstools.synApps import Optics2Slit2D_InbOutBotTop
-
-from .. import iconfig
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-IOC = iconfig.get("GP_IOC_PREFIX", "gp:")
+from bluesky import plan_stubs as bps
+from ophyd import Component, EpicsSignal, MotorBundle
+
+from ..framework import sd
+from .general_terms import terms
+from .usaxs_motor_devices import UsaxsMotor
+from ..utils import move_motors
 
 
-slit1 = Optics2Slit2D_HV(f"{IOC}Slit1", name="slit1")
+class UsaxsSlitDevice(MotorBundle):
+    """
+    USAXS slit just before the sample
+
+    * center of slit: (x, y)
+    * aperture: (h_size, v_size)
+    """
+    h_size = Component(UsaxsMotor, 'usxLAX:m58:c1:m8', labels=("uslit",))
+    x      = Component(UsaxsMotor, 'usxLAX:m58:c1:m6', labels=("uslit",))
+    v_size = Component(UsaxsMotor, 'usxLAX:m58:c1:m7', labels=("uslit",))
+    y      = Component(UsaxsMotor, 'usxLAX:m58:c1:m5', labels=("uslit",))
+
+    def set_size(self, *args, h=None, v=None):
+        """move the slits to the specified size"""
+        if h is None:
+            raise ValueError("must define horizontal size")
+        if v is None:
+            raise ValueError("must define vertical size")
+        move_motors(self.h_size, h, self.v_size, v)
+
+
+class GuardSlitMotor(UsaxsMotor):
+    process_record = Component(EpicsSignal, ".PROC", kind="omitted")
+    status_update = Component(EpicsSignal, ".STUP", kind="omitted")
+
+
+class GSlitDevice(MotorBundle):
+    """
+    guard slit
+
+    * aperture: (h_size, v_size)
+    """
+    bot  = Component(GuardSlitMotor, 'usxLAX:m58:c1:m4', labels=("gslit",))
+    inb  = Component(GuardSlitMotor, 'usxLAX:m58:c1:m2', labels=("gslit",))
+    outb = Component(GuardSlitMotor, 'usxLAX:m58:c1:m1', labels=("gslit",))
+    top  = Component(GuardSlitMotor, 'usxLAX:m58:c1:m3', labels=("gslit",))
+    x    = Component(UsaxsMotor, 'usxLAX:m58:c0:m7', labels=("gslit",))
+    y    = Component(UsaxsMotor, 'usxLAX:m58:c0:m6', labels=("gslit",))
+
+    h_size = Component(EpicsSignal, 'usxLAX:GSlit1H:size')
+    v_size = Component(EpicsSignal, 'usxLAX:GSlit1V:size')
+
+    h_sync_proc = Component(EpicsSignal, 'usxLAX:GSlit1H:sync.PROC')
+    v_sync_proc = Component(EpicsSignal, 'usxLAX:GSlit1V:sync.PROC')
+
+    gap_tolerance = 0.02        # actual must be this close to desired
+    scale_factor = 1.2    # 1.2x the size of the beam should be good guess for guard slits.
+    h_step_away = 0.2     # 0.2mm step away from beam
+    v_step_away = 0.1     # 0.1mm step away from beam
+    h_step_into = 1.1     # 1.1mm step into the beam (blocks the beam)
+    v_step_into = 0.4     # 0.4mm step into the beam (blocks the beam)
+    tuning_intensity_threshold = 500
+
+    def set_size(self, *args, h=None, v=None):
+        """move the slits to the specified size"""
+        if h is None:
+            raise ValueError("must define horizontal size")
+        if v is None:
+            raise ValueError("must define vertical size")
+        move_motors(self.h_size, h, self.v_size, v)
+
+    @property
+    def h_gap_ok(self):
+        gap = self.outb.position - self.inb.position
+        return abs(gap - terms.SAXS.guard_h_size.get()) <= self.gap_tolerance
+
+    @property
+    def v_h_gap_ok(self):
+        gap = self.top.position - self.bot.position
+        return abs(gap - terms.SAXS.guard_v_size.get()) <= self.gap_tolerance
+
+    @property
+    def gap_ok(self):
+        return self.h_gap_ok and self.v_h_gap_ok
+
+    def process_motor_records(self):
+        yield from bps.mv(self.top.process_record, 1)
+        yield from bps.mv(self.outb.process_record, 1)
+        yield from bps.sleep(0.05)
+        yield from bps.mv(self.bot.process_record, 1)
+        yield from bps.mv(self.inb.process_record, 1)
+        yield from bps.sleep(0.05)
+
+
+guard_slit = GSlitDevice('', name='guard_slit')
+usaxs_slit = UsaxsSlitDevice('', name='usaxs_slit')
+sd.baseline.append(guard_slit)
+sd.baseline.append(usaxs_slit)

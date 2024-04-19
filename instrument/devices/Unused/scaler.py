@@ -18,10 +18,10 @@ from ophyd.scaler import ScalerCH
 import time
 
 
-IOC = iconfig.get("GP_IOC_PREFIX", "gp:")
+IOC = iconfig.get("GP_IOC_PREFIX", "9idcLAX:vsc:")
 
 # make an instance of the entire scaler, for general control
-scaler1 = ScalerCH(f"{IOC}scaler1", name="scaler1", labels=["scalers", "detectors"])
+scaler1 = ScalerCH(f"{IOC}c0", name="scaler1", labels=["scalers", "detectors"])
 scaler1.wait_for_connection()
 
 if not len(scaler1.channels.chan01.chname.get()):

@@ -1,65 +1,60 @@
 """
-define standard experiment metadata
 """
 
-__all__ = []
+__all__ = [
+    "RE",
+]
 
 import logging
 
 logger = logging.getLogger(__name__)
 
-logger.info(__file__)
-
-from .. import iconfig
-
-import getpass
-import os
-import socket
-from datetime import datetime
-
 import apstools
+import area_detector_handlers
+import bluesky
 import databroker
 import epics
+import getpass
 import h5py
-import intake
 import matplotlib
 import numpy
 import ophyd
+import os
+import pymongo
 import pyRestTable
+import socket
 import spec2nexus
 
-import bluesky
+logger.info(__file__)
 
 from .initialize import RE
-from .initialize import cat
+
+# Set up default metadata
+
+RE.md["beamline_id"] = "APS 9-ID-C USAXS"
+RE.md["proposal_id"] = "testing"
+RE.md["pid"] = os.getpid()
 
 HOSTNAME = socket.gethostname() or "localhost"
-USERNAME = getpass.getuser() or "Bluesky user"
+USERNAME = getpass.getuser() or "APS 9-ID-C USAXS user"
+RE.md["login_id"] = USERNAME + "@" + HOSTNAME
 
 # useful diagnostic to record with all data
-versions = dict(
+RE.md["versions"] = dict(
     apstools=apstools.__version__,
+    area_detector_handlers=area_detector_handlers.__version__,
     bluesky=bluesky.__version__,
     databroker=databroker.__version__,
+    epics_ca=epics.__version__,
     epics=epics.__version__,
     h5py=h5py.__version__,
-    intake=intake.__version__,
     matplotlib=matplotlib.__version__,
     numpy=numpy.__version__,
     ophyd=ophyd.__version__,
+    pymongo=pymongo.__version__,
     pyRestTable=pyRestTable.__version__,
     spec2nexus=spec2nexus.__version__,
 )
 
-# Set up default metadata
-RE.md["databroker_catalog"] = cat.name
-RE.md["login_id"] = USERNAME + "@" + HOSTNAME
-RE.md.update(iconfig.get("RUNENGINE_METADATA", {}))
-RE.md["versions"] = versions
-RE.md["pid"] = os.getpid()
-RE.md["iconfig"] = iconfig
-
-conda_prefix = os.environ.get("CONDA_PREFIX")
-if conda_prefix is not None:
-    RE.md["conda_prefix"] = conda_prefix
-del conda_prefix
+# per https://github.com/APS-USAXS/ipython-usaxs/issues/553
+RE.md["epics_libca"] = epics.ca.find_libca()

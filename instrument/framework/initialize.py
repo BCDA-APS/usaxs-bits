@@ -3,10 +3,11 @@ initialize the bluesky framework
 """
 
 __all__ = """
-    RE  cat  sd  bec  peaks
+    RE  db  sd  bec  peaks
     bp  bps  bpp
     summarize_plan
     np
+    callback_db
     """.split()
 
 import logging
@@ -15,12 +16,20 @@ logger = logging.getLogger(__name__)
 
 logger.info(__file__)
 
-import pathlib
-import sys
+import os, sys
 
-sys.path.append(str(pathlib.Path(__file__).absolute().parent.parent.parent))
+# fmt: off
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..",
+        )
+    )
+)
+# fmt: on
 
-from .. import iconfig
 from bluesky import RunEngine
 from bluesky import SupplementalData
 from bluesky.callbacks.best_effort import BestEffortCallback
@@ -41,110 +50,85 @@ import bluesky.plan_stubs as bps
 import bluesky.preprocessors as bpp
 import numpy as np
 
+# DATABROKER_CATALOG = "9idc_usaxs_retired_2022_01_14"  # was mongodb_config in different format
+# DATABROKER_CATALOG = "9idc_usaxs"  # last used 2022-11-07 before 8 am
+DATABROKER_CATALOG = "20idb_usaxs"
+
 
 def get_md_path():
-    path = iconfig.get("RUNENGINE_MD_PATH")
-    if path is None:
-        path = pathlib.Path.home() / "Bluesky_RunEngine_md"
-    else:
-        path = pathlib.Path(path)
-    logger.info("RunEngine metadata saved in directory: %s", str(path))
-    return str(path)
+    md_dir_name = "Bluesky_RunEngine_md"
+    if os.environ == "win32":
+        home = os.environ["LOCALAPPDATA"]
+        path = os.path.join(home, md_dir_name)
+    else:  # at least on "linux"
+        home = os.environ["HOME"]
+        path = os.path.join(home, ".config", md_dir_name)
+    return path
 
+
+# check if we need to transition from SQLite-backed historydict
+old_md = None
+md_path = get_md_path()
+if not os.path.exists(md_path):
+    logger.info(
+        "New directory to store RE.md between sessions: %s", md_path
+    )
+    os.makedirs(md_path)
+    from bluesky.utils import get_history
+
+    old_md = get_history()
 
 # Set up a RunEngine and use metadata backed PersistentDict
 RE = RunEngine({})
-RE.md = PersistentDict(get_md_path())
+RE.md = PersistentDict(md_path)
+if old_md is not None:
+    logger.info("migrating RE.md storage to PersistentDict")
+    RE.md.update(old_md)
 
+# keep track of callback subscriptions
+callback_db = {}
 
 # Connect with our mongodb database
-catalog_name = iconfig.get("DATABROKER_CATALOG", "training")
-# databroker v2 api
-try:
-    cat = databroker.catalog[catalog_name]
-    logger.info("using databroker catalog '%s'", cat.name)
-except KeyError:
-    cat = databroker.temp().v2
-    logger.info("using TEMPORARY databroker catalog '%s'", cat.name)
-
+db = databroker.catalog[DATABROKER_CATALOG].v1
 
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.
-RE.subscribe(cat.v1.insert)
+callback_db["db"] = RE.subscribe(db.insert)
 
 # Set up SupplementalData.
 sd = SupplementalData()
 RE.preprocessors.append(sd)
 
-if iconfig.get("USE_PROGRESS_BAR", False):
-    # Add a progress bar.
-    pbar_manager = ProgressBarManager()
-    RE.waiting_hook = pbar_manager
+# Add a progress bar.
+pbar_manager = ProgressBarManager()
+RE.waiting_hook = pbar_manager
 
 # Register bluesky IPython magics.
-_ipython = get_ipython()
-if _ipython is not None:
-    _ipython.register_magics(BlueskyMagics)
+get_ipython().register_magics(BlueskyMagics)
 
 # Set up the BestEffortCallback.
 bec = BestEffortCallback()
-RE.subscribe(bec)
+callback_db["bec"] = RE.subscribe(bec)
 peaks = bec.peaks  # just as alias for less typing
 bec.disable_baseline()
 
 # At the end of every run, verify that files were saved and
 # print a confirmation message.
 # from bluesky.callbacks.broker import verify_files_saved
-# RE.subscribe(post_run(verify_files_saved), 'stop')
+# callback_db['post_run_verify'] = RE.subscribe(post_run(verify_files_saved), 'stop')
 
 # Uncomment the following lines to turn on
 # verbose messages for debugging.
 # ophyd.logger.setLevel(logging.DEBUG)
 
-ophyd.set_cl(iconfig.get("OPHYD_CONTROL_LAYER", "PyEpics").lower())
-logger.info(f"using ophyd control layer: {ophyd.cl.name}")
-
 # diagnostics
 # RE.msg_hook = ts_msg_hook
 
 # set default timeout for all EpicsSignal connections & communications
-TIMEOUT = 60
-if not EpicsSignalBase._EpicsSignalBase__any_instantiated:
-    EpicsSignalBase.set_defaults(
-        auto_monitor=True,
-        timeout=iconfig.get("PV_READ_TIMEOUT", TIMEOUT),
-        write_timeout=iconfig.get("PV_WRITE_TIMEOUT", TIMEOUT),
-        connection_timeout=iconfig.get("PV_CONNECTION_TIMEOUT", TIMEOUT),
-    )
-
-_pv = iconfig.get("RUN_ENGINE_SCAN_ID_PV")
-if _pv is None:
-    logger.info("Using RunEngine metadata for scan_id")
-else:
-    from ophyd import EpicsSignal
-
-    logger.info("Using EPICS PV %s for scan_id", _pv)
-    scan_id_epics = EpicsSignal(_pv, name="scan_id_epics")
-
-    def epics_scan_id_source(_md):
-        """
-        Callback function for RunEngine.  Returns *next* scan_id to be used.
-
-        * Ignore metadata dictionary passed as argument.
-        * Get current scan_id from PV.
-        * Apply lower limit of zero.
-        * Increment (so that scan_id numbering starts from 1).
-        * Set PV with new value.
-        * Return new value.
-
-        Exception will be raised if PV is not connected when next
-        ``bps.open_run()`` is called.
-        """
-        new_scan_id = max(scan_id_epics.get(), 0) + 1
-        scan_id_epics.put(new_scan_id)
-        return new_scan_id
-
-    # tell RunEngine to use the EPICS PV to provide the scan_id.
-    RE.scan_id_source = epics_scan_id_source
-    scan_id_epics.wait_for_connection()
-    RE.md["scan_id"] = scan_id_epics.get()
+TIMEOUT = 15
+EpicsSignalBase.set_defaults(
+    auto_monitor=True,
+    timeout=TIMEOUT,
+    write_timeout=TIMEOUT,
+    connection_timeout=TIMEOUT,
+)

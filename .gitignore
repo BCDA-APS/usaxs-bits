@@ -27,3 +27,6 @@ build/
 
 # Macintosh
 .DS_Store
+
+# Dropings from APS IT
+.loglogin

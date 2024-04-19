@@ -3,10 +3,10 @@
 # configuration for the instrument package
 # simple key:value pairs
 
-ADSIM_IOC_PREFIX: "ad:"
-GP_IOC_PREFIX: "gp:"
+# ADSIM_IOC_PREFIX: "ad:"
+# GP_IOC_PREFIX: "gp:"
 
-DATABROKER_CATALOG: &databroker_catalog EDIT_CATALOG_NAME_HERE
+DATABROKER_CATALOG: &databroker_catalog 20idb_usaxs
 
 # default RunEngine metadata
 RUNENGINE_METADATA:
@@ -23,16 +23,16 @@ RUNENGINE_METADATA:
 # area detector paths used by training IOC
 # These are examples for other use of this instrument.
 # see: https://bcda-aps.github.io/apstools/latest/examples/de_0_adsim_hdf5_basic.html#File-Directories
-AD_IMAGE_DIR: "adsimdet/%Y/%m/%d"
-AD_MOUNT_PATH: /tmp
-BLUESKY_MOUNT_PATH: /tmp/docker_ioc/iocad/tmp
+# AD_IMAGE_DIR: "adsimdet/%Y/%m/%d"
+# AD_MOUNT_PATH: /tmp
+# BLUESKY_MOUNT_PATH: /tmp/docker_ioc/iocad/tmp
 
 # permissions
-ALLOW_AREA_DETECTOR_WARMUP: true
+ALLOW_AREA_DETECTOR_WARMUP: false
 ENABLE_AREA_DETECTOR_IMAGE_PLUGIN: true
 ENABLE_CALCS: true
 USE_PROGRESS_BAR: false
-WRITE_SPEC_DATA_FILES: true
+WRITE_SPEC_DATA_FILES: false
 
 # ----------------------------------
 
