@@ -31,11 +31,11 @@ class UsaxsDetectorStageDevice(MotorBundle):
     """USAXS detector stage"""
     x = Component(
         UsaxsMotorTunable,
-        '9idcAERO:m1',
+        'usxAERO:m1',
         labels=("detector", "tunable",))
     y = Component(
         UsaxsMotorTunable,
-        '9idcAERO:m2',
+        'usxAERO:m2',
         labels=("detector", "tunable",))
 
 
@@ -43,55 +43,55 @@ class UsaxsSampleStageDevice(MotorBundle):
     """USAXS sample stage"""
     x = Component(
         EpicsMotor,
-        '9idcAERO:m8',
+        'usxAERO:m8',
         labels=("sample",))
     y = Component(
         EpicsMotor,
-        '9idcAERO:m9',
+        'usxAERO:m9',
         labels=("sample",))
 
 
 class UsaxsCollimatorStageDevice(MotorBundle):
     """USAXS Collimator (Monochromator) stage"""
-    r = Component(UsaxsMotorTunable, '9idcAERO:m12', labels=("collimator", "tunable",))
-    x = Component(EpicsMotor, '9idcAERO:m10', labels=("collimator",))
-    y = Component(EpicsMotor, '9idcAERO:m11', labels=("collimator",))
-    r2p = Component(UsaxsMotorTunable, '9idcLAX:pi:c0:m2', labels=("collimator", "tunable",))
+    r = Component(UsaxsMotorTunable, 'usxAERO:m12', labels=("collimator", "tunable",))
+    x = Component(EpicsMotor, 'usxAERO:m10', labels=("collimator",))
+    y = Component(EpicsMotor, 'usxAERO:m11', labels=("collimator",))
+    r2p = Component(UsaxsMotorTunable, 'usxLAX:pi:c0:m2', labels=("collimator", "tunable",))
     isChannelCut = True
 
 
 class UsaxsCollimatorSideReflectionStageDevice(MotorBundle):
     """USAXS Collimator (Monochromator) side-reflection stage"""
-    #r = Component(EpicsMotor, '9idcLAX:xps:c0:m5', labels=("side_collimator",))
-    #t = Component(EpicsMotor, '9idcLAX:xps:c0:m3', labels=("side_collimator",))
-    x = Component(EpicsMotor, '9idcLAX:m58:c1:m1', labels=("side_collimator",))
-    y = Component(EpicsMotor, '9idcLAX:m58:c1:m2')
-    rp = Component(UsaxsMotorTunable, '9idcLAX:pi:c0:m3', labels=("side_collimator", "tunable",))
+    #r = Component(EpicsMotor, 'usxLAX:xps:c0:m5', labels=("side_collimator",))
+    #t = Component(EpicsMotor, 'usxLAX:xps:c0:m3', labels=("side_collimator",))
+    x = Component(EpicsMotor, 'usxLAX:m58:c1:m1', labels=("side_collimator",))
+    y = Component(EpicsMotor, 'usxLAX:m58:c1:m2')
+    rp = Component(UsaxsMotorTunable, 'usxLAX:pi:c0:m3', labels=("side_collimator", "tunable",))
 
 
 class UsaxsAnalyzerStageDevice(MotorBundle):
     """USAXS Analyzer stage"""
-    r = Component(UsaxsArMotorTunable, '9idcAERO:m6', labels=("analyzer", "tunable"))
-    x = Component(EpicsMotor, '9idcAERO:m4', labels=("analyzer",))
-    y = Component(EpicsMotor, '9idcAERO:m5', labels=("analyzer",))
-    #z = Component(EpicsMotor, '9idcLAX:m58:c0:m7', labels=("analyzer",))
-    r2p = Component(UsaxsMotorTunable, '9idcLAX:pi:c0:m1', labels=("analyzer", "tunable"))
-    rt = Component(EpicsMotor, '9idcLAX:m58:c1:m3', labels=("analyzer",))
+    r = Component(UsaxsArMotorTunable, 'usxAERO:m6', labels=("analyzer", "tunable"))
+    x = Component(EpicsMotor, 'usxAERO:m4', labels=("analyzer",))
+    y = Component(EpicsMotor, 'usxAERO:m5', labels=("analyzer",))
+    #z = Component(EpicsMotor, 'usxLAX:m58:c0:m7', labels=("analyzer",))
+    r2p = Component(UsaxsMotorTunable, 'usxLAX:pi:c0:m1', labels=("analyzer", "tunable"))
+    rt = Component(EpicsMotor, 'usxLAX:m58:c1:m3', labels=("analyzer",))
 
 
 class UsaxsAnalyzerSideReflectionStageDevice(MotorBundle):
     """USAXS Analyzer side-reflection stage"""
-    #r = Component(EpicsMotor, '9idcLAX:xps:c0:m6', labels=("analyzer",))
-    #t = Component(EpicsMotor, '9idcLAX:xps:c0:m4', labels=("analyzer",))
-    y = Component(EpicsMotor, '9idcLAX:m58:c1:m4', labels=("analyzer",))
-    rp = Component(UsaxsMotorTunable, '9idcLAX:pi:c0:m4', labels=("analyzer", "tunable"))
+    #r = Component(EpicsMotor, 'usxLAX:xps:c0:m6', labels=("analyzer",))
+    #t = Component(EpicsMotor, 'usxLAX:xps:c0:m4', labels=("analyzer",))
+    y = Component(EpicsMotor, 'usxLAX:m58:c1:m4', labels=("analyzer",))
+    rp = Component(UsaxsMotorTunable, 'usxLAX:pi:c0:m4', labels=("analyzer", "tunable"))
 
 
 class SaxsDetectorStageDevice(MotorBundle):
     """SAXS detector stage (aka: pin SAXS stage)"""
-    x = Component(EpicsMotor, '9idcAERO:m13', labels=("saxs",))
-    y = Component(EpicsMotor, '9idcAERO:m15', labels=("saxs",))
-    z = Component(EpicsMotor, '9idcAERO:m14', labels=("saxs",))
+    x = Component(EpicsMotor, 'usxAERO:m13', labels=("saxs",))
+    y = Component(EpicsMotor, 'usxAERO:m15', labels=("saxs",))
+    z = Component(EpicsMotor, 'usxAERO:m14', labels=("saxs",))
 
 
 s_stage    = UsaxsSampleStageDevice('', name='s_stage')
@@ -106,12 +106,12 @@ as_stage   = UsaxsAnalyzerSideReflectionStageDevice('', name='as_stage')
 saxs_stage = SaxsDetectorStageDevice('', name='saxs_stage')
 
 waxsx = EpicsMotor(
-    '9idcAERO:m3',
+    'usxAERO:m3',
     name='waxsx',
     labels=("waxs", "motor"))  # WAXS X
 
 waxs2x = EpicsMotor(
-    '9idcAERO:m7',
+    'usxAERO:m7',
     name='waxs2x',
     labels=("waxs2", "motor"))  # WAXS2 X
 
