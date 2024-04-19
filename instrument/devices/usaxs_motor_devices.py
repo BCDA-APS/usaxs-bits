@@ -4,7 +4,6 @@ motor customizations
 """
 
 __all__ = [
-    'UsaxsMotor',
     'UsaxsMotorTunable',
 ]
 
@@ -17,6 +16,7 @@ from apstools.devices import AxisTunerMixin
 from ophyd import Component, EpicsMotor, Signal, Device, PositionerBase
 from ophyd.status import wait as status_wait
 
+# TODO: check rest of the code for UsaxsMotor and replace with EpicsMotor 
 # custom for any overrides (none now)
 # copied from https://github.com/NSLS-II-SST/sst_base/blob/5c019a3f0feb9032cfa1c5a5e84b9322eb5b309d/sst_base/positioners.py#L8-L72
 
@@ -83,9 +83,9 @@ class DeadbandMixin(Device, PositionerBase):
 
             return status
 
-class UsaxsMotor(EpicsMotor): ...
+class XXUsaxsMotor(EpicsMotor): ...
 
-class UsaxsMotorTunable(AxisTunerMixin, UsaxsMotor):
+class UsaxsMotorTunable(AxisTunerMixin, EpicsMotor):
     width = Component(Signal, value=0, kind="config")
 
 class UsaxsArMotorTunable(DeadbandMixin, UsaxsMotorTunable):
