@@ -11,7 +11,7 @@ local, custom Device definitions
 
 # from .aps_source import *
 # from .aps_undulator import *
-
+from .amplifiers import *
 # from .area_detector import *
 # from .calculation_records import *
 # from .fourc_diffractometer import *

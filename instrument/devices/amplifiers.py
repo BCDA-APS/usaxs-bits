@@ -5,24 +5,24 @@ detectors, amplifiers, and related support
 #            Define local PD address:
  if(Use_DLPCA300){
      PDstring = "pd01:seq02"
-     UPD_PV    =    "9idcUSX:pd01:seq02"
+     UPD_PV    =    "usxUSX:pd01:seq02"
   }else{
      PDstring = "pd01:seq01"
-     UPD_PV    =    "9idcUSX:pd01:seq01"
+     UPD_PV    =    "usxUSX:pd01:seq01"
   }
 
 ========  =================  ====================  ===================  ===========
 detector  scaler             amplifier             autorange sequence   Femto model
 ========  =================  ====================  ===================  ===========
-UPD       9idcLAX:vsc:c0.S4  9idcLAX:fem01:seq01:  9idcLAX:pd01:seq01:  DLPCA200
-UPD       9idcLAX:vsc:c0.S4  9idcLAX:fem09:seq02:  9idcLAX:pd01:seq02:  DDPCA300
-I0        9idcLAX:vsc:c0.S2  9idcRIO:fem02:seq01:  9idcLAX:pd02:seq01:
-I00       9idcLAX:vsc:c0.S3  9idcRIO:fem03:seq01:  9idcLAX:pd03:seq01:
-I000      9idcLAX:vsc:c0.S6  9idcRIO:fem04:seq01:  None
-TRD       9idcLAX:vsc:c0.S5  9idcRIO:fem05:seq01:  9idcLAX:pd05:seq01:
+UPD       usxLAX:vsc:c0.S4  usxLAX:fem01:seq01:  usxLAX:pd01:seq01:  DLPCA200
+UPD       usxLAX:vsc:c0.S4  usxLAX:fem09:seq02:  usxLAX:pd01:seq02:  DDPCA300
+I0        usxLAX:vsc:c0.S2  usxRIO:fem02:seq01:  usxLAX:pd02:seq01:
+I00       usxLAX:vsc:c0.S3  usxRIO:fem03:seq01:  usxLAX:pd03:seq01:
+I000      usxLAX:vsc:c0.S6  usxRIO:fem04:seq01:  None
+TRD       usxLAX:vsc:c0.S5  usxRIO:fem05:seq01:  usxLAX:pd05:seq01:
 ========  =================  ====================  ===================  ===========
 
-A PV (``9idcLAX:femto:model``) tells which UPD amplifier and sequence
+A PV (``usxLAX:femto:model``) tells which UPD amplifier and sequence
 programs we're using now.  This PV is read-only since it is set when
 IOC boots, based on a soft link that configures the IOC.  The soft
 link may be changed using the ``use200pd``  or  ``use300pd`` script.
@@ -82,8 +82,8 @@ import numpy as np
 from ophyd import Component, Device, Signal
 from ophyd import EpicsSignal, EpicsSignalRO
 from ophyd import DynamicDeviceComponent, FormattedComponent
-# from ophyd.scaler import ScalerCH, ScalerChannel
-from .override_ScalerCH import ScalerCH, ScalerChannel
+from ophyd.scaler import ScalerCH, ScalerChannel
+# from .override_ScalerCH import ScalerCH, ScalerChannel
 from ophyd.utils import OrderedDefaultDict
 
 from .aps_source import aps
@@ -601,25 +601,25 @@ def autoscale_amplifiers(controls, shutter=None, count_time=0.05, max_iterations
 
 # ------------
 
-_amplifier_id_upd = epics.caget("9idcLAX:femto:model", as_string=True)
+_amplifier_id_upd = epics.caget("usxLAX:femto:model", as_string=True)
 
 if _amplifier_id_upd == "DLCPA200":
-    _upd_femto_prefix = "9idcLAX:fem01:seq01:"
-    _upd_auto_prefix  = "9idcLAX:pd01:seq01:"
+    _upd_femto_prefix = "usxLAX:fem01:seq01:"
+    _upd_auto_prefix  = "usxLAX:pd01:seq01:"
 elif _amplifier_id_upd == "DDPCA300":
-    _upd_femto_prefix = "9idcLAX:fem09:seq02:"
-    _upd_auto_prefix  = "9idcLAX:pd01:seq02:"
+    _upd_femto_prefix = "usxLAX:fem09:seq02:"
+    _upd_auto_prefix  = "usxLAX:pd01:seq02:"
 
 upd_femto_amplifier  = FemtoAmplifierDevice(_upd_femto_prefix, name="upd_femto_amplifier")
-trd_femto_amplifier  = FemtoAmplifierDevice("9idcRIO:fem05:seq01:", name="trd_femto_amplifier")
-I0_femto_amplifier   = FemtoAmplifierDevice("9idcRIO:fem02:seq01:", name="I0_femto_amplifier")
-I00_femto_amplifier  = FemtoAmplifierDevice("9idcRIO:fem03:seq01:", name="I00_femto_amplifier")
-I000_femto_amplifier = FemtoAmplifierDevice("9idcRIO:fem04:seq01:", name="I000_femto_amplifier")
+trd_femto_amplifier  = FemtoAmplifierDevice("usxRIO:fem05:seq01:", name="trd_femto_amplifier")
+I0_femto_amplifier   = FemtoAmplifierDevice("usxRIO:fem02:seq01:", name="I0_femto_amplifier")
+I00_femto_amplifier  = FemtoAmplifierDevice("usxRIO:fem03:seq01:", name="I00_femto_amplifier")
+I000_femto_amplifier = FemtoAmplifierDevice("usxRIO:fem04:seq01:", name="I000_femto_amplifier")
 
 upd_autorange_controls = AmplifierAutoDevice(_upd_auto_prefix, name="upd_autorange_controls")
-trd_autorange_controls = AmplifierAutoDevice("9idcLAX:pd05:seq01:", name="trd_autorange_controls")
-I0_autorange_controls = AmplifierAutoDevice("9idcLAX:pd02:seq01:", name="I0_autorange_controls")
-I00_autorange_controls = AmplifierAutoDevice("9idcLAX:pd03:seq01:", name="I00_autorange_controls")
+trd_autorange_controls = AmplifierAutoDevice("usxLAX:pd05:seq01:", name="trd_autorange_controls")
+I0_autorange_controls = AmplifierAutoDevice("usxLAX:pd02:seq01:", name="I0_autorange_controls")
+I00_autorange_controls = AmplifierAutoDevice("usxLAX:pd03:seq01:", name="I00_autorange_controls")
 
 # record at start and end of each scan
 sd.baseline.append(upd_autorange_controls)
@@ -638,7 +638,7 @@ upd_controls = DetectorAmplifierAutorangeDevice(
 #upd_photocurrent = ComputedScalerAmplifierSignal(
 #    name="upd_photocurrent", parent=upd_controls)
 upd_photocurrent_calc = ModifiedSwaitRecord(
-    "9idcLAX:USAXS:upd",
+    "usxLAX:USAXS:upd",
     name="upd_photocurrent_calc")
 upd_photocurrent = upd_photocurrent_calc.get()
 
@@ -653,7 +653,7 @@ trd_controls = DetectorAmplifierAutorangeDevice(
 #trd_photocurrent = ComputedScalerAmplifierSignal(
 #    name="trd_photocurrent", parent=trd_controls)
 trd_photocurrent_calc = ModifiedSwaitRecord(
-    "9idcLAX:USAXS:trd",
+    "usxLAX:USAXS:trd",
     name="trd_photocurrent_calc")
 trd_photocurrent = trd_photocurrent_calc.get()
 
@@ -668,7 +668,7 @@ I0_controls = DetectorAmplifierAutorangeDevice(
 #I0_photocurrent = ComputedScalerAmplifierSignal(
 #    name="I0_photocurrent", parent=I0_controls)
 I0_photocurrent_calc = ModifiedSwaitRecord(
-    "9idcLAX:USAXS:I0",
+    "usxLAX:USAXS:I0",
     name="I0_photocurrent_calc")
 I0_photocurrent = I0_photocurrent_calc.get()
 
@@ -683,13 +683,13 @@ I00_controls = DetectorAmplifierAutorangeDevice(
 #I00_photocurrent = ComputedScalerAmplifierSignal(
 #    name="I00_photocurrent", parent=I00_controls)
 I00_photocurrent_calc = ModifiedSwaitRecord(
-    "9idcLAX:USAXS:I00",
+    "usxLAX:USAXS:I00",
     name="I00_photocurrent_calc")
 I00_photocurrent = I00_photocurrent_calc.get()
 
 
 I000_photocurrent_calc = ModifiedSwaitRecord(
-    "9idcLAX:USAXS:I000",
+    "usxLAX:USAXS:I000",
     name="I000_photocurrent_calc")
 I000_photocurrent = I000_photocurrent_calc.get()
 
