@@ -18,6 +18,7 @@ local, custom Device definitions
 # from .ioc_stats import *
 # from .kohzu_monochromator import *
 from .motorsLAX import *
+from .stages import *
 # from .noisy_detector import *
 from .scalers import *
 # from .shutter_simulator import *
