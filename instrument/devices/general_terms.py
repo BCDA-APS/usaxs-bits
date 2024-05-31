@@ -22,12 +22,12 @@ from ..framework import sd
 
 class FlyScanParameters(Device):
     """FlyScan values"""
-    number_points = Component(EpicsSignal, "9idcLAX:USAXS:FS_NumberOfPoints")
-    scan_time = Component(EpicsSignal, "9idcLAX:USAXS:FS_ScanTime")
-    use_flyscan = Component(EpicsSignal, "9idcLAX:USAXS:UseFlyscan")
-    #asrp_calc_SCAN = Component(EpicsSignal, "9idcLAX:userStringCalc2.SCAN")
-    order_number = Component(EpicsSignal, "9idcLAX:USAXS:FS_OrderNumber")
-    elapsed_time = Component(EpicsSignal, "9idcLAX:USAXS:FS_ElapsedTime")
+    number_points = Component(EpicsSignal, "usxLAX:USAXS:FS_NumberOfPoints")
+    scan_time = Component(EpicsSignal, "usxLAX:USAXS:FS_ScanTime")
+    use_flyscan = Component(EpicsSignal, "usxLAX:USAXS:UseFlyscan")
+    #asrp_calc_SCAN = Component(EpicsSignal, "usxLAX:userStringCalc2.SCAN")
+    order_number = Component(EpicsSignal, "usxLAX:USAXS:FS_OrderNumber")
+    elapsed_time = Component(EpicsSignal, "usxLAX:USAXS:FS_ElapsedTime")
 
     setpoint_up = Component(Signal, value=6000)     # decrease range
     setpoint_down = Component(Signal, value=850000)    # increase range
@@ -35,15 +35,15 @@ class FlyScanParameters(Device):
 
 class PreUsaxsTuneParameters(Device):
     """preUSAXStune handling"""
-    num_scans_last_tune = Component(EpicsSignal, "9idcLAX:NumScansFromLastTune")
-    epoch_last_tune = Component(EpicsSignal, "9idcLAX:EPOCHTimeOfLastTune")
-    req_num_scans_between_tune = Component(EpicsSignal, "9idcLAX:ReqNumScansBetweenTune")
-    req_time_between_tune = Component(EpicsSignal, "9idcLAX:ReqTimeBetweenTune")
-    run_tune_on_qdo = Component(EpicsSignal, "9idcLAX:RunPreUSAXStuneOnQdo")
-    run_tune_next = Component(EpicsSignal, "9idcLAX:RunPreUSAXStuneNext")
-    sx = Component(EpicsSignal, "9idcLAX:preUSAXStuneSX")
-    sy = Component(EpicsSignal, "9idcLAX:preUSAXStuneSY")
-    use_specific_location = Component(EpicsSignal, "9idcLAX:UseSpecificTuneLocation")
+    num_scans_last_tune = Component(EpicsSignal, "usxLAX:NumScansFromLastTune")
+    epoch_last_tune = Component(EpicsSignal, "usxLAX:EPOCHTimeOfLastTune")
+    req_num_scans_between_tune = Component(EpicsSignal, "usxLAX:ReqNumScansBetweenTune")
+    req_time_between_tune = Component(EpicsSignal, "usxLAX:ReqTimeBetweenTune")
+    run_tune_on_qdo = Component(EpicsSignal, "usxLAX:RunPreUSAXStuneOnQdo")
+    run_tune_next = Component(EpicsSignal, "usxLAX:RunPreUSAXStuneNext")
+    sx = Component(EpicsSignal, "usxLAX:preUSAXStuneSX")
+    sy = Component(EpicsSignal, "usxLAX:preUSAXStuneSY")
+    use_specific_location = Component(EpicsSignal, "usxLAX:UseSpecificTuneLocation")
 
     @property
     def needed(self):
@@ -106,51 +106,51 @@ class GeneralUsaxsParametersCenters(Device):
 
 class Parameters_transmission(Device):
     # measure transmission in USAXS using pin diode
-    measure = Component(EpicsSignal, "9idcLAX:USAXS:TR_MeasurePinTrans")
+    measure = Component(EpicsSignal, "usxLAX:USAXS:TR_MeasurePinTrans")
 
     # Ay to hit pin diode
-    ax = Component(EpicsSignal, "9idcLAX:USAXS:TR_AxPosition")
-    count_time = Component(EpicsSignal, "9idcLAX:USAXS:TR_MeasurementTime")
-    diode_counts = Component(EpicsSignal, "9idcLAX:USAXS:TR_pinCounts")
-    diode_gain = Component(EpicsSignal, "9idcLAX:USAXS:TR_pinGain") # I00 amplifier
-    I0_counts = Component(EpicsSignal, "9idcLAX:USAXS:TR_I0Counts")
-    I0_gain = Component(EpicsSignal, "9idcLAX:USAXS:TR_I0Gain")
+    ax = Component(EpicsSignal, "usxLAX:USAXS:TR_AxPosition")
+    count_time = Component(EpicsSignal, "usxLAX:USAXS:TR_MeasurementTime")
+    diode_counts = Component(EpicsSignal, "usxLAX:USAXS:TR_pinCounts")
+    diode_gain = Component(EpicsSignal, "usxLAX:USAXS:TR_pinGain") # I00 amplifier
+    I0_counts = Component(EpicsSignal, "usxLAX:USAXS:TR_I0Counts")
+    I0_gain = Component(EpicsSignal, "usxLAX:USAXS:TR_I0Gain")
 
 
 class Parameters_USAXS(Device):
     """internal values shared with EPICS"""
-    AX0 = Component(EpicsSignal,                      "9idcLAX:SAXS:ax_in")
-    DX0 = Component(EpicsSignal,                      "9idcLAX:SAXS:dx_in")
-    ASRP0 = Component(EpicsSignal,                    "9idcLAX:USAXS:ASRcenter")
-    SAD = Component(EpicsSignal,                      "9idcLAX:USAXS:SAD")
-    SDD = Component(EpicsSignal,                      "9idcLAX:USAXS:SDD")
-    ar_val_center = Component(EpicsSignal,            "9idcLAX:USAXS:ARcenter")
-    #asr_val_center = Component(EpicsSignal,           "9idcLAX:USAXS:ASRcenter")
+    AX0 = Component(EpicsSignal,                      "usxLAX:SAXS:ax_in")
+    DX0 = Component(EpicsSignal,                      "usxLAX:SAXS:dx_in")
+    ASRP0 = Component(EpicsSignal,                    "usxLAX:USAXS:ASRcenter")
+    SAD = Component(EpicsSignal,                      "usxLAX:USAXS:SAD")
+    SDD = Component(EpicsSignal,                      "usxLAX:USAXS:SDD")
+    ar_val_center = Component(EpicsSignal,            "usxLAX:USAXS:ARcenter")
+    #asr_val_center = Component(EpicsSignal,           "usxLAX:USAXS:ASRcenter")
 
     #	ASRP_DEGREES_PER_VDC = 0.0059721     # measured by JI October 9, 2006 during setup at 32ID. Std Dev 4e-5
     #  	ASRP_DEGREES_PER_VDC = 0.00059721     # changed by factor of 10 to accomodate new PIUU controller, where we drive directly in V of high voltage.
     # Measured by JIL on 6/4/2016, average of two measured numbers
     #asrp_degrees_per_VDC = Component(Signal,          value=(0.000570223 + 0.000585857)/2)
 
-    blackfly = Component(GeneralUsaxsParametersBlackfly, "9idcLAX:USAXS:BlackFly_")
+    blackfly = Component(GeneralUsaxsParametersBlackfly, "usxLAX:USAXS:BlackFly_")
 
-    center = Component(GeneralUsaxsParametersCenters, "9idcLAX:USAXS:")
-    ccd = Component(GeneralParametersCCD,             "9idcLAX:USAXS:CCD_")
-    diode = Component(GeneralUsaxsParametersDiode,    "9idcLAX:USAXS:")
-    img_filters = Component(Parameters_Al_Ti_Filters, "9idcLAX:USAXS:Img_")
-    finish = Component(EpicsSignal,                   "9idcLAX:USAXS:Finish")
-    is2DUSAXSscan = Component(EpicsSignal,            "9idcLAX:USAXS:is2DUSAXSscan")
-    motor_prescaler_wait = Component(EpicsSignal,     "9idcLAX:USAXS:Prescaler_Wait")
-    mr_val_center = Component(EpicsSignal,            "9idcLAX:USAXS:MRcenter")
-    #msr_val_center = Component(EpicsSignal,           "9idcLAX:USAXS:MSRcenter")
-    num_points = Component(EpicsSignal,               "9idcLAX:USAXS:NumPoints")
-    sample_y_step = Component(EpicsSignal,            "9idcLAX:USAXS:Sample_Y_Step")
-    scan_filters = Component(Parameters_Al_Ti_Filters, "9idcLAX:USAXS:Scan_")
-    scanning = Component(EpicsSignal,                 "9idcLAX:USAXS:scanning")
-    start_offset = Component(EpicsSignal,             "9idcLAX:USAXS:StartOffset")
-    uaterm = Component(EpicsSignal,                   "9idcLAX:USAXS:UATerm")
-    usaxs_minstep = Component(EpicsSignal,            "9idcLAX:USAXS:MinStep")
-    usaxs_time = Component(EpicsSignal,               "9idcLAX:USAXS:CountTime")
+    center = Component(GeneralUsaxsParametersCenters, "usxLAX:USAXS:")
+    ccd = Component(GeneralParametersCCD,             "usxLAX:USAXS:CCD_")
+    diode = Component(GeneralUsaxsParametersDiode,    "usxLAX:USAXS:")
+    img_filters = Component(Parameters_Al_Ti_Filters, "usxLAX:USAXS:Img_")
+    finish = Component(EpicsSignal,                   "usxLAX:USAXS:Finish")
+    is2DUSAXSscan = Component(EpicsSignal,            "usxLAX:USAXS:is2DUSAXSscan")
+    motor_prescaler_wait = Component(EpicsSignal,     "usxLAX:USAXS:Prescaler_Wait")
+    mr_val_center = Component(EpicsSignal,            "usxLAX:USAXS:MRcenter")
+    #msr_val_center = Component(EpicsSignal,           "usxLAX:USAXS:MSRcenter")
+    num_points = Component(EpicsSignal,               "usxLAX:USAXS:NumPoints")
+    sample_y_step = Component(EpicsSignal,            "usxLAX:USAXS:Sample_Y_Step")
+    scan_filters = Component(Parameters_Al_Ti_Filters, "usxLAX:USAXS:Scan_")
+    scanning = Component(EpicsSignal,                 "usxLAX:USAXS:scanning")
+    start_offset = Component(EpicsSignal,             "usxLAX:USAXS:StartOffset")
+    uaterm = Component(EpicsSignal,                   "usxLAX:USAXS:UATerm")
+    usaxs_minstep = Component(EpicsSignal,            "usxLAX:USAXS:MinStep")
+    usaxs_time = Component(EpicsSignal,               "usxLAX:USAXS:CountTime")
     useDynamicTime = Component(Signal,                value=True)
     useMSstage = Component(Signal,                    value=False)
     useSBUSAXS = Component(Signal,                    value=False)
@@ -172,73 +172,73 @@ class Parameters_SBUSAXS(Device):
 
 
 class Parameters_SAXS(Device):
-    z_in = Component(EpicsSignal, "9idcLAX:SAXS_z_in")
-    z_out = Component(EpicsSignal, "9idcLAX:SAXS_z_out")
-    z_limit_offset = Component(EpicsSignal, "9idcLAX:SAXS_z_limit_offset")
+    z_in = Component(EpicsSignal, "usxLAX:SAXS_z_in")
+    z_out = Component(EpicsSignal, "usxLAX:SAXS_z_out")
+    z_limit_offset = Component(EpicsSignal, "usxLAX:SAXS_z_limit_offset")
 
-    x_in = Component(EpicsSignal, "9idcLAX:SAXS_x_in")
+    x_in = Component(EpicsSignal, "usxLAX:SAXS_x_in")
  
-    y_in = Component(EpicsSignal, "9idcLAX:SAXS_y_in")
-    y_out = Component(EpicsSignal, "9idcLAX:SAXS_y_out")
-    y_limit_offset = Component(EpicsSignal, "9idcLAX:SAXS_y_limit_offset")
+    y_in = Component(EpicsSignal, "usxLAX:SAXS_y_in")
+    y_out = Component(EpicsSignal, "usxLAX:SAXS_y_out")
+    y_limit_offset = Component(EpicsSignal, "usxLAX:SAXS_y_limit_offset")
 
-    ay_in = Component(EpicsSignal, "9idcLAX:ay_in")
+    ay_in = Component(EpicsSignal, "usxLAX:ay_in")
 
-    ax_in = Component(EpicsSignal, "9idcLAX:ax_in")
-    ax_out = Component(EpicsSignal, "9idcLAX:ax_out")
-    ax_limit_offset = Component(EpicsSignal, "9idcLAX:ax_limit_offset")
+    ax_in = Component(EpicsSignal, "usxLAX:ax_in")
+    ax_out = Component(EpicsSignal, "usxLAX:ax_out")
+    ax_limit_offset = Component(EpicsSignal, "usxLAX:ax_limit_offset")
 
-    dy_in = Component(EpicsSignal, "9idcLAX:USAXS:Diode_dy")
+    dy_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dy")
 
-    dx_in = Component(EpicsSignal, "9idcLAX:USAXS:Diode_dx")
-    dx_out = Component(EpicsSignal, "9idcLAX:dx_out")
-    dx_limit_offset = Component(EpicsSignal, "9idcLAX:dx_limit_offset")
+    dx_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx")
+    dx_out = Component(EpicsSignal, "usxLAX:dx_out")
+    dx_limit_offset = Component(EpicsSignal, "usxLAX:dx_limit_offset")
 
-    usaxs_h_size = Component(EpicsSignal, "9idcLAX:USAXS_hslit_ap")
-    usaxs_v_size = Component(EpicsSignal, "9idcLAX:USAXS_vslit_ap")
-    v_size = Component(EpicsSignal, "9idcLAX:SAXS_vslit_ap")
-    h_size = Component(EpicsSignal, "9idcLAX:SAXS_hslit_ap")
+    usaxs_h_size = Component(EpicsSignal, "usxLAX:USAXS_hslit_ap")
+    usaxs_v_size = Component(EpicsSignal, "usxLAX:USAXS_vslit_ap")
+    v_size = Component(EpicsSignal, "usxLAX:SAXS_vslit_ap")
+    h_size = Component(EpicsSignal, "usxLAX:SAXS_hslit_ap")
 
-    usaxs_guard_h_size = Component(EpicsSignal, "9idcLAX:USAXS_hgslit_ap")
-    usaxs_guard_v_size = Component(EpicsSignal, "9idcLAX:USAXS_vgslit_ap")
-    guard_v_size = Component(EpicsSignal, "9idcLAX:SAXS_vgslit_ap")
-    guard_h_size = Component(EpicsSignal, "9idcLAX:SAXS_hgslit_ap")
+    usaxs_guard_h_size = Component(EpicsSignal, "usxLAX:USAXS_hgslit_ap")
+    usaxs_guard_v_size = Component(EpicsSignal, "usxLAX:USAXS_vgslit_ap")
+    guard_v_size = Component(EpicsSignal, "usxLAX:SAXS_vgslit_ap")
+    guard_h_size = Component(EpicsSignal, "usxLAX:SAXS_hgslit_ap")
 
-    filters = Component(Parameters_Al_Ti_Filters, "9idcLAX:SAXS:Exp_")
+    filters = Component(Parameters_Al_Ti_Filters, "usxLAX:SAXS:Exp_")
 
-    base_dir = Component(EpicsSignal, "9idcLAX:SAXS:directory", string=True)
+    base_dir = Component(EpicsSignal, "usxLAX:SAXS:directory", string=True)
 
-    UsaxsSaxsMode = Component(EpicsSignal, "9idcLAX:SAXS:USAXSSAXSMode", put_complete=True)
-    num_images = Component(EpicsSignal, "9idcLAX:SAXS:NumImages")
-    acquire_time = Component(EpicsSignal, "9idcLAX:SAXS:AcquireTime")
-    collecting = Component(EpicsSignal, "9idcLAX:collectingSAXS")
+    UsaxsSaxsMode = Component(EpicsSignal, "usxLAX:SAXS:USAXSSAXSMode", put_complete=True)
+    num_images = Component(EpicsSignal, "usxLAX:SAXS:NumImages")
+    acquire_time = Component(EpicsSignal, "usxLAX:SAXS:AcquireTime")
+    collecting = Component(EpicsSignal, "usxLAX:collectingSAXS")
 
 
 class Parameters_SAXS_WAXS(Device):
     """
     terms used by both SAXS & WAXS
     """
-    start_exposure_time = Component(EpicsSignal, "9idcLAX:SAXS:StartExposureTime")
-    end_exposure_time = Component(EpicsSignal, "9idcLAX:SAXS:EndExposureTime")
+    start_exposure_time = Component(EpicsSignal, "usxLAX:SAXS:StartExposureTime")
+    end_exposure_time = Component(EpicsSignal, "usxLAX:SAXS:EndExposureTime")
 
-    diode_gain = Component(EpicsSignal, "9idcLAX:SAXS:SAXS_TrPDgain")
-    diode_transmission = Component(EpicsSignal, "9idcLAX:SAXS:SAXS_TrPD")
-    I0_gain = Component(EpicsSignal, "9idcLAX:SAXS:SAXS_TrI0gain")
-    I0_transmission = Component(EpicsSignal, "9idcLAX:SAXS:SAXS_TrI0")
+    diode_gain = Component(EpicsSignal, "usxLAX:SAXS:SAXS_TrPDgain")
+    diode_transmission = Component(EpicsSignal, "usxLAX:SAXS:SAXS_TrPD")
+    I0_gain = Component(EpicsSignal, "usxLAX:SAXS:SAXS_TrI0gain")
+    I0_transmission = Component(EpicsSignal, "usxLAX:SAXS:SAXS_TrI0")
 
     # this is Io value from gates scalar in LAX for Nexus file
-    I0 = Component(EpicsSignal, "9idcLAX:SAXS:I0")
+    I0 = Component(EpicsSignal, "usxLAX:SAXS:I0")
 
 
 class Parameters_WAXS(Device):
-    x_in = Component(EpicsSignal, "9idcLAX:WAXS_x_in")
-    x_out = Component(EpicsSignal, "9idcLAX:WAXS_x_out")
-    x_limit_offset = Component(EpicsSignal, "9idcLAX:WAXS_x_limit_offset")
-    filters = Component(Parameters_Al_Ti_Filters, "9idcLAX:USAXS_WAXS:Exp_")
-    base_dir = Component(EpicsSignal, "9idcLAX:USAXS_WAXS:directory", string=True)
-    num_images = Component(EpicsSignal, "9idcLAX:USAXS_WAXS:NumImages")
-    acquire_time = Component(EpicsSignal, "9idcLAX:USAXS_WAXS:AcquireTime")
-    collecting = Component(EpicsSignal, "9idcLAX:collectingWAXS")
+    x_in = Component(EpicsSignal, "usxLAX:WAXS_x_in")
+    x_out = Component(EpicsSignal, "usxLAX:WAXS_x_out")
+    x_limit_offset = Component(EpicsSignal, "usxLAX:WAXS_x_limit_offset")
+    filters = Component(Parameters_Al_Ti_Filters, "usxLAX:USAXS_WAXS:Exp_")
+    base_dir = Component(EpicsSignal, "usxLAX:USAXS_WAXS:directory", string=True)
+    num_images = Component(EpicsSignal, "usxLAX:USAXS_WAXS:NumImages")
+    acquire_time = Component(EpicsSignal, "usxLAX:USAXS_WAXS:AcquireTime")
+    collecting = Component(EpicsSignal, "usxLAX:collectingWAXS")
 
 
 class Parameters_Radiography(Device):
@@ -246,29 +246,29 @@ class Parameters_Radiography(Device):
 
 
 class Parameters_Imaging(Device):
-    image_key = Component(EpicsSignal, "9idcLAX:USAXS_Img:ImageKey")
+    image_key = Component(EpicsSignal, "usxLAX:USAXS_Img:ImageKey")
     # 0=image, 1=flat field, 2=dark field
 
-    exposure_time = Component(EpicsSignal, "9idcLAX:USAXS_Img:ExposureTime")
+    exposure_time = Component(EpicsSignal, "usxLAX:USAXS_Img:ExposureTime")
 
-    tomo_rotation_angle = Component(EpicsSignal, "9idcLAX:USAXS_Img:Tomo_Rot_Angle")
-    I0 = Component(EpicsSignal, "9idcLAX:USAXS_Img:Img_I0_value")
-    I0_gain = Component(EpicsSignal, "9idcLAX:USAXS_Img:Img_I0_gain")
+    tomo_rotation_angle = Component(EpicsSignal, "usxLAX:USAXS_Img:Tomo_Rot_Angle")
+    I0 = Component(EpicsSignal, "usxLAX:USAXS_Img:Img_I0_value")
+    I0_gain = Component(EpicsSignal, "usxLAX:USAXS_Img:Img_I0_gain")
 
-    ax_in = Component(EpicsSignal, "9idcLAX:USAXS_Img:ax_in")
-    waxs_x_in = Component(EpicsSignal, "9idcLAX:USAXS_Img:waxs_x_in")
+    ax_in = Component(EpicsSignal, "usxLAX:USAXS_Img:ax_in")
+    waxs_x_in = Component(EpicsSignal, "usxLAX:USAXS_Img:waxs_x_in")
 
-    flat_field = Component(EpicsSignal, "9idcLAX:USAXS_Img:FlatFieldImage")
-    dark_field = Component(EpicsSignal, "9idcLAX:USAXS_Img:DarkFieldImage")
-    title = Component(EpicsSignal, "9idcLAX:USAXS_Img:ExperimentTitle", string=True)
+    flat_field = Component(EpicsSignal, "usxLAX:USAXS_Img:FlatFieldImage")
+    dark_field = Component(EpicsSignal, "usxLAX:USAXS_Img:DarkFieldImage")
+    title = Component(EpicsSignal, "usxLAX:USAXS_Img:ExperimentTitle", string=True)
 
-    h_size = Component(EpicsSignal, "9idcLAX:USAXS_Img:ImgHorApperture")
-    v_size = Component(EpicsSignal, "9idcLAX:USAXS_Img:ImgVertApperture")
-    guard_h_size = Component(EpicsSignal, "9idcLAX:USAXS_Img:ImgGuardHorApperture")
-    guard_v_size = Component(EpicsSignal, "9idcLAX:USAXS_Img:ImgGuardVertApperture")
+    h_size = Component(EpicsSignal, "usxLAX:USAXS_Img:ImgHorApperture")
+    v_size = Component(EpicsSignal, "usxLAX:USAXS_Img:ImgVertApperture")
+    guard_h_size = Component(EpicsSignal, "usxLAX:USAXS_Img:ImgGuardHorApperture")
+    guard_v_size = Component(EpicsSignal, "usxLAX:USAXS_Img:ImgGuardVertApperture")
 
-    filters = Component(Parameters_Al_Ti_Filters_Imaging, "9idcLAX:USAXS_Img:Img_")
-    filter_transmission = Component(EpicsSignal, "9idcLAX:USAXS_Img:Img_FilterTransmission")
+    filters = Component(Parameters_Al_Ti_Filters_Imaging, "usxLAX:USAXS_Img:Img_")
+    filter_transmission = Component(EpicsSignal, "usxLAX:USAXS_Img:Img_FilterTransmission")
 
 
 class Parameters_OutOfBeam(Device):
@@ -278,16 +278,16 @@ class Parameters_OutOfBeam(Device):
 # keep in sync with usaxs_support.heater_profile_process
 class Parameters_HeaterProcess(Device):
     # tell heater process to exit
-    linkam_exit = Component(EpicsSignal, "9idcLAX:bit14")
+    linkam_exit = Component(EpicsSignal, "usxLAX:bit14")
 
     # heater process increments at 10 Hz
-    linkam_pulse = Component(EpicsSignal, "9idcLAX:long16")
+    linkam_pulse = Component(EpicsSignal, "usxLAX:long16")
 
     # heater process is ready
-    linkam_ready = Component(EpicsSignal, "9idcLAX:bit15")
+    linkam_ready = Component(EpicsSignal, "usxLAX:bit15")
 
     # heater process should start
-    linkam_trigger = Component(EpicsSignal, "9idcLAX:bit16")
+    linkam_trigger = Component(EpicsSignal, "usxLAX:bit16")
 
 
 class GeneralParameters(Device):
@@ -303,8 +303,8 @@ class GeneralParameters(Device):
     Imaging = Component(Parameters_Imaging)
     OutOfBeam = Component(Parameters_OutOfBeam)
 
-    PauseBeforeNextScan = Component(EpicsSignal, "9idcLAX:PauseBeforeNextScan")
-    StopBeforeNextScan = Component(EpicsSignal,  "9idcLAX:StopBeforeNextScan")
+    PauseBeforeNextScan = Component(EpicsSignal, "usxLAX:PauseBeforeNextScan")
+    StopBeforeNextScan = Component(EpicsSignal,  "usxLAX:StopBeforeNextScan")
 
     # consider refactoring
     FlyScan = Component(FlyScanParameters)
