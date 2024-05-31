@@ -12,9 +12,7 @@ local, custom Device definitions
 # from .aps_source import *
 # from .aps_undulator import *
 from .amplifiers import *
-# from .area_detector import *
 # from .calculation_records import *
-# from .fourc_diffractometer import *
 # from .ioc_stats import *
 # from .kohzu_monochromator import *
 from .motorsLAX import *
@@ -22,8 +20,11 @@ from .stages import *
 # from .noisy_detector import *
 from .scalers import *
 # from .shutter_simulator import *
-# from .simulated_fourc import *
-# from .simulated_kappa import *
-# from .slits import *
-# from .sixc_diffractometer import *
 # from .temperature_signal import *
+
+
+# finally these area detectors
+# from .alta_module import *
+from .blackfly_module import *
+# from .dexela_module import *
+from .pilatus_module import *
