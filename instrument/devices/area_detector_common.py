@@ -34,10 +34,10 @@ logger.info(__file__)
 
 from apstools.devices import AD_EpicsHdf5FileName
 from apstools.devices import AD_EpicsJPEGFileName
-# TODO: from apstools.devices import AD_EpicsTiffFileName
+from apstools.devices import AD_EpicsTiffFileName
 from apstools.devices import AD_plugin_primed
 from collections import OrderedDict
-from .ad_tiff_upstream import AD_EpicsTiffFileName
+#from .ad_tiff_upstream import AD_EpicsTiffFileName - obsolete on 6/1/2024, https://bcda-aps.github.io/apstools/latest/api/_devices.html#apstools.devices.area_detector_support.AD_EpicsFileNameTIFFPlugin
 from ophyd import HDF5Plugin
 from ophyd import JPEGPlugin
 from ophyd import TIFFPlugin
