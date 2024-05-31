@@ -34,7 +34,7 @@ logger.info(__file__)
 
 from apstools.devices import AD_EpicsHdf5FileName
 from apstools.devices import AD_EpicsJPEGFileName
-from apstools.devices import AD_EpicsTiffFileName
+from apstools.devices import AD_EpicsTIFFFileName
 from apstools.devices import AD_plugin_primed
 from collections import OrderedDict
 #from .ad_tiff_upstream import AD_EpicsTiffFileName - obsolete on 6/1/2024, https://bcda-aps.github.io/apstools/latest/api/_devices.html#apstools.devices.area_detector_support.AD_EpicsFileNameTIFFPlugin
@@ -138,7 +138,7 @@ class myJpegFileNames(JPEGPlugin, myJpegEpicsIterativeWriter): ...
 class EpicsDefinesJpegFileNames(JPEGPlugin,
                                 myJpegEpicsIterativeWriter): ...
 
-class myTiffEpicsIterativeWriter(AD_EpicsTiffFileName,
+class myTiffEpicsIterativeWriter(AD_EpicsTIFFFileName,
                                  FileStoreIterativeWrite): ...
 class myTiffFileNames(TIFFPlugin, myTiffEpicsIterativeWriter): ...
 class EpicsDefinesTiffFileNames(TIFFPlugin,
