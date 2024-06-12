@@ -19,17 +19,14 @@ from .sample_data import *
 # TODO : bss code needs fixing. 
 # from .user_data import *
 
-from .amplifiers import *
-# from .calculation_records import *
-# from .ioc_stats import *
-# from .kohzu_monochromator import *
+from .scalers import *
 from .motorsLAX import *
 from .stages import *
 # from .noisy_detector import *
-from .scalers import *
 # from .shutter_simulator import *
 # from .temperature_signal import *
 
+from .amplifiers import *
 
 # finally these area detectors
 # from .alta_module import *
