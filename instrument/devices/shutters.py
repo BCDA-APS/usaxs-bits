@@ -29,11 +29,12 @@ from ophyd import Signal
 import time
 
 from .aps_source import aps
-from .permit import operations_in_9idc
+from .permit import operations_in_12ide
 
-class My20IdPssShutter(ApsPssShutterWithStatus):
+# TODO fix this for 12IDE
+class My12IdPssShutter(ApsPssShutterWithStatus):
     """
-    Controls a single APS PSS shutter at 20ID.
+    Controls a single APS PSS shutter at 12IDE.
 
     ======  =========  =====
     action  PV suffix  value
@@ -68,30 +69,30 @@ class My20IdPssShutter(ApsPssShutterWithStatus):
 # pss_shutters = PssShutters("", name="pss_shutters")
 #pvstatus = PA:20ID:STA_A_FES_OPEN_PL or B_SBS results on "OFF" or "ON"
 
-if aps.inUserOperations and operations_in_9idc():
-    FE_shutter = My20IdPssShutter(
-        #20id:shutter0_opn and 20id:shutter0_cls
-        "20id:shutter0",  
-        state_pv = "PA:20ID:STA_A_FES_OPEN_PL",
+if aps.inUserOperations and operations_in_12ide():
+    FE_shutter = My12IdPssShutter(
+        #12id:shutter0_opn and 12id:shutter0_cls
+        "12id:shutter0",  
+        state_pv = "PA:12ID:STA_A_FES_OPEN_PL",
         name="FE_shutter")
 
-    mono_shutter = My20IdPssShutter(
+    mono_shutter = My12IdPssShutter(
          #20id:shutter1_opn and 20id:shutter1_cls
        "20id:shutter1", 
-        state_pv = "PA:20ID:STA_B_SBS_OPEN_PL",
+        state_pv = "PA:12ID:STA_E_SBS_OPEN_PL",
         name="mono_shutter")
 
     usaxs_shutter = EpicsOnOffShutter(
-        "9idcLAX:userTran3.A",
+        "usxLAX:userTran3.A",
         name="usaxs_shutter")
 
     a_shutter_autoopen = EpicsSignal(
-        "9idcLAX:AShtr:Enable",
+        "12idcLAX:AShtr:Enable",
         name="a_shutter_autoopen")
 
 else:
     logger.warning("!"*30)
-    if operations_in_9idc():
+    if operations_in_12ide():
         logger.warning("Session started when APS not operating.")
     else:
         logger.warning("Session started when 20ID-C is not operating.")
