@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 from bluesky import plan_stubs as bps
-from ophyd import Component, EpicsSignal, MotorBundle
+from ophyd import Component, EpicsSignal, MotorBundle, EpicsMotor
 
 from ..framework import sd
 from .general_terms import terms
-from .usaxs_motor_devices import UsaxsMotor
+#from .usaxs_motor_devices import UsaxsMotor
 from ..utils import move_motors
 
 
@@ -29,10 +29,10 @@ class UsaxsSlitDevice(MotorBundle):
     * center of slit: (x, y)
     * aperture: (h_size, v_size)
     """
-    h_size = Component(UsaxsMotor, 'usxLAX:m58:c1:m8', labels=("uslit",))
-    x      = Component(UsaxsMotor, 'usxLAX:m58:c1:m6', labels=("uslit",))
-    v_size = Component(UsaxsMotor, 'usxLAX:m58:c1:m7', labels=("uslit",))
-    y      = Component(UsaxsMotor, 'usxLAX:m58:c1:m5', labels=("uslit",))
+    h_size = Component(EpicsMotor, 'usxLAX:m58:c1:m8', labels=("uslit",))
+    x      = Component(EpicsMotor, 'usxLAX:m58:c1:m6', labels=("uslit",))
+    v_size = Component(EpicsMotor, 'usxLAX:m58:c1:m7', labels=("uslit",))
+    y      = Component(EpicsMotor, 'usxLAX:m58:c1:m5', labels=("uslit",))
 
     def set_size(self, *args, h=None, v=None):
         """move the slits to the specified size"""
@@ -43,7 +43,7 @@ class UsaxsSlitDevice(MotorBundle):
         move_motors(self.h_size, h, self.v_size, v)
 
 
-class GuardSlitMotor(UsaxsMotor):
+class GuardSlitMotor(EpicsMotor):
     process_record = Component(EpicsSignal, ".PROC", kind="omitted")
     status_update = Component(EpicsSignal, ".STUP", kind="omitted")
 
@@ -58,8 +58,8 @@ class GSlitDevice(MotorBundle):
     inb  = Component(GuardSlitMotor, 'usxLAX:m58:c1:m2', labels=("gslit",))
     outb = Component(GuardSlitMotor, 'usxLAX:m58:c1:m1', labels=("gslit",))
     top  = Component(GuardSlitMotor, 'usxLAX:m58:c1:m3', labels=("gslit",))
-    x    = Component(UsaxsMotor, 'usxLAX:m58:c0:m7', labels=("gslit",))
-    y    = Component(UsaxsMotor, 'usxLAX:m58:c0:m6', labels=("gslit",))
+    x    = Component(EpicsMotor, 'usxLAX:m58:c0:m7', labels=("gslit",))
+    y    = Component(EpicsMotor, 'usxLAX:m58:c0:m6', labels=("gslit",))
 
     h_size = Component(EpicsSignal, 'usxLAX:GSlit1H:size')
     v_size = Component(EpicsSignal, 'usxLAX:GSlit1V:size')

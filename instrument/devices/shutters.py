@@ -78,7 +78,7 @@ if aps.inUserOperations and operations_in_12ide():
 
     mono_shutter = My12IdPssShutter(
          #20id:shutter1_opn and 20id:shutter1_cls
-       "20id:shutter1", 
+       "12id:shutter1", 
         state_pv = "PA:12ID:STA_E_SBS_OPEN_PL",
         name="mono_shutter")
 
@@ -87,7 +87,7 @@ if aps.inUserOperations and operations_in_12ide():
         name="usaxs_shutter")
 
     a_shutter_autoopen = EpicsSignal(
-        "12idcLAX:AShtr:Enable",
+        "usxLAX:AShtr:Enable",
         name="a_shutter_autoopen")
 
 else:
@@ -107,7 +107,7 @@ else:
 ti_filter_shutter = usaxs_shutter       # alias
 ti_filter_shutter.delay_s = 0.2         # shutter needs some recovery time
 
-ccd_shutter = EpicsOnOffShutter("9idcRIO:Galil2Bo0_CMD", name="ccd_shutter")
+ccd_shutter = EpicsOnOffShutter("usxRIO:Galil2Bo0_CMD", name="ccd_shutter")
 
 
 connect_delay_s = 1
