@@ -74,8 +74,8 @@ from bluesky import plan_stubs as bps
 from ophyd import Component, Device, EpicsSignal
 from ophyd import Kind
 from ophyd import EpicsScaler
-# from ophyd.scaler import ScalerCH
-from .override_ScalerCH import ScalerCH
+from ophyd.scaler import ScalerCH
+# from .override_ScalerCH import ScalerCH - removed JIL 6/2024, will this casue issues? 
 
 
 logger.debug("before instrument imports")

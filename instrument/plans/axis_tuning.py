@@ -38,7 +38,7 @@ from ..devices.axis_tuning import axis_tune_range
 from ..devices.axis_tuning import TUNE_METHOD_PEAK_CHOICE
 from ..devices.axis_tuning import TUNING_DET_SIGNAL
 from ..devices.axis_tuning import USING_MS_STAGE
-from ..devices.stages import m_stage, ms_stage, s_stage, a_stage, as_stage, d_stage
+from ..devices.stages import m_stage, ms_stage, s_stage, a_stage, d_stage #as_stage
 from ..devices.shutters import mono_shutter, ti_filter_shutter
 from ..devices.monochromator import monochromator
 from ..devices.scalers import scaler0, I0_SIGNAL, I00_SIGNAL, UPD_SIGNAL

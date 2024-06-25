@@ -129,20 +129,8 @@ def move_SAXSOut():
     # move the pin_z away from sample
     yield from bps.mv(saxs_stage.z, terms.SAXS.z_out.get())
 
-    # removed 12-21-2021, JIL. Not needed. Hard interlocks are better anyway
-    #saxs_stage.z.set_lim(
-    #    terms.SAXS.z_out.get() - terms.SAXS.z_limit_offset.get(),
-    #    saxs_stage.z.high_limit_travel.get(),  # don't change this value
-    #    )
-
     # move pinhole up to out of beam position
     yield from bps.mv(saxs_stage.y, terms.SAXS.y_out.get())
-
-    # removed 12-21-2021, JIL. Not needed. Hard interlocks are better anyway
-    #saxs_stage.y.set_lim(
-    #    terms.SAXS.y_out.get() - terms.SAXS.y_limit_offset.get(),
-    #    saxs_stage.y.high_limit_travel.get(),  # don't change this value
-    #    )
 
     logger.info("Removed SAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])

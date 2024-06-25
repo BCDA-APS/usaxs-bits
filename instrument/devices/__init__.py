@@ -22,6 +22,9 @@ from .sample_data import *
 from .scalers import *
 from .motorsLAX import *
 from .stages import *
+from .emails import *
+from .filters import *
+from .shutters import *
 # from .noisy_detector import *
 # from .shutter_simulator import *
 # from .temperature_signal import *

@@ -23,36 +23,38 @@ from .emails import email_notices
 from ..framework import sd
 
 
-class My20idDcmEnergy(PVPositionerSoftDoneWithStop):
-    readback = Component(EpicsSignalRO, "9idcLAX:userCalc2.VAL")
-    setpoint = Component(EpicsSignal, "9idcLAX:userCalc5.A")
+class My12EidDcmEnergy(PVPositionerSoftDoneWithStop):
+    readback = Component(EpicsSignalRO, "12ida2:EnCalc")
+    setpoint = Component(EpicsSignal, "12ida2:E2P_driveValue.A")
     egu = "keV"
-    stop_signal = Component(EpicsSignal, "20id:MonoSTOP", kind="omitted")
+    stop_signal = Component(EpicsSignal, "12ida2:Mono_STOP", kind="omitted")
     stop_value = 1
 
 
-class My20idWavelengthRO(EpicsSignalRO):
+class My12EidWavelengthRO(EpicsSignalRO):
 
     @property
     def position(self):
         return self.get()
 
 
-class My20IdDcm(Device):
+class My12IdEDcm(Device):
     energy = Component(
-        My20idDcmEnergy,
+        My12EidDcmEnergy,
         "",  # PV prefix should be blank, in this case
         # must be defined and different from each other
         setpoint_pv="setpoint",  # ignore since 'setpoint' is already defined
         readback_pv="readback",  # ignore since 'readback' is already defined
     )
-    wavelength = Component(My20idWavelengthRO, "9idcLAX:userCalc3.VAL")
-    theta = Component(EpicsMotor, "20id:m41")
+    wavelength = Component(My12EidWavelengthRO, "12ida2:LambdaCalc")
+    theta = Component(EpicsMotor, "12ida2:m19")
 
 
 # simple enumeration used by DCM_Feedback()
 MONO_FEEDBACK_OFF, MONO_FEEDBACK_ON = range(2)
 
+
+#TODO: fix feedback system when ready. 
 
 class DCM_Feedback(Device):
     """
@@ -87,8 +89,8 @@ class DCM_Feedback(Device):
 
 class MyMonochromator(Device):
     #dcm = Component(KohzuSeqCtl_Monochromator, "9ida:")
-    dcm = Component(My20IdDcm, "")
-    feedback = Component(DCM_Feedback, "9idcLAX:fbe:omega")
+    dcm = Component(My12IdEDcm, "")
+    feedback = Component(DCM_Feedback, "usxLAX:fbe:omega")
     #temperature = Component(EpicsSignal, "9ida:DP41:s1:temp")
     #cryo_level = Component(EpicsSignal, "9idCRYO:MainLevel:val")
 
