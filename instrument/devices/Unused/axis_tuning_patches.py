@@ -14,7 +14,8 @@ logger.info(__file__)
 
 
 from apstools.devices import AxisTunerMixin
-from apstools.plans import TuneAxis
+#from apstools.plans import TuneAxis
+from apstools.plans import lineup2
 from bluesky import plans as bp
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
@@ -69,7 +70,7 @@ class TuningResults(Device):
             getattr(self, key).put(v)
 
 
-class UsaxsTuneAxis(TuneAxis):
+class UsaxsTuneAxis(lineup2):
     """use bp.rel_scan() for the tune()"""
 
     width_signal = None
