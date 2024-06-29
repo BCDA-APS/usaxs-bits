@@ -32,6 +32,8 @@ from bluesky import plan_stubs as bps
 from ophyd import Kind
 import time
 
+from apstools.plans import plotxy
+
 from ..devices import autoscale_amplifiers, upd_controls, I0_controls, I00_controls
 from ..devices import user_override
 from ..devices.axis_tuning import axis_tune_range
@@ -72,6 +74,7 @@ def _tune_base_(axis, md={}):
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
+    # plotxy(uuids,I0_SIGNAL or UPD_SIGNAL)
     # TODO plot the data somenow, use plotxy() which takes the uuid list from tune
     # TODO handle multiple plots as we had before AND keep number of ploted data sensible. 
     found = axis.tuner.peak_detected()

@@ -5,6 +5,9 @@ motor customizations
 TunableEpicsMotor2 adds tuning of motor using lineup2 code
 
 TunableEpicsMotor2WTolerance adds tolerance to TunableEpicsMotor2WTolerance
+    .tolerance = 0.000_006 which is ~0.02 arc sec for AR stage. MR is 0.03 arc sec
+    impact of tolerance on tuning shoudl be small for now. 
+
 """
 
 __all__ = [
@@ -30,7 +33,11 @@ class TunableEpicsMotor2(EpicsMotor):
 
     Example::
 
-        yield from motor.tune()
+        uuids = yield from motor.tune()
+
+    retunrs list of uuids for the tune scans (default 1) 
+    this list can be plotted using plotxy() from APStools
+
     """
 
     def __init__(
@@ -38,7 +45,7 @@ class TunableEpicsMotor2(EpicsMotor):
         *args,
         detectors:list=None,
         tune_range: Signal=None,
-        points: int = 11,
+        points: int = 31,
         peak_factor: float = 2.5,
         width_factor: float = 0.8,
         feature: str = "centroid",
@@ -168,6 +175,8 @@ class DeadbandMixin(Device, PositionerBase):
 
 
 class TunableEpicsMotor2WTolerance(DeadbandMixin, TunableEpicsMotor2):
-    tolerance = Component(Signal, value=0.000_01, kind="config")
-    # AR guaranteed min step is 0.03 arc second, which is 0.000_008 degress. 
-    # need to set .tolerance sperately for each motor AR or MR
+    tolerance = Component(Signal, value=0.000_006, kind="config")
+    # AR guaranteed min step is 0.02 arc second, which is 0.000_0055 degress. 
+    # MR guarranteed min step is 0.03 arc second, which is 0.000_0083 dgrees
+    # set .tolerance same for AR and MR, for step scans AR resolution is more important. 
+    # this has small impact on tunes and no impact on flyscans. 

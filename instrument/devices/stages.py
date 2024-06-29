@@ -29,10 +29,9 @@ from ophyd import EpicsScaler
 from ophyd.scaler import ScalerCH
 
 from ..framework import sd
-#from .usaxs_motor_devices import EpicsMotor
 from .usaxs_motor_devices import TunableEpicsMotor2
 from .usaxs_motor_devices import TunableEpicsMotor2WTolerance
-from .amplifiers import autoscale_amplifiers
+#from .amplifiers import autoscale_amplifiers
 from .scalers import scaler0, I0_SIGNAL, I00_SIGNAL, UPD_SIGNAL
 
 
