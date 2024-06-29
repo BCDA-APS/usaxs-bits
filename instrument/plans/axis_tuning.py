@@ -67,12 +67,13 @@ def _tune_base_(axis, md={}):
         ti_filter_shutter, "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-    yield from axis.tune(md=md)
+    uuids = yield from axis.tune(md=md)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
-
+    # TODO plot the data somenow, use plotxy() which takes the uuid list from tune
+    # TODO handle multiple plots as we had before AND keep number of ploted data sensible. 
     found = axis.tuner.peak_detected()
     logger.info(f"axis: {axis.name}")
     logger.info(f"starting position: {axis_start}")
