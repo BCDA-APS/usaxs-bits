@@ -24,8 +24,8 @@ def operations_in_12ide():
     returns True if allowed to use X-ray beam in 12-ID-E station
     """
     #return diagnostics.PSS.b_station_enabled
-    return True 
-
+    #return True 
+    return False
 
 """
 This EPICS PV calculates *BeamInHutch* boolean.
