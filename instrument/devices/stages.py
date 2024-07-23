@@ -2,7 +2,7 @@
 """
 stages
 """
-
+# TODO check, refactor and verify... 
 __all__ = [
     's_stage',      # sample
     'd_stage',      # detector

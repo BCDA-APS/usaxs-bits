@@ -2,7 +2,7 @@
 """
 emails
 """
-
+# TODO: this will liekly fail due to network changes. Remove from teh code and live with it. m
 __all__ = [
     'email_notices',
     'NOTIFY_ON_RESET',

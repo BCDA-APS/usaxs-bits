@@ -1,7 +1,7 @@
 """
 IOC statistics: synApps iocStats
 """
-
+# TODO: optional, remove. 
 # fmt: off
 __all__ = [
     "gp_stats",

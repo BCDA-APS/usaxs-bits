@@ -1,7 +1,7 @@
 """
 Dectris Pilatus area detectors.
 """
-
+# TODO review for newer code in APS tools
 __all__ = [
     'saxs_det',
     'waxs_det',

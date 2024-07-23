@@ -15,7 +15,7 @@ __all__ = """
     UPD_SIGNAL
     TRD_SIGNAL
     """.split()
-
+# TODO Eric - review me!
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ scaler2_I000_cps = EpicsSignalRO("usxLAX:vsc:c2_cts1.B", name="scaler2_I000_coun
 
 scaler0.select_channels()
 scaler1.select_channels()
-
+# These names are related to amplifier.py
 I0_SIGNAL = scaler0.channels.chan02
 I00_SIGNAL = scaler0.channels.chan03
 UPD_SIGNAL = scaler0.channels.chan04

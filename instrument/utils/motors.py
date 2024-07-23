@@ -2,7 +2,7 @@
 """
 motor functions
 """
-
+# TODO used in devices/slits.py, move there or get rid of completely. 
 __all__ = [
     'move_motors',
 ]
