@@ -19,7 +19,7 @@ from ophyd import Component, EpicsSignal, MotorBundle, EpicsMotor
 from ..framework import sd
 from .general_terms import terms
 #from .usaxs_motor_devices import UsaxsMotor
-from ..utils import move_motors
+#from ..utils import move_motors
 
 
 class UsaxsSlitDevice(MotorBundle):
@@ -40,7 +40,12 @@ class UsaxsSlitDevice(MotorBundle):
             raise ValueError("must define horizontal size")
         if v is None:
             raise ValueError("must define vertical size")
-        move_motors(self.h_size, h, self.v_size, v)
+        #move_motors(self.h_size, h, self.v_size, v)
+        yield from bps.mv(
+            self.h_size, h,
+            self.v_size, v,
+        )
+
 
 
 class GuardSlitMotor(EpicsMotor):
@@ -81,7 +86,11 @@ class GSlitDevice(MotorBundle):
             raise ValueError("must define horizontal size")
         if v is None:
             raise ValueError("must define vertical size")
-        move_motors(self.h_size, h, self.v_size, v)
+        #move_motors(self.h_size, h, self.v_size, v)
+        yield from bps.mv(
+            self.h_size, h,
+            self.v_size, v,
+        )
 
     @property
     def h_gap_ok(self):
