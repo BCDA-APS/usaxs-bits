@@ -1,0 +1,687 @@
+<?xml version="1.0"?>
+
+
+<!--
+!!!!!!!!! This is AN EXAMPLE file !!!!!!!
+The real one is in the area detector configuration directory now
+    /share1/AreaDetectorConfig/FlyScan_config/saveFlyData.xml
+
+ -->
+
+
+<!--
+
+You MUST set EPICS_CA_MAX_ARRAY_BYTES to >= 1280000 to read the maximum
+number of data points the MCS can be told to acquire (9idcLAX:3820:MaxChannels).
+
+This is programmed into the Python code that reads this file.
+
+This file will be validated (as an initial step) by the data capture (saveFlyData.py) program.
+Additionally, you can check this file for validity and that all PVs exist with this command line program::
+
+  /APSshare/anaconda/x86_64/bin/python check_saveFlyData.py
+
+ -->
+
+
+<saveFlyData version="1.2">
+    <triggerPV pvname="9idcLAX:USAXSfly:Start"
+        start_value="1"
+        start_text="Busy"
+        done_value="0"
+        done_text="Done" />
+    <timeoutPV pvname="9idcLAX:USAXS:FS_timeout" units="s" />
+
+    <NX_structure>  <!-- http://download.nexusformat.org/doc/html/classes/base_classes/ -->
+        <group name="/" class="file">
+            <attribute name="instrument" value="APS USAXS at 9-ID-C" />
+            <attribute name="scan_mode" value="USAXS fly scan" />
+            <attribute name="canSAS_class" value="SASroot" />
+            <attribute name="default" value="entry" />
+
+            <group name="entry" class="NXentry">
+                <attribute name="canSAS_class" value="SASentry" />
+                <attribute name="default" value="flyScan" />
+
+                <field name="program_name">
+                    <!-- version of this configuration file -->
+                    <attribute name="config_version" value="1.2" />
+                    <text>saveFlyData.py</text>
+                </field>
+                <PV label="title" pvname="9idcLAX:USAXS:sampleTitle" string="true" />
+                <PV label="experiment_identifier" pvname="9idcLAX:GUPNumber" />
+                <PV label="run_cycle" pvname="9idcLAX:RunCycle" />
+
+                <group name="instrument" class="NXinstrument">
+                    <attribute name="canSAS_class" value="SASinstrument" />
+
+                    <field name="name">
+                        <attribute name="short_name" value="USAXS" />
+                        <text>APS USAXS at 9-ID-C</text>
+                    </field>
+                    <group name="source" class="NXsource">
+                        <PV label="incident_wavelength" pvname="9ida:BraggLambdaRdbkAO">
+                            <attribute name="units" value="Angstrom" />
+                        </PV>
+                    </group>
+                    <group name="monochromator" class="NXmonochromator">
+                        <PV label="energy" pvname="9ida:BraggERdbkAO">
+                            <attribute name="units" value="keV" />
+                        </PV>
+                        <link name="wavelength" source="/entry/instrument/source/incident_wavelength" />
+                    </group>
+                </group>
+
+                <group name="user1" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user1:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user1:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user1:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user1:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user1:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user1:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user1:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user1:piFlag" string="true" />
+                </group>
+                <group name="user2" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user2:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user2:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user2:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user2:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user2:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user2:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user2:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user2:piFlag" string="true" />
+                </group>
+                <group name="user3" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user3:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user3:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user3:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user3:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user3:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user3:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user3:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user3:piFlag" string="true" />
+                </group>
+                <group name="user4" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user4:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user4:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user4:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user4:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user4:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user4:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user4:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user4:piFlag" string="true" />
+                </group>
+                <group name="user5" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user5:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user5:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user5:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user5:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user5:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user5:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user5:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user5:piFlag" string="true" />
+                </group>
+                <group name="user6" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user6:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user6:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user6:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user6:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user6:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user6:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user6:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user6:piFlag" string="true" />
+                </group>
+                <group name="user7" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user7:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user7:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user7:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user7:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user7:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user7:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user7:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user7:piFlag" string="true" />
+                </group>
+                <group name="user8" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user8:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user8:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user8:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user8:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user8:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user8:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user8:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user8:piFlag" string="true" />
+                </group>
+                <group name="user9" class="NXuser">
+                    <attribute name="canSAS_class" value="SASuser" />
+                    <PV label="last_name" pvname="9idc:bss:proposal:user9:lastName" string="true" />
+                    <PV label="first_name" pvname="9idc:bss:proposal:user9:firstName" string="true" />
+                    <PV label="user_id" pvname="9idc:bss:proposal:user9:userId" string="true" />
+                    <PV label="badge_number" pvname="9idc:bss:proposal:user9:badgeNumber" string="true" />
+                    <PV label="email" pvname="9idc:bss:proposal:user9:email" string="true" />
+                    <PV label="institution" pvname="9idc:bss:proposal:user9:institution" string="true" />
+                    <PV label="institution_id" pvname="9idc:bss:proposal:user9:instId" string="true" />
+                    <PV label="pi_flag" pvname="9idc:bss:proposal:user9:piFlag" string="true" />
+                </group>
+
+                <group name="sample" class="NXsample">
+                    <attribute name="canSAS_class" value="SASsample" />
+                    <PV label="name" pvname="9idcLAX:USAXS:sampleTitle" string="true" />
+                    <PV label="thickness" pvname="9idcLAX:USAXS:SampleThickness" />
+                    <PV label="description" pvname="9idcSample:Description" />
+                    <PV label="chemical_formula" pvname="9idcSample:ChemicalFormula" />
+
+                    <PV label="temperature" pvname="9idcSample:Temperature">
+                        <attribute name="units" value="C" />
+                    </PV>
+                    <PV label="concentration" pvname="9idcSample:Concentration">
+                        <attribute name="units" value="g/cm3" />
+                    </PV>
+                    <PV label="volume_fraction" pvname="9idcSample:VolumeFraction" />
+                    <PV label="scattering_length_density" pvname="9idcSample:ScatteringLengthDensity">
+                        <attribute name="units" value="cm/cm3" />
+                    </PV>
+                    <PV label="magnetic_field" pvname="9idcSample:MagneticField" />
+                    <PV label="stress_field" pvname="9idcSample:StressField" />
+                    <PV label="electric_field" pvname="9idcSample:ElectricField">
+                        <attribute name="units" value="V" />
+                    </PV>
+                    <PV label="x_translation" pvname="9idcSample:XTranslation">
+                        <attribute name="units" value="mm" />
+                    </PV>
+                    <PV label="rotation_angle" pvname="9idcSample:RotationAngle">
+                        <attribute name="units" value="degrees" />
+                    </PV>
+
+                    <PV label="magnetic_field_direction" pvname="9idcSample:MagneticFieldDir" />
+                    <PV label="stress_field_direction" pvname="9idcSample:StressFieldDir" />
+                    <PV label="electric_field_direction" pvname="9idcSample:ElectricFieldDir" />
+                </group>
+
+                <group name="flyScan" class="NXdata">
+                    <!-- this raw data group is not SASdata, that comes from data reduction -->
+                    <attribute name="signal"     value="mca3" />
+
+                    <!-- positioners -->
+                    <PV label="AR_PulsePositions" pvname="9idcLAX:traj1:PulsePositions">
+                        <attribute name="units" value="degrees" />
+                    </PV>
+                    <PV label="AR_NumPulsePositions" pvname="9idcLAX:traj1:NumPulsePositions" />
+                    <PV label="AR_PulseMode" pvname="9idcLAX:traj1:PulseMode" />
+                    <!--
+                       PulseMode is a string describing the type of scan:
+
+                       1. Fixed: fixed pulses as before (we should have that nailed down by now already)
+                       2. Array: use PulsePositions
+                       3. TrajPts: use trajectory points (the 200 points in current trajectory)
+                    -->
+
+                    <PV label="AR_waypoints" pvname="9idcLAX:traj1:M1Traj" length_limit="AR_count">
+                        <attribute name="units" value="degrees" />
+                    </PV>
+                    <PV label="AR_count" pvname="9idcLAX:traj1:Nelements" />
+                    <PV label="AR_pulses" pvname="9idcLAX:traj1:Npulses">
+                        <attribute name="units" value="pulses" />
+                    </PV>
+                    <PV label="AR_start" pvname="9idcLAX:USAXS:ARstart">
+                        <!-- pushed here by SPEC usaxs_flyscan.txt macro -->
+                        <attribute name="units" value="degrees" />
+                    </PV>
+                    <PV label="AR_increment" pvname="9idcLAX:USAXS:MinStep">
+                        <attribute name="units" value="degrees" />
+                    </PV>
+                    <PV label="AR_MinStepTraj" pvname="9idcLAX:USAXS:MinStepTraj">
+                        <!-- minimum step of trajectory waypoints -->
+                        <attribute name="units" value="degrees" />
+                    </PV>
+                    <PV label="AR_Finish" pvname="9idcLAX:USAXS:Finish">
+                        <attribute name="units" value="degrees" />
+                    </PV>
+                    <PV label="StartOffset" pvname="9idcLAX:USAXS:StartOffset">
+                        <attribute name="units" value="degrees" />
+                    </PV>
+
+                    <PV label="time_elapsed" pvname="9idcLAX:traj1:ElapsedTime" acquire_after_scan="true">
+                        <attribute name="units" value="s" />
+                    </PV>
+                    <PV label="time_total" pvname="9idcLAX:traj1:Time">
+                        <attribute name="units" value="s" />
+                    </PV>
+
+
+                    <!-- detectors -->
+                    <PV label="mca_clock_frequency" pvname="9idcLAX:3820:clock_frequency">
+                        <attribute name="units" value="1/s" />
+                    </PV>
+                    <PV label="mca_channels" pvname="9idcLAX:3820:CurrentChannel" acquire_after_scan="true" />
+                    <PV label="mca_channel_max" pvname="9idcLAX:3820:MaxChannels" />
+                    <PV label="mca_channels_used" pvname="9idcLAX:3820:NuseAll" acquire_after_scan="true">
+                        <attribute name="meaning" value="number of Struck channels to use" />
+                    </PV>
+
+                    <PV label="mca1_name" pvname="9idcLAX:3820:scaler1.NM1" />
+                    <PV label="mca1" pvname="9idcLAX:3820:mca1" length_limit="mca_channels"  acquire_after_scan="true">     <!-- counts of 50 MHz clock -->
+                        <attribute name="units" value="pulses" />
+                        <attribute name="USAXS_name" value="clock_pulses" />
+                    </PV>
+
+                    <PV label="mca2_name" pvname="9idcLAX:3820:scaler1.NM2" />
+                    <PV label="mca2" pvname="9idcLAX:3820:mca2" length_limit="mca_channels" acquire_after_scan="true">
+                        <attribute name="units" value="counts" />
+                        <attribute name="USAXS_name" value="I0" />
+                    </PV>
+
+                    <PV label="mca3_name" pvname="9idcLAX:3820:scaler1.NM3" />
+                    <PV label="mca3" pvname="9idcLAX:3820:mca3" length_limit="mca_channels" acquire_after_scan="true">
+                        <attribute name="signal" value="1" />
+                        <attribute name="units" value="pulses" />
+                        <!-- <attribute name="axes" value="AR" /> -->
+                        <!-- The proper ordinate is obtained via the MAC channel index:
+                            AR[i] = AR_start + AR_increment * i
+
+                            Can the AR array be made available in EPICS?
+                        -->
+                        <attribute name="USAXS_name" value="upd" />
+                    </PV>
+
+                    <!-- 2014-02-28, PRJ
+                        The following PVs record amplifier gain changes
+                        and the corresponding MCS channel number at which the change occurred
+                        for each of four detector amplifiers.  (Two monitors and two UPD amplifiers)
+                        Choice of the UPD amplifier in use is found in: 9idcUSX:femto:model
+                        which takes either of these two values:
+                        * 0: "DLPCA200"
+                        * 1: "DDPCA300"
+                        -->
+
+                    <PV label="upd_flyScan_amplifier"         pvname="9idcUSX:femto:model" />   <!--saves as number, not string-->
+                    <PV label="upd_flyScan_amplifier_ZNAM"    pvname="9idcUSX:femto:model.ZNAM" />
+                    <PV label="upd_flyScan_amplifier_ONAM"    pvname="9idcUSX:femto:model.ONAM" />
+
+                                        <!-- these record when the amplifiers have changed gain during the fly scan -->
+                    <PV label="changes_I0_mcsChan"       pvname="9idcLAX:USAXSfly:I0:mcsChan" acquire_after_scan="true" />
+                    <PV label="changes_I0_ampGain"       pvname="9idcLAX:USAXSfly:I0:ampGain" acquire_after_scan="true" />
+                    <PV label="changes_I0_ampReqGain"    pvname="9idcLAX:USAXSfly:I0:ampReqGain" acquire_after_scan="true" />
+
+                    <PV label="changes_I00_mcsChan"      pvname="9idcLAX:USAXSfly:I00:mcsChan" acquire_after_scan="true" />
+                    <PV label="changes_I00_ampGain"      pvname="9idcLAX:USAXSfly:I00:ampGain" acquire_after_scan="true" />
+                    <PV label="changes_I00_ampReqGain"   pvname="9idcLAX:USAXSfly:I00:ampReqGain" acquire_after_scan="true" />
+
+                    <PV label="changes_DLPCA200_mcsChan"    pvname="9idcLAX:USAXSfly:DLPCA200:mcsChan" acquire_after_scan="true" />
+                    <PV label="changes_DLPCA200_ampGain"    pvname="9idcLAX:USAXSfly:DLPCA200:ampGain" acquire_after_scan="true" />
+                    <PV label="changes_DLPCA200_ampReqGain" pvname="9idcLAX:USAXSfly:DLPCA200:ampReqGain" acquire_after_scan="true" />
+
+                    <PV label="changes_DDPCA300_mcsChan"    pvname="9idcLAX:USAXSfly:DDPCA300:mcsChan" acquire_after_scan="true" />
+                    <PV label="changes_DDPCA300_ampGain"    pvname="9idcLAX:USAXSfly:DDPCA300:ampGain" acquire_after_scan="true" />
+                    <PV label="changes_DDPCA300_ampReqGain" pvname="9idcLAX:USAXSfly:DDPCA300:ampReqGain" acquire_after_scan="true" />
+
+                    <!-- 2016-06-21,prj:  PV not needed and removed from IOC now, take it out here, too
+                    <PV label="AYDYstart" pvname="9idcLAX:USAXSfly:AYDYstart">
+                        <attribute name="meaning"
+                            value="point number when to start moving ay and dy stages" />
+                    </PV>
+                    -->
+                    <PV label="dyMaxSpeed" pvname="9idcLAX:USAXSfly:dyMaxSpeed" />
+                    <PV label="ayMaxSpeed" pvname="9idcLAX:USAXSfly:ayMaxSpeed" />
+                    <PV label="arMaxSpeed" pvname="9idcLAX:USAXSfly:arMaxSpeed" />
+                    <!-- do not save these three PVs, they are not quite the same as the three above
+                        <PV label="FS_AyMaxSpeed" pvname="9idcLAX:USAXS:FS_AyMaxSpeed" />
+                        <PV label="FS_DyMaxSpeed" pvname="9idcLAX:USAXS:FS_DyMaxSpeed" />
+                        <PV label="FS_ArMaxSpeed" pvname="9idcLAX:USAXS:FS_ArMaxSpeed" />
+                    -->
+                    <PV label="FS_ElapsedTime" pvname="9idcLAX:USAXS:FS_ElapsedTime" acquire_after_scan="true" />
+
+                    <PV label="FS_NumberOfPoints" pvname="9idcLAX:USAXS:FS_NumberOfPoints">
+                        <attribute name="meaning" value="number of waypoints in trajectory scan" />
+                    </PV>
+                    <PV label="FS_ScanTime" pvname="9idcLAX:USAXS:FS_ScanTime" />
+
+                    <PV label="changes_AR_PSOpulse"    pvname="9idcLAX:USAXSfly:AR:mcsChan" acquire_after_scan="true" />
+                    <PV label="changes_AR_angle"      pvname="9idcLAX:USAXSfly:AR:pos" acquire_after_scan="true" >
+                        <attribute name="meaning"      value="AR readback when PSO pulse fired with 10Hz jitter" />
+                    </PV>
+
+                    <PV label="is_2D_USAXS_scan"    pvname="9idcLAX:USAXS:is2DUSAXSscan" >
+                        <attribute name="meaning"     value="does this scan use 2D collimated geometry" />
+                    </PV>
+
+                </group>    <!-- entry:NXentry/flyScan:NXdata -->
+
+
+                <!-- metadata -->
+                <group name="metadata" class="NXcollection">    <!-- metadata:NXcollection -->
+
+                    <!-- beam line conditions -->
+                    <PV label="SR_current" pvname="S:SRcurrentAI">
+                        <attribute name="units" value="A" />
+                    </PV>
+                    <PV label="ID_E" pvname="ID09:Energy">
+                        <attribute name="units" value="keV" />
+                    </PV>
+                    <PV label="DCM_energy" pvname="9ida:BraggERdbkAO">
+                        <attribute name="units" value="keV" />
+                    </PV>
+                    <PV label="DCM_wavelength" pvname="9ida:BraggLambdaRdbkAO">
+                        <attribute name="units" value="Angstrom" />
+                    </PV>
+                    <PV label="DCM_theta" pvname="9ida:m10.RBV">
+                        <attribute name="units" value="degrees" />
+                    </PV>
+
+                    <!-- beam line mirrors -->
+                    <PV label="VDM_Stripe" pvname="9ida:m5.RBV" />
+                    <PV label="VDM_Pitch" pvname="9ida:m6.RBV" />
+                    <PV label="VDM_Vertical" pvname="9ida:m7.RBV" />
+                    <PV label="VDM_T" pvname="9ida:m8.RBV" />
+
+                    <PV label="mir_slitb" pvname="9ida:m28.RBV" />
+                    <PV label="mir_slitl" pvname="9ida:m27.RBV" />
+                    <PV label="mir_slitr" pvname="9ida:m25.RBV" />
+                    <PV label="mir_slitt" pvname="9ida:m26.RBV" />
+
+                    <!-- SPEC -->
+                    <PV label="SPEC_macro_file_string19" pvname="9idcLAX:string19" string="true" />
+                    <PV label="SPEC_macro_file" pvname="9idcLAX:USAXS:macroFile" string="true" />
+                    <PV label="SPEC_data_file" pvname="9idcLAX:USAXS:specFile" string="true" />
+                    <PV label="SPEC_data_dir" pvname="9idcLAX:USAXS:userDir" string="true" />
+                    <PV label="spec_scan" pvname="9idcLAX:USAXS:specScan" string="true" />
+                    <PV label="state" pvname="9idcLAX:USAXS:state" string="true" />
+                    <PV label="timeStamp" pvname="9idcLAX:USAXS:timeStamp" string="true" />
+
+                    <!-- USAXS terms -->
+                    <PV label="analyzer_distance" pvname="9idcLAX:USAXS:SAD" />
+                    <PV label="detector_distance" pvname="9idcLAX:USAXS:SDD" />
+                    <PV label="UATerm" pvname="9idcLAX:USAXS:UATerm" />
+                    <PV label="MR_center" pvname="9idcLAX:USAXS:MRcenter" />
+                    <PV label="MSR_center" pvname="9idcLAX:USAXS:MSRcenter" />
+                    <PV label="AR_center" pvname="9idcLAX:USAXS:ARcenter" />
+                    <PV label="ASR_center" pvname="9idcLAX:USAXS:ASRcenter" />
+                    <PV label="ARenc_0" pvname="9idcLAX:USAXS:Q.B" />
+                    <PV label="feedback_ON" pvname="9idcLAX:fbe:omega:on" />
+                    <PV label="UPDsize" pvname="9idcLAX:USAXS:UPDsize" />
+
+                    <!-- USAXS sample slit positions -->
+                    <PV label="uslit_v_center" pvname="9idcLAX:m58:c2:m5" />
+                    <PV label="uslit_h_center" pvname="9idcLAX:m58:c2:m6" />
+                    <PV label="uslit_v_gap" pvname="9idcLAX:m58:c2:m7" />
+                    <PV label="uslit_h_gap" pvname="9idcLAX:m58:c2:m8" />
+
+
+                    <!-- USAXS sample pin transmission -->
+                    <PV label="measure_trans_pin" pvname="9idcLAX:USAXS:TR_MeasurePinTrans" />
+                    <PV label="trans_pin_aypos" pvname="9idcLAX:USAXS:TR_AyPosition" />
+                    <PV label="trans_pin_time" pvname="9idcLAX:USAXS:TR_MeasurementTime" />
+                    <PV label="trans_pin_counts" pvname="9idcLAX:USAXS:TR_pinCounts" />
+                    <PV label="trans_pin_gain" pvname="9idcLAX:USAXS:TR_pinGain" />
+                    <PV label="trans_I0_counts" pvname="9idcLAX:USAXS:TR_I0Counts" />
+                    <PV label="trans_I0_gain" pvname="9idcLAX:USAXS:TR_I0Gain" />
+
+                    <PV label="hhl_slitb" pvname="9ida:m20.RBV" />
+                    <PV label="hhl_slitl" pvname="9ida:m19.RBV" />
+                    <PV label="hhl_slitr" pvname="9ida:m17.RBV" />
+                    <PV label="hhl_slitt" pvname="9ida:m18.RBV" />
+
+                    <!-- I0 amplifier gains at start of scan and gains and measured backgrounds -->
+                    <PV label="I0AmpGain"    pvname="9idcUSX:fem02:seq01:gain" />
+
+                    <PV label="I0_gain0"     pvname="9idcUSX:pd02:seq01:gain0" />
+                    <PV label="I0_bkg0"      pvname="9idcUSX:pd02:seq01:bkg0" />
+                    <PV label="I0_bkg_err0"  pvname="9idcUSX:pd02:seq01:bkgErr0" />
+
+                    <PV label="I0_gain1"     pvname="9idcUSX:pd02:seq01:gain1" />
+                    <PV label="I0_bkg1"      pvname="9idcUSX:pd02:seq01:bkg1" />
+                    <PV label="I0_bkg_err1"  pvname="9idcUSX:pd02:seq01:bkgErr1" />
+
+                    <PV label="I0_gain2"     pvname="9idcUSX:pd02:seq01:gain2" />
+                    <PV label="I0_bkg2"      pvname="9idcUSX:pd02:seq01:bkg2" />
+                    <PV label="I0_bkg_err2"  pvname="9idcUSX:pd02:seq01:bkgErr2" />
+
+                    <PV label="I0_gain3"     pvname="9idcUSX:pd02:seq01:gain3" />
+                    <PV label="I0_bkg3"      pvname="9idcUSX:pd02:seq01:bkg3" />
+                    <PV label="I0_bkg_err3"  pvname="9idcUSX:pd02:seq01:bkgErr3" />
+
+                    <PV label="I0_gain4"     pvname="9idcUSX:pd02:seq01:gain4" />
+                    <PV label="I0_bkg4"      pvname="9idcUSX:pd02:seq01:bkg4" />
+                    <PV label="I0_bkg_err4"  pvname="9idcUSX:pd02:seq01:bkgErr4" />
+
+                    <!-- I00 amplifier gains at start of scan and gains and measured backgrounds -->
+                    <PV label="I00AmpGain"   pvname="9idcUSX:fem03:seq01:gain" />
+
+                    <PV label="I00_gain0"    pvname="9idcUSX:pd03:seq01:gain0" />
+                    <PV label="I00_bkg0"     pvname="9idcUSX:pd03:seq01:bkg0" />
+                    <PV label="I00_bkg_err0" pvname="9idcUSX:pd03:seq01:bkgErr0" />
+
+                    <PV label="I00_gain1"    pvname="9idcUSX:pd03:seq01:gain1" />
+                    <PV label="I00_bkg1"     pvname="9idcUSX:pd03:seq01:bkg1" />
+                    <PV label="I00_bkg_err1" pvname="9idcUSX:pd03:seq01:bkgErr1" />
+
+                    <PV label="I00_gain2"    pvname="9idcUSX:pd03:seq01:gain2" />
+                    <PV label="I00_bkg2"     pvname="9idcUSX:pd03:seq01:bkg2" />
+                    <PV label="I00_bkg_err2" pvname="9idcUSX:pd03:seq01:bkgErr2" />
+
+                    <PV label="I00_gain3"    pvname="9idcUSX:pd03:seq01:gain3" />
+                    <PV label="I00_bkg3"     pvname="9idcUSX:pd03:seq01:bkg3" />
+                    <PV label="I00_bkg_err3" pvname="9idcUSX:pd03:seq01:bkgErr3" />
+
+                    <PV label="I00_gain4"    pvname="9idcUSX:pd03:seq01:gain4" />
+                    <PV label="I00_bkg4"     pvname="9idcUSX:pd03:seq01:bkg4" />
+                    <PV label="I00_bkg_err4" pvname="9idcUSX:pd03:seq01:bkgErr4" />
+
+                    <!-- photodiode amplifier gains and measured backgrounds -->
+                    <!-- these names will go away in the near future but are here now to allow downstream s/w to work -->
+                    <PV label="upd_gain0"    pvname="9idcUSX:pd01:seq02:gain0" />
+                    <PV label="upd_bkg0"     pvname="9idcUSX:pd01:seq02:bkg0" />
+                    <PV label="upd_bkg_err0" pvname="9idcUSX:pd01:seq02:bkgErr0" />
+
+                    <PV label="upd_gain1" pvname="9idcUSX:pd01:seq02:gain1" />
+                    <PV label="upd_bkg1" pvname="9idcUSX:pd01:seq02:bkg1" />
+                    <PV label="upd_bkgErr1" pvname="9idcUSX:pd01:seq02:bkgErr1" />
+
+                    <PV label="upd_gain2" pvname="9idcUSX:pd01:seq02:gain2" />
+                    <PV label="upd_bkg2" pvname="9idcUSX:pd01:seq02:bkg2" />
+                    <PV label="upd_bkgErr2" pvname="9idcUSX:pd01:seq02:bkgErr2" />
+
+                    <PV label="upd_gain3" pvname="9idcUSX:pd01:seq02:gain3" />
+                    <PV label="upd_bkg3" pvname="9idcUSX:pd01:seq02:bkg3" />
+                    <PV label="upd_bkgErr3" pvname="9idcUSX:pd01:seq02:bkgErr3" />
+
+                    <PV label="upd_gain4" pvname="9idcUSX:pd01:seq02:gain4" />
+                    <PV label="upd_bkg4" pvname="9idcUSX:pd01:seq02:bkg4" />
+                    <PV label="upd_bkgErr4" pvname="9idcUSX:pd01:seq02:bkgErr4" />
+
+                    <!-- photodiode DLPCA-200 amplifier gains and measured backgrounds -->
+                    <PV label="DLPCA200_gain0"    pvname="9idcUSX:pd01:seq01:gain0" />
+                    <PV label="DLPCA200_bkg0"     pvname="9idcUSX:pd01:seq01:bkg0" />
+                    <PV label="DLPCA200_bkg_err0" pvname="9idcUSX:pd01:seq01:bkgErr0" />
+
+                    <PV label="DLPCA200_gain1" pvname="9idcUSX:pd01:seq01:gain1" />
+                    <PV label="DLPCA200_bkg1" pvname="9idcUSX:pd01:seq01:bkg1" />
+                    <PV label="DLPCA200_bkgErr1" pvname="9idcUSX:pd01:seq01:bkgErr1" />
+
+                    <PV label="DLPCA200_gain2" pvname="9idcUSX:pd01:seq01:gain2" />
+                    <PV label="DLPCA200_bkg2" pvname="9idcUSX:pd01:seq01:bkg2" />
+                    <PV label="DLPCA200_bkgErr2" pvname="9idcUSX:pd01:seq01:bkgErr2" />
+
+                    <PV label="DLPCA200_gain3" pvname="9idcUSX:pd01:seq01:gain3" />
+                    <PV label="DLPCA200_bkg3" pvname="9idcUSX:pd01:seq01:bkg3" />
+                    <PV label="DLPCA200_bkgErr3" pvname="9idcUSX:pd01:seq01:bkgErr3" />
+
+                    <PV label="DLPCA200_gain4" pvname="9idcUSX:pd01:seq01:gain4" />
+                    <PV label="DLPCA200_bkg4" pvname="9idcUSX:pd01:seq01:bkg4" />
+                    <PV label="DLPCA200_bkgErr4" pvname="9idcUSX:pd01:seq01:bkgErr4" />
+
+                    <!-- photodiode DDPCA-300 amplifier gains and measured backgrounds -->
+                    <PV label="DDPCA300_gain0"    pvname="9idcUSX:pd01:seq02:gain0" />
+                    <PV label="DDPCA300_bkg0"     pvname="9idcUSX:pd01:seq02:bkg0" />
+                    <PV label="DDPCA300_bkg_err0" pvname="9idcUSX:pd01:seq02:bkgErr0" />
+
+                    <PV label="DDPCA300_gain1" pvname="9idcUSX:pd01:seq02:gain1" />
+                    <PV label="DDPCA300_bkg1" pvname="9idcUSX:pd01:seq02:bkg1" />
+                    <PV label="DDPCA300_bkgErr1" pvname="9idcUSX:pd01:seq02:bkgErr1" />
+
+                    <PV label="DDPCA300_gain2" pvname="9idcUSX:pd01:seq02:gain2" />
+                    <PV label="DDPCA300_bkg2" pvname="9idcUSX:pd01:seq02:bkg2" />
+                    <PV label="DDPCA300_bkgErr2" pvname="9idcUSX:pd01:seq02:bkgErr2" />
+
+                    <PV label="DDPCA300_gain3" pvname="9idcUSX:pd01:seq02:gain3" />
+                    <PV label="DDPCA300_bkg3" pvname="9idcUSX:pd01:seq02:bkg3" />
+                    <PV label="DDPCA300_bkgErr3" pvname="9idcUSX:pd01:seq02:bkgErr3" />
+
+                    <PV label="DDPCA300_gain4" pvname="9idcUSX:pd01:seq02:gain4" />
+                    <PV label="DDPCA300_bkg4" pvname="9idcUSX:pd01:seq02:bkg4" />
+                    <PV label="DDPCA300_bkgErr4" pvname="9idcUSX:pd01:seq02:bkgErr4" />
+
+                    <!-- photodiode amplifier range-changing setpoints -->
+                    <PV label="upd_gainU" pvname="9idcUSX:pd01:seq02:gainU" />
+                    <PV label="upd_gainD" pvname="9idcUSX:pd01:seq02:gainD" />
+
+                    <!-- amplifier range-change mask times -->
+                    <PV label="upd_amp_change_mask_time0" pvname="9idcLAX:USAXS:FS_AmpR1BlockTime" />
+                    <PV label="upd_amp_change_mask_time1" pvname="9idcLAX:USAXS:FS_AmpR2BlockTime" />
+                    <PV label="upd_amp_change_mask_time2" pvname="9idcLAX:USAXS:FS_AmpR3BlockTime" />
+                    <PV label="upd_amp_change_mask_time3" pvname="9idcLAX:USAXS:FS_AmpR4BlockTime" />
+                    <PV label="upd_amp_change_mask_time4" pvname="9idcLAX:USAXS:FS_AmpR5BlockTime" />
+
+                    <!-- shutters -->
+                    <PV label="CCD_shutter" pvname="9idcRIO:Galil2Bo0_CMD" />
+                    <PV label="Ti_pf42_b3" pvname="9idcRIO:Galil2Bo14_CMD" />
+                    <PV label="Ti_pf42_b4" pvname="9idcRIO:Galil2Bo15_CMD" />
+
+                    <PV label="d_beam_available" pvname="9idcLAX:blCalc:userCalc1" />
+
+                    <!-- PSS PVs for 9-ID -->
+                    <PV label="doors_closed" pvname="PA:09ID:STA_C_NO_ACCESS.VAL" />
+                    <PV label="white_shtr_opened" pvname="PA:09ID:STA_A_FES_OPEN_PL.VAL" />
+                    <PV label="mono_shtr_opened"  pvname="PA:09ID:STA_B_SBS_OPEN_PL.VAL" />
+
+                    <PV label="pf4_trans" pvname="9idcUSX:pf4:trans" />
+                    <PV label="pf4_thickness_Al" pvname="9idcUSX:pf4:filterAl" />
+                    <PV label="pf4_thickness_Gl" pvname="9idcUSX:pf4:filterGlass" />
+                    <PV label="pf4_thickness_Ti" pvname="9idcUSX:pf4:filterTi" />
+
+                    <!-- piezos -->
+                    <!--PV label="M2Rp_VDC" pvname="9idcUSX:rmm01:ana01:ao02" />
+                    <PV label="M2Rp_rbv" pvname="9idcUSX:ath01:ana01:ai02" />
+
+                    <PV label="MSRp_VDC" pvname="9idcUSX:rmm01:ana01:ao04" />
+                    <PV label="MSRp_rbv" pvname="9idcUSX:ath01:ana01:ai04" />
+
+                    <PV label="A2Rp_VDC" pvname="9idcUSX:rmm01:ana01:ao01" />
+                    <PV label="A2Rp_rbv" pvname="9idcUSX:ath01:ana01:ai01" />
+
+                    <PV label="ASRp_VDC" pvname="9idcUSX:rmm01:ana01:ao03" />
+                    <PV label="ASRp_rbv" pvname="9idcUSX:ath01:ana01:ai03" /-->
+
+                    <!-- other positioners -->
+                    <PV label="GuardBot" pvname="9idcLAX:mxv:c0:m6.RBV" />
+                    <PV label="GuardInB" pvname="9idcLAX:mxv:c0:m4.RBV" />
+                    <PV label="GuardOutB" pvname="9idcLAX:mxv:c0:m3.RBV" />
+                    <PV label="GuardTop" pvname="9idcLAX:mxv:c0:m5.RBV" />
+                    <PV label="I0_stage" pvname="9idcLAX:m58:c1:m5.RBV" />
+                    <PV label="M1TPico" pvname="9idcUSX:pic:m5.RBV" />
+                    <PV label="M2TPico" pvname="9idcUSX:pic:m6.RBV" />
+
+                    <!-- USAXS positioners -->
+                    <!-- 2018-01-30,prj: <PV label="asr" pvname="9idcLAX:xps:c0:m6.RBV" />  -->
+                    <!-- 2018-01-30,prj: <PV label="ast" pvname="9idcLAX:xps:c0:m4.RBV" /> -->
+                    <PV label="asx" pvname="9idcLAX:m58:c1:m3.RBV" />
+                    <PV label="asy" pvname="9idcLAX:m58:c1:m4.RBV" />
+                    <PV label="ax" pvname="9idcLAX:m58:c0:m5.RBV" />
+                    <PV label="ay" pvname="9idcLAX:aero:c1:m1.RBV" />
+                    <PV label="az" pvname="9idcLAX:m58:c0:m7.RBV" />
+                    <PV label="sx" pvname="9idcLAX:m58:c2:m1.RBV" />
+                    <PV label="sy" pvname="9idcLAX:m58:c2:m2.RBV" />
+                    <PV label="dx" pvname="9idcLAX:m58:c2:m3.RBV" />
+                    <PV label="dy" pvname="9idcLAX:aero:c2:m1.RBV" />
+                    <PV label="m1y" pvname="9idcLAX:m58:c0:m4.RBV" />
+                    <!-- 2018-01-30,prj: <PV label="mr" pvname="9idcLAX:xps:c0:m1.RBV" /> -->
+                    <PV label="mr_enc" pvname="9idcLAX:mr:encoder" />
+                    <!-- 2018-01-30,prj: <PV label="msr" pvname="9idcLAX:xps:c0:m5.RBV" /> -->
+                    <!-- 2018-01-30,prj: <PV label="mst" pvname="9idcLAX:xps:c0:m3.RBV" /> -->
+                    <PV label="msx" pvname="9idcLAX:m58:c1:m1.RBV" />
+                    <PV label="msy" pvname="9idcLAX:m58:c1:m2.RBV" />
+                    <PV label="mx" pvname="9idcLAX:m58:c0:m2.RBV" />
+                    <PV label="my" pvname="9idcLAX:m58:c0:m3.RBV" />
+                    <PV label="pin_x" pvname="9idcLAX:mxv:c0:m1.RBV" />
+                    <PV label="pin_y" pvname="9idcLAX:mxv:c0:m2.RBV" />
+                    <PV label="pin_z" pvname="9idcLAX:mxv:c0:m8.RBV" />
+                    <PV label="tcam" pvname="9idcLAX:m58:c1:m6.RBV" />
+                    <PV label="ccd_dx" pvname="9idcLAX:USAXS:CCD_dx" />
+                    <PV label="ccd_dy" pvname="9idcLAX:USAXS:CCD_dy" />
+                    <PV label="diode_dx" pvname="9idcLAX:USAXS:Diode_dx" />
+                    <PV label="diode_dy" pvname="9idcLAX:USAXS:Diode_dy" />
+
+                    <!-- Linkam ci94 -->
+                    <PV label="linkam_ci94_temp1"	pvname="9idcLAX:ci94:temp" />
+                    <PV label="linkam_ci94_temp2"	pvname="9idcLAX:ci94:temp2" />
+                    <PV label="linkam_ci94_errors"	pvname="9idcLAX:ci94:errorByte" />
+                    <PV label="linkam_ci94_limit"	pvname="9idcLAX:ci94:setLimit" />
+                    <PV label="linkam_ci94_rate"	pvname="9idcLAX:ci94:setRate" />
+                    <PV label="linkam_ci94_status"	pvname="9idcLAX:ci94:status" />
+
+                    <!-- Linkam T96 -->
+                    <PV label="linkam_T96_temp" 		pvname="9idcLINKAM:tc1:temperature_RBV" />
+                    <PV label="linkam_T96_status"		pvname="9idcLINKAM:tc1:heating" />
+                    <PV label="linkam_T96_rate" 		pvname="9idcLINKAM:tc1:rampRate_RBV" />
+                    <PV label="linkam_T96_limit"		pvname="9idcLINKAM:tc1:rampLimit_RBV" />
+                    <PV label="linkam_T96_errors"		pvname="9idcLINKAM:tc1:statusError_RBV" />
+                    <PV label="linkam_T96_ln2Status" 	pvname="9idcLINKAM:tc1:lnpStatus_RBV" />
+                    <PV label="linkam_T96_pressure"		pvname="9idcLINKAM:tc1:vacuumLimit_RBV" />
+                    <PV label="linkam_T96_vacuumStatus"	pvname="9idcLINKAM:tc1:vacuumStatus_RBV" />
+
+					<!-- Temperatures  -->
+					<PV label="Hutch_Temperature_C"		pvname="9idcLAX:adam1:rtd0" />
+					<PV label="RTD1_Temperature_C"		pvname="9idcLAX:adam1:rtd1" />
+					<PV label="RTD2_Temperature_C"		pvname="9idcLAX:adam1:rtd2" />
+					<PV label="RTD3_Temperature_C"		pvname="9idcLAX:adam1:rtd3" />
+					<PV label="RTD4_Temperature_C"		pvname="9idcLAX:adam1:rtd4" />
+					<PV label="RTD5_Temperature_C"		pvname="9idcLAX:adam1:rtd5" />
+
+					<!-- Beamtime Scheduling System experiment info  -->
+					<PV label="BSS_activity" 		pvname="9id_bss:activity" string="true" />
+					<PV label="BSS_badge" 			pvname="9id_bss:badge" string="true" />
+					<PV label="BSS_bss_name" 		pvname="9id_bss:bss_name" string="true" />
+					<PV label="BSS_contact" 		pvname="9id_bss:contact" string="true" />
+					<PV label="BSS_email" 			pvname="9id_bss:email" string="true" />
+					<PV label="BSS_institution" 	pvname="9id_bss:institution" string="true" />
+					<PV label="BSS_station" 		pvname="9id_bss:station" string="true" />
+					<PV label="BSS_team_others" 	pvname="9id_bss:team_others" string="true" />
+					<PV label="BSS_time_begin" 		pvname="9id_bss:time_begin" string="true" />
+					<PV label="BSS_time_end" 		pvname="9id_bss:time_end" string="true" />
+					<PV label="BSS_timestamp" 		pvname="9id_bss:timestamp" string="true" />
+					<PV label="BSS_title" 			pvname="9id_bss:title" string="true" />
+
+					<!-- apsbss experiment metadata  -->
+                    <PV label="ESAF_number" 		pvname="9idc:bss:esaf:id" string="true" />
+                    <PV label="ESAF_title" 		    pvname="9idc:bss:esaf:title" string="true" />
+                    <PV label="ESAF_raw" 		    pvname="9idc:bss:esaf:raw" string="true">
+                        <attribute name="text_format" value="yaml" />
+                    </PV>
+                    <PV label="Proposal_number" 	pvname="9idc:bss:proposal:id" string="true" />
+                    <PV label="Proposal_title" 		pvname="9idc:bss:proposal:title" string="true" />
+                    <PV label="Proposal_raw" 		pvname="9idc:bss:proposal:raw" string="true">
+                        <attribute name="text_format" value="yaml" />
+                    </PV>
+
+                    <!-- Temperatures  -->
+                    <PV label="Hutch_Temperature_C" pvname="9idcLAX:adam1:rtd0" />
+                    <PV label="RTD1_Temperature_C" pvname="9idcLAX:adam1:rtd1" />
+                    <PV label="RTD2_Temperature_C" pvname="9idcLAX:adam1:rtd2" />
+                    <PV label="RTD3_Temperature_C" pvname="9idcLAX:adam1:rtd3" />
+                    <PV label="RTD4_Temperature_C" pvname="9idcLAX:adam1:rtd4" />
+                    <PV label="RTD5_Temperature_C" pvname="9idcLAX:adam1:rtd5" />
+
+                </group>    <!-- entry:NXentry/metadata:NXcollection -->
+
+            </group>         <!-- entry:NXentry -->
+        </group>         <!-- file -->
+    </NX_structure>
+</saveFlyData>
