@@ -35,7 +35,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
 
     <NX_structure>  <!-- http://download.nexusformat.org/doc/html/classes/base_classes/ -->
         <group name="/" class="file">
-            <attribute name="instrument" value="APS USAXS at 9-ID-C" />
+            <attribute name="instrument" value="APS USAXS at 12-ID-E" />
             <attribute name="scan_mode" value="USAXS fly scan" />
             <attribute name="canSAS_class" value="SASroot" />
             <attribute name="default" value="entry" />
