@@ -45,9 +45,9 @@ FALLBACK_DIR = "/share1/USAXS_data"
 
 
 class UsaxsFlyScanDevice(Device):
-    busy = Component(EpicsSignal, '9idcLAX:USAXSfly:Start', string=True, put_complete=True)
-    scan_time = Component(EpicsSignal, "9idcLAX:USAXS:FS_ScanTime")
-    num_points = Component(EpicsSignal, "9idcLAX:USAXS:FS_NumberOfPoints")
+    busy = Component(EpicsSignal, 'usxLAX:USAXSfly:Start', string=True, put_complete=True)
+    scan_time = Component(EpicsSignal, "usxLAX:USAXS:FS_ScanTime")
+    num_points = Component(EpicsSignal, "usxLAX:USAXS:FS_NumberOfPoints")
     flying = Component(Signal, value=False)
     timeout_s = 120
 
