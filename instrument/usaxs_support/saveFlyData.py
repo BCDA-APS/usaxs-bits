@@ -48,12 +48,12 @@ NO_DATA_TEXT = "no data"
 class SaveFlyScan(object):
     '''watch trigger PV, save data to NeXus file after scan is done'''
 
-    trigger_pv = '9idcLAX:USAXSfly:Start'
+    trigger_pv = 'usxLAX:USAXSfly:Start'
     trigger_accepted_values = (0, 'Done')
     trigger_poll_interval_s = 0.1
-    scantime_pv = '9idcLAX:USAXS:FS_ScanTime'
+    scantime_pv = 'usxLAX:USAXS:FS_ScanTime'
     creator_version = 'unknown'
-    flyScanNotSaved_pv = '9idcLAX:USAXS:FlyScanNotSaved'
+    flyScanNotSaved_pv = 'usxLAX:USAXS:FlyScanNotSaved'
 
     def __init__(self, hdf5_file, config_file = None):
         self.hdf5_file_name = hdf5_file
@@ -395,7 +395,7 @@ if __name__ == '__main__':
 '''
 cd /home/beams/USAXS/Documents/eclipse/USAXS/tools
 /bin/rm test.h5
-caput 9idcLAX:USAXSfly:Start 0
+caput usxLAX:USAXSfly:Start 0
 /APSshare/anaconda/x86_64/bin/python ./saveFlyData.py ./test.h5 ./saveFlyData.xml
 /APSshare/anaconda/x86_64/bin/python ~/bin/h5toText.py ./test.h5
 '''
