@@ -17,8 +17,8 @@ from apstools.devices import Linkam_T96_Device
 import warnings
 
 
-linkam_ci94 = Linkam_CI94_Device("9idcLAX:ci94:", name="ci94")
-linkam_tc1 = Linkam_T96_Device("9idcLINKAM:tc1:", name="linkam_tc1")
+linkam_ci94 = Linkam_CI94_Device("usxLAX:ci94:", name="ci94")
+linkam_tc1 = Linkam_T96_Device("usxLINKAM:tc1:", name="linkam_tc1")
 
 for _o in (linkam_ci94, linkam_tc1):
     try:

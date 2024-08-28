@@ -21,22 +21,22 @@ from ..framework import sd
 
 class SampleDataDevice(Device):
     """sample information, (initially) based on NeXus requirements"""
-    temperature = Component(EpicsSignal, "9idcSample:Temperature")
-    concentration = Component(EpicsSignal, "9idcSample:Concentration")
-    volume_fraction = Component(EpicsSignal, "9idcSample:VolumeFraction")
-    scattering_length_density = Component(EpicsSignal, "9idcSample:ScatteringLengthDensity")
-    magnetic_field = Component(EpicsSignal, "9idcSample:MagneticField")
-    stress_field = Component(EpicsSignal, "9idcSample:StressField")
-    electric_field = Component(EpicsSignal, "9idcSample:ElectricField")
-    x_translation = Component(EpicsSignal, "9idcSample:XTranslation")
-    rotation_angle = Component(EpicsSignal, "9idcSample:RotationAngle")
+    temperature = Component(EpicsSignal, "usxSample:Temperature")
+    concentration = Component(EpicsSignal, "usxSample:Concentration")
+    volume_fraction = Component(EpicsSignal, "usxSample:VolumeFraction")
+    scattering_length_density = Component(EpicsSignal, "usxSample:ScatteringLengthDensity")
+    magnetic_field = Component(EpicsSignal, "usxSample:MagneticField")
+    stress_field = Component(EpicsSignal, "usxSample:StressField")
+    electric_field = Component(EpicsSignal, "usxSample:ElectricField")
+    x_translation = Component(EpicsSignal, "usxSample:XTranslation")
+    rotation_angle = Component(EpicsSignal, "usxSample:RotationAngle")
 
-    magnetic_field_dir = Component(EpicsSignal, "9idcSample:MagneticFieldDir", string=True)
-    stress_field_dir = Component(EpicsSignal, "9idcSample:StressFieldDir", string=True)
-    electric_field_dir = Component(EpicsSignal, "9idcSample:ElectricFieldDir", string=True)
+    magnetic_field_dir = Component(EpicsSignal, "usxSample:MagneticFieldDir", string=True)
+    stress_field_dir = Component(EpicsSignal, "usxSample:StressFieldDir", string=True)
+    electric_field_dir = Component(EpicsSignal, "usxSample:ElectricFieldDir", string=True)
 
-    description = Component(EpicsSignal, "9idcSample:Description", string=True)
-    chemical_formula = Component(EpicsSignal, "9idcSample:ChemicalFormula", string=True)
+    description = Component(EpicsSignal, "usxSample:Description", string=True)
+    chemical_formula = Component(EpicsSignal, "usxSample:ChemicalFormula", string=True)
 
     def resetAll(self):
         """bluesky plan to reset all to preset values"""

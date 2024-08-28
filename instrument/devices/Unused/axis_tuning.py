@@ -102,14 +102,14 @@ class TuneRanges(Device):
     """
 
     # in order of optical path
-    mr   = Component(EpicsSignal, "9idcLAX:USAXS:tune_mr_range")
-    msrp = Component(EpicsSignal, "9idcLAX:USAXS:tune_msrp_range")
-    m2rp = Component(EpicsSignal, "9idcLAX:USAXS:tune_m2rp_range")
-    ar   = Component(EpicsSignal, "9idcLAX:USAXS:tune_ar_range")
-    asrp = Component(EpicsSignal, "9idcLAX:USAXS:tune_asrp_range")
-    a2rp = Component(EpicsSignal, "9idcLAX:USAXS:tune_a2rp_range")
-    dx = Component(EpicsSignal, "9idcLAX:USAXS:tune_dx_range")
-    dy = Component(EpicsSignal, "9idcLAX:USAXS:tune_dy_range")
+    mr   = Component(EpicsSignal, "usxLAX:USAXS:tune_mr_range")
+    msrp = Component(EpicsSignal, "usxLAX:USAXS:tune_msrp_range")
+    m2rp = Component(EpicsSignal, "usxLAX:USAXS:tune_m2rp_range")
+    ar   = Component(EpicsSignal, "usxLAX:USAXS:tune_ar_range")
+    asrp = Component(EpicsSignal, "usxLAX:USAXS:tune_asrp_range")
+    a2rp = Component(EpicsSignal, "usxLAX:USAXS:tune_a2rp_range")
+    dx = Component(EpicsSignal, "usxLAX:USAXS:tune_dx_range")
+    dy = Component(EpicsSignal, "usxLAX:USAXS:tune_dy_range")
 
     @property
     def display(self):

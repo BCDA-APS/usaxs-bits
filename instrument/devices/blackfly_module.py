@@ -166,7 +166,7 @@ except TimeoutError as exc_obj:
 
 
 _flag_save_sample_image_ = EpicsSignal(
-    "9idcLAX:saveFLY2Image",
+    "usxLAX:saveFLY2Image",
     string=True,
     name="_flag_save_sample_image_",
     )

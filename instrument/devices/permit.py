@@ -34,7 +34,7 @@ in user calc. This would fail for tune_dcmth and other macros, which may take
 the intensity there down. For that use the other macro (?usaxs_CheckBeamSpecial?)...
 """
 BeamInHutch = EpicsSignalRO(
-    "9idcLAX:blCalc:userCalc1",
+    "usxLAX:blCalc:userCalc1",
     name="usaxs_CheckBeamStandard",
     auto_monitor=False,
 )
@@ -44,7 +44,7 @@ BeamInHutch = EpicsSignalRO(
 # this is used to set the check beam PV to use many PVs and conditions to decide,
 # if there is chance to have beam. Uses also userCalc on lax
 usaxs_CheckBeamSpecial = EpicsSignalRO(
-	"9idcLAX:blCalc:userCalc2",
+	"usxLAX:blCalc:userCalc2",
 	name="usaxs_CheckBeamSpecial",
     auto_monitor=False,
 	)

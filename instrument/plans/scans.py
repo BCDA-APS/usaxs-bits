@@ -970,7 +970,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         )
         yield from user_data.set_state_plan(f"SAXS collection for {terms.SAXS.acquire_time.get()} s")
 
-        # replaced by  9idcLAX:userTran1
+        # replaced by  usxLAX:userTran1
         # yield from bps.mv(
         #     scaler0.count, 1,
         #     scaler1.count, 1,
@@ -1144,7 +1144,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         )
         yield from user_data.set_state_plan(f"WAXS collection for {terms.WAXS.acquire_time.get()} s")
 
-        # replaced by  9idcLAX:userTran1
+        # replaced by  usxLAX:userTran1
         # yield from bps.mv(
         #     scaler0.count, 1,
         #     scaler1.count, 1,

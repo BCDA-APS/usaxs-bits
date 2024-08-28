@@ -33,7 +33,7 @@ from ophyd.scaler import ScalerCH
 scaler0 = ScalerCH('usxLAX:vsc:c0', name='scaler0')
 scaler0.stage_sigs["count_mode"] = "OneShot"
 scaler1 = ScalerCH('usxLAX:vsc:c1', name='scaler1')     # used by softGlue for SAXS transmission
-# scaler2 = ScalerCH('9idcLAX:vsc:c2', name='scaler2')     # used by upstream feedback
+# scaler2 = ScalerCH('usxLAX:vsc:c2', name='scaler2')     # used by upstream feedback
 scaler2_I000_counts = EpicsSignalRO("usxLAX:vsc:c2.S2", name="scaler2_I000_counts")
 scaler2_I000_cps = EpicsSignalRO("usxLAX:vsc:c2_cts1.B", name="scaler2_I000_counts")
 

@@ -18,7 +18,7 @@ from ophyd.scaler import ScalerCH
 import time
 
 
-IOC = iconfig.get("GP_IOC_PREFIX", "9idcLAX:vsc:")
+IOC = iconfig.get("GP_IOC_PREFIX", "usxLAX:vsc:")
 
 # make an instance of the entire scaler, for general control
 scaler1 = ScalerCH(f"{IOC}c0", name="scaler1", labels=["scalers", "detectors"])

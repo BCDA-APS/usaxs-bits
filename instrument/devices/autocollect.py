@@ -101,5 +101,5 @@ class AutoCollectDataDevice(Device):
 
 
 auto_collect = AutoCollectDataDevice(
-    "9idcLAX:AutoCollection",   # NOTE: no trailing colon here!
+    "usxLAX:AutoCollection",   # NOTE: no trailing colon here!
     name="auto_collect")
