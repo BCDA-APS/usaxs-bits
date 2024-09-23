@@ -59,6 +59,9 @@ MONO_FEEDBACK_OFF, MONO_FEEDBACK_ON = range(2)
 class DCM_Feedback(Device):
     """
     monochromator EPID-record-based feedback program: fb_epid
+    12ide will for now use usxLAX:fbe:omega with 
+    Galil using A-out usxRIO:Galil:Ao0_SP.VAL channel for control 
+    of mono Piezo. 
     """
     control = Component(EpicsSignal, "")
     on = Component(EpicsSignal, ":on")

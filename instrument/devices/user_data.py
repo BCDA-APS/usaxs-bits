@@ -161,7 +161,7 @@ class CustomEpicsBssDevice(EpicsBssDevice):
                     return user.last_name.get()
 
 
-apsbss = CustomEpicsBssDevice("9idc:bss:", name="apsbss")
+apsbss = CustomEpicsBssDevice("12ide:bss:", name="apsbss")
 sd.baseline.append(apsbss.proposal.raw)
 sd.baseline.append(apsbss.esaf.raw)
 

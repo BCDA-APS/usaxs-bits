@@ -95,7 +95,7 @@ else:
     if operations_in_12ide():
         logger.warning("Session started when APS not operating.")
     else:
-        logger.warning("Session started when 20ID-C is not operating.")
+        logger.warning("Session started when 12ID-E is not operating.")
     logger.warning("Using simulators for all shutters.")
     logger.warning("!"*30)
     FE_shutter = SimulatedApsPssShutterWithStatus(name="FE_shutter")
