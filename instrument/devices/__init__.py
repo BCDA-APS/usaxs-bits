@@ -25,7 +25,21 @@ from .stages import *
 from .emails import *
 from .filters import *
 from .shutters import *
-# from .noisy_detector import *
+# from .autosave import *
+from .axis_tuning import *
+from .diagnostics import *
+# from .emails import *
+from .filters import *
+# from .linkam import *
+# from .miscellaneous import *
+from .monochromator import *
+# from .sample_rotator import *
+from .slits import *
+from .struck3820 import *
+# from .suspenders import *
+# from .trajectories import *
+# from .usaxs_fly_scan import *
+# from .laser import *# from .noisy_detector import *
 # from .shutter_simulator import *
 # from .temperature_signal import *
 
