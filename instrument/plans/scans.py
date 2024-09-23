@@ -27,7 +27,7 @@ import time
 
 from ._to_be_hoisted import restorable_stage_sigs
 from ..devices import a_stage, as_stage
-from ..devices import apsbss
+#from ..devices import apsbss
 from ..devices import ar_start
 from ..devices import autoscale_amplifiers
 from ..devices import blackfly_optical
@@ -358,7 +358,7 @@ def USAXSscan(x, y, thickness_mm, title, md=None):
     """
     general scan macro for fly or step USAXS with 1D or 2D collimation
     """
-    _md = apsbss.update_MD(md or {})
+    #_md = apsbss.update_MD(md or {})
     _md["sample_thickness_mm"] = thickness_mm
     _md["title"] = title
     if terms.FlyScan.use_flyscan.get():
@@ -398,7 +398,7 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     # Update Sample name.  getSampleTitle is used to create proper sample name. It may add time and temperature
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
-    _md = apsbss.update_MD(md or {})
+    #_md = apsbss.update_MD(md or {})
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
 
@@ -614,7 +614,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
     # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
-    _md = apsbss.update_MD(md or {})
+    #_md = apsbss.update_MD(md or {})
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
 
@@ -862,7 +862,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
-    _md = apsbss.update_MD(md or {})
+    #_md = apsbss.update_MD(md or {})
     _md['plan_name'] = "SAXS"
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
@@ -1038,7 +1038,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     # Update Sample name.  getSampleTitle is used to create proper sample name. It may add time and temperature
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
-    _md = apsbss.update_MD(md or {})
+    #_md = apsbss.update_MD(md or {})
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
     _md['plan_name'] = "WAXS"

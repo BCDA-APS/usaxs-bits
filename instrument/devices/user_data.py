@@ -2,11 +2,11 @@
 """
 EPICS data about the user
 """
-# TODO bss is not ready. 
+# TODO bss is not ready. taken out apsbss
 __all__ = """
-    apsbss
     user_data
     """.split()
+
 
 import logging
 
@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 from bluesky import plan_stubs as bps
-from apstools.devices import ApsBssUserInfoDevice
-from apsbss.apsbss_ophyd import EpicsBssDevice
+#from apstools.devices import ApsBssUserInfoDevice
+#from apsbss.apsbss_ophyd import EpicsBssDevice
 from apstools.utils import trim_string_for_EPICS
 from ophyd import Component, Device, EpicsSignal
 
@@ -128,42 +128,42 @@ class UserDataDevice(Device):
                 exc)
 
 
-class CustomEpicsBssDevice(EpicsBssDevice):
+# class CustomEpicsBssDevice(EpicsBssDevice):
 
-    def update_MD(self, md=None):
-        """
-        add select Proposal and ESAF terms to given metadata dictionary
-        """
-        _md = md or {}
-        _md.update(
-            dict(
-                bss_aps_cycle=apsbss.esaf.aps_cycle.get(),
-                bss_beamline_name=apsbss.proposal.beamline_name.get(),
-                esaf_id=apsbss.esaf.esaf_id.get(),
-                esaf_title=apsbss.esaf.title.get(),
-                mail_in_flag=apsbss.proposal.mail_in_flag.get(),
-                principal_user=apsbss.get_PI() or "not identified",
-                proposal_id=apsbss.proposal.proposal_id.get(),
-                proposal_title=apsbss.proposal.title.get(),
-                proprietary_flag=apsbss.proposal.proprietary_flag.get(),
-            )
-        )
-        return _md
+#     def update_MD(self, md=None):
+#         """
+#         add select Proposal and ESAF terms to given metadata dictionary
+#         """
+#         _md = md or {}
+#         _md.update(
+#             dict(
+#                 bss_aps_cycle=apsbss.esaf.aps_cycle.get(),
+#                 bss_beamline_name=apsbss.proposal.beamline_name.get(),
+#                 esaf_id=apsbss.esaf.esaf_id.get(),
+#                 esaf_title=apsbss.esaf.title.get(),
+#                 mail_in_flag=apsbss.proposal.mail_in_flag.get(),
+#                 principal_user=apsbss.get_PI() or "not identified",
+#                 proposal_id=apsbss.proposal.proposal_id.get(),
+#                 proposal_title=apsbss.proposal.title.get(),
+#                 proprietary_flag=apsbss.proposal.proprietary_flag.get(),
+#             )
+#         )
+#         return _md
 
-    def get_PI(self):
-        """return last name of principal investigator or 1st user"""
-        if self.proposal.number_users_in_pvs.get() == 0:
-            return "no users listed"
-        else:
-            for i in range(9):
-                user = getattr(self.proposal, f"user{i+1}")
-                if user.pi_flag.get() in ('ON', 1):
-                    return user.last_name.get()
+#     def get_PI(self):
+#         """return last name of principal investigator or 1st user"""
+#         if self.proposal.number_users_in_pvs.get() == 0:
+#             return "no users listed"
+#         else:
+#             for i in range(9):
+#                 user = getattr(self.proposal, f"user{i+1}")
+#                 if user.pi_flag.get() in ('ON', 1):
+#                     return user.last_name.get()
 
 
-apsbss = CustomEpicsBssDevice("12ide:bss:", name="apsbss")
-sd.baseline.append(apsbss.proposal.raw)
-sd.baseline.append(apsbss.esaf.raw)
+# apsbss = CustomEpicsBssDevice("12ide:bss:", name="apsbss")
+# sd.baseline.append(apsbss.proposal.raw)
+# sd.baseline.append(apsbss.esaf.raw)
 
 user_data = UserDataDevice(name="user_data")
 sd.baseline.append(user_data)
