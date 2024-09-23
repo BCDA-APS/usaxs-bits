@@ -55,7 +55,7 @@ _validate_AD_FileWriter_path_(READ_IMAGE_FILE_PATH, DATABROKER_ROOT_PATH)
 
 
 class MyPointGreyDetector(SingleTrigger, AreaDetector):
-    """PointGrey Black Fly detector(s) as used by 9-ID-C USAXS"""
+    """PointGrey Black Fly detector(s) as used by 12-ID-E USAXS"""
 
     cam = ADComponent(PointGreyDetectorCam, "cam1:")
     image = ADComponent(ImagePlugin, "image1:")
