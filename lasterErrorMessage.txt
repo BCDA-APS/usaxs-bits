@@ -1,0 +1,62 @@
+In [15]: RE(mode_USAXS())
+W Mon-20:16:04 - !!!!!!!!!!!!!!!
+--- Logging error ---
+Traceback (most recent call last):
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/logging/__init__.py", line 1110, in emit
+    msg = self.format(record)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/logging/__init__.py", line 953, in format
+    return fmt.format(record)
+           ^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/logging/__init__.py", line 687, in format
+    record.message = record.getMessage()
+                     ^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/logging/__init__.py", line 377, in getMessage
+    msg = msg % self.args
+          ~~~~^~~~~~~~~~~
+TypeError: not all arguments converted during string formatting
+Call stack:
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/threading.py", line 1002, in _bootstrap
+    self._bootstrap_inner()
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/asyncio/base_events.py", line 608, in run_forever
+    self._run_once()
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/asyncio/base_events.py", line 1936, in _run_once
+    handle._run()
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/asyncio/events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 1532, in _run
+    msg = self._plan_stack[-1].send(resp)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1355, in __call__
+    return (yield from plan)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1210, in baseline_wrapper
+    return (yield from plan_mutator(plan, insert_baseline))
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 126, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 839, in monitor_during_wrapper
+    return (yield from plan2)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 126, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 126, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 897, in fly_during_wrapper
+    return (yield from plan2)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 126, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 126, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File "/home/beams/USAXS/bluesky/instrument/plans/mode_changes.py", line 126, in mode_USAXS
+    yield from DCMfeedbackON()
+  File "/home/beams/USAXS/bluesky/instrument/plans/mono_feedback.py", line 28, in DCMfeedbackON
+    monochromator.feedback.check_position()
+  File "/home/beams/USAXS/bluesky/instrument/devices/monochromator.py", line 89, in check_position
+    logger.warning(subject, message)
+Message: 'USAXS Feedback problem'
+Arguments: ('Feedback is very close to its limits.',)
+W Mon-20:16:04 - !!!!!!!!!!!!!!!
+I Mon-20:16:04 - Preparing for USAXS mode ... please wait ...
+I Mon-20:16:05 - Prepared for USAXS mode
+Out[15]: ()
