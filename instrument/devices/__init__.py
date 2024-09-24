@@ -10,7 +10,7 @@ local, custom Device definitions
 #     # 'ophyd.event_dispatcher' — issues regular summaries of the backlog of updates from the control layer that are being processed on background threads
 
 from .aps_source import *
-# from .aps_undulator import *
+from .aps_undulator import *
 
 from .override_parameters import *
 from .constants import *
