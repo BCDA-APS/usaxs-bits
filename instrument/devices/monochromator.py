@@ -86,7 +86,8 @@ class DCM_Feedback(Device):
             if email_notices.notify_on_feedback:
                 self._send_emails(subject, message)
             logger.warning("!"*15)
-            logger.warning(subject, message)
+            logger.warning(subject)
+            logger.warning(message)
             logger.warning("!"*15)
 
 
