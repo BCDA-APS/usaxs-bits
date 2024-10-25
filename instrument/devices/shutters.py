@@ -79,7 +79,7 @@ if aps.inUserOperations and operations_in_12ide():
     mono_shutter = My12IdPssShutter(
          #20id:shutter1_opn and 20id:shutter1_cls
        "12id:shutter1", 
-        state_pv = "PA:12ID:STA_E_SBS_OPEN_PL",
+        state_pv = "PA:12ID:STA_C_SBS_OPEN_PL",
         name="mono_shutter")
 
     usaxs_shutter = EpicsOnOffShutter(

@@ -25,8 +25,8 @@ class PSS_Parameters(Device):
 
     e_beam_active = Component(EpicsSignalRO, "PA:12ID:E_BEAM_ACTIVE.VAL", string=True)
     e_beam_ready = Component(EpicsSignalRO, "PA:12ID:E_BEAM_READY.VAL", string=True)
-    e_shutter_closed_chain_B = Component(EpicsSignalRO, "PB:12ID:STA_E_SBS_CLSD_PL", string=True)
-    e_shutter_open_chain_A = Component(EpicsSignalRO, "PA:12ID:STA_E_FES_OPEN_PL", string=True)
+    e_shutter_closed_chain_B = Component(EpicsSignalRO, "PB:12ID:STA_C_SBS_CLSD_PL", string=True)
+    e_shutter_open_chain_A = Component(EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True)
 
     #c_beam_ready_leds = Component(EpicsSignalRO, "PA:09ID:STA_C_BEAMREADY_PL", string=True)
     #c_shutter_closed_chain_A = Component(EpicsSignalRO, "PA:09ID:SCS_PS_CLSD_LS", string=True)
