@@ -29,7 +29,6 @@ class My12EidDcmEnergy(PVPositionerSoftDoneWithStop):
     egu = "keV"
     stop_signal = Component(EpicsSignal, "12ida2:Mono_STOP", kind="omitted")
     stop_value = 1
-    tolerance = 0.0002  #difference between set and read when done is declared. 
 
 
 class My12EidWavelengthRO(EpicsSignalRO):
@@ -46,6 +45,7 @@ class My12IdEDcm(Device):
         # must be defined and different from each other
         setpoint_pv="setpoint",  # ignore since 'setpoint' is already defined
         readback_pv="readback",  # ignore since 'readback' is already defined
+        tolerance = 0.0002,  #difference between set and read when done is declared. 
     )
     wavelength = Component(My12EidWavelengthRO, "12ida2:LambdaCalc")
     theta = Component(EpicsMotor, "12ida2:m19")
