@@ -52,7 +52,7 @@ import numpy as np
 
 # DATABROKER_CATALOG = "9idc_usaxs_retired_2022_01_14"  # was mongodb_config in different format
 # DATABROKER_CATALOG = "9idc_usaxs"  # last used 2022-11-07 before 8 am
-DATABROKER_CATALOG = "20idb_usaxs"
+DATABROKER_CATALOG = "usaxs"
 
 
 def get_md_path():
