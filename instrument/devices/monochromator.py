@@ -29,6 +29,7 @@ class My12EidDcmEnergy(PVPositionerSoftDoneWithStop):
     egu = "keV"
     stop_signal = Component(EpicsSignal, "12ida2:Mono_STOP", kind="omitted")
     stop_value = 1
+    tolerance = 0.0002  #difference between set and read when done is declared. 
 
 
 class My12EidWavelengthRO(EpicsSignalRO):
