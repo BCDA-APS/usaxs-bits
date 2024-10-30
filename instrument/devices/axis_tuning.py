@@ -5,7 +5,7 @@ configure per-axis tuning
 A tunable axis has these attributes::
 
     tuner : obj (function reference)
-        reference to tuning method, such as `apstools.plans.lineup2()`,
+        reference to tuning method, such as `apstools.plans.TuneAxis()`,
         Default value is `None` -- this *must* be set before axis can be tuned.
 
     pre_tune_method : obj (function reference)
@@ -18,14 +18,16 @@ A tunable axis has these attributes::
         the default prints status.
         Use this to unstage various components after the tune.
 
-For reference, `apstools.plans.lineup2().tune()` uses these default attributes:
+For reference, `apstools.plans.TuneAxis().tune()` uses these default attributes::
 
-   detectors, 
-   mover, 
-   rel_start, 
-   rel_end, 
-   points, 
-   peak_factor=2.5, width_factor=0.8, feature='centroid', nscans=2, signal_stats=None, md={}
+    width : float
+        full range that axis will be scanned, default = 1
+
+    num : int
+        full range that axis will be scanned, default = 10
+
+    peak_choice : str
+        either "cen" (default: peak value) or "com" (center of mass)
 
 These attributes, set internally, are available for reference::
 
@@ -66,14 +68,14 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from apstools.plans.alignment import lineup2
+from apstools.plans import TuneAxis
 from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
-from ophyd import Component, Device, EpicsSignal, Signal
+from ophyd import Component, Device, EpicsSignal
 from ophyd import Kind
 from ophyd import EpicsScaler
 from ophyd.scaler import ScalerCH
-# from .override_ScalerCH import ScalerCH - removed JIL 6/2024, will this casue issues? 
+#from .override_ScalerCH import ScalerCH
 
 
 logger.debug("before instrument imports")
@@ -84,13 +86,13 @@ from .general_terms import terms
 from .miscellaneous import usaxs_q_calc
 from .scalers import scaler0, I0_SIGNAL, I00_SIGNAL, UPD_SIGNAL
 from .shutters import mono_shutter, ti_filter_shutter
-from .stages import m_stage,  s_stage, a_stage,  d_stage #ms_stage, as_stage
+from .stages import m_stage, s_stage, a_stage, d_stage #ms_stage,as_stage
 
 # replace the definition from apstools.plans
-# from .axis_tuning_patches import UsaxsTuneAxis as TuneAxis
+from .axis_tuning_patches import UsaxsTuneAxis as TuneAxis
 
 # use center-of-mass, and not peak value: "com"
-TUNE_METHOD_PEAK_CHOICE = "centroid"
+TUNE_METHOD_PEAK_CHOICE = "com"
 
 USING_MS_STAGE = False
 TUNING_DET_SIGNAL = {True: I00_SIGNAL, False: I0_SIGNAL}[USING_MS_STAGE]
@@ -129,19 +131,19 @@ def mr_pretune_hook():
     stage = m_stage.r
     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
     yield from bps.mv(scaler0.preset_time, 0.1,)
-    #y_name = TUNING_DET_SIGNAL.chname.get()
-    #scaler0.select_channels([y_name])
-    #scaler0.channels.chan01.kind = Kind.config
-    # trim_plot_by_name(n=5) #this may be needed if we make plotting again, but lineup2 does not plot by default.
+    y_name = TUNING_DET_SIGNAL.chname.get()
+    scaler0.select_channels([y_name])
+    scaler0.channels.chan01.kind = Kind.config
+    trim_plot_by_name(n=5)
     # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
 
 
 def mr_posttune_hook():
     msg = "Tuning axis {}, final position is {}"
     logger.info(msg.format(m_stage.r.name, m_stage.r.position))
-    # need to plot data somehow
-    #if m_stage.r.tuner.tune_ok:
-    #    yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
+
+    if m_stage.r.tuner.tune_ok:
+        yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
 
     scaler0.select_channels(None)
 
@@ -152,74 +154,15 @@ def _getScalerSignalName_(scaler, signal):
     elif isinstance(scaler, EpicsScaler):
         return signal.name
 
-##to USAXS_motor devide and be used in stage definitions
-
-class TunableEpicsMotor2(EpicsMotor):
-
-    def __init__(
-        self,
-        *args,
-        detectors:list=None,
-        tune_range: Signal=None,
-        points: int=31,
-        peak_factor: float =2.5,
-
-        feature: str="centroid",
-        **kwargs,
-    ):
-        super().__init__(*args, **kwargs) # default EpicsMotor setup
-        self.detectors=detectors
-        self.points=points
-        self.tune_range=tune_range
-
-    def tune(self, md=None):
-        _md = {}
-        _md.update(md or {})
-        yield from lineup2(
-            self.detectors,
-            self,
-            -self.tune_range.get()
-
-        )
-        detectors = [scaler0]
-        mover=self
-        rel_start = -1*self.tune_range.get()
-        rel_end = self.tune_range.get()
-        yield from lineup2(detectors, mover, rel_start, rel_end, points, peak_factor=2.5, width_factor=0.8, feature='centroid', nscans=2, signal_stats=None, md={})
-        #TODO something after lineup. 
-
-##to USAXS_motor devide and be used in stage definitions
-class Mstage(Device):
-    r=Component(TunableEpicsMotor2, PV, 
-        #tune parameters passed in
-        detectors=[scaler0],
-        tune_range=axis_tune_range.mr 
-        points=31          
-    )
-    
-
-
-
-#define mr stage tuning options
-#apstools.plans.alignment.lineup2(detectors, mover, rel_start, rel_end, points, peak_factor=2.5, width_factor=0.8, feature='centroid', nscans=2, signal_stats=None, md={})
-#m_stage.r.tune_range = axis_tune_range.mr
-#m_stage.r.tuner = lineup2(
+m_stage.r.tuner = TuneAxis(
     [scaler0],
     m_stage.r,
-    -1*axis_tune_range.mr.get(),
-    axis_tune_range.mr.get(),
-    31,
-    peak_factor=2.5, 
-    width_factor=0.8,
-    feature = TUNE_METHOD_PEAK_CHOICE, #='centroid'
-    nscans=2,
-    signal_stats=None,
-    #signal_name=_getScalerSignalName_(scaler0, TUNING_DET_SIGNAL),
-    #width_signal=axis_tune_range.mr,
+    signal_name=_getScalerSignalName_(scaler0, TUNING_DET_SIGNAL),
+    width_signal=axis_tune_range.mr,
 )
-#m_stage.r.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
-#m_stage.r.tuner.num = 31
-#m_stage.r.tuner.width = axis_tune_range.mr.get()     # -0.004
+m_stage.r.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
+m_stage.r.tuner.num = 31
+m_stage.r.tuner.width = axis_tune_range.mr.get()     # -0.004
 
 m_stage.r.pre_tune_method = mr_pretune_hook
 m_stage.r.post_tune_method = mr_posttune_hook
@@ -271,40 +214,40 @@ m_stage.r2p.post_tune_method = m2rp_posttune_hook
 # -------------------------------------------
 
 
-# def msrp_pretune_hook():
-#     stage = ms_stage.rp
-#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-#     yield from bps.mv(scaler0.preset_time, 0.1)
-#     y_name = TUNING_DET_SIGNAL.chname.get()
-#     scaler0.select_channels([y_name])
-#     scaler0.channels.chan01.kind = Kind.config
-#     trim_plot_by_name(n=5)
-#     # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
+def msrp_pretune_hook():
+    stage = ms_stage.rp
+    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+    yield from bps.mv(scaler0.preset_time, 0.1)
+    y_name = TUNING_DET_SIGNAL.chname.get()
+    scaler0.select_channels([y_name])
+    scaler0.channels.chan01.kind = Kind.config
+    trim_plot_by_name(n=5)
+    # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
 
 
-# def msrp_posttune_hook():
-#     msg = "Tuning axis {}, final position is {}"
-#     logger.info(msg.format(ms_stage.rp.name, ms_stage.rp.position))
+def msrp_posttune_hook():
+    msg = "Tuning axis {}, final position is {}"
+    logger.info(msg.format(ms_stage.rp.name, ms_stage.rp.position))
 
-#     if ms_stage.rp.tuner.tune_ok:
-#         yield from bps.mv(terms.USAXS.msr_val_center, ms_stage.rp.position)
+    if ms_stage.rp.tuner.tune_ok:
+        yield from bps.mv(terms.USAXS.msr_val_center, ms_stage.rp.position)
 
-#     scaler0.select_channels(None)
+    scaler0.select_channels(None)
 
 
-# # use I00 (if MS stage is used, use I0)
-# ms_stage.rp.tuner = TuneAxis(
-#     [scaler0],
-#     ms_stage.rp,
-#     signal_name=_getScalerSignalName_(scaler0, TUNING_DET_SIGNAL),
-#     width_signal=axis_tune_range.msrp,
-# )
-# ms_stage.rp.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
-# ms_stage.rp.tuner.num = 21
-# ms_stage.rp.tuner.width = axis_tune_range.msrp.get()     # 6
+# use I00 (if MS stage is used, use I0)
+ms_stage.rp.tuner = TuneAxis(
+    [scaler0],
+    ms_stage.rp,
+    signal_name=_getScalerSignalName_(scaler0, TUNING_DET_SIGNAL),
+    width_signal=axis_tune_range.msrp,
+)
+ms_stage.rp.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
+ms_stage.rp.tuner.num = 21
+ms_stage.rp.tuner.width = axis_tune_range.msrp.get()     # 6
 
-# ms_stage.rp.pre_tune_method = msrp_pretune_hook
-# ms_stage.rp.post_tune_method = msrp_posttune_hook
+ms_stage.rp.pre_tune_method = msrp_pretune_hook
+ms_stage.rp.post_tune_method = msrp_posttune_hook
 
 # -------------------------------------------
 
@@ -351,41 +294,41 @@ a_stage.r.post_tune_method = ar_posttune_hook
 # -------------------------------------------
 
 
-# def asrp_pretune_hook():
-#     stage = as_stage.rp
-#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-#     yield from bps.mv(scaler0.preset_time, 0.1)
-#     y_name = UPD_SIGNAL.chname.get()
-#     scaler0.select_channels([y_name])
-#     scaler0.channels.chan01.kind = Kind.config
-#     trim_plot_by_name(n=5)
-#     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
+def asrp_pretune_hook():
+    stage = as_stage.rp
+    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+    yield from bps.mv(scaler0.preset_time, 0.1)
+    y_name = UPD_SIGNAL.chname.get()
+    scaler0.select_channels([y_name])
+    scaler0.channels.chan01.kind = Kind.config
+    trim_plot_by_name(n=5)
+    # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
 
 
-# def asrp_posttune_hook():
-#     msg = "Tuning axis {}, final position is {}"
-#     logger.info(msg.format(as_stage.rp.name, as_stage.rp.position))
-#     yield from bps.mv(terms.USAXS.asr_val_center, as_stage.rp.position)
+def asrp_posttune_hook():
+    msg = "Tuning axis {}, final position is {}"
+    logger.info(msg.format(as_stage.rp.name, as_stage.rp.position))
+    yield from bps.mv(terms.USAXS.asr_val_center, as_stage.rp.position)
 
-#     if as_stage.rp.tuner.tune_ok:
-#         pass    # #165: update center when/if we get a PV for that
+    if as_stage.rp.tuner.tune_ok:
+        pass    # #165: update center when/if we get a PV for that
 
-#     scaler0.select_channels(None)
+    scaler0.select_channels(None)
 
 
-# # use I00 (if MS stage is used, use I0)
-# as_stage.rp.tuner = TuneAxis(
-#     [scaler0],
-#     as_stage.rp,
-#     signal_name=_getScalerSignalName_(scaler0, UPD_SIGNAL),
-#     width_signal=axis_tune_range.asrp,
-# )
-# as_stage.rp.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
-# as_stage.rp.tuner.num = 21
-# as_stage.rp.tuner.width = axis_tune_range.asrp.get()     # 6
+# use I00 (if MS stage is used, use I0)
+as_stage.rp.tuner = TuneAxis(
+    [scaler0],
+    as_stage.rp,
+    signal_name=_getScalerSignalName_(scaler0, UPD_SIGNAL),
+    width_signal=axis_tune_range.asrp,
+)
+as_stage.rp.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
+as_stage.rp.tuner.num = 21
+as_stage.rp.tuner.width = axis_tune_range.asrp.get()     # 6
 
-# as_stage.rp.pre_tune_method = asrp_pretune_hook
-# as_stage.rp.post_tune_method = asrp_posttune_hook
+as_stage.rp.pre_tune_method = asrp_pretune_hook
+as_stage.rp.post_tune_method = asrp_posttune_hook
 
 # -------------------------------------------
 

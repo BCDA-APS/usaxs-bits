@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 from ophyd import EpicsSignal
-from .usaxs_motor_devices import UsaxsMotor
+#from .usaxs_motor_devices import UsaxsMotor
 
 #camy = UsaxsMotor('usxLAX:m58:c1:m7', name='camy', labels=("motor",))
 ##tcam = UsaxsMotor('usxLAX:m58:c1:m6', name='tcam', labels=("motor",))
-tension = UsaxsMotor('usxLAX:m58:c1:m8', name='tens', labels=("motor",))
+#tension = UsaxsMotor('usxLAX:m58:c1:m8', name='tens', labels=("motor",))
 
 #fuel_spray_bit = EpicsSignal(
 #    "usxLAX:bit1",

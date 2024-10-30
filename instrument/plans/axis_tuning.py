@@ -32,7 +32,7 @@ from bluesky import plan_stubs as bps
 from ophyd import Kind
 import time
 
-from apstools.plans import plotxy
+#from apstools.plans import plotxy
 
 from ..devices import autoscale_amplifiers, upd_controls, I0_controls, I00_controls
 from ..devices import user_override
