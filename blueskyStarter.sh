@@ -87,6 +87,8 @@ console_session () {
     export OPTIONS="${OPTIONS} --InteractiveShellApp.hide_initial_ns=False"
 
     pick_environment_executable
+    # see https://github.com/APS-USAXS/bluesky/issues/7
+    export LD_LIBRARY_PATH="${CONDA_PREFIX}/lib"
 
     ipython ${OPTIONS}
 }
