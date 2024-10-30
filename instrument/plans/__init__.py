@@ -9,3 +9,4 @@ from .filters import *
 from .mode_changes import *
 from .move_instrument import *
 from .resets import *
+from .axis_tuning import *
