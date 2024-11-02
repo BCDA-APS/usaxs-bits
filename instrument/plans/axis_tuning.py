@@ -36,11 +36,11 @@ import time
 
 from ..devices import autoscale_amplifiers, upd_controls, I0_controls, I00_controls
 from ..devices import user_override
-from ..devices.axis_tuning import axis_tune_range
-from ..devices.axis_tuning import TUNE_METHOD_PEAK_CHOICE
-from ..devices.axis_tuning import TUNING_DET_SIGNAL
-from ..devices.axis_tuning import USING_MS_STAGE
-from ..devices.stages import m_stage, ms_stage, s_stage, a_stage, d_stage #as_stage
+from ..devices.stages import axis_tune_range
+from ..devices.stages import TUNE_METHOD_PEAK_CHOICE
+from ..devices.stages import TUNING_DET_SIGNAL
+from ..devices.stages import USING_MS_STAGE
+from ..devices.stages import m_stage, s_stage, a_stage, d_stage         #as_stage, ms_stage
 from ..devices.shutters import mono_shutter, ti_filter_shutter
 from ..devices.monochromator import monochromator
 from ..devices.scalers import scaler0, I0_SIGNAL, I00_SIGNAL, UPD_SIGNAL
@@ -69,7 +69,7 @@ def _tune_base_(axis, md={}):
         ti_filter_shutter, "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-    uuids = yield from axis.tune(md=md)
+    uuids = yield from axis.tune(md=md)     #note: the tune method comes from usaxs_motor_devices, TunableEpicsMotor, which uses lineup2
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",

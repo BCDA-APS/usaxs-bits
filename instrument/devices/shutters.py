@@ -82,12 +82,18 @@ if aps.inUserOperations and operations_in_12ide():
         state_pv = "PA:12ID:STA_C_SBS_OPEN_PL",
         name="mono_shutter")
 
-    usaxs_shutter = EpicsOnOffShutter(
-        "usxLAX:userTran3.A",
-        name="usaxs_shutter")
+    #usaxs_shutter = EpicsOnOffShutter(
+    #    "usxLAX:userTran3.A",
+    #    name="usaxs_shutter")
+
+    usaxs_shutter = ApsPssShutter(
+        "",
+        name="usaxs_shutter",
+        open_pv="12idc:uniblitz:shutter:open",
+        close_pv="12idc:uniblitz:shutter:close")
 
     a_shutter_autoopen = EpicsSignal(
-        "usxLAX:AShtr:Enable",
+        "12ida2:AShtr:Enable",
         name="a_shutter_autoopen")
 
 else:
