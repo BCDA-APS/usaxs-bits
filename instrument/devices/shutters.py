@@ -87,7 +87,7 @@ if aps.inUserOperations and operations_in_12ide():
         name="usaxs_shutter")
 
     a_shutter_autoopen = EpicsSignal(
-        "usxLAX:AShtr:Enable",
+        "12ida2:AShtr:Enable",
         name="a_shutter_autoopen")
 
 else:
