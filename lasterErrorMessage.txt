@@ -1,98 +1,27 @@
-In [10]: RE(bp.scan([scaler0],s_stage.x,-120,-122,21))
-
-
-Transient Scan ID: 8     Time: 2024-10-25 09:06:42
-Persistent Unique Scan ID: 'fc998cc0-a063-4b86-9d58-176a372e2849'
-New stream: 'baseline'
-New stream: 'primary'                                                                                                                                                                
-/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/callbacks/best_effort.py:208: UserWarning: Starting a Matplotlib GUI outside of the main thread will likely fail.
-  fig = self._fig_factory(fig_name)
-+-----------+------------+------------+------------+------------+
-|   seq_num |       time |  s_stage_x |   I0_USAXS |   PD_USAXS |
-+-----------+------------+------------+------------+------------+
-|         1 | 09:06:46.7 | -119.999992 |       3795 |      57194 |
-|         2 | 09:06:48.0 | -120.100013 |       3796 |      57749 |                                                                                                                   
-|         3 | 09:06:49.3 | -120.199946 |       3795 |      57249 |                                                                                                                   
-|         4 | 09:06:50.6 | -120.299989 |       3796 |      59234 |                                                                                                                   
-|         5 | 09:06:51.8 | -120.399949 |       3796 |      57167 |                                                                                                                   
-|         6 | 09:06:53.1 | -120.499975 |       3796 |      59530 |                                                                                                                   
-|         7 | 09:06:54.4 | -120.599981 |       3796 |      58353 |                                                                                                                   
-|         8 | 09:06:55.6 | -120.699963 |       3795 |      57001 |                                                                                                                   
-|         9 | 09:06:56.9 | -120.799963 |       3795 |      59245 |                                                                                                                   
-|        10 | 09:06:58.2 | -120.899971 |       3795 |      59551 |                                                                                                                   
-|        11 | 09:06:59.5 | -120.999974 |       3795 |      58555 |                                                                                                                   
-|        12 | 09:07:00.7 | -121.099958 |       3796 |      58055 |                                                                                                                   
-|        13 | 09:07:02.0 | -121.199999 |       3795 |      56445 |                                                                                                                   
-|        14 | 09:07:03.3 | -121.299980 |       3796 |      57453 |                                                                                                                   
-|        15 | 09:07:04.6 | -121.400005 |       3795 |      57362 |                                                                                                                   
-|        16 | 09:07:05.9 | -121.500000 |       3796 |      57060 |                                                                                                                   
-|        17 | 09:07:07.2 | -121.600000 |       3796 |      56959 |                                                                                                                   
-|        18 | 09:07:08.5 | -121.699979 |       3798 |      57164 |                                                                                                                   
-|        19 | 09:07:09.8 | -121.800000 |       3796 |      56457 |                                                                                                                   
-|        20 | 09:07:11.1 | -121.899986 |       3796 |      56576 |                                                                                                                   
-|        21 | 09:07:12.3 | -121.999986 |       3796 |      56656 |                                                                                                                   
-+-----------+------------+------------+------------+------------+
-generator scan ['fc998cc0'] (scan num: 8)
-Out[10]: ('fc998cc0-a063-4b86-9d58-176a372e2849',)
-
-In [11]: Traceback (most recent call last):
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/bin/ipython", line 8, in <module>
-    sys.exit(start_ipython())
-             ^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/IPython/__init__.py", line 130, in start_ipython
-    return launch_new_instance(argv=argv, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/traitlets/config/application.py", line 1075, in launch_instance
-    app.start()
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/IPython/terminal/ipapp.py", line 317, in start
-    self.shell.mainloop()
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/IPython/terminal/interactiveshell.py", line 917, in mainloop
-    self.interact()
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/IPython/terminal/interactiveshell.py", line 902, in interact
-    code = self.prompt_for_code()
-           ^^^^^^^^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/IPython/terminal/interactiveshell.py", line 845, in prompt_for_code
-    text = self.pt_app.prompt(
-           ^^^^^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/prompt_toolkit/shortcuts/prompt.py", line 1035, in prompt
-    return self.app.run(
-           ^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/prompt_toolkit/application/application.py", line 978, in run
-    result = loop.run_until_complete(coro)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/asyncio/base_events.py", line 641, in run_until_complete
-    self.run_forever()
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/asyncio/base_events.py", line 608, in run_forever
-    self._run_once()
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/asyncio/base_events.py", line 1898, in _run_once
-    event_list = self._selector.select(timeout)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/prompt_toolkit/eventloop/inputhook.py", line 150, in select
-    self.inputhook(InputHookContext(self._r, input_is_ready))
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/IPython/terminal/pt_inputhooks/tk.py", line 88, in inputhook
-    wait_using_filehandler()
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/IPython/terminal/pt_inputhooks/tk.py", line 65, in wait_using_filehandler
-    root.createfilehandler(inputhook_context.fileno(), _tkinter.READABLE, done)
-RuntimeError: Calling Tcl from different apartment
-
-If you suspect this is an IPython 8.27.0 bug, please report it at:
-    https://github.com/ipython/ipython/issues
-or send an email to the mailing list at ipython-dev@python.org
-
-You can print a more detailed traceback right now with "%tb", or use "%debug"
-to interactively debug it.
-
-Extra-detailed tracebacks for bug-reporting purposes can be enabled via:
-    %config Application.verbose_crash=True
-
-Exception ignored in atexit callback: <bound method Gcf.destroy_all of <class 'matplotlib._pylab_helpers.Gcf'>>
-Traceback (most recent call last):
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/matplotlib/_pylab_helpers.py", line 81, in destroy_all
-    manager.destroy()
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/matplotlib/backends/_backend_tk.py", line 562, in destroy
-    self.canvas._tkcanvas.after_cancel(self.canvas._idle_draw_id)
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/tkinter/__init__.py", line 893, in after_cancel
-    data = self.tk.call('after', 'info', id)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-RuntimeError: main thread is not in main loop
-(/share1/bluesky/conda_envs/bluesky_2024_3) bash-4.4$ 
+ File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 907, in fly_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/bluesky/instrument/plans/axis_tuning.py", line 96, in tune_mr
+    yield from _tune_base_(m_stage.r, md=md)
+  File "/home/beams/USAXS/bluesky/instrument/plans/axis_tuning.py", line 72, in _tune_base_
+    uuids = yield from axis.tune(md=md)     #note: the tune method comes from usaxs_motor_devices, TunableEpicsMotor, which uses lineup2
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/bluesky/instrument/devices/usaxs_motor_devices.py", line 109, in tune
+    return (yield from _inner())
+            ^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/bluesky/instrument/devices/usaxs_motor_devices.py", line 107, in _inner
+    yield from self.post_tune_hook()
+TypeError: 'NoneType' object is not iterable
