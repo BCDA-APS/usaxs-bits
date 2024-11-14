@@ -77,15 +77,15 @@ def _tune_base_(axis, md={}):
     # plotxy(uuids,I0_SIGNAL or UPD_SIGNAL)
     # TODO plot the data somenow, use plotxy() which takes the uuid list from tune
     # TODO handle multiple plots as we had before AND keep number of ploted data sensible. 
-    found = axis.tuner.peak_detected()
-    logger.info(f"axis: {axis.name}")
-    logger.info(f"starting position: {axis_start}")
-    logger.info(f"peak detected: {found}")
-    if found:
-        logger.info(f"  max: {axis.tuner.peaks.max}")
-        logger.info(f"  center: {axis.tuner.peaks.cen}")
-        logger.info(f"  centroid: {axis.tuner.peaks.com}")
-        logger.info(f"  fwhm: {axis.tuner.peaks.fwhm}")
+    #found = axis.tuner.peak_detected()
+    #logger.info(f"axis: {axis.name}")
+    #logger.info(f"starting position: {axis_start}")
+    #logger.info(f"peak detected: {found}")
+    #if found:
+    #    logger.info(f"  max: {axis.tuner.peaks.max}")
+    #    logger.info(f"  center: {axis.tuner.peaks.cen}")
+    #    logger.info(f"  centroid: {axis.tuner.peaks.com}")
+    #    logger.info(f"  fwhm: {axis.tuner.peaks.fwhm}")
     logger.info(f"final position: {axis.position}")
 
 
