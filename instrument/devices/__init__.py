@@ -36,9 +36,9 @@ from .monochromator import *
 # from .sample_rotator import *
 from .slits import *
 from .struck3820 import *
-# from .suspenders import *
-# from .trajectories import *
-# from .usaxs_fly_scan import *
+from .suspenders import *
+from .trajectories import *
+from .usaxs_fly_scan import *
 # from .laser import *# from .noisy_detector import *
 # from .shutter_simulator import *
 # from .temperature_signal import *
