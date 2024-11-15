@@ -19,6 +19,7 @@ logger.info(__file__)
 
 
 from apstools.devices import ApsPssShutterWithStatus
+from apstools.devices import ApsPssShutter
 from apstools.devices import EpicsOnOffShutter
 from apstools.devices import SimulatedApsPssShutterWithStatus
 from ophyd import EpicsSignal
@@ -79,7 +80,7 @@ if aps.inUserOperations and operations_in_12ide():
     mono_shutter = My12IdPssShutter(
          #20id:shutter1_opn and 20id:shutter1_cls
        "12id:shutter1", 
-        state_pv = "PA:12ID:STA_C_SBS_OPEN_PL",
+        state_pv = "PA:12ID:STA_C_SCS_OPEN_PL",
         name="mono_shutter")
 
     #usaxs_shutter = EpicsOnOffShutter(

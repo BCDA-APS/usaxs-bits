@@ -31,12 +31,12 @@ from .initialize import RE
 
 # Set up default metadata
 
-RE.md["beamline_id"] = "APS 9-ID-C USAXS"
+RE.md["beamline_id"] = "APS 12-ID-E USAXS"
 RE.md["proposal_id"] = "testing"
 RE.md["pid"] = os.getpid()
 
 HOSTNAME = socket.gethostname() or "localhost"
-USERNAME = getpass.getuser() or "APS 9-ID-C USAXS user"
+USERNAME = getpass.getuser() or "APS 12-ID-E USAXS user"
 RE.md["login_id"] = USERNAME + "@" + HOSTNAME
 
 # useful diagnostic to record with all data

@@ -58,7 +58,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
 
                     <field name="name">
                         <attribute name="short_name" value="USAXS" />
-                        <text>APS USAXS at 9-ID-C</text>
+                        <text>APS USAXS at 12-ID-E</text>
                     </field>
                     <group name="source" class="NXsource">
                         <PV label="incident_wavelength" pvname="9ida:BraggLambdaRdbkAO">
@@ -558,10 +558,10 @@ Additionally, you can check this file for validity and that all PVs exist with t
 
                     <PV label="d_beam_available" pvname="usxLAX:blCalc:userCalc1" />
 
-                    <!-- PSS PVs for 9-ID -->
-                    <PV label="doors_closed" pvname="PA:09ID:STA_C_NO_ACCESS.VAL" />
-                    <PV label="white_shtr_opened" pvname="PA:09ID:STA_A_FES_OPEN_PL.VAL" />
-                    <PV label="mono_shtr_opened"  pvname="PA:09ID:STA_B_SBS_OPEN_PL.VAL" />
+                    <!-- PSS PVs for 12ID -->
+                    <PV label="doors_closed" pvname="PA:12ID:STA_C_NO_ACCESS.VAL" />
+                    <PV label="white_shtr_opened" pvname="PA:12ID:STA_A_FES_OPEN_PL.VAL" />
+                    <PV label="mono_shtr_opened"  pvname="PA:12ID:STA_C_SBS_OPEN_PL.VAL" />
 
                     <PV label="pf4_trans" pvname="usxRIO:pf4:trans" />
                     <PV label="pf4_thickness_Al" pvname="usxRIO:pf4:filterAl" />

@@ -23,8 +23,8 @@ class PSS_Parameters(Device):
     a_beam_active = Component(EpicsSignalRO, "PA:12ID:A_BEAM_ACTIVE.VAL", string=True)
     a_shutter_open_chain_A_led = Component(EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True)
 
-    e_beam_active = Component(EpicsSignalRO, "PA:12ID:E_BEAM_ACTIVE.VAL", string=True)
-    e_beam_ready = Component(EpicsSignalRO, "PA:12ID:E_BEAM_READY.VAL", string=True)
+    e_beam_active = Component(EpicsSignalRO, "PA:12ID:C_BEAM_ACTIVE.VAL", string=True)
+    e_beam_ready = Component(EpicsSignalRO, "PA:12ID:C_BEAM_READY.VAL", string=True)
     e_shutter_closed_chain_B = Component(EpicsSignalRO, "PB:12ID:STA_C_SCS_CLSD_PL", string=True)
     e_shutter_open_chain_A = Component(EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True)
 
@@ -40,24 +40,24 @@ class PSS_Parameters(Device):
 
     # other signals?
 
-    #@property
-    #def b_station_enabled(self):
-    #    """
-    #    look at the switches: are we allowed to operate?
-    #
-    #    The PSS has a beam plug just before the C station
-    #
-    #    :Plug in place:
-    #      Cannot use beam in 20-ID-B.
-    #      Should not use FE or mono shutters, monochromator, ti_filter_shutter...
-    #
-    #    :Plug removed:
-    #      Operations in 20-ID-B are allowed
-    #    """
-    #    chain_A = self.c_shutter_closed_chain_A
-    #    chain_B = self.c_shutter_closed_chain_B
-    #    enabled = chain_A.get() == "OFF" or chain_B.get() == "OFF"
-    #    return enabled
+    @property
+    def c_station_enabled(self):
+        """
+        this is really not needed on 12ID as both beamlines can work in parallel
+        This was used at 9ID with hutches behind. 
+        look at the switches: are we allowed to operate?
+       
+        #:Plug in place:
+        ##  Cannot use beam in 20-ID-B.
+        #  Should not use FE or mono shutters, monochromator, ti_filter_shutter...
+        #:Plug removed:
+          
+          Operations in 12-ID-C are always allowed
+        """
+        #chain_A = self.c_shutter_closed_chain_A
+        #chain_B = self.c_shutter_closed_chain_B
+        #enabled = chain_A.get() == "OFF" or chain_B.get() == "OFF"
+        return 1
 
 
 # class BLEPS_Parameters(Device):
@@ -118,7 +118,7 @@ class DiagnosticsParameters(Device):
 
     @property
     def beam_in_hutch(self):
-        return self.beam_in_hutch_swait.val.get() != 0
+        return self.beam_in_hutch_swait.calculated_value.get() #!= 0
 
 diagnostics = DiagnosticsParameters(name="diagnostics")
 sd.baseline.append(diagnostics)

@@ -6,7 +6,7 @@ permission to operate with X-rays
 __all__ = [
     'BeamInHutch',
     'operations_in_12ide',
-    'usaxs_CheckBeamSpecial',
+    #'usaxs_CheckBeamSpecial',
     ]
 
 import logging
@@ -24,8 +24,8 @@ def operations_in_12ide():
     returns True if allowed to use X-ray beam in 12-ID-E station
     """
     #return diagnostics.PSS.b_station_enabled
-    #return True 
-    return False
+    return True 
+    #return False
 
 """
 This EPICS PV calculates *BeamInHutch* boolean.
@@ -43,8 +43,8 @@ BeamInHutch = EpicsSignalRO(
 # TODO: needs some thought and refactoring
 # this is used to set the check beam PV to use many PVs and conditions to decide,
 # if there is chance to have beam. Uses also userCalc on lax
-usaxs_CheckBeamSpecial = EpicsSignalRO(
-	"usxLAX:blCalc:userCalc2",
-	name="usaxs_CheckBeamSpecial",
-    auto_monitor=False,
-	)
+# usaxs_CheckBeamSpecial = EpicsSignalRO(
+	# "usxLAX:blCalc:userCalc2",
+	# name="usaxs_CheckBeamSpecial",
+    # auto_monitor=False,
+	# )
