@@ -25,8 +25,8 @@ import datetime
 import os
 import time
 
-from ._to_be_hoisted import restorable_stage_sigs
-from ..devices import a_stage, as_stage
+from apstools.plans import restorable_stage_sigs
+from ..devices import a_stage#, as_stage
 #from ..devices import apsbss
 from ..devices import ar_start
 from ..devices import autoscale_amplifiers
@@ -38,7 +38,7 @@ from ..devices import email_notices, NOTIFY_ON_RESET, NOTIFY_ON_BADTUNE
 from ..devices import flyscan_trajectories
 from ..devices import guard_slit, usaxs_slit
 from ..devices import lax_autosave
-from ..devices import m_stage, ms_stage
+from ..devices import m_stage #, ms_stage
 from ..devices import monochromator, MONO_FEEDBACK_OFF, MONO_FEEDBACK_ON
 from ..devices import NOTIFY_ON_BAD_FLY_SCAN
 from ..devices import saxs_det
@@ -139,9 +139,11 @@ def preUSAXStune(md={}):
     if not m_stage.isChannelCut:
         tuners[m_stage.r2p] = tune_m2rp        # make M stage crystals parallel
     if terms.USAXS.useMSstage.get():
-        tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
+        #tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
+        pass
     if terms.USAXS.useSBUSAXS.get():
-        tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage and set ASRP0 value
+        #tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage and set ASRP0 value
+        pass
     tuners[a_stage.r2p] = tune_a2rp        # make A stage crystals parallel
     tuners[a_stage.r] = tune_ar            # tune A stage to M stage
     # moving this up improves overall stability at 20IDB
@@ -236,9 +238,11 @@ def allUSAXStune(md={}):
     if not m_stage.isChannelCut:
         tuners[m_stage.r2p] = tune_m2rp        # make M stage crystals parallel
     if terms.USAXS.useMSstage.get():
-        tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
+        #tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
+        pass
     if terms.USAXS.useSBUSAXS.get():
-        tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage and set ASRP0 value
+        #tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage and set ASRP0 value
+        pass
     tuners[a_stage.r] = tune_ar            # tune A stage to M stage
     tuners[a_stage.r2p] = tune_a2rp        # make A stage crystals parallel
     tuners[a_stage.r] = tune_ar            # tune A stage to M stage

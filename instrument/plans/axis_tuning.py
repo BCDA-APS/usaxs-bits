@@ -252,8 +252,8 @@ def instrument_default_tune_ranges():
         a_stage.r.tuner.width = 0.003
         m_stage.r2p.tuner.width = 10
         a_stage.r2p.tuner.width = 7
-        ms_stage.rp.tuner.width = 5
-        as_stage.rp.tuner.width = 3
+        #ms_stage.rp.tuner.width = 5
+        #as_stage.rp.tuner.width = 3
         minstep = user_override.pick("usaxs_minstep", 0.000045)
         logger.info("Setting minstep to %s", minstep)
         yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
@@ -263,8 +263,8 @@ def instrument_default_tune_ranges():
         a_stage.r.tuner.width = 0.0025
         m_stage.r2p.tuner.width = 9
         a_stage.r2p.tuner.width = 8
-        ms_stage.rp.tuner.width = 3
-        as_stage.rp.tuner.width = 3
+        #ms_stage.rp.tuner.width = 3
+        #as_stage.rp.tuner.width = 3
         minstep = user_override.pick("usaxs_minstep", 0.000035)
         logger.info("Setting minstep to %s", minstep)
         yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
@@ -274,8 +274,8 @@ def instrument_default_tune_ranges():
         a_stage.r.tuner.width = 0.0022
         m_stage.r2p.tuner.width = 8
         a_stage.r2p.tuner.width = 7
-        ms_stage.rp.tuner.width = 3
-        as_stage.rp.tuner.width = 3
+        #ms_stage.rp.tuner.width = 3
+        #as_stage.rp.tuner.width = 3
         minstep = user_override.pick("usaxs_minstep", 0.000025)
         logger.info("Setting minstep to %s", minstep)
         yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
@@ -285,8 +285,8 @@ def instrument_default_tune_ranges():
         a_stage.r.tuner.width = 0.002
         m_stage.r2p.tuner.width = 8
         a_stage.r2p.tuner.width = 6
-        ms_stage.rp.tuner.width = 3
-        as_stage.rp.tuner.width = 3
+        #ms_stage.rp.tuner.width = 3
+        #as_stage.rp.tuner.width = 3
         minstep = user_override.pick("usaxs_minstep", 0.000025)
         logger.info("Setting minstep to %s", minstep)
         yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
@@ -298,8 +298,8 @@ def instrument_default_tune_ranges():
             a_stage.r.tuner.width = 0.0006
             m_stage.r2p.tuner.width = 8
             a_stage.r2p.tuner.width = 1.5
-            ms_stage.rp.tuner.width = 3
-            as_stage.rp.tuner.width = 3
+            #ms_stage.rp.tuner.width = 3
+            #as_stage.rp.tuner.width = 3
             minstep = user_override.pick("usaxs_minstep", 0.000006)
             logger.info("Setting minstep to %s", minstep)
             yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
@@ -310,8 +310,8 @@ def instrument_default_tune_ranges():
             a_stage.r.tuner.width = 0.0018
             m_stage.r2p.tuner.width = 8
             a_stage.r2p.tuner.width = 12
-            ms_stage.rp.tuner.width = 3
-            as_stage.rp.tuner.width = 3
+            #ms_stage.rp.tuner.width = 3
+            #as_stage.rp.tuner.width = 3
             minstep = user_override.pick("usaxs_minstep", 0.00002)
             logger.info("Setting minstep to %s", minstep)
             yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)

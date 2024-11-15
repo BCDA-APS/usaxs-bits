@@ -25,13 +25,13 @@ from .stages import *
 from .emails import *
 from .filters import *
 from .shutters import *
-# from .autosave import *
+from .autosave import *
 # from .axis_tuning import *
 from .diagnostics import *
 # from .emails import *
 from .filters import *
-# from .linkam import *
-# from .miscellaneous import *
+from .linkam import *
+from .miscellaneous import *
 from .monochromator import *
 # from .sample_rotator import *
 from .slits import *

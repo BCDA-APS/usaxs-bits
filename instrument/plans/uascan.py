@@ -21,7 +21,7 @@ import math
 from ..usaxs_support.ustep import Ustep
 
 # from ..devices import fuel_spray_bit
-from ..devices import m_stage, d_stage, a_stage, as_stage, s_stage
+from ..devices import m_stage, d_stage, a_stage,  s_stage #, as_stage
 from ..devices import monochromator, MONO_FEEDBACK_ON
 from ..devices import scaler0, I0, I00, I000, upd2, trd
 from ..devices import terms
@@ -97,7 +97,7 @@ def uascan(
         )
 
     # original values before scan
-    asrp0 = as_stage.rp.position
+    #asrp0 = as_stage.rp.position
     prescan_positions = {
         'sy' : s_stage.y.position,
         'dx' : d_stage.x.position,
@@ -152,7 +152,7 @@ def uascan(
         obj.user_readback.kind = "omitted"
 
     if terms.USAXS.useSBUSAXS.get():
-        read_devices.append(as_stage.rp)
+        #read_devices.append(as_stage.rp)
         scan_cmd = "sb" + scan_cmd
         # TODO: anything else?
 
@@ -229,7 +229,7 @@ def uascan(
                 ## and we need to INCREASE the Bragg Angle with increasing Q, to correct for tilt down...
 
                 asrp_vdc = asrp0 - diff/terms.usaxs.asrp_degrees_per_VDC.get()
-                moves += [as_stage.rp, asrp_vdc]
+                #moves += [as_stage.rp, asrp_vdc]
 
             # added for fuel spray users as indication that we are counting...
             # moves += [fuel_spray_bit, 1]

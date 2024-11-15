@@ -403,12 +403,12 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
 # ------end of A stage-------------------------------------
 
 
-#class UsaxsAnalyzerSideReflectionStageDevice(MotorBundle):
+# class UsaxsAnalyzerSideReflectionStageDevice(MotorBundle):
 #    """USAXS Analyzer side-reflection stage (unused)"""
 #    #r = Component(EpicsMotor, 'usxLAX:xps:c0:m6', labels=("analyzer",))
 #    #t = Component(EpicsMotor, 'usxLAX:xps:c0:m4', labels=("analyzer",))
 #    y = Component(EpicsMotor, 'usxLAX:m58:c1:m4', labels=("analyzer",))
-#    rp = Component(UsaxsMotorTunable, 'usxLAX:pi:c0:m4', labels=("analyzer", "tunable"))
+#    rp = Component(TunableEpicsMotor2, 'usxLAX:pi:c0:m4', labels=("analyzer", "tunable"))
 
 
 class SaxsDetectorStageDevice(MotorBundle):
@@ -436,7 +436,7 @@ m_stage.r2p.post_tune_method = m2rp_posttune_hook
 a_stage    = UsaxsAnalyzerStageDevice('', name='a_stage')
 a_stage.r.pre_tune_method = ar_pretune_hook
 a_stage.r.post_tune_method = ar_posttune_hook
-#as_stage   = UsaxsAnalyzerSideReflectionStageDevice('', name='as_stage')
+# as_stage   = UsaxsAnalyzerSideReflectionStageDevice('', name='as_stage')
 a_stage.r2p.pre_tune_method = a2rp_pretune_hook
 a_stage.r2p.post_tune_method = a2rp_posttune_hook
 

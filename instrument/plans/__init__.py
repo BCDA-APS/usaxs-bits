@@ -11,3 +11,4 @@ from .move_instrument import *
 from .resets import *
 from .axis_tuning import *
 from .uascan import *
+from .scans import *
