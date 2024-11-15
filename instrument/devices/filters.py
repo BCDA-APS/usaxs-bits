@@ -32,10 +32,10 @@ class FilterBank(Device):
     :see: 
     """
 
-    fPos = FormattedComponent(EpicsSignal, "{prefix}{bank}:sortedIndex", kind="config")
+    fPos = FormattedComponent(EpicsSignal, "{prefix}{_bank}:sortedIndex", kind="config")
     #control = FormattedComponent(EpicsSignalRO, "{prefix}bank{_bank}", string=True, kind="config")
     #bits = FormattedComponent(EpicsSignalRO, "{prefix}bitFlag{_bank}", kind="config")
-    attenuation = FormattedComponent(EpicsSignalRO, "{prefix}{bank}:attenuation_actual", kind="config")
+    attenuation = FormattedComponent(EpicsSignalRO, "{prefix}{_bank}:attenuation_actual", kind="config")
 
     def __init__(self, prefix, bank=None, **kwargs):
         self._bank = bank
