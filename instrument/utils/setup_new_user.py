@@ -28,8 +28,8 @@ import pathlib
 import pyRestTable
 
 
-APSBSS_SECTOR = "09"
-APSBSS_BEAMLINE = "9-ID-B,C"
+APSBSS_SECTOR = "12"
+APSBSS_BEAMLINE = "12-ID-E"
 
 
 # def _pick_esaf(user, now, cycle):
