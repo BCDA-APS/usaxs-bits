@@ -25,3 +25,52 @@
   File "/home/beams/USAXS/bluesky/instrument/devices/usaxs_motor_devices.py", line 107, in _inner
     yield from self.post_tune_hook()
 TypeError: 'NoneType' object is not iterable
+
+
+class FilterBank(Device):
+    """
+    A single module of filters (12-blades).
+
+    .. index:: Ophyd Device; FilterBank
+
+    EXAMPLES::
+
+        pfilter = FilterBank("ioc:", name="pfilter", bank="FL1")
+
+    :see: 
+    """
+
+ 
+    class TransmDerivedSignal(DerivedSignal):
+        def forward(self, value):
+            return 1/value      
+         
+        #def inverse(self, value):
+        #    return 1/value
+        
+
+    fPos = FormattedComponent(EpicsSignal, "{prefix}{_bank}:sortedIndex", kind="config")
+    #control = FormattedComponent(EpicsSignalRO, "{prefix}bank{_bank}", string=True, kind="config")
+    #bits = FormattedComponent(EpicsSignalRO, "{prefix}bitFlag{_bank}", kind="config")
+    attenuation = FormattedComponent(EpicsSignalRO, "{prefix}{_bank}:attenuation_actual", kind="config")
+    transmission = TransmDerivedSignal(derived_from=attenuation, name="transmission", metadata=None)
+
+    def __init__(self, prefix, bank=None, **kwargs):
+        self._bank = bank
+        super().__init__(prefix, **kwargs)
+
+ile /share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/ophyd/signal.py:630, in DerivedSignal.__init__(self=<class 'instrument.devices.filters.FilterBank.TransmDerivedSignal'> instance, derived_from=FormattedComponent(EpicsSignalRO, '{prefix}{_bank}:attenuation_actual', kind='config'), write_access=None, name='transmission', parent=None, **kwargs={'metadata': None})
+    626     self._metadata_keys = getattr(derived_from, "metadata_keys", None)
+    627     # And failing that, they are the defaults from all signals
+    629 super().__init__(
+--> 630     name=name, parent=parent, metadata=derived_from.metadata, **kwargs
+        derived_from = FormattedComponent(EpicsSignalRO, '{prefix}{_bank}:attenuation_actual', kind='config')
+        parent = None
+        name = 'transmission'
+        kwargs = {'metadata': None}
+    631 )
+    633 self._derived_from = derived_from
+    635 self._allow_writes = write_access is not False
+
+AttributeError: 'FormattedComponent' object has no attribute 'metadata'
+

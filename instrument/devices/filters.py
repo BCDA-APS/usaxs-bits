@@ -17,6 +17,7 @@ from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import FormattedComponent
+from ophyd import DerivedSignal
 
 
 class FilterBank(Device):
@@ -32,10 +33,20 @@ class FilterBank(Device):
     :see: 
     """
 
+ 
+    class TransmDerivedSignal(DerivedSignal):
+        def forward(self, value):
+            return 1/value      
+         
+        def inverse(self, value):
+            return 1/value
+        
+
     fPos = FormattedComponent(EpicsSignal, "{prefix}{_bank}:sortedIndex", kind="config")
     #control = FormattedComponent(EpicsSignalRO, "{prefix}bank{_bank}", string=True, kind="config")
     #bits = FormattedComponent(EpicsSignalRO, "{prefix}bitFlag{_bank}", kind="config")
     attenuation = FormattedComponent(EpicsSignalRO, "{prefix}{_bank}:attenuation_actual", kind="config")
+    transmission = Component(TransmDerivedSignal,derived_from="attenuation")
 
     def __init__(self, prefix, bank=None, **kwargs):
         self._bank = bank
