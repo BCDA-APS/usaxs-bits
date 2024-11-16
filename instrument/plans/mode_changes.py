@@ -307,7 +307,7 @@ def mode_Radiography(md=None):
     yield from user_data.set_state_plan("Radiography Mode")
     logger.info("Instrument is configured for Radiography now.")
 
-    if diagnostics.PSS.b_beam_ready.get() not in (1, 'GOOD'):
+    if diagnostics.PSS.e_beam_ready.get() not in (1, 'GOOD'):
         logger.warning("Not permitted to open mono shutter now.")
         logger.info("Open the mono shutter manually when permitted.")
     else:

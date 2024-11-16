@@ -75,7 +75,7 @@ def insertTransmissionFilters():
     set filters to reduce diode damage when measuring tranmission on guard slits etc
     """
     if monochromator.dcm.energy.position < 12.1:
-        al_filters = 4
+        al_filters = 2
     elif monochromator.dcm.energy.position < 18.1:
         al_filters = 14
     else:
