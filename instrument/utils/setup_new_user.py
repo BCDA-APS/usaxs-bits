@@ -5,11 +5,12 @@ manage the user folder
 
 __all__ = """
     get_data_dir
-    #matchUserInApsbss
     newUser
     techniqueSubdirectory
     """.split()
 
+#matchUserInApsbss
+ 
 import logging
 
 logger = logging.getLogger(__name__)

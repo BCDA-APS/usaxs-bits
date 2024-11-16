@@ -21,7 +21,7 @@ from ophyd import Component, Device, EpicsSignal
 
 from ..framework import sd
 
-# TODO: bss is likely completely wrong, we have new support. Check with pete.
+# TODO: bss is likely completely wrong, we have new support. Check with Pete.
 
 class EpicsSampleNameDevice(EpicsSignal):
     """
