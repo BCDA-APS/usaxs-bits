@@ -26,7 +26,7 @@ from ..devices.general_terms import terms
 
 def _insertFilters_(a):
     """plan: insert the EPICS-specified filters"""
-    yield from bps.mv(Filter_AlTi.fPosA, int(a))
+    yield from bps.mv(Filter_AlTi.fPos, int(a))
     yield from bps.sleep(0.5)       # allow all blades to re-position
 
 

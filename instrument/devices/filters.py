@@ -46,7 +46,8 @@ class FilterBank(Device):
     #control = FormattedComponent(EpicsSignalRO, "{prefix}bank{_bank}", string=True, kind="config")
     #bits = FormattedComponent(EpicsSignalRO, "{prefix}bitFlag{_bank}", kind="config")
     attenuation = FormattedComponent(EpicsSignalRO, "{prefix}{_bank}:attenuation_actual", kind="config")
-    transmission = Component(TransmDerivedSignal,derived_from="attenuation")
+    #transmission = Component(TransmDerivedSignal,derived_from="attenuation")
+    transmission = FormattedComponent(EpicsSignalRO, "{prefix}{_bank}:transmission_actual", kind="config")
 
     def __init__(self, prefix, bank=None, **kwargs):
         self._bank = bank
