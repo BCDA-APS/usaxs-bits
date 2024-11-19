@@ -75,6 +75,7 @@ def mr_pretune_hook():
     stage = m_stage.r
     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
     yield from bps.mv(scaler0.preset_time, 0.1,)
+    scaler0.select_channels(["I0_USAXS"])
     #TODO: this shoudl move to plans for plot handling. 
     #y_name = TUNING_DET_SIGNAL.chname.get()
     #scaler0.select_channels([y_name])
@@ -84,10 +85,11 @@ def mr_pretune_hook():
 
 
 def mr_posttune_hook():
-    msg = "Tuning axis {}, final position is {}"
-    logger.info(msg.format(m_stage.r.name, m_stage.r.position))
+    #msg = "Tuning axis {}, final position is {}"
+    #logger.info(msg.format(m_stage.r.name, m_stage.r.position))
     # need to plot data in plans 
     scaler0.select_channels(None)
+    yield from bps.null() 
 
 
 def _getScalerSignalName_(scaler, signal):

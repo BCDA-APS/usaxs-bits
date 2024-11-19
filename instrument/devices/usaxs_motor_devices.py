@@ -24,7 +24,7 @@ logger.info(__file__)
 from ophyd import Component, EpicsMotor, Signal, Device, PositionerBase
 from ophyd.status import wait as status_wait
 from apstools.plans import lineup2
-
+from . import scaler0
 
 
 class TunableEpicsMotor2(EpicsMotor):
@@ -76,7 +76,8 @@ class TunableEpicsMotor2(EpicsMotor):
 
             # TODO: if self.signal_stats is None, create one and use it
             yield from lineup2(
-                self.detectors,
+                #self.detectors,
+                [scaler0],
                 self,  # this motor is the mover
                 -self.tune_range.get(),  # rel_start
                 self.tune_range.get(),  # rel_end
