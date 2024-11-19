@@ -154,13 +154,13 @@ def preUSAXStune(md={}):
     for axis, tune in tuners.items():
         yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
         yield from tune(md=md)
-        if not axis.tuner.tune_ok:
-            logger.warning("!!! tune failed for axis %s !!!", axis.name)
-            if NOTIFY_ON_BADTUNE:
-                email_notices.send(
-                    f"USAXS tune failed for axis {axis.name}",
-                    f"USAXS tune failed for axis {axis.name}"
-                    )
+        #if not axis.tuner.tune_ok:
+        #    logger.warning("!!! tune failed for axis %s !!!", axis.name)
+        #    if NOTIFY_ON_BADTUNE:
+        #        email_notices.send(
+        #            f"USAXS tune failed for axis {axis.name}",
+        #            f"USAXS tune failed for axis {axis.name}"
+        #            )
 
         # If we don't wait, the next tune often fails
         # intensity stays flat, statistically
@@ -168,11 +168,11 @@ def preUSAXStune(md={}):
         # to complete processing and report back to us.
         yield from bps.sleep(1)
     # tune a2rp one more time as final step, we will see if it is needed...  
-    yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
-    yield from tune_a2rp(md=md)
-    if not axis.tuner.tune_ok:
-        logger.warning("!!! tune failed for axis %s !!!", "a2rp")
-    yield from bps.sleep(1)
+    #yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+    #yield from tune_a2rp(md=md)
+    #if not axis.tuner.tune_ok:
+    #    logger.warning("!!! tune failed for axis %s !!!", "a2rp")
+    #yield from bps.sleep(1)
     yield from bps.remove_suspender(suspend_BeamInHutch)
 
     logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
