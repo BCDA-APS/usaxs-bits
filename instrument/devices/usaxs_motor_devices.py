@@ -75,6 +75,7 @@ class TunableEpicsMotor2(EpicsMotor):
                 yield from self.pre_tune_hook()
 
             # TODO: if self.signal_stats is None, create one and use it
+            print (self.detectors)
             yield from lineup2(
                 #self.detectors,
                 [scaler0],
