@@ -103,7 +103,7 @@ def uascan(
         'dx' : d_stage.x.position,
         'ax' : a_stage.x.position,
         'ar' : a_stage.r.position,
-        'asrp' : asrp0,
+        #'asrp' : asrp0,
         }
 
     # devices which are recorded in the "primary" stream
@@ -228,7 +228,7 @@ def uascan(
                     ## verified experimentally - higher voltage on piezo = lower Bragg angle...
                 ## and we need to INCREASE the Bragg Angle with increasing Q, to correct for tilt down...
 
-                asrp_vdc = asrp0 - diff/terms.usaxs.asrp_degrees_per_VDC.get()
+                #asrp_vdc = asrp0 - diff/terms.usaxs.asrp_degrees_per_VDC.get()
                 #moves += [as_stage.rp, asrp_vdc]
 
             # added for fuel spray users as indication that we are counting...

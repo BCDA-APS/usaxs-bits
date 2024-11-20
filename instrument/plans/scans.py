@@ -58,8 +58,8 @@ from ..utils.cleanup_text import cleanupText
 from ..utils.setup_new_user import techniqueSubdirectory
 from ..utils.user_sample_title import getSampleTitle
 from .area_detector import areaDetectorAcquire
-from .axis_tuning import tune_ar, tune_a2rp, tune_asrp
-from .axis_tuning import tune_mr, tune_m2rp, tune_msrp
+from .axis_tuning import tune_ar, tune_a2rp#, tune_asrp
+from .axis_tuning import tune_mr, tune_m2rp#, tune_msrp
 from .filters import insertSaxsFilters
 from .filters import insertWaxsFilters
 from .mode_changes import mode_SAXS
@@ -363,6 +363,7 @@ def USAXSscan(x, y, thickness_mm, title, md=None):
     general scan macro for fly or step USAXS with 1D or 2D collimation
     """
     #_md = apsbss.update_MD(md or {})
+    _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness_mm
     _md["title"] = title
     if terms.FlyScan.use_flyscan.get():
@@ -403,6 +404,7 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
     #_md = apsbss.update_MD(md or {})
+    _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
 
