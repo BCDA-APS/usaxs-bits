@@ -123,14 +123,37 @@ def tune_msrp(md={}):
     # yield from _tune_base_(ms_stage.rp, md=md)
 
 
+# def tune_ar(md={}):
+#     yield from bps.mv(ti_filter_shutter, "open")
+#     ##redundant## yield from autoscale_amplifiers([upd_controls])
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     yield from bps.mv(upd_controls.auto.mode, "manual")
+#     md['plan_name'] = "tune_ar"
+#     yield from _tune_base_(a_stage.r, md=md)
+#     yield from bps.mv(upd_controls.auto.mode, "auto+background")
+
 def tune_ar(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
-    ##redundant## yield from autoscale_amplifiers([upd_controls])
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
     md['plan_name'] = "tune_ar"
-    yield from _tune_base_(a_stage.r, md=md)
-    yield from bps.mv(upd_controls.auto.mode, "auto+background")
+    yield from IfRequestedStopBeforeNextScan()
+    logger.info(f"tuning axis: {a_stage.r.name}")
+    axis_start = a_stage.r.position
+    yield from bps.mv(
+        mono_shutter, "open",
+        ti_filter_shutter, "open",
+    )
+    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    scaler0.select_channels(["PD_USAXS"])
+    yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31)
+    yield from bps.mv(
+        ti_filter_shutter, "close",
+        scaler0.count_mode, "AutoCount",
+    )
+    logger.info(f"final position: {axis.position}")
+
+
 
 
 def tune_asrp(md={}):
