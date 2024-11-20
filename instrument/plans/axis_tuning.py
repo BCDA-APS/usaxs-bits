@@ -46,6 +46,7 @@ from ..devices.monochromator import monochromator
 from ..devices.scalers import scaler0, I0_SIGNAL, I00_SIGNAL, UPD_SIGNAL
 from ..devices.general_terms import terms
 from ..devices.suspenders import suspend_BeamInHutch
+from ..devices.miscellaneous import usaxs_q_calc 
 from ..framework import RE
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
@@ -147,15 +148,14 @@ def tune_ar(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
-    yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31)
+    yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),nscans=1,31)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
     #if a_stage.r.tuner.tune_ok:
     yield from bps.mv(terms.USAXS.ar_val_center, a_stage.r.position)
-        # remember the Q calculation needs a new 2theta0
-        # use the current AR encoder position
+    # remember the Q calculation needs a new 2theta0
     yield from bps.mv(
         usaxs_q_calc.channels.B.input_value, terms.USAXS.ar_val_center.get(),
         a_stage.r, terms.USAXS.ar_val_center.get(),
@@ -203,7 +203,7 @@ def tune_a2rp(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
-    yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31)
+    yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),nscans=1,31)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
@@ -226,7 +226,7 @@ def tune_dx(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
-    yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31)
+    yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),nscans=1,31)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
@@ -262,7 +262,7 @@ def tune_dy(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
-    yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31)
+    yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),nscans=1,31)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
