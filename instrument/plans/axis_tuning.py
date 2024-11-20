@@ -152,14 +152,14 @@ def tune_ar(md={}):
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
-    if a_stage.r.tuner.tune_ok:
-        yield from bps.mv(terms.USAXS.ar_val_center, a_stage.r.position)
+    #if a_stage.r.tuner.tune_ok:
+    yield from bps.mv(terms.USAXS.ar_val_center, a_stage.r.position)
         # remember the Q calculation needs a new 2theta0
         # use the current AR encoder position
-        yield from bps.mv(
-            usaxs_q_calc.channels.B.input_value, terms.USAXS.ar_val_center.get(),
-            a_stage.r, terms.USAXS.ar_val_center.get(),
-        )
+    yield from bps.mv(
+        usaxs_q_calc.channels.B.input_value, terms.USAXS.ar_val_center.get(),
+        a_stage.r, terms.USAXS.ar_val_center.get(),
+    )
 
     logger.info(f"final position: {a_stage.r.position}")
 
@@ -208,28 +208,80 @@ def tune_a2rp(md={}):
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
+    yield from bps.mv(upd_controls.auto.mode, "auto+background")
     logger.info(f"final position: {a_stage.r2p.position}")
-
-
 
 def tune_dx(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
-    ##redundant## yield from autoscale_amplifiers([upd_controls])
+    yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
     md['plan_name'] = "tune_dx"
-    yield from _tune_base_(d_stage.x, md=md)
+    yield from IfRequestedStopBeforeNextScan()
+    logger.info(f"tuning axis: {d_stage.x.name}")
+    axis_start = d_stage.x.position
+    yield from bps.mv(
+        mono_shutter, "open",
+        ti_filter_shutter, "open",
+    )
+    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    scaler0.select_channels(["PD_USAXS"])
+    yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31)
+    yield from bps.mv(
+        ti_filter_shutter, "close",
+        scaler0.count_mode, "AutoCount",
+    )
+    yield from bps.mv(terms.USAXS.DX0, d_stage.x.position)
+    scaler0.select_channels(None)
     yield from bps.mv(upd_controls.auto.mode, "auto+background")
+    logger.info(f"final position: {d_stage.x.position}")
+
+
+# def tune_dx(md={}):
+#     yield from bps.mv(ti_filter_shutter, "open")
+#     ##redundant## yield from autoscale_amplifiers([upd_controls])
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     yield from bps.mv(upd_controls.auto.mode, "manual")
+#     md['plan_name'] = "tune_dx"
+#     yield from _tune_base_(d_stage.x, md=md)
+#     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 
 
 def tune_dy(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
-    ##redundant## yield from autoscale_amplifiers([upd_controls])
+    yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
     md['plan_name'] = "tune_dy"
-    yield from _tune_base_(d_stage.y, md=md)
+    yield from IfRequestedStopBeforeNextScan()
+    logger.info(f"tuning axis: {d_stage.y.name}")
+    axis_start = d_stage.y.position
+    yield from bps.mv(
+        mono_shutter, "open",
+        ti_filter_shutter, "open",
+    )
+    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    scaler0.select_channels(["PD_USAXS"])
+    yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31)
+    yield from bps.mv(
+        ti_filter_shutter, "close",
+        scaler0.count_mode, "AutoCount",
+    )
+    yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
+    scaler0.select_channels(None)
     yield from bps.mv(upd_controls.auto.mode, "auto+background")
+    logger.info(f"final position: {d_stage.y.position}")
+
+
+
+# def tune_dy(md={}):
+#     yield from bps.mv(ti_filter_shutter, "open")
+#     ##redundant## yield from autoscale_amplifiers([upd_controls])
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     yield from bps.mv(upd_controls.auto.mode, "manual")
+#     md['plan_name'] = "tune_dy"
+#     yield from _tune_base_(d_stage.y, md=md)
+#     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 
 
 def tune_diode(md={}):
