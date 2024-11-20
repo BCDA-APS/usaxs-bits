@@ -42,6 +42,10 @@ logger.info("#### Utilities ####")
 from .utils import *
 from apstools.utils import *
 
+from instrument.callbacks.nxwriter import nxwriter
+RE.subscribe(nxwriter.receiver)
+
+
 from ._iconfig import iconfig
 if iconfig.get("WRITE_SPEC_DATA_FILES", False):
     if specwriter is not None:
