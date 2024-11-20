@@ -20,11 +20,11 @@ RE.subscribe(cat.v1.insert)
 best_effort_callback = BestEffortCallback()
 RE.subscribe(best_effort_callback)  # LivePlot & LiveTable
 
-a2rp = EpicsMotor("9idcLAX:pi:c0:m1", name="a2rp")
-ar = EpicsMotor("9idcAERO:m6", name="ar")
-mr = EpicsMotor("9idcAERO:m12", name="mr")
-scaler1 = ScalerCH("9idcLAX:vsc:c0", name="scaler1")
-shutter = EpicsOnOffShutter("9idcLAX:userTran3.A", name="shutter")  # ti_filter_shutter
+a2rp = EpicsMotor("usxLAX:pi:c0:m1", name="a2rp")
+ar = EpicsMotor("usxAERO:m6", name="ar")
+mr = EpicsMotor("usxAERO:m12", name="mr")
+scaler1 = ScalerCH("usxLAX:vsc:c0", name="scaler1")
+shutter = EpicsOnOffShutter("usxLAX:userTran3.A", name="shutter")  # ti_filter_shutter
 
 for o in (mr, ar, a2rp, scaler1, shutter):
     o.wait_for_connection()

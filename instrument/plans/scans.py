@@ -620,7 +620,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
     # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
-    #_md = apsbss.update_MD(md or {})
+    _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
 

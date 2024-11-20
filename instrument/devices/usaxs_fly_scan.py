@@ -178,7 +178,6 @@ class UsaxsFlyScanDevice(Device):
         self.dx0 = d_stage.x.position
 
         _md = md or OrderedDict()
-        _md.update(md or {})
         _md["hdf5_file"] = self.saveFlyData_HDF5_file
         _md["hdf5_path"] = self.saveFlyData_HDF5_dir
 
