@@ -49,6 +49,7 @@ from ..devices.suspenders import suspend_BeamInHutch
 from ..framework import RE
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
+from apstools.plans import lineup2
 
 
 # used in instrument_default_tune_ranges() below
