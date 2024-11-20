@@ -91,12 +91,34 @@ def _tune_base_(axis, md={}):
     logger.info(f"final position: {axis.position}")
 
 
-def tune_mr(md={}):
-    yield from bps.mv(scaler0.preset_time, 0.1)
-    md['plan_name'] = "tune_mr"
-    # print(f"metadata={md}")  # TOO much data to print
-    yield from _tune_base_(m_stage.r, md=md)
+# def tune_mr(md={}):
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     md['plan_name'] = "tune_mr"
+#     # print(f"metadata={md}")  # TOO much data to print
+#     yield from _tune_base_(m_stage.r, md=md)
 
+def tune_mr(md={}):
+    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(scaler0.preset_time, 0.1)
+    yield from bps.mv(upd_controls.auto.mode, "manual")
+    md['plan_name'] = "tune_mr"
+    yield from IfRequestedStopBeforeNextScan()
+    logger.info(f"tuning axis: {m_stage.r.name}")
+    axis_start = m_stage.r.position
+    yield from bps.mv(
+        mono_shutter, "open",
+        ti_filter_shutter, "open",
+    )
+    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    scaler0.select_channels(["I0_USAXS"])
+    yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1)
+    yield from bps.mv(
+        ti_filter_shutter, "close",
+        scaler0.count_mode, "AutoCount",
+    )
+    #if a_stage.r.tuner.tune_ok:
+    yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
+    logger.info(f"final position: {m_stage.r.position}")
 
 def tune_m2rp(md={}):
     yield from bps.sleep(0.2)   # piezo is fast, give the system time to react
@@ -158,9 +180,8 @@ def tune_ar(md={}):
     # remember the Q calculation needs a new 2theta0
     yield from bps.mv(
         usaxs_q_calc.channels.B.input_value, terms.USAXS.ar_val_center.get(),
-        a_stage.r, terms.USAXS.ar_val_center.get(),
+        #a_stage.r, terms.USAXS.ar_val_center.get(),
     )
-
     logger.info(f"final position: {a_stage.r.position}")
 
 
