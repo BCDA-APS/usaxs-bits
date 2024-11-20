@@ -32,6 +32,8 @@ import pyRestTable
 APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"
 
+NX_FILE_EXTENSION = ".h5"
+
 
 # def _pick_esaf(user, now, cycle):
 #     """
@@ -185,6 +187,18 @@ APSBSS_BEAMLINE = "12-ID-E"
 #         "You should check that PVs in APSBSS contain correct information.")
 
 
+def _setNeXusFileName(path, scan_id=1):
+    """
+    NeXus file name
+    """
+    from ..callbacks.nxwriter import nxwriter
+
+    fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
+    nxwriter.file_name = fname
+    logger.info(f"NeXus file name : {nxwriter.file_name!r}")
+    logger.info("File will be written at end of next bluesky scan.")
+
+
 def _setSpecFileName(path, scan_id=1):
     """
     SPEC file name
@@ -247,6 +261,7 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     logger.info("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))    # set in the PV
 
+    _setNeXusFileName(str(path), scan_id=scan_id)
     _setSpecFileName(str(path), scan_id=scan_id)    # SPEC file name
     #matchUserInApsbss(user)     # update ESAF & Proposal, if available
 

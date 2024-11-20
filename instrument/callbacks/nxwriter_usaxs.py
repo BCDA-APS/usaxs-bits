@@ -127,7 +127,7 @@ class OurCustomNXWriterBase(NXWriterAPS):
             self.file_name = os.path.join(path, fname)
         else:
             self.scanning = False
-            self.file_name = None
+            self.file_name = None or self.file_name  # TODO: 2024-11-20
 
     def writer(self):
         "write the data if this plan is supported"

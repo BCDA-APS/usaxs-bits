@@ -43,7 +43,7 @@ from .utils import *
 from apstools.utils import *
 
 from instrument.callbacks.nxwriter import nxwriter
-RE.subscribe(nxwriter.receiver)
+# Note: nxwriter is already subscribed to RE
 
 
 from ._iconfig import iconfig
