@@ -995,8 +995,8 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         # scaler0.count, 0,
         # scaler1.count, 0,
         terms.SAXS_WAXS.I0, scaler1.channels.chan02.s.get(),
-        scaler0.display_rate, 5,
-        scaler1.display_rate, 5,
+        scaler0.update_rate, 5,
+        scaler1.update_rate, 5,
         terms.SAXS_WAXS.end_exposure_time, ts,
         scaler0.delay, old_delay,
 
@@ -1143,8 +1143,8 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
             # update as fast as hardware will allow
             # this is needed to make sure we get as up to date I0 number as possible for AD software.
-            scaler0.display_rate, 60,
-            scaler1.display_rate, 60,
+            scaler0.update_rate, 60,
+            scaler1.update_rate, 60,
 
             scaler0.delay, 0,
             terms.SAXS_WAXS.start_exposure_time, ts,
@@ -1175,8 +1175,8 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         terms.SAXS_WAXS.diode_gain, trd_controls.femto.gain.get(),
         terms.SAXS_WAXS.I0_transmission, scaler0.channels.chan02.s.get(),
         terms.SAXS_WAXS.I0_gain, I0_controls.femto.gain.get(),
-        scaler0.display_rate, 5,
-        scaler1.display_rate, 5,
+        scaler0.update_rate, 5,
+        scaler1.update_rate, 5,
         terms.SAXS_WAXS.end_exposure_time, ts,
         scaler0.delay, old_delay,
 
