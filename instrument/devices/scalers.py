@@ -25,10 +25,6 @@ from apstools.devices import use_EPICS_scaler_channels
 from ophyd import Component, EpicsSignal, EpicsScaler, EpicsSignalRO
 from ophyd.scaler import ScalerCH
 
-# TODO : watch for use of display_rate in plans, replace with update_rate]
-#class myScalerCH(ScalerCH): - use ScalerCH
-#    display_rate = Component(EpicsSignal, ".RATE", kind="omitted")
-# now called update_rate 
 
 scaler0 = ScalerCH('usxLAX:vsc:c0', name='scaler0')
 scaler0.stage_sigs["count_mode"] = "OneShot"

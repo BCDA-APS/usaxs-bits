@@ -758,8 +758,8 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    _md = {}
-    _md.update(md)
+    _md = OrderedDict()
+    _md.update(md or {})
     _md['plan_name'] = plan_name
     _md['plan_args'] = dict(
         pos_X = pos_X,
@@ -869,6 +869,8 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
     #_md = apsbss.update_MD(md or {})
+    _md = OrderedDict()
+    _md.update(md or {})
     _md['plan_name'] = "SAXS"
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
@@ -966,8 +968,8 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
             # update as fast as hardware will allow
             # this is needed to make sure we get as up to date I0 number as possible for AD software.
-            scaler0.display_rate, 60,
-            scaler1.display_rate, 60,
+            scaler0.update_rate, 60,
+            scaler1.update_rate, 60,
 
             scaler0.delay, 0,
             terms.SAXS_WAXS.start_exposure_time, ts,
