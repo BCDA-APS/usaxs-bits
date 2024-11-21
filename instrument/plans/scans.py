@@ -758,7 +758,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    _md = OrderedDict()
+    _md = md or OrderedDict()
     _md.update(md or {})
     _md['plan_name'] = plan_name
     _md['plan_args'] = dict(
@@ -869,7 +869,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
     #_md = apsbss.update_MD(md or {})
-    _md = OrderedDict()
+    _md = md or OrderedDict()
     _md.update(md or {})
     _md['plan_name'] = "SAXS"
     _md["sample_thickness_mm"] = thickness
@@ -1047,6 +1047,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = getSampleTitle(scan_title)
     #_md = apsbss.update_MD(md or {})
+    _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
     _md['plan_name'] = "WAXS"

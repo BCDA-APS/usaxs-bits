@@ -373,8 +373,8 @@ def instrument_default_tune_ranges():
     """
     yield from bps.null()
 
-    d_stage.x.tuner.width = 11
-    d_stage.x.tuner.width = 11
+    #d_stage.x.tuner.width = 11
+    #d_stage.x.tuner.width = 11
 
     if monochromator.dcm.energy.position < 10.99:  # ~ 10 keV for Si 220 crystals
         m_stage.r.tuner.width = 0.005
@@ -457,8 +457,8 @@ def update_EPICS_tuning_widths():
         axis_tune_range.a2rp,   a_stage.r2p.tuner.width,
         axis_tune_range.msrp,   ms_stage.rp.tuner.width,
         axis_tune_range.asrp,   as_stage.rp.tuner.width,
-        axis_tune_range.dx,     d_stage.x.tuner.width,
-        axis_tune_range.dy,     d_stage.y.tuner.width,
+        #axis_tune_range.dx,     d_stage.x.tuner.width,
+        #axis_tune_range.dy,     d_stage.y.tuner.width,
         )
 
 

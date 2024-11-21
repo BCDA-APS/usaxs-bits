@@ -12,3 +12,4 @@ from .resets import *
 from .axis_tuning import *
 from .uascan import *
 from .scans import *
+from .command_list import *
