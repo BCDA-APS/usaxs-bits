@@ -970,6 +970,8 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             # this is needed to make sure we get as up to date I0 number as possible for AD software.
             scaler0.update_rate, 60,
             scaler1.update_rate, 60,
+            scaler0.count, 0,
+            scaler1.count, 0,
 
             scaler0.delay, 0,
             terms.SAXS_WAXS.start_exposure_time, ts,
