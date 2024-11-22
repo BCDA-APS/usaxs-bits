@@ -1,76 +1,45 @@
- File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
-    msg = plan_stack[-1].send(ret)
-          ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 907, in fly_during_wrapper
-    return (yield from plan2)
-            ^^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
-    raise ex
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
-    msg = plan_stack[-1].send(ret)
-          ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
-    raise ex
-  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
-    msg = plan_stack[-1].send(ret)
-          ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/bluesky/instrument/plans/axis_tuning.py", line 96, in tune_mr
-    yield from _tune_base_(m_stage.r, md=md)
-  File "/home/beams/USAXS/bluesky/instrument/plans/axis_tuning.py", line 72, in _tune_base_
-    uuids = yield from axis.tune(md=md)     #note: the tune method comes from usaxs_motor_devices, TunableEpicsMotor, which uses lineup2
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/bluesky/instrument/devices/usaxs_motor_devices.py", line 109, in tune
-    return (yield from _inner())
-            ^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/bluesky/instrument/devices/usaxs_motor_devices.py", line 107, in _inner
-    yield from self.post_tune_hook()
-TypeError: 'NoneType' object is not iterable
 
-
-class FilterBank(Device):
-    """
-    A single module of filters (12-blades).
-
-    .. index:: Ophyd Device; FilterBank
-
-    EXAMPLES::
-
-        pfilter = FilterBank("ioc:", name="pfilter", bank="FL1")
-
-    :see: 
-    """
-
- 
-    class TransmDerivedSignal(DerivedSignal):
-        def forward(self, value):
-            return 1/value      
-         
-        #def inverse(self, value):
-        #    return 1/value
-        
-
-    fPos = FormattedComponent(EpicsSignal, "{prefix}{_bank}:sortedIndex", kind="config")
-    #control = FormattedComponent(EpicsSignalRO, "{prefix}bank{_bank}", string=True, kind="config")
-    #bits = FormattedComponent(EpicsSignalRO, "{prefix}bitFlag{_bank}", kind="config")
-    attenuation = FormattedComponent(EpicsSignalRO, "{prefix}{_bank}:attenuation_actual", kind="config")
-    transmission = TransmDerivedSignal(derived_from=attenuation, name="transmission", metadata=None)
-
-    def __init__(self, prefix, bank=None, **kwargs):
-        self._bank = bank
-        super().__init__(prefix, **kwargs)
-
-ile /share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/ophyd/signal.py:630, in DerivedSignal.__init__(self=<class 'instrument.devices.filters.FilterBank.TransmDerivedSignal'> instance, derived_from=FormattedComponent(EpicsSignalRO, '{prefix}{_bank}:attenuation_actual', kind='config'), write_access=None, name='transmission', parent=None, **kwargs={'metadata': None})
-    626     self._metadata_keys = getattr(derived_from, "metadata_keys", None)
-    627     # And failing that, they are the defaults from all signals
-    629 super().__init__(
---> 630     name=name, parent=parent, metadata=derived_from.metadata, **kwargs
-        derived_from = FormattedComponent(EpicsSignalRO, '{prefix}{_bank}:attenuation_actual', kind='config')
-        parent = None
-        name = 'transmission'
-        kwargs = {'metadata': None}
-    631 )
-    633 self._derived_from = derived_from
-    635 self._allow_writes = write_access is not False
-
-AttributeError: 'FormattedComponent' object has no attribute 'metadata'
-
+Transient Scan ID: 21     Time: 2024-11-22 17:07:31
+Persistent Unique Scan ID: 'aac01613-a408-4033-91b6-71cc8411b70a'
+New stream: 'baseline'
+New stream: 'aps_current_monitor'
+New stream: 'primary'                                                                                                                                                        
++-----------+------------+------------+------------+
+|   seq_num |       time |  d_stage_y |   PD_USAXS |
++-----------+------------+------------+------------+
+|         1 | 17:07:32.4 | -93.279114 |          3 |
+|         2 | 17:07:32.8 | -92.879047 |          4 |
+|         3 | 17:07:33.1 | -92.478906 |          6 |
+|         4 | 17:07:33.4 | -92.079041 |          7 |                                                                                                                         
+|         5 | 17:07:33.8 | -91.679047 |          9 |
+|         6 | 17:07:34.1 | -91.279047 |         19 |
+|         7 | 17:07:34.5 | -90.879041 |         44 |
+|         8 | 17:07:34.8 | -90.478930 |        446 |
+|         9 | 17:07:35.2 | -90.079035 |       1601 |                                                                                                                         
+|        10 | 17:07:35.5 | -89.679023 |       2990 |
+|        11 | 17:07:35.8 | -89.279035 |       4086 |
+|        12 | 17:07:36.2 | -88.879035 |       4767 |
+|        13 | 17:07:36.5 | -88.479041 |       4964 |                                                                                                                         
+|        14 | 17:07:36.9 | -88.079035 |       5042 |
+|        15 | 17:07:37.2 | -87.679047 |       5176 |
+|        16 | 17:07:37.6 | -87.279035 |       5150 |                                                                                                                         
+|        17 | 17:07:37.9 | -86.879041 |       5065 |
+|        18 | 17:07:38.2 | -86.479047 |       5106 |
+|        19 | 17:07:38.6 | -86.079041 |       5038 |
+|        20 | 17:07:38.9 | -85.679035 |       4786 |
+|        21 | 17:07:39.3 | -85.279047 |       4322 |
+|        22 | 17:07:39.6 | -84.878998 |       3082 |
+|        23 | 17:07:39.9 | -84.479035 |       1458 |
+|        24 | 17:07:40.3 | -84.078906 |        186 |
+|        25 | 17:07:40.7 | -83.679035 |         32 |
+|        26 | 17:07:41.0 | -83.279041 |         11 |
+|        27 | 17:07:41.4 | -82.878937 |         10 |
+|        28 | 17:07:41.7 | -82.479035 |          8 |
+|        29 | 17:07:42.0 | -82.078949 |          4 |
+|        30 | 17:07:42.4 | -81.678943 |          3 |                                                                                                                         
+|        31 | 17:07:42.7 | -81.278906 |          6 |
++-----------+------------+------------+------------+
+generator rel_scan ['aac01613'] (scan num: 21)
+feature='centroid'                                                                                                                                                           
+Moving 'd_stage_y' to -87.2865651155114 (feature='centroid')...
+                                                                  
