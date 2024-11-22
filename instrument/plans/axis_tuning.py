@@ -43,15 +43,17 @@ from ..devices.stages import USING_MS_STAGE
 from ..devices.stages import m_stage, s_stage, a_stage, d_stage         #as_stage, ms_stage
 from ..devices.shutters import mono_shutter, ti_filter_shutter
 from ..devices.monochromator import monochromator
-from ..devices.scalers import scaler0, I0_SIGNAL, I00_SIGNAL, UPD_SIGNAL
+from ..devices.scalers import scaler0, I0_SIGNAL,  UPD_SIGNAL
 from ..devices.general_terms import terms
 from ..devices.suspenders import suspend_BeamInHutch
 from ..devices.miscellaneous import usaxs_q_calc 
-from ..framework import RE
+from ..framework import RE, bec
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
 from apstools.plans import lineup2
+from apstools.utils import trim_plot_lines
 from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
+
 
 
 # used in instrument_default_tune_ranges() below
@@ -114,10 +116,12 @@ def tune_mr(md={}):
     scaler0.select_channels(["I0_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats)
+    print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
+    trim_plot_lines(bec, 5, m_stage.r, I0_SIGNAL) #UPD_SIGNAL
     #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
     tempstats = stats._registers['I0_USAXS']
     cenval = getattr(tempstats, "centroid") 
@@ -178,6 +182,7 @@ def tune_ar(md={}):
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats)
+    print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
@@ -237,6 +242,7 @@ def tune_a2rp(md={}):
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31,nscans=1,signal_stats=stats)
+    print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
@@ -265,6 +271,7 @@ def tune_dx(md={}):
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1,signal_stats=stats)
+    print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
@@ -306,6 +313,7 @@ def tune_dy(md={}):
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31,nscans=1,signal_stats=stats)
+    print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
