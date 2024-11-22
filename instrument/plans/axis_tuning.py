@@ -51,6 +51,7 @@ from ..framework import RE
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
 from apstools.plans import lineup2
+from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 
 
 # used in instrument_default_tune_ranges() below
@@ -111,13 +112,18 @@ def tune_mr(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["I0_USAXS"])
-    yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1)
+    stats=SignalStatsCallback()
+    yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
+    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
+    tempstats = stats._registers['I0_USAXS']
+    cenval = getattr(tempstats, "centroid") 
     #if a_stage.r.tuner.tune_ok:
-    yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
+    yield from bps.mv(terms.USAXS.mr_val_center, cenval)
+    yield from bps.mv(m_stage.r, cenval)
     logger.info(f"final position: {m_stage.r.position}")
 
 def tune_m2rp(md={}):
@@ -170,13 +176,18 @@ def tune_ar(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
-    yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31,nscans=1)
+    stats=SignalStatsCallback()
+    yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
+    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
+    tempstats = stats._registers['PD_USAXS']
+    cenval = getattr(tempstats, "centroid") 
     #if a_stage.r.tuner.tune_ok:
-    yield from bps.mv(terms.USAXS.ar_val_center, a_stage.r.position)
+    yield from bps.mv(terms.USAXS.ar_val_center,cenval) 
+    yield from bps.mv(a_stage.r, cenval)
     # remember the Q calculation needs a new 2theta0
     yield from bps.mv(
         usaxs_q_calc.channels.B.input_value, terms.USAXS.ar_val_center.get(),
@@ -224,11 +235,16 @@ def tune_a2rp(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
-    yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31,nscans=1)
+    stats=SignalStatsCallback()
+    yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31,nscans=1,signal_stats=stats)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
+    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
+    tempstats = stats._registers['PD_USAXS']
+    cenval = getattr(tempstats, "centroid") 
+    yield from bps.mv(a_stage.r2p,cenval)
     yield from bps.mv(upd_controls.auto.mode, "auto+background")
     logger.info(f"final position: {a_stage.r2p.position}")
 
@@ -247,12 +263,17 @@ def tune_dx(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
-    yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1)
+    stats=SignalStatsCallback()
+    yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1,signal_stats=stats)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
-    yield from bps.mv(terms.USAXS.DX0, d_stage.x.position)
+    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
+    tempstats = stats._registers['PD_USAXS']
+    cenval = getattr(tempstats, "centroid") 
+    yield from bps.mv(d_stage.x,cenval)
+    yield from bps.mv(terms.USAXS.DX0, cenval)
     scaler0.select_channels(None)
     yield from bps.mv(upd_controls.auto.mode, "auto+background")
     logger.info(f"final position: {d_stage.x.position}")
@@ -283,12 +304,17 @@ def tune_dy(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
-    yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31,nscans=1)
+    stats=SignalStatsCallback()
+    yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31,nscans=1,signal_stats=stats)
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
-    yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
+    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
+    tempstats = stats._registers['PD_USAXS']
+    cenval = getattr(tempstats, "centroid") 
+    yield from bps.mv(terms.SAXS.dy_in,cenval) 
+    yield from bps.mv(d_stage.y,cenval)
     scaler0.select_channels(None)
     yield from bps.mv(upd_controls.auto.mode, "auto+background")
     logger.info(f"final position: {d_stage.y.position}")
