@@ -125,7 +125,9 @@ def measure_SAXS_Transmission(md={}):
         scaler0.preset_time, constants["SAXS_TR_TIME"],
     )
     md["plan_name"] = "measure_SAXS_Transmission"
+    scaler0.select_channels(["I0_USAXS", "TR diode"])
     yield from no_run_trigger_and_wait([scaler0])
+    scaler0.select_channels(None) 
     s = scaler0.read()
     secs = s["scaler0_time"]["value"]
     _tr_diode = s["TR diode"]["value"]

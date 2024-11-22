@@ -376,90 +376,91 @@ def instrument_default_tune_ranges():
     #d_stage.x.tuner.width = 11
     #d_stage.x.tuner.width = 11
 
-    if monochromator.dcm.energy.position < 10.99:  # ~ 10 keV for Si 220 crystals
-        m_stage.r.tuner.width = 0.005
-        a_stage.r.tuner.width = 0.003
-        m_stage.r2p.tuner.width = 10
-        a_stage.r2p.tuner.width = 7
-        #ms_stage.rp.tuner.width = 5
-        #as_stage.rp.tuner.width = 3
-        minstep = user_override.pick("usaxs_minstep", 0.000045)
-        logger.info("Setting minstep to %s", minstep)
-        yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
+    # if monochromator.dcm.energy.position < 10.99:  # ~ 10 keV for Si 220 crystals
+    #     m_stage.r.tuner.width = 0.005
+    #     a_stage.r.tuner.width = 0.003
+    #     m_stage.r2p.tuner.width = 10
+    #     a_stage.r2p.tuner.width = 7
+    #     #ms_stage.rp.tuner.width = 5
+    #     #as_stage.rp.tuner.width = 3
+    #     minstep = user_override.pick("usaxs_minstep", 0.000045)
+    #     logger.info("Setting minstep to %s", minstep)
+    #     yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
 
-    elif 10.99 <= monochromator.dcm.energy.position < 12.99:   # Si 220 crystals
-        m_stage.r.tuner.width = 0.005
-        a_stage.r.tuner.width = 0.0025
-        m_stage.r2p.tuner.width = 9
-        a_stage.r2p.tuner.width = 8
-        #ms_stage.rp.tuner.width = 3
-        #as_stage.rp.tuner.width = 3
-        minstep = user_override.pick("usaxs_minstep", 0.000035)
-        logger.info("Setting minstep to %s", minstep)
-        yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
+    # elif 10.99 <= monochromator.dcm.energy.position < 12.99:   # Si 220 crystals
+    #     m_stage.r.tuner.width = 0.005
+    #     a_stage.r.tuner.width = 0.0025
+    #     m_stage.r2p.tuner.width = 9
+    #     a_stage.r2p.tuner.width = 8
+    #     #ms_stage.rp.tuner.width = 3
+    #     #as_stage.rp.tuner.width = 3
+    #     minstep = user_override.pick("usaxs_minstep", 0.000035)
+    #     logger.info("Setting minstep to %s", minstep)
+    #     yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
 
-    elif 12.99 <= monochromator.dcm.energy.position < 18.1:   # Si 220 crystals
-        m_stage.r.tuner.width = 0.005
-        a_stage.r.tuner.width = 0.0022
-        m_stage.r2p.tuner.width = 8
-        a_stage.r2p.tuner.width = 7
-        #ms_stage.rp.tuner.width = 3
-        #as_stage.rp.tuner.width = 3
-        minstep = user_override.pick("usaxs_minstep", 0.000025)
-        logger.info("Setting minstep to %s", minstep)
-        yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
+    # elif 12.99 <= monochromator.dcm.energy.position < 18.1:   # Si 220 crystals
+    #     m_stage.r.tuner.width = 0.005
+    #     a_stage.r.tuner.width = 0.0022
+    #     m_stage.r2p.tuner.width = 8
+    #     a_stage.r2p.tuner.width = 7
+    #     #ms_stage.rp.tuner.width = 3
+    #     #as_stage.rp.tuner.width = 3
+    #     minstep = user_override.pick("usaxs_minstep", 0.000025)
+    #     logger.info("Setting minstep to %s", minstep)
+    #     yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
 
-    elif 18.1 <= monochromator.dcm.energy.position < 20.8:   # Si 220 crystals
-        m_stage.r.tuner.width = 0.005
-        a_stage.r.tuner.width = 0.002
-        m_stage.r2p.tuner.width = 8
-        a_stage.r2p.tuner.width = 6
-        #ms_stage.rp.tuner.width = 3
-        #as_stage.rp.tuner.width = 3
-        minstep = user_override.pick("usaxs_minstep", 0.000025)
-        logger.info("Setting minstep to %s", minstep)
-        yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
+    # elif 18.1 <= monochromator.dcm.energy.position < 20.8:   # Si 220 crystals
+    #     m_stage.r.tuner.width = 0.005
+    #     a_stage.r.tuner.width = 0.002
+    #     m_stage.r2p.tuner.width = 8
+    #     a_stage.r2p.tuner.width = 6
+    #     #ms_stage.rp.tuner.width = 3
+    #     #as_stage.rp.tuner.width = 3
+    #     minstep = user_override.pick("usaxs_minstep", 0.000025)
+    #     logger.info("Setting minstep to %s", minstep)
+    #     yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
 
-    elif 20.8 <= monochromator.dcm.energy.position:   # Si 220 or 440 crystals
-        if m_stage.r.user_readback.value >= 11 :
-            #Si 440 crystals
-            m_stage.r.tuner.width = 0.005
-            a_stage.r.tuner.width = 0.0006
-            m_stage.r2p.tuner.width = 8
-            a_stage.r2p.tuner.width = 1.5
-            #ms_stage.rp.tuner.width = 3
-            #as_stage.rp.tuner.width = 3
-            minstep = user_override.pick("usaxs_minstep", 0.000006)
-            logger.info("Setting minstep to %s", minstep)
-            yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
+    # elif 20.8 <= monochromator.dcm.energy.position:   # Si 220 or 440 crystals
+    #     if m_stage.r.user_readback.value >= 11 :
+    #         #Si 440 crystals
+    #         m_stage.r.tuner.width = 0.005
+    #         a_stage.r.tuner.width = 0.0006
+    #         m_stage.r2p.tuner.width = 8
+    #         a_stage.r2p.tuner.width = 1.5
+    #         #ms_stage.rp.tuner.width = 3
+    #         #as_stage.rp.tuner.width = 3
+    #         minstep = user_override.pick("usaxs_minstep", 0.000006)
+    #         logger.info("Setting minstep to %s", minstep)
+    #         yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
 
-        else:
-            #Si 220 crystals
-            m_stage.r.tuner.width = 0.005
-            a_stage.r.tuner.width = 0.0018
-            m_stage.r2p.tuner.width = 8
-            a_stage.r2p.tuner.width = 12
-            #ms_stage.rp.tuner.width = 3
-            #as_stage.rp.tuner.width = 3
-            minstep = user_override.pick("usaxs_minstep", 0.00002)
-            logger.info("Setting minstep to %s", minstep)
-            yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
+    #     else:
+    #         #Si 220 crystals
+    #         m_stage.r.tuner.width = 0.005
+    #         a_stage.r.tuner.width = 0.0018
+    #         m_stage.r2p.tuner.width = 8
+    #         a_stage.r2p.tuner.width = 12
+    #         #ms_stage.rp.tuner.width = 3
+    #         #as_stage.rp.tuner.width = 3
+    #         minstep = user_override.pick("usaxs_minstep", 0.00002)
+    #         logger.info("Setting minstep to %s", minstep)
+    #         yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
 
 
 def update_EPICS_tuning_widths():
     """
     plan: update the tuning widths in EPICS PVs from local settings
     """
-    yield from bps.mv(
-        axis_tune_range.mr,     m_stage.r.tuner.width,
-        axis_tune_range.ar,     a_stage.r.tuner.width,
-        axis_tune_range.m2rp,   m_stage.r2p.tuner.width,
-        axis_tune_range.a2rp,   a_stage.r2p.tuner.width,
-        axis_tune_range.msrp,   ms_stage.rp.tuner.width,
-        axis_tune_range.asrp,   as_stage.rp.tuner.width,
-        #axis_tune_range.dx,     d_stage.x.tuner.width,
-        #axis_tune_range.dy,     d_stage.y.tuner.width,
-        )
+    yield from bps.null()
+    # yield from bps.mv(
+    #     axis_tune_range.mr,     m_stage.r.tuner.width,
+    #     axis_tune_range.ar,     a_stage.r.tuner.width,
+    #     axis_tune_range.m2rp,   m_stage.r2p.tuner.width,
+    #     axis_tune_range.a2rp,   a_stage.r2p.tuner.width,
+    #     axis_tune_range.msrp,   ms_stage.rp.tuner.width,
+    #     axis_tune_range.asrp,   as_stage.rp.tuner.width,
+    #     #axis_tune_range.dx,     d_stage.x.tuner.width,
+    #     #axis_tune_range.dy,     d_stage.y.tuner.width,
+    #     )
 
 
 def user_defined_settings():
