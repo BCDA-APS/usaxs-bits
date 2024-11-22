@@ -77,11 +77,14 @@ if aps.inUserOperations and operations_in_12ide():
         state_pv = "PA:12ID:STA_A_FES_OPEN_PL",
         name="FE_shutter")
 
-    mono_shutter = My12IdPssShutter(
+    mono_shutter = ApsPssShutterWithStatus(
          #20id:shutter1_opn and 20id:shutter1_cls
-       "12id:shutter1", 
-        state_pv = "PA:12ID:STA_C_SCS_OPEN_PL",
-        name="mono_shutter")
+       "", 
+        state_pv = "PA:12ID:STA_C_SCS_OPEN_PL",   
+        name="mono_shutter",
+        open_pv="12ida2:rShtrC:Open",
+        close_pv="12ida2:rShtrC:Close")
+    
 
     #usaxs_shutter = EpicsOnOffShutter(
     #    "usxLAX:userTran3.A",
