@@ -386,7 +386,7 @@ def group_controls_by_scaler(controls):
     return scaler_dict
 
 
-def _scaler_background_measurement_(control_list, count_time=0.2, num_readings=8):
+def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8):
     """plan: internal: measure amplifier backgrounds for signals sharing a common scaler"""
     scaler = control_list[0].scaler
     signals = [c.signal for c in control_list]
@@ -411,7 +411,7 @@ def _scaler_background_measurement_(control_list, count_time=0.2, num_readings=8
             yield from control.auto.setGain(n)
             settling_time = max(settling_time, control.femto.settling_time.get())
         yield from bps.sleep(settling_time)
-
+        
         def getScalerChannelPvname(scaler_channel):
             try:
                 return scaler_channel.pvname        # EpicsScaler channel
@@ -432,6 +432,7 @@ def _scaler_background_measurement_(control_list, count_time=0.2, num_readings=8
                 if not isinstance(value, float):
                     value = s.s.get()     # ScalerCH channel value
                 # logger.debug(f"scaler reading {m+1}: value: {value}")
+                value = value/count_time    #looks like we did not read value/sec here?
                 readings[pvname].append(value)
 
         s_range_name = f"gain{n}"

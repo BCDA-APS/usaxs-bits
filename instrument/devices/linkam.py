@@ -22,7 +22,7 @@ import warnings
 linkam_tc1 = Linkam_T96_Device("usxLINKAM:tc1:", name="linkam_tc1")
 
 #for _o in (linkam_ci94, linkam_tc1):
-for _o in (linkam_tc1):
+for _o in (linkam_tc1,):
     try:
         _o.wait_for_connection()
     except Exception as exc:

@@ -12,4 +12,5 @@ from .resets import *
 from .axis_tuning import *
 from .uascan import *
 from .scans import *
+from .sample_transmission import *
 from .command_list import *
