@@ -947,7 +947,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         )
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in saxs_det.cam.stage_sigs:
-                print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
+                #print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
                 saxs_det.cam.stage_sigs.pop(k)
         saxs_det.hdf1.stage_sigs["file_template"] = ad_file_template
         saxs_det.hdf1.stage_sigs["file_write_mode"] = "Single"
@@ -1126,7 +1126,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         )
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in waxs_det.cam.stage_sigs:
-                print(f"Removing {waxs_det.cam.name}.stage_sigs[{k}].")
+                #print(f"Removing {waxs_det.cam.name}.stage_sigs[{k}].")
                 waxs_det.cam.stage_sigs.pop(k)
         waxs_det.hdf1.stage_sigs["file_template"] = ad_file_template
         waxs_det.hdf1.stage_sigs["file_write_mode"] = "Single"

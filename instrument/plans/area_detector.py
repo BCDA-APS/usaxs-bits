@@ -62,7 +62,7 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
     # in acquire_time takes ~0.5s for camera to complete.
     for k in "acquire_time acquire_period".split():
         if k in det.cam.stage_sigs:
-            print(f"Removing {det.cam.name}.stage_sigs[{k}] before bp.count()")
+            #print(f"Removing {det.cam.name}.stage_sigs[{k}] before bp.count()")
             det.cam.stage_sigs.pop(k)
 
     bec.disable_table()
