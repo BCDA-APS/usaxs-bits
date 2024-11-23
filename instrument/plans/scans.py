@@ -111,7 +111,8 @@ def preUSAXStune(md={}):
 
     yield from bps.mv(
         # ensure diode in place (Radiography puts it elsewhere)
-        d_stage.x, terms.USAXS.diode.dx.get(),
+        #d_stage.x, terms.USAXS.diode.dx.get(), - this is WRONG, TODO fix me
+        d_stage.x, terms.USAXS.DX0.get(),
         d_stage.y, terms.USAXS.diode.dy.get(),
 
         user_data.time_stamp, str(datetime.datetime.now()),
@@ -212,7 +213,8 @@ def allUSAXStune(md={}):
 
     yield from bps.mv(
         # ensure diode in place (Radiography puts it elsewhere)
-        d_stage.x, terms.USAXS.diode.dx.get(),
+        #d_stage.x, terms.USAXS.diode.dx.get(),
+        d_stage.x, terms.USAXS.DX0.get(), #TODO: resolve this database issue
         d_stage.y, terms.USAXS.diode.dy.get(),
 
         user_data.time_stamp, str(datetime.datetime.now()),
