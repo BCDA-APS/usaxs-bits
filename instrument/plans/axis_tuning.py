@@ -249,7 +249,7 @@ def tune_a2rp(md={}):
     )
     #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
     tempstats = stats._registers['PD_USAXS']
-    cenval = getattr(tempstats, "centroid") 
+    cenval = getattr(tempstats, "x_at_max_y") 
     yield from bps.mv(a_stage.r2p,cenval)
     yield from bps.mv(upd_controls.auto.mode, "auto+background")
     logger.info(f"final position: {a_stage.r2p.position}")
@@ -281,6 +281,7 @@ def tune_dx(md={}):
     cenval = getattr(tempstats, "centroid") 
     yield from bps.mv(d_stage.x,cenval)
     yield from bps.mv(terms.USAXS.DX0, cenval)
+    yield from bps.mv(terms.SAXS.dy_in, cenval)
     scaler0.select_channels(None)
     yield from bps.mv(upd_controls.auto.mode, "auto+background")
     logger.info(f"final position: {d_stage.x.position}")

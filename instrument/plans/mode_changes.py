@@ -139,8 +139,10 @@ def mode_USAXS(md=None):
     yield from bps.mv(
         # set scalar to autocount mode for USAXS
         scaler0.count_mode, SCALER_AUTOCOUNT_MODE,
-        d_stage.x, terms.USAXS.diode.dx.get(),
-        d_stage.y, terms.USAXS.diode.dy.get(),
+        #d_stage.x, terms.USAXS.diode.dx.get(),
+        #d_stage.y, terms.USAXS.diode.dy.get(),
+        d_stage.x, terms.SAXS.dx_in.get(),
+        d_stage.y, terms.SAXS.dy_in.get(),
         guard_slit.h_size,  terms.SAXS.usaxs_guard_h_size.get(),
         guard_slit.v_size,  terms.SAXS.usaxs_guard_v_size.get(),
         usaxs_slit.h_size,  terms.SAXS.usaxs_h_size.get(),

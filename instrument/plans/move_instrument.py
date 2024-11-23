@@ -241,8 +241,9 @@ def move_USAXSIn():
         usaxs_slit.v_size,  terms.SAXS.usaxs_v_size.get(),
         a_stage.y,          terms.SAXS.ay_in.get(),
         a_stage.x,          terms.SAXS.ax_in.get(),
-        d_stage.x,          terms.SAXS.dx_in.get(),
+        #d_stage.x,          terms.SAXS.dx_in.get(),
         d_stage.y,          terms.SAXS.dy_in.get(),
+        d_stage.x,          terms.USAXS.DX0.get,
     )
 
     logger.info("USAXS is in position")
