@@ -3,7 +3,7 @@ Linkam temperature controllers: T96 (tc1) & CI94 (older)
 """
 
 __all__ = [
-    'linkam_ci94',
+    #'linkam_ci94',
     'linkam_tc1',
     ]
 
@@ -12,15 +12,17 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from apstools.devices import Linkam_CI94_Device
-from apstools.devices import Linkam_T96_Device
+#from apstools.devices import Linkam_CI94_Device
+#from apstools.devices import Linkam_T96_Device
+from .linkam_support import Linkam_T96_Device
 import warnings
 
 
-linkam_ci94 = Linkam_CI94_Device("usxLAX:ci94:", name="ci94")
+#linkam_ci94 = Linkam_CI94_Device("usxLAX:ci94:", name="ci94")
 linkam_tc1 = Linkam_T96_Device("usxLINKAM:tc1:", name="linkam_tc1")
 
-for _o in (linkam_ci94, linkam_tc1):
+#for _o in (linkam_ci94, linkam_tc1):
+for _o in (linkam_tc1):
     try:
         _o.wait_for_connection()
     except Exception as exc:
@@ -40,7 +42,7 @@ for _o in (linkam_ci94, linkam_tc1):
     )
 
 # make a common term for the ramp rate (devices use different names)
-if linkam_ci94.connected:
-    linkam_ci94.ramp = linkam_ci94.rate
+#if linkam_ci94.connected:
+#    linkam_ci94.ramp = linkam_ci94.rate
 if linkam_tc1.connected:
     linkam_tc1.ramp = linkam_tc1.ramprate
