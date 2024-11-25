@@ -182,6 +182,7 @@ def tune_ar(md={}):
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats)
+    trim_plot_lines(bec, 5, a_stage.r, UPD_SIGNAL) #UPD_SIGNAL
     print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
@@ -243,6 +244,7 @@ def tune_a2rp(md={}):
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31,nscans=1,signal_stats=stats)
     print(stats.report())
+    trim_plot_lines(bec, 5, a_stage.r2p, UPD_SIGNAL) #UPD_SIGNAL
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
