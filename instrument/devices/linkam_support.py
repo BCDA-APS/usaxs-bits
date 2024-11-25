@@ -21,7 +21,7 @@ from apstools.devices import PVPositionerSoftDoneWithStop
 
 
 class T96Temperature(PVPositionerSoftDoneWithStop):
-    actuate = Component(EpicsSignalWithRBV, "heating", kind="config", string=True)
+    actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
     actuate_value = "On"
 
 
@@ -46,7 +46,7 @@ class Linkam_T96_Device(Device):
         tolerance=1.0,
         kind="hinted",
     )
-
+    #this is incorrect, this is not EpicsSignalWithRBV, it has readback PV: RAMPARTE and set PV RAMPRATE:SET  
     ramprate = Component(EpicsSignalWithRBV, "RAMPRATE:SET", kind="config")
     units = Component(Signal, value="C", kind="config")
 
