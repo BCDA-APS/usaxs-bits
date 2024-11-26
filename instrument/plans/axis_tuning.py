@@ -123,7 +123,7 @@ def tune_mr(md={}):
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
-    //trim_plot_lines(bec, 5, m_stage.r, I0_SIGNAL) #UPD_SIGNAL
+    #trim_plot_lines(bec, 5, m_stage.r, I0_SIGNAL) #UPD_SIGNAL
     #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
     tempstats = stats._registers['I0_USAXS']
     cenval = getattr(tempstats, "centroid") 
