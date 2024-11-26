@@ -61,38 +61,38 @@ from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 user_override.register("usaxs_minstep")
 
 
-def _tune_base_(axis, md={}):
-    """
-    plan for simple tune and report
+# def _tune_base_(axis, md={}):
+#     """
+#     plan for simple tune and report
 
-    satisfies: report of tuning OK/not OK on console
-    """
-    yield from IfRequestedStopBeforeNextScan()
-    logger.info(f"tuning axis: {axis.name}")
-    axis_start = axis.position
-    yield from bps.mv(
-        mono_shutter, "open",
-        ti_filter_shutter, "open",
-    )
-    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-    uuids = yield from axis.tune(md=md)     #note: the tune method comes from usaxs_motor_devices, TunableEpicsMotor, which uses lineup2
-    yield from bps.mv(
-        ti_filter_shutter, "close",
-        scaler0.count_mode, "AutoCount",
-    )
-    # plotxy(uuids,I0_SIGNAL or UPD_SIGNAL)
-    # TODO plot the data somenow, use plotxy() which takes the uuid list from tune
-    # TODO handle multiple plots as we had before AND keep number of ploted data sensible. 
-    #found = axis.tuner.peak_detected()
-    #logger.info(f"axis: {axis.name}")
-    #logger.info(f"starting position: {axis_start}")
-    #logger.info(f"peak detected: {found}")
-    #if found:
-    #    logger.info(f"  max: {axis.tuner.peaks.max}")
-    #    logger.info(f"  center: {axis.tuner.peaks.cen}")
-    #    logger.info(f"  centroid: {axis.tuner.peaks.com}")
-    #    logger.info(f"  fwhm: {axis.tuner.peaks.fwhm}")
-    logger.info(f"final position: {axis.position}")
+#     satisfies: report of tuning OK/not OK on console
+#     """
+#     yield from IfRequestedStopBeforeNextScan()
+#     logger.info(f"tuning axis: {axis.name}")
+#     axis_start = axis.position
+#     yield from bps.mv(
+#         mono_shutter, "open",
+#         ti_filter_shutter, "open",
+#     )
+#     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+#     uuids = yield from axis.tune(md=md)     #note: the tune method comes from usaxs_motor_devices, TunableEpicsMotor, which uses lineup2
+#     yield from bps.mv(
+#         ti_filter_shutter, "close",
+#         scaler0.count_mode, "AutoCount",
+#     )
+#     # plotxy(uuids,I0_SIGNAL or UPD_SIGNAL)
+#     # TODO plot the data somenow, use plotxy() which takes the uuid list from tune
+#     # TODO handle multiple plots as we had before AND keep number of ploted data sensible. 
+#     #found = axis.tuner.peak_detected()
+#     #logger.info(f"axis: {axis.name}")
+#     #logger.info(f"starting position: {axis_start}")
+#     #logger.info(f"peak detected: {found}")
+#     #if found:
+#     #    logger.info(f"  max: {axis.tuner.peaks.max}")
+#     #    logger.info(f"  center: {axis.tuner.peaks.cen}")
+#     #    logger.info(f"  centroid: {axis.tuner.peaks.com}")
+#     #    logger.info(f"  fwhm: {axis.tuner.peaks.fwhm}")
+#     logger.info(f"final position: {axis.position}")
 
 
 # def tune_mr(md={}):
@@ -115,6 +115,7 @@ def tune_mr(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["I0_USAXS"])
+    trim_plot_by_name(5)
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     print(stats.report())
@@ -122,7 +123,7 @@ def tune_mr(md={}):
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
     )
-    trim_plot_lines(bec, 5, m_stage.r, I0_SIGNAL) #UPD_SIGNAL
+    //trim_plot_lines(bec, 5, m_stage.r, I0_SIGNAL) #UPD_SIGNAL
     #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
     tempstats = stats._registers['I0_USAXS']
     cenval = getattr(tempstats, "centroid") 
@@ -180,10 +181,11 @@ def tune_ar(md={}):
         ti_filter_shutter, "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    trim_plot_by_name(5)
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
-    trim_plot_lines(bec, 5, a_stage.r, UPD_SIGNAL) #UPD_SIGNAL
+    #trim_plot_lines(bec, 5, a_stage.r, UPD_SIGNAL) #UPD_SIGNAL
     print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
@@ -242,10 +244,11 @@ def tune_a2rp(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
+    trim_plot_by_name(5)
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     print(stats.report())
-    trim_plot_lines(bec, 5, a_stage.r2p, UPD_SIGNAL) #UPD_SIGNAL
+    #trim_plot_lines(bec, 5, a_stage.r2p, UPD_SIGNAL) #UPD_SIGNAL
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
@@ -271,6 +274,7 @@ def tune_dx(md={}):
         ti_filter_shutter, "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    trim_plot_by_name(5)
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
@@ -315,6 +319,7 @@ def tune_dy(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
+    trim_plot_by_name(5)
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     print(stats.report())
