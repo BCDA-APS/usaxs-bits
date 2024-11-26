@@ -16,13 +16,15 @@ from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
 from ophyd import Signal
 
-from apstools.devices import PVPositionerSoftDoneWithStop
+#from apstools.devices import PVPositionerSoftDoneWithStop
+from apstools.devices import PVPositionerSoftDone
 
 
 
-class T96Temperature(PVPositionerSoftDoneWithStop):
-    actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
-    actuate_value = "On"
+
+# class T96Temperature(PVPositionerSoftDoneWithStop):
+#     actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
+#     actuate_value = "On"
 
 
 
@@ -39,32 +41,41 @@ class Linkam_T96_Device(Device):
     controller_name = "Linkam T96"
 
     temperature = Component(
-        T96Temperature,
+        PVPositionerSoftDone,
         "",
         readback_pv="TEMP",
         setpoint_pv="SETPOINT:SET",
         tolerance=1.0,
         kind="hinted",
     )
+
     #this is incorrect, this is not EpicsSignalWithRBV, it has readback PV: RAMPARTE and set PV RAMPRATE:SET  
-    ramprate = Component(EpicsSignalWithRBV, "RAMPRATE:SET", kind="config")
+    #ramprate = Component(EpicsSignalWithRBV, "RAMPRATE:SET", kind="config")
+    ramprate = Component(
+        PVPositionerSoftDone,
+        "",
+        readback_pv="RAMPRATE",
+        setpoint_pv="RAMPRATE:SET",
+        tolerance=1.0,
+        kind="hinted",
+    )
     units = Component(Signal, value="C", kind="config")
 
-    controller_config = Component(EpicsSignalRO, "CONFIG", kind="omitted")
-    controller_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
-    controller_status = Component(EpicsSignalRO, "STATUS", kind="omitted")
-    heater_power = Component(EpicsSignalRO, "POWER", kind="omitted")
-    lnp_mode = Component(EpicsSignalWithRBV, "LNP_MODE:SET", kind="omitted")
-    lnp_speed = Component(EpicsSignalWithRBV, "LNP_SPEED:SET", kind="omitted")
-    lnp_status = Component(EpicsSignalRO, "STAT:LNP:PUMPING", kind="omitted")
-    pressure = Component(EpicsSignalRO, "PRESSURE", kind="omitted")
-    #ramp_at_limit = Component(EpicsSignalRO, "rampAtLimit_RBV", kind="omitted")
-    stage_config = Component(EpicsSignalRO, "STAGE:CONFIG", kind="omitted")
-    status_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
-    vacuum = Component(EpicsSignal, "VACUUM:SET", kind="omitted")
-    vacuum_at_limit = Component(EpicsSignalRO, "VACUUM", kind="omitted")
-    #vacuum_limit_readback = Component(EpicsSignalWithRBV, "vacuumLimit", kind="omitted")
-    vacuum_status = Component(EpicsSignalRO, "STAT:VAC:CNTRL", kind="omitted")  # calc
+    # controller_config = Component(EpicsSignalRO, "CONFIG", kind="omitted")
+    # controller_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
+    # controller_status = Component(EpicsSignalRO, "STATUS", kind="omitted")
+    # heater_power = Component(EpicsSignalRO, "POWER", kind="omitted")
+    # lnp_mode = Component(EpicsSignalWithRBV, "LNP_MODE:SET", kind="omitted")
+    # lnp_speed = Component(EpicsSignalWithRBV, "LNP_SPEED:SET", kind="omitted")
+    # lnp_status = Component(EpicsSignalRO, "STAT:LNP:PUMPING", kind="omitted")
+    # pressure = Component(EpicsSignalRO, "PRESSURE", kind="omitted")
+    # #ramp_at_limit = Component(EpicsSignalRO, "rampAtLimit_RBV", kind="omitted")
+    # stage_config = Component(EpicsSignalRO, "STAGE:CONFIG", kind="omitted")
+    # status_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
+    # vacuum = Component(EpicsSignal, "VACUUM:SET", kind="omitted")
+    # vacuum_at_limit = Component(EpicsSignalRO, "VACUUM", kind="omitted")
+    # #vacuum_limit_readback = Component(EpicsSignalWithRBV, "vacuumLimit", kind="omitted")
+    # vacuum_status = Component(EpicsSignalRO, "STAT:VAC:CNTRL", kind="omitted")  # calc
 
         # alias("$(P):CTRLLR:ERR", "$(PA)$(TA):controllerError_RBV")
         # alias("$(P):CONFIG", "$(PA)$(TA):controllerConfig_RBV")

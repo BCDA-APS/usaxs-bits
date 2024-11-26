@@ -52,6 +52,7 @@ from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
 from apstools.plans import lineup2
 from apstools.utils import trim_plot_lines
+from apstools.utils import trim_plot_by_name
 from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 
 
@@ -115,7 +116,7 @@ def tune_mr(md={}):
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["I0_USAXS"])
     stats=SignalStatsCallback()
-    yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats)
+    yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
@@ -181,7 +182,7 @@ def tune_ar(md={}):
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
-    yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats)
+    yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     trim_plot_lines(bec, 5, a_stage.r, UPD_SIGNAL) #UPD_SIGNAL
     print(stats.report())
     yield from bps.mv(
@@ -242,7 +243,7 @@ def tune_a2rp(md={}):
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
-    yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31,nscans=1,signal_stats=stats)
+    yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     print(stats.report())
     trim_plot_lines(bec, 5, a_stage.r2p, UPD_SIGNAL) #UPD_SIGNAL
     yield from bps.mv(
@@ -272,7 +273,7 @@ def tune_dx(md={}):
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
-    yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1,signal_stats=stats)
+    yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
@@ -315,7 +316,7 @@ def tune_dy(md={}):
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
-    yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31,nscans=1,signal_stats=stats)
+    yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",
