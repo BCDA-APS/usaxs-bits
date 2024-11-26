@@ -148,6 +148,7 @@ def mode_USAXS(md=None):
         guard_slit.v_size,  terms.SAXS.usaxs_guard_v_size.get(),
         usaxs_slit.h_size,  terms.SAXS.usaxs_h_size.get(),
         usaxs_slit.v_size,  terms.SAXS.usaxs_v_size.get(),
+        blackfly_det.cam.acquire, 0,    #stop Blackfly if it is running... 
     )
 
     if not ccd_shutter.isClosed:
@@ -305,6 +306,7 @@ def mode_Radiography(md=None):
         user_data.macro_file_time, ts,
         user_data.scanning, 0,
         user_data.collection_in_progress, 0,
+        blackfly_det.cam.acquire, 1,                 #we are using Blackfly now, let's start it... 
         )
 
     yield from user_data.set_state_plan("Radiography Mode")
