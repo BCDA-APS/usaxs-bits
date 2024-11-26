@@ -25,7 +25,7 @@ try:
     linkam_tc1.wait_for_connection()
 except Exception as exc:
     warnings.warn(f"Linkam controller {linkam_tc1.name} not connected.")
-break
+
 
 
 
