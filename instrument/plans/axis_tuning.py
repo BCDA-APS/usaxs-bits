@@ -108,7 +108,7 @@ def tune_mr(md={}):
     md['plan_name'] = "tune_mr"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {m_stage.r.name}")
-    axis_start = m_stage.r.position
+    #axis_start = m_stage.r.position
     yield from bps.mv(
         mono_shutter, "open",
         ti_filter_shutter, "open",
@@ -122,15 +122,16 @@ def tune_mr(md={}):
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
+        upd_controls.auto.mode, "auto+background",
     )
     #trim_plot_lines(bec, 5, m_stage.r, I0_SIGNAL) #UPD_SIGNAL
-    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
-    tempstats = stats._registers['I0_USAXS']
-    cenval = getattr(tempstats, "centroid") 
-    #if a_stage.r.tuner.tune_ok:
-    yield from bps.mv(terms.USAXS.mr_val_center, cenval)
-    yield from bps.mv(m_stage.r, cenval)
-    logger.info(f"final position: {m_stage.r.position}")
+    scaler0.select_channels(None)
+    if stats.analysis.success:
+        yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
+        logger.info(f"final position: {m_stage.r.position}")
+    else:
+        print(f"tune_mr failed for {stats.analysis.reasons}")  
+    
 
 def tune_m2rp(md={}):
     yield from bps.sleep(0.2)   # piezo is fast, give the system time to react
@@ -175,7 +176,7 @@ def tune_ar(md={}):
     md['plan_name'] = "tune_ar"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {a_stage.r.name}")
-    axis_start = a_stage.r.position
+    #axis_start = a_stage.r.position
     yield from bps.mv(
         mono_shutter, "open",
         ti_filter_shutter, "open",
@@ -190,20 +191,18 @@ def tune_ar(md={}):
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
+        upd_controls.auto.mode, "auto+background",
     )
-    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
-    tempstats = stats._registers['PD_USAXS']
-    cenval = getattr(tempstats, "centroid") 
-    #if a_stage.r.tuner.tune_ok:
-    yield from bps.mv(terms.USAXS.ar_val_center,cenval) 
-    yield from bps.mv(a_stage.r, cenval)
-    # remember the Q calculation needs a new 2theta0
-    yield from bps.mv(
-        usaxs_q_calc.channels.B.input_value, terms.USAXS.ar_val_center.get(),
-        #a_stage.r, terms.USAXS.ar_val_center.get(),
-    )
-    logger.info(f"final position: {a_stage.r.position}")
-
+    scaler0.select_channels(None)
+    if stats.analysis.success:
+        yield from bps.mv(
+            terms.USAXS.ar_val_center, a_stage.r.position,
+            usaxs_q_calc.channels.B.input_value, a_stage.r.position,
+        )
+        logger.info(f"final position: {a_stage.r.position}")
+    else:
+        print(f"tune_ar failed for {stats.analysis.reasons}")  
+ 
 
 
 
@@ -252,13 +251,16 @@ def tune_a2rp(md={}):
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
+        upd_controls.auto.mode, "auto+background",
     )
-    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
-    tempstats = stats._registers['PD_USAXS']
-    cenval = getattr(tempstats, "x_at_max_y") 
-    yield from bps.mv(a_stage.r2p,cenval)
-    yield from bps.mv(upd_controls.auto.mode, "auto+background")
-    logger.info(f"final position: {a_stage.r2p.position}")
+    scaler0.select_channels(None)
+    if stats.analysis.success:
+        logger.info(f"final position: {a_stage.r2p.position}")
+    else:
+        print(f"tune_a2rp failed for {stats.analysis.reasons}")  
+
+ 
+ 
 
 def tune_dx(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
@@ -268,7 +270,7 @@ def tune_dx(md={}):
     md['plan_name'] = "tune_dx"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {d_stage.x.name}")
-    axis_start = d_stage.x.position
+    #axis_start = d_stage.x.position
     yield from bps.mv(
         mono_shutter, "open",
         ti_filter_shutter, "open",
@@ -282,16 +284,17 @@ def tune_dx(md={}):
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
+        upd_controls.auto.mode, "auto+background",
     )
-    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
-    tempstats = stats._registers['PD_USAXS']
-    cenval = getattr(tempstats, "centroid") 
-    yield from bps.mv(d_stage.x,cenval)
-    yield from bps.mv(terms.USAXS.DX0, cenval)
-    yield from bps.mv(terms.SAXS.dy_in, cenval)
     scaler0.select_channels(None)
-    yield from bps.mv(upd_controls.auto.mode, "auto+background")
-    logger.info(f"final position: {d_stage.x.position}")
+    if stats.analysis.success:
+        yield from bps.mv(
+            terms.USAXS.DX0, d_stage.x.position,
+            terms.SAXS.dx_in, d_stage.x.position,
+        )
+        logger.info(f"final position: {d_stage.x.position}")
+    else: 
+        print(f"tune_dx failed for {stats.analysis.reasons}")  
 
 
 # def tune_dx(md={}):
@@ -312,7 +315,7 @@ def tune_dy(md={}):
     md['plan_name'] = "tune_dy"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {d_stage.y.name}")
-    axis_start = d_stage.y.position
+    #axis_start = d_stage.y.position
     yield from bps.mv(
         mono_shutter, "open",
         ti_filter_shutter, "open",
@@ -326,15 +329,14 @@ def tune_dy(md={}):
     yield from bps.mv(
         ti_filter_shutter, "close",
         scaler0.count_mode, "AutoCount",
+        upd_controls.auto.mode, "auto+background",
     )
-    #TODO: check stats._registers["PD_USAXS"].centroid, min_x, max_x and decide if apply position change. 
-    tempstats = stats._registers['PD_USAXS']
-    cenval = getattr(tempstats, "centroid") 
-    yield from bps.mv(terms.SAXS.dy_in,cenval) 
-    yield from bps.mv(d_stage.y,cenval)
     scaler0.select_channels(None)
-    yield from bps.mv(upd_controls.auto.mode, "auto+background")
-    logger.info(f"final position: {d_stage.y.position}")
+    if stats.analysis.success:
+        yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
+        logger.info(f"final position: {d_stage.y.position}")
+    else:
+        print(f"tune_dy failed for {stats.analysis.reasons}")  
 
 
 
