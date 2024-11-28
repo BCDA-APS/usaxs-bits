@@ -73,11 +73,6 @@ def move_WAXSOut():
     # move the WAXS X away from sample
     yield from bps.mv(waxsx, terms.WAXS.x_out.get())
 
-    # removed 12-21-2021, JIL. Not needed. Hard interlocks are better anyway
-    #waxsx.set_lim(
-    #    waxsx.low_limit_travel.get(),
-    #    terms.WAXS.x_out.get() + terms.WAXS.x_limit_offset.get())
-
     logger.info("Removed WAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
@@ -98,11 +93,6 @@ def move_WAXSIn():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
     # first move USAXS out of way
-    # removed 12-21-2021, JIL. Not needed. Hard interlocks are better anyway
-    #waxsx.set_lim(
-    #    waxsx.low_limit_travel.get(),
-    #    terms.WAXS.x_in.get() + terms.WAXS.x_limit_offset.get())
-
     yield from bps.mv(
         guard_slit.v_size, terms.SAXS.guard_v_size.get(),
         guard_slit.h_size, terms.SAXS.guard_h_size.get(),
@@ -151,13 +141,6 @@ def move_SAXSIn():
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
-    # first move USAXS out of way
-    # removed 12-21-2021, JIL. Not needed. Hard interlocks are better anyway
-    # saxs_stage.y.set_lim(
-    #    terms.SAXS.y_in.get() - terms.SAXS.y_limit_offset.get(),
-    #    saxs_stage.y.high_limit_travel.get(),
-    #    )
-
     yield from bps.mv(
         guard_slit.v_size, terms.SAXS.guard_v_size.get(),
         guard_slit.h_size, terms.SAXS.guard_h_size.get(),
@@ -165,12 +148,6 @@ def move_SAXSIn():
         usaxs_slit.v_size, terms.SAXS.v_size.get(),
         usaxs_slit.h_size, terms.SAXS.h_size.get(),
     )
-
-    #saxs_stage.z.set_lim(
-    # removed 12-21-2021, JIL. Not needed. Hard interlocks are better anyway
-    #    terms.SAXS.z_in.get() - terms.SAXS.z_limit_offset.get(),
-    #    saxs_stage.z.high_limit_travel.get()   # do NOT change the hi value
-    #    )
 
     # move Z _AFTER_ the others finish moving
     yield from bps.mv(saxs_stage.z, terms.SAXS.z_in.get())
@@ -195,16 +172,6 @@ def move_USAXSOut():
         d_stage.x, terms.SAXS.dx_out.get(),
     )
 
-    # now Main stages are out of place,
-    # so we can now set the limits and then move pinhole in place.
-    # removed 12-21-2021, JIL. Not needed. Hard interlocks are better anyway
-    #a_stage.x.set_lim(
-    #    terms.SAXS.ax_out.get() - terms.SAXS.ax_limit_offset.get(),
-    #    a_stage.x.high_limit_travel.get())
-    #d_stage.x.set_lim(
-    #    d_stage.x.low_limit_travel.get(),
-    #    terms.SAXS.dx_out.get() + terms.SAXS.dx_limit_offset.get())
-
     logger.info("Removed USAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
@@ -225,14 +192,6 @@ def move_USAXSIn():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
     # move USAXS in the beam
-    # set the limits so we can move pinhole in place.
-    # removed 12-21-2021, JIL. Not needed. Hard interlocks are better anyway
-    #a_stage.x.set_lim(
-    #    terms.SAXS.ax_in.get() - terms.SAXS.ax_limit_offset.get(),
-    #    a_stage.x.high_limit_travel.get())
-    #d_stage.x.set_lim(
-    #    d_stage.x.low_limit_travel.get(),
-    #    terms.SAXS.dx_in.get() + terms.SAXS.dx_limit_offset.get())
 
     yield from bps.mv(
         guard_slit.h_size,  terms.SAXS.usaxs_guard_h_size.get(),
@@ -241,9 +200,8 @@ def move_USAXSIn():
         usaxs_slit.v_size,  terms.SAXS.usaxs_v_size.get(),
         a_stage.y,          terms.SAXS.ay_in.get(),
         a_stage.x,          terms.SAXS.ax_in.get(),
-        d_stage.x,          terms.SAXS.dx_in.get(),
         d_stage.y,          terms.SAXS.dy_in.get(),
-        #d_stage.x,          terms.USAXS.DX0.get, #this is same as terms.SAXS.dx_in.get
+        d_stage.x,          terms.USAXS.DX0.get, #same as: terms.USAXS:Diode_dx.get(),
     )
 
     logger.info("USAXS is in position")
