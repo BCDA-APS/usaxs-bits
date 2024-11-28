@@ -16,8 +16,9 @@ both of which are in directory ``~/.ipython/profile/bluesky/usaxs_support/``.
 See https://github.com/APS-USAXS/ipython-usaxs/issues/482 for details.
 """
 
-from apstools.devices import Linkam_CI94_Device
-from apstools.devices import Linkam_T96_Device
+#from apstools.devices import Linkam_CI94_Device
+#from apstools.devices import Linkam_T96_Device
+from ..instrument.devices.linkam import linkam_tc1
 from bluesky import plan_stubs as bps
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
@@ -34,38 +35,15 @@ HOUR = 60 * MINUTE
 DAY = 24 * HOUR
 WEEK = 7 * DAY
 
-# Create devices here so we remain independent of the instrument package.
-linkam_exit = EpicsSignal("9idcLAX:bit14", name="exit_request_signal")
-linkam_ci94 = Linkam_CI94_Device("9idcLAX:ci94:", name="linkam_ci94")
-linkam_tc1 = Linkam_T96_Device("9idcLINKAM:tc1:", name="linkam_tc1")
-
 # write output to log file in userDir, name=MMDD-HHmm-heater-log.txt
-user_dir = EpicsSignalRO("9idcLAX:userDir", name="user_dir", string=True)
-
-for o in (linkam_exit, linkam_ci94, linkam_tc1, user_dir):
-    o.wait_for_connection()
+user_dir = EpicsSignalRO("usxLAX:userDir", name="user_dir", string=True)
 
 log_file_name = pathlib.Path(user_dir.get()) / (
     datetime.datetime.now().strftime("%m%d-%H%M-heater-log.txt")
 )
 
-# make a common term for the ramp rate (devices use different names)
-linkam_ci94.ramp = linkam_ci94.rate
-linkam_tc1.ramp = linkam_tc1.ramprate
-
 linkam = linkam_tc1     # choose which one#
 #linkam = linkam_ci94     # choose which one
-
-# set tolerance for "in position" (Python term, not an EPICS PV)
-# note: done = |readback - setpoint| <= tolerance
-linkam.temperature.tolerance.put(1.0)
-# sync the "inposition" computation
-linkam.temperature.cb_readback()
-
-# easy access to the engineering units
-linkam.units.put(
-    linkam.temperature.readback.metadata["units"]
-)
 
 
 class HeaterStopAndHoldRequested(Exception):
@@ -131,7 +109,7 @@ def linkam_report():
         f"{linkam.name}"
         f" T={linkam.temperature.position:.1f}{units}"
         f" setpoint={linkam.temperature.setpoint.get():.1f}{units}"
-        f" ramp:{linkam.ramp.get()}"
+        f" ramp:{linkam.ramp.setpoint.get()}"
         f" settled: {linkam.temperature.inposition}"
         f" done: {linkam.temperature.done.get()}"
     )
@@ -140,9 +118,9 @@ def linkam_report():
 def change_ramp_rate(value):
     """BS plan: change controller's ramp rate."""
     yield from check_for_exit_request(time.time())
-    yield from bps.mv(linkam.ramp, value)
+    yield from bps.mv(linkam.ramp.setpoint, value)
     log_it(
-        f"Set {linkam.name} rate to {linkam.ramp.get():.0f} C/min"
+        f"Set {linkam.name} rate to {linkam.ramp.setpoint.get():.0f} C/min"
     )
 
 
@@ -187,12 +165,13 @@ def linkam_change_setpoint(value, wait=True):
     t0 = time.time()
     yield from check_for_exit_request(t0)
     yield from bps.mv(
-        linkam.temperature.setpoint, value
+        linkam.temperature.setpoint, value,
+        linkam.temperature.actuate, "On"
     )
-    if isinstance(linkam, Linkam_T96_Device):
-        yield from bps.mv(
-            linkam.temperature.actuate, "On"
-        )
+    # if isinstance(linkam, Linkam_T96_Device):
+    #     yield from bps.mv(
+    #         linkam.temperature.actuate, "On"
+    #     )
     log_it(
         f"Set {linkam.name} setpoint to"
         f" {linkam.temperature.setpoint.get():.2f} C"

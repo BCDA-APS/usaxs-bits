@@ -21,10 +21,10 @@ from apstools.devices import PVPositionerSoftDone
 
 
 
-
-# class T96Temperature(PVPositionerSoftDoneWithStop):
-#     actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
-#     actuate_value = "On"
+#this makes temperature to automatically start heating when changed
+class T96Temperature(PVPositionerSoftDoneWithStop):
+    actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
+    actuate_value = "On"
 
 
 
@@ -45,7 +45,7 @@ class Linkam_T96_Device(Device):
     controller_name = "Linkam T96"
 
     temperature = Component(
-        PVPositionerSoftDone,
+        T96Temperature,
         "",
         readback_pv="TEMP",
         setpoint_pv="SETPOINT:SET",
