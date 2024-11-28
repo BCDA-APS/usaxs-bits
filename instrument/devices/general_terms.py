@@ -122,7 +122,7 @@ class Parameters_transmission(Device):
 class Parameters_USAXS(Device):
     """internal values shared with EPICS"""
     AX0 = Component(EpicsSignal,                      "usxLAX:SAXS:ax_in")
-    DX0 = Component(EpicsSignal,                      "usxLAX:SAXS:dx_in")
+    DX0 = Component(EpicsSignal,                      "usxLAX:USAXS:Diode_dx")
     ASRP0 = Component(EpicsSignal,                    "usxLAX:USAXS:ASRcenter")
     SAD = Component(EpicsSignal,                      "usxLAX:USAXS:SAD")
     SDD = Component(EpicsSignal,                      "usxLAX:USAXS:SDD")
@@ -192,9 +192,9 @@ class Parameters_SAXS(Device):
 
     dy_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dy")
 
-    dx_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx")
-    dx_out = Component(EpicsSignal, "usxLAX:dx_out")
-    dx_limit_offset = Component(EpicsSignal, "usxLAX:dx_limit_offset")
+    dx_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx")     #deprecated, do not use, use USAXS:Diode.dx
+    dx_out = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx_out")
+    dx_limit_offset = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx_limit_offset")
 
     usaxs_h_size = Component(EpicsSignal, "usxLAX:USAXS_hslit_ap")
     usaxs_v_size = Component(EpicsSignal, "usxLAX:USAXS_vslit_ap")
