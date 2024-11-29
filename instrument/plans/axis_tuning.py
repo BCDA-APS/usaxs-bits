@@ -290,7 +290,6 @@ def tune_dx(md={}):
     if stats.analysis.success:
         yield from bps.mv(
             terms.USAXS.DX0, d_stage.x.position,
-            terms.SAXS.dx_in, d_stage.x.position,
         )
         logger.info(f"final position: {d_stage.x.position}")
     else: 
