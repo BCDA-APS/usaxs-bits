@@ -41,9 +41,8 @@ class Linkam_T96_Device(Device):
     linkam_tc1.temperature.position which returns the current T in C
 
     """
-
+    #use linkam.temperature.position to get the value, this is positoner... 
     controller_name = "Linkam T96"
-
     temperature = Component(
         T96Temperature,
         "",
@@ -52,10 +51,6 @@ class Linkam_T96_Device(Device):
         tolerance=1.0,
         kind="hinted",
     )
-    #use linkam.temperature.position to get the value, this is positoner... 
-
-    #this is incorrect, this is not EpicsSignalWithRBV, it has readback PV: RAMPARTE and set PV RAMPRATE:SET  
-    #ramprate = Component(EpicsSignalWithRBV, "RAMPRATE:SET", kind="config")
     ramprate = Component(
         PVPositionerSoftDone,
         "",
@@ -65,10 +60,8 @@ class Linkam_T96_Device(Device):
         kind="hinted",
     )
     units = Component(Signal, value="C", kind="config")
-
     controller_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
     heater_power = Component(EpicsSignalRO, "POWER", kind="omitted")
-    # lnp_mode = Component(EpicsSignal, "LNP_MODE:SET", kind="omitted")
     lnp_mode = Component(
         PVPositionerSoftDone,
         "",
@@ -77,7 +70,6 @@ class Linkam_T96_Device(Device):
         #tolerance=1.0,
         kind="omitted",
     )
-    # lnp_speed = Component(EpicsSignalWithRBV, "LNP_SPEED:SET", kind="omitted")
     lnp_speed = Component(
         PVPositionerSoftDone,
         "",
@@ -86,9 +78,7 @@ class Linkam_T96_Device(Device):
         #tolerance=1.0,
         kind="omitted",
     )
-    # lnp_status = Component(EpicsSignalRO, "STAT:LNP:PUMPING", kind="omitted")
     pressure = Component(EpicsSignalRO, "PRESSURE", kind="omitted")
-    #vacuum = Component(EpicsSignalRO, "VACUUM", kind="omitted")
     vacuum = Component(
         PVPositionerSoftDone,
         "",
@@ -97,7 +87,6 @@ class Linkam_T96_Device(Device):
         #tolerance=1.0,
         kind="omitted",
     )
-    #humidity = Component(EpicsSignalRO, "HUMIDITY", kind="omitted")
     humidity = Component(
         PVPositionerSoftDone,
         "",
@@ -106,6 +95,14 @@ class Linkam_T96_Device(Device):
         #tolerance=1.0,
         kind="omitted",
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # temperature component is the main value
+        self.temperature.name = self.name
+
+    # these are unused or old things we are not using
     # # #ramp_at_limit = Component(EpicsSignalRO, "rampAtLimit_RBV", kind="omitted")
     # stage_config = Component(EpicsSignalRO, "STAGE:CONFIG", kind="omitted")
     # status_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
@@ -115,6 +112,11 @@ class Linkam_T96_Device(Device):
     # vacuum_status = Component(EpicsSignalRO, "STAT:VAC:CNTRL", kind="omitted")  # calc
     # controller_config = Component(EpicsSignalRO, "CONFIG", kind="omitted")
     # controller_status = Component(EpicsSignalRO, "STATUS", kind="omitted")
+    #humidity = Component(EpicsSignalRO, "HUMIDITY", kind="omitted")
+    # lnp_mode = Component(EpicsSignal, "LNP_MODE:SET", kind="omitted")
+    # lnp_speed = Component(EpicsSignalWithRBV, "LNP_SPEED:SET", kind="omitted")
+    # lnp_status = Component(EpicsSignalRO, "STAT:LNP:PUMPING", kind="omitted")
+    #vacuum = Component(EpicsSignalRO, "VACUUM", kind="omitted")
 
         # alias("$(P):CTRLLR:ERR", "$(PA)$(TA):controllerError_RBV")
         # alias("$(P):CONFIG", "$(PA)$(TA):controllerConfig_RBV")
@@ -130,10 +132,3 @@ class Linkam_T96_Device(Device):
         # alias("$(P):LNP_SPEED", "$(PA)$(TA):lnpSpeed_RBV")
         # alias("$(P):LNP_MODE:SET", "$(PA)$(TA):lnpMode")
         # alias("$(P):LNP_SPEED:SET", "$(PA)$(TA):lnpSpeed")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # temperature component is the main value
-        self.temperature.name = self.name
-
