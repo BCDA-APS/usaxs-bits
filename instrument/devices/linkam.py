@@ -15,12 +15,14 @@ import warnings
 import datetime
 import pathlib
 import random  # for testing
-import timefrom ophyd import Component
+import time
+from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
-from ophyd import Signalfrom .linkam_support import Linkam_T96_Device
+from ophyd import Signal
+from .linkam_support import Linkam_T96_Device
 from bluesky import plan_stubs as bps
 
 SECOND = 1
@@ -54,7 +56,7 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
     linkam_tc1.temperature.position which returns the current T in C
 
     """
-    def readable_time(duration, rounding=2):
+    def readable_time(self, duration, rounding=2):
         """
         Return a string representation of the duration.
         EXAMPLES::
@@ -67,13 +69,13 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         weeks = int(duration / WEEK)
         known = weeks * WEEK
 
-        days = int((duration - known) / DAY)
+        days = ((duration - known) // DAY)
         known += days * DAY
 
-        hours = int((duration - known) / HOUR)
+        hours = ((duration - known) // HOUR)
         known += hours * HOUR
 
-        minutes = int((duration - known) / MINUTE)
+        minutes = ((duration - known) // MINUTE)
         known += minutes * MINUTE
 
         seconds = round(duration - known, rounding)
@@ -87,7 +89,7 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         return " ".join(s)
 
 
-    def log_it(text):
+    def log_it(self, text):
         """Cheap, lazy way to add to log file.  Gotta be better way..."""
         if not log_file_name.exists():
             # create the file and header
@@ -103,7 +105,7 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
             f.write(f"{iso8601}: {text}\n")
 
 
-    def linkam_report():
+    def linkam_report(self):
         """Report current values for selected controller."""
         # assuming units are "Celsius"
         units = self.units.get()[:1].upper()
@@ -118,7 +120,7 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
 
 
  
-    def set_target(value, wait=True):
+    def set_target(self, value, wait=True):
         """
         BS plan: change the temperature setpoint and wait for inposition.
         To change temperature and wait:
@@ -130,7 +132,7 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         """
         t0 = time.time()
         yield from bps.mv(
-            self.temperature.setpoint, value,
+            self.temperature, value,
             self.temperature.actuate, "On"
         )
         self.log_it(
@@ -150,7 +152,7 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         self.linkam_report()
 
 
-    def linkam_hold(duration):
+    def hold(self, duration):
         """BS plan: hold at temperature for the duration (s)."""
         self.log_it(f"{self.name} holding for {self.readable_time(duration)}")
         t0 = time.time()

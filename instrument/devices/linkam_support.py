@@ -22,7 +22,7 @@ from apstools.devices import PVPositionerSoftDone
 
 
 #this makes temperature to automatically start heating when changed
-class T96Temperature(PVPositionerSoftDoneWithStop):
+class T96Temperature(PVPositionerSoftDone):
     actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
     actuate_value = "On"
 
