@@ -112,14 +112,14 @@ def fzLinkamPlan(
     yield from before_command_list(md={})
 
     # go to 40C and measure all data there as baseline...
-    yield from bps.mv(linkam.rate, 50)              #sets the rate of next ramp
+    yield from bps.mv(linkam.ramprate.setpoint, 50)              #sets the rate of next ramp
     yield from linkam.set_target(40, wait=True)     #sets the temp of next ramp
     t0 = time.time()
     yield from collectAllThree()
     #yield from mode_USAXS()
 
     # here is start of heating rmap up.
-    yield from bps.mv(linkam.rate, rate1)          #sets the rate of next ramp
+    yield from bps.mv(linkam.ramprate.setpoint, rate1)          #sets the rate of next ramp
     yield from linkam.set_target(temp1, wait=True)     #sets the temp of next ramp
     logger.info(f"Ramping temperature to {temp1} C")
 
@@ -139,7 +139,7 @@ def fzLinkamPlan(
 
     #done with main loop, we will cool next.
     t0 = time.time()
-    yield from bps.mv(linkam.rate, rate2)                #sets the rate of next ramp
+    yield from bps.mv(linkam.ramprate.setpoint, rate2)                #sets the rate of next ramp
     yield from linkam.set_target(temp2, wait=False)     #sets the temp of next ramp
 
     # collecting data on cooling
