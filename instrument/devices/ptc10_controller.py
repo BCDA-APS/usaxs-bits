@@ -41,6 +41,37 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     * Change other parameter: ``yield from bps.mv(ptc10.tolerance, 0.1)``
     * To get temperature: ``ptc10.position``  (because it is a **positioner**)
     * Is it at temperature?:  ``ptc10.done.get()``
+
+    PTC10 PID parameters for different heaters from spec :
+
+    def PTC10_PID_Flowcell_Heater '{
+    epics_put("9idcTEMP:tc1:5A:pid:P", 0.0344)
+    epics_put("9idcTEMP:tc1:5A:pid:I", 0.0013)
+    epics_put("9idcTEMP:tc1:5A:pid:D", 0.0253)
+    p "PID values are set for the Gas Flow Cell!"
+    }'
+    def PTC10_PID_NMR_Heater '{
+    epics_put("9idcTEMP:tc1:5A:pid:P", 0.5)
+    epics_put("9idcTEMP:tc1:5A:pid:I", 0.03)
+    epics_put("9idcTEMP:tc1:5A:pid:D", 1.7)
+    p "PID values are set for the NMR tube heater!"
+    }'
+    def PTC10_PID_Rheo_Heater '{
+    epics_put("9idcTEMP:tc1:5A:pid:P", 1)
+    epics_put("9idcTEMP:tc1:5A:pid:I", 0.01)
+    epics_put("9idcTEMP:tc1:5A:pid:D", 10.)
+    p "PID values are set for the Rheo heater!"
+    }'
+    PTC10 NMR tube heater offsets:
+    The NMR tube heater was insulated with ceramic pieces; the custom-made DC cartridge from Maxiwatt company replaced the previous low power heating element. The tests showed a significant temperature gradient across the holder (20 deg difference @300 deg C).
+    Holder temp. (C)	Right end temp. (C)	Middle temp. (C)	Left end temp. (C)
+    100	89	86	83
+    150	130	126	120
+    200	173	168	160
+    250	215	210	198
+    300	259	252	239
+    Note: at 70C the offset is under 7 degrees for right end NMR tube, heater set to 77 degrees, NMR tube is 70.4C.
+    For 5th NMR tube from right, the offset is pretty much 0 - 70C and sample temperature is 71. So we need to verify offset every time, it clearly varies at different positions a  lot. 
     """
 
     # PVPositioner interface
