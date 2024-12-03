@@ -31,6 +31,7 @@ from .diagnostics import *
 # from .emails import *
 from .filters import *
 from .linkam import *
+from .ptc10_controller import *
 from .miscellaneous import *
 from .monochromator import *
 from .sample_rotator import *

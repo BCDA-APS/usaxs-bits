@@ -132,7 +132,7 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         """
         t0 = time.time()
         yield from bps.mv(
-            self.temperature, value,
+            self.temperature.setpoint, value,
             self.temperature.actuate, "On"
         )
         self.log_it(
