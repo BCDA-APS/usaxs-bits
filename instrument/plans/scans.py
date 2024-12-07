@@ -1196,3 +1196,4 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
     logger.info(f"I0 value: {terms.SAXS_WAXS.I0.get()}")
     yield from after_plan()
+
