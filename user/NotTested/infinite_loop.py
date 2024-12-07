@@ -15,9 +15,9 @@ load this way:
 * JIL, 2022-11-05 : 20ID test
 """
 
-from user.heater_profile import change_ramp_rate
-from user.heater_profile import linkam_change_setpoint
-from user.heater_profile import MINUTE
+from user.old.reference_only__do_not_use.heater_profile import change_ramp_rate
+from user.old.reference_only__do_not_use.heater_profile import linkam_change_setpoint
+from user.old.reference_only__do_not_use.heater_profile import MINUTE
 import logging
 
 logger = logging.getLogger(__name__)

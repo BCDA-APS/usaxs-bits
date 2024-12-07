@@ -18,7 +18,7 @@ See https://github.com/APS-USAXS/ipython-usaxs/issues/482 for details.
 
 #from apstools.devices import Linkam_CI94_Device
 #from apstools.devices import Linkam_T96_Device
-from ..instrument.devices.linkam import linkam_tc1
+from ....instrument.devices.linkam import linkam_tc1
 from bluesky import plan_stubs as bps
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO

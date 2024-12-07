@@ -69,18 +69,18 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
     #isDebugMode = False
 
     if isDebugMode is not True:
-        yield from before_command_list()                #this will run usual startup scripts for scans
+        yield from before_command_list()                    #this will run usual startup scripts for scans
 
-    t0 = time.time()                                    # mark start time of data collection.
+    t0 = time.time()                                        # mark start time of data collection.
  
-    checkpoint = time.time() + delay1minutes*MINUTE             # time to end ``delay1min`` hold period
+    checkpoint = time.time() + delay1minutes*MINUTE         # time to end ``delay1min`` hold period
 
     logger.info("Collecting data for %s minutes", delay1minutes)
 
     while time.time() < checkpoint:                         # collects USAXS/SAXS/WAXS data while holding at temp1
         yield from collectAllThree(isDebugMode)
 
-    logger.info("finished")                            #record end.
+    logger.info("finished")                                 #record end.
 
     if isDebugMode is not True:
-       yield from after_command_list()                  # runs standard after scan scripts.
+       yield from after_command_list()                      # runs standard after scan scripts.
