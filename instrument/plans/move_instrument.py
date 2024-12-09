@@ -201,7 +201,7 @@ def move_USAXSIn():
         a_stage.y,          terms.SAXS.ay_in.get(),
         a_stage.x,          terms.SAXS.ax_in.get(),
         d_stage.y,          terms.SAXS.dy_in.get(),
-        d_stage.x,          terms.USAXS.DX0.get, #same as: terms.USAXS:Diode_dx.get(),
+        d_stage.x,          terms.USAXS.DX0.get(), #same as: terms.USAXS:Diode_dx.get(),
     )
 
     logger.info("USAXS is in position")
