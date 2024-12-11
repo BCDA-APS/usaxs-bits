@@ -1,45 +1,196 @@
+ aborted
+Traceback (most recent call last):
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 1605, in _run
+    msg = self._plan_stack[-1].send(resp)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1370, in __call__
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1223, in baseline_wrapper
+    return (yield from plan_mutator(plan, insert_baseline))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 845, in monitor_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 907, in fly_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/bluesky/instrument/plans/axis_tuning.py", line 120, in tune_mr
+    yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
+  File "/home/beams11/USAXS/Documents/projects/apstools/apstools/plans/alignment.py", line 570, in lineup2
+    yield from _inner()  # Run the scan.
+    ^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1260, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 413, in subs_wrapper
+    return (yield from finalize_wrapper(_inner_plan(), _unsubscribe()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 411, in _inner_plan
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams11/USAXS/Documents/projects/apstools/apstools/plans/alignment.py", line 567, in _inner
+    yield from bp.rel_scan(detectors, mover, rel_start, rel_end, points, md=_md)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/plans.py", line 1597, in rel_scan
+    return (yield from inner_rel_scan())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1260, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1175, in reset_positions_wrapper
+    return (yield from finalize_wrapper(plan_mutator(plan, insert_reads), reset()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1260, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1131, in relative_set_wrapper
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 271, in msg_mutator
+    msg = plan.send(_s)
+          ^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/plans.py", line 1595, in inner_rel_scan
+    return (yield from scan(detectors, *args, num=num, per_step=per_step, md=_md))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/plans.py", line 1292, in scan
+    return (yield from scan_nd(detectors, full_cycler, per_step=per_step, md=_md))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/plans.py", line 1169, in scan_nd
+    return (yield from inner_scan_nd())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1260, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 995, in stage_wrapper
+    return (yield from finalize_wrapper(inner(), unstage_devices()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 993, in inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1260, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 358, in run_wrapper
+    yield from contingency_wrapper(plan, except_plan=except_plan, else_plan=close_run)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 623, in contingency_wrapper
+    yield from else_plan()
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1954, in __iter__
+    return (yield from self._iter)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 1386, in close_run
+    return (yield Msg("close_run", exit_status=exit_status, reason=reason))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 259, in msg_mutator
+    _s = yield msg
+         ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 898, in new_gen
+    yield msg
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 836, in new_gen
+    yield msg
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1213, in post_baseline
+    return (yield msg)
+            ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 1672, in _run
+    new_response = await coro(msg)
+                   ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 1896, in _close_run
+    ret = await current_run.close_run(msg)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/bundlers.py", line 164, in close_run
+    await self.emit(DocumentNames.stop, doc)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 2679, in emit
+    self.emit_sync(name, doc)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 2676, in emit_sync
+    self.dispatcher.process(name, doc)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 2699, in process
+    exceptions = self.cb_registry.process(name, name.name, doc)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 433, in process
+    func(*args, **kwargs)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 523, in __call__
+    return mtd(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams11/USAXS/Documents/projects/apstools/apstools/callbacks/scan_signal_statistics.py", line 157, in receiver
+    getattr(self, key)(document)
+  File "/home/beams11/USAXS/Documents/projects/apstools/apstools/callbacks/scan_signal_statistics.py", line 201, in stop
+    self._data[self._detectors[0]],
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+KeyError: 'scaler0'
+Failed to close run <bluesky.bundlers.RunBundler object at 0x7f6eeded8e10>.
+KeyError: 'scaler0'
 
-Transient Scan ID: 21     Time: 2024-11-22 17:07:31
-Persistent Unique Scan ID: 'aac01613-a408-4033-91b6-71cc8411b70a'
-New stream: 'baseline'
-New stream: 'aps_current_monitor'
-New stream: 'primary'                                                                                                                                                        
-+-----------+------------+------------+------------+
-|   seq_num |       time |  d_stage_y |   PD_USAXS |
-+-----------+------------+------------+------------+
-|         1 | 17:07:32.4 | -93.279114 |          3 |
-|         2 | 17:07:32.8 | -92.879047 |          4 |
-|         3 | 17:07:33.1 | -92.478906 |          6 |
-|         4 | 17:07:33.4 | -92.079041 |          7 |                                                                                                                         
-|         5 | 17:07:33.8 | -91.679047 |          9 |
-|         6 | 17:07:34.1 | -91.279047 |         19 |
-|         7 | 17:07:34.5 | -90.879041 |         44 |
-|         8 | 17:07:34.8 | -90.478930 |        446 |
-|         9 | 17:07:35.2 | -90.079035 |       1601 |                                                                                                                         
-|        10 | 17:07:35.5 | -89.679023 |       2990 |
-|        11 | 17:07:35.8 | -89.279035 |       4086 |
-|        12 | 17:07:36.2 | -88.879035 |       4767 |
-|        13 | 17:07:36.5 | -88.479041 |       4964 |                                                                                                                         
-|        14 | 17:07:36.9 | -88.079035 |       5042 |
-|        15 | 17:07:37.2 | -87.679047 |       5176 |
-|        16 | 17:07:37.6 | -87.279035 |       5150 |                                                                                                                         
-|        17 | 17:07:37.9 | -86.879041 |       5065 |
-|        18 | 17:07:38.2 | -86.479047 |       5106 |
-|        19 | 17:07:38.6 | -86.079041 |       5038 |
-|        20 | 17:07:38.9 | -85.679035 |       4786 |
-|        21 | 17:07:39.3 | -85.279047 |       4322 |
-|        22 | 17:07:39.6 | -84.878998 |       3082 |
-|        23 | 17:07:39.9 | -84.479035 |       1458 |
-|        24 | 17:07:40.3 | -84.078906 |        186 |
-|        25 | 17:07:40.7 | -83.679035 |         32 |
-|        26 | 17:07:41.0 | -83.279041 |         11 |
-|        27 | 17:07:41.4 | -82.878937 |         10 |
-|        28 | 17:07:41.7 | -82.479035 |          8 |
-|        29 | 17:07:42.0 | -82.078949 |          4 |
-|        30 | 17:07:42.4 | -81.678943 |          3 |                                                                                                                         
-|        31 | 17:07:42.7 | -81.278906 |          6 |
-+-----------+------------+------------+------------+
-generator rel_scan ['aac01613'] (scan num: 21)
-feature='centroid'                                                                                                                                                           
-Moving 'd_stage_y' to -87.2865651155114 (feature='centroid')...
-                                                                  
+
