@@ -19,8 +19,7 @@ import time
 from .amplifiers import upd_controls
 from ..framework import sd
 
-#TODO : urgently resolve issue with USAXS dx in which seems ot use terms.SAXS.dx 
-# as well as terms.USAXS.DX0. This is critical!
+#TODO :  resolve issues with LAX PV database 
 
 class FlyScanParameters(Device):
     """FlyScan values"""
