@@ -424,18 +424,16 @@ def FanPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp
     logger.info("Reached temperature, now collecting data for %s seconds", delay1)
     t1 = time.time()
 
-    while time.time()-t1 < delay1:                          # collects data for delay1 seconds
-        #yield from bps.sleep(5)
+    while time.time()-t1 < delay1*60:                          # collects data for delay1 seconds
         logger.info(f"Collecting data for %s ",delay1)
         yield from collectAllThree()
 
     logger.info("waited for %s seconds, now changing temperature to %s C", rate2, temp2)
 
     yield from bps.mv(ptc10.ramp, rate2/60.0)                  #sets the rate of next ramp
-    yield from bps.mv(ptc10.temperature, temp2)                #Change the temperature and wait to get there
+    yield from bps.mv(ptc10.temperature.setpoint, temp2)                #Change the temperature and NOT wait to get there
 
     while not ptc10.temperature.inposition:                      #runs data collection until next temp or sleeps. Change as needed. 
-        #yield from bps.sleep(2)
         logger.info(f"Still Ramping temperature to {temp2} C")
         yield from collectAllThree()
 
