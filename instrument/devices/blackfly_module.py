@@ -179,7 +179,8 @@ try:
         prefix, name="blackfly_optical",
         labels=["camera", "area_detector"])
     blackfly_optical.read_attrs.append("jpeg1")
-    blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Single"
+    #blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Single"
+    blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Capture"
     if not Override_AD_plugin_primed(blackfly_optical.jpeg1):
         warnings.warn(
             "NOTE: blackfly_optical.jpeg1 has not been primed yet."

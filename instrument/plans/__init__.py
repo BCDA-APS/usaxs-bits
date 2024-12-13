@@ -14,3 +14,4 @@ from .uascan import *
 from .scans import *
 from .sample_transmission import *
 from .command_list import *
+from .sample_imaging import *

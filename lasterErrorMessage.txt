@@ -194,3 +194,96 @@ Failed to close run <bluesky.bundlers.RunBundler object at 0x7f6eeded8e10>.
 KeyError: 'scaler0'
 
 
+************************
+
+                                                                                                                                                                               
+blackfly_optical_jpeg1_capture: _set_and_wait(value=1, timeout=15, atol=None, rtol=None, kwargs={})
+W Thu-11:45:16 - Could not take sample image:path=/share1/USAXS_data/2024-12/12_12_AndrewCapFlow/12_12_AndrewCapFlow_saxs, file=AgBehnateLaB6, order#=385, exc=The status Status(obj=EpicsSignalWithRBV(read_pv='usxFLY2:JPEG1:Capture_RBV', name='blackfly_optical_jpeg1_capture', parent='blackfly_optical_jpeg1', value=0, timestamp=1734025500.8881178, auto_monitor=True, string=False, write_pv='usxFLY2:JPEG1:Capture', limits=False, put_complete=False), done=False, success=False) has failed. To obtain more specific, helpful errors in the future, update the Device to use set_exception(...) instead of _finished(success=False).
+
+Persistent Unique Scan ID: '6ee03af7-6dd5-4310-8250-b41bdd3c97e5'
+New stream: 'baseline'
+New stream: 'aps_current_monitor'
+I Fri-01:56:00 - HDF5 config: /share1/AreaDetectorConfig/FlyScan_config/saveFlyData.xml
+I Fri-01:56:00 - HDF5 output: /share1/USAXS_data/2024-12/12_12_AndrewCapFlow/12_12_AndrewCapFlow_usaxs/CDMOF_3mm_CO2_100C_205min_0556.h5
+I Fri-01:56:00 - flying, s    ar, deg      ay, mm       dy, mm       channel      elapsed, s 
+I Fri-01:57:31 - 91.36        5.0625056    7.64740      69.29715     7999         91.28      
+I Fri-01:57:31 - finished writing fly scan HDF5 file: /share1/USAXS_data/2024-12/12_12_AndrewCapFlow/12_12_AndrewCapFlow_usaxs/CDMOF_3mm_CO2_100C_205min_0556.h5
+I Fri-01:57:31 - HDF5 output complete: /share1/USAXS_data/2024-12/12_12_AndrewCapFlow/12_12_AndrewCapFlow_usaxs/CDMOF_3mm_CO2_100C_205min_0556.h5
+New stream: 'mca'                                                                                                                                                                                  
+                                                                                                                                                                                                   
+Motion failed: d_stage_x is in an alarm state status=7 severity=2
+Run aborted
+ophyd.utils.errors.UnknownStatusFailure: The status MoveStatus(done=False, pos=d_stage_x, elapsed=0.1, success=False, settle_time=0.0) has failed. To obtain more specific, helpful errors in the future, update the Device to use set_exception(...) instead of _finished(success=False).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 1580, in _run
+    msg = self._plan_stack[-1].throw(stashed_exception or resp)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1370, in __call__
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1223, in baseline_wrapper
+    return (yield from plan_mutator(plan, insert_baseline))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 845, in monitor_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 907, in fly_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/bluesky/user/finite_loop.py", line 81, in myFiniteLoop
+    yield from collectAllThree(isDebugMode)
+  File "/home/beams/USAXS/bluesky/user/finite_loop.py", line 60, in collectAllThree
+    yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+  File "/home/beams/USAXS/bluesky/instrument/plans/scans.py", line 372, in USAXSscan
+    yield from Flyscan(x, y, thickness_mm, title, md=_md)
+  File "/home/beams/USAXS/bluesky/instrument/plans/scans.py", line 821, in Flyscan
+    yield from bps.mv(
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1954, in __iter__
+    return (yield from self._iter)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 404, in mv
+    yield Msg("wait", None, group=group)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  [Previous line repeated 2 more times]
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 2399, in _status_object_completed
+    raise FailedStatus(ret) from exc
+FailedStatus: MoveStatus(done=True, pos=d_stage_x, elapsed=0.1, success=False, settle_time=0.0)ttle_time=0.0)
+
+
+In [21]: RE(mode_Radiography())
+                                                                                                                                                                                                   
+I Fri-08:37:07 - Preparing for USAXS mode ... please wait ...
+                                                                                                                                                                                                   
+                                                                                                                                                                                                   
+                                                                                                                                                                                                   
+Out[21]: ()                                                                                                                                                                                        
+I Fri-08:37:11 - Instrument is configured for Radiography now.
+In [22]: 
+
+ 
