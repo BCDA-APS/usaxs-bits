@@ -995,9 +995,10 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     yield from _image_acquisition_steps()
 
     ts = str(datetime.datetime.now())
+    #below stopping the scalers shoudl be done in userTrans2, but no harm stopping it twice 
     yield from bps.mv(
-        # scaler0.count, 0,
-        # scaler1.count, 0,
+        scaler0.count, 0,   
+        scaler1.count, 0,
         terms.SAXS_WAXS.I0, scaler1.channels.chan02.s.get(),
         scaler0.update_rate, 5,
         scaler1.update_rate, 5,
@@ -1174,11 +1175,11 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        # scaler0.count, 0,
-        # scaler1.count, 0,
+        scaler0.count, 0,
+        scaler1.count, 0,
         # WAXS uses same PVs for normalization and transmission as SAXS, should we aliased it same to terms.WAXS???
         terms.SAXS_WAXS.I0, scaler1.channels.chan02.s.get(),
-        terms.SAXS_WAXS.diode_transmission, scaler0.channels.chan04.s.get(),
+        terms.SAXS_WAXS.diode_transmission, scaler0.channels.chan05.s.get(),
         terms.SAXS_WAXS.diode_gain, trd_controls.femto.gain.get(),
         terms.SAXS_WAXS.I0_transmission, scaler0.channels.chan02.s.get(),
         terms.SAXS_WAXS.I0_gain, I0_controls.femto.gain.get(),
