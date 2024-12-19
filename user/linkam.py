@@ -97,9 +97,9 @@ def myLinkamPlan_template(pos_X, pos_Y, thickness, scan_title, temp1, rate1, del
         yield from before_command_list()                #this will run usual startup scripts for scans
 
     # Collect data at 40C as Room temperature data.
-    #yield from change_rate_and_temperature(150,40,wait=True)        # rate for next ramp, default 150C/min,sets the temp of to 40C, waits until we get there (no data collection)
+    yield from change_rate_and_temperature(150,40,wait=True)        # rate for next ramp, default 150C/min,sets the temp of to 40C, waits until we get there (no data collection)
     t0 = time.time()                                     # set this moment as the start time of data collection.
-    #yield from collectAllThree(isDebugMode)              # collect the data at RT
+    yield from collectAllThree(isDebugMode)              # collect the data at RT
 
     #*******
     #Heating cycle 1 - ramp up and hold
@@ -211,11 +211,12 @@ def fanLinkamPlan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min, 
     while time.time() < checkpoint:                                 # collects USAXS/SAXS/WAXS data while holding at temp1
         yield from collectAllThree(isDebugMode)
 
-    ##Cooling cycle - cool down
-    #logger.info("Waited for %s minutes, now changing temperature to 40 C", delay1min)
-    #yield from change_rate_and_temperature(150, 40, wait=True)  
-    #logger.info("reached 40 C")                                    # record we reached tmep2
-    #yield from collectAllThree(isDebugMode)
+    #Cooling cycle - cool down
+    logger.info("Waited for %s minutes, now changing temperature to 40 C", delay1min)
+    yield from change_rate_and_temperature(150, 40, wait=False)
+    while not linkam.temperature.inposition:                        # data collection until we reach 40C.
+        yield from collectAllThree(isDebugMode)
+    logger.info("reached 40 C")                           # record we reached tmep2
 
     #cycle 2
     logger.info("Changing temperature to %s C", temp2)
