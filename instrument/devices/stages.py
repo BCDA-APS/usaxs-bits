@@ -23,7 +23,7 @@ logger.info(__file__)
 
 from ophyd import Component, MotorBundle, EpicsMotor
 from bluesky import plan_stubs as bps
-from ophyd import Component, Device, EpicsSignal, Signal
+from ophyd import Device, EpicsSignal, Signal
 from ophyd import Kind
 from ophyd import EpicsScaler
 from ophyd.scaler import ScalerCH
