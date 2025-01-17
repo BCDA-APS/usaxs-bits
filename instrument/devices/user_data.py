@@ -85,17 +85,17 @@ class EpicsSampleNameDevice(EpicsSignal):
 
 class UserDataDevice(Device):
     GUP_number = Component(EpicsSignal,         "usxLAX:GUPNumber")
-    macro_file = Component(EpicsSignal,         "usxLAX:USAXS:macroFile")
-    macro_file_time = Component(EpicsSignal,    "usxLAX:USAXS:macroFileTime")
+    macro_file = Component(EpicsSignal,         "usxLAX:macroFile")
+    macro_file_time = Component(EpicsSignal,    "usxLAX:macroFileTime")
     run_cycle = Component(EpicsSignal,          "usxLAX:RunCycle")
     sample_thickness = Component(EpicsSignal,   "usxLAX:sampleThickness")
     sample_title = Component(EpicsSampleNameDevice, "usxLAX:sampleTitle", string=True)
     scanning = Component(EpicsSignal,           "usxLAX:USAXS:scanning")
-    scan_macro = Component(EpicsSignal,         "usxLAX:USAXS:scanMacro")
-    spec_file = Component(EpicsSignal,          "usxLAX:USAXS:specFile", string=True)
-    spec_scan = Component(EpicsSignal,          "usxLAX:USAXS:specScan", string=True)
+    scan_macro = Component(EpicsSignal,         "usxLAX:scanMacro")
+    spec_file = Component(EpicsSignal,          "usxLAX:specFile", string=True)
+    spec_scan = Component(EpicsSignal,          "usxLAX:specScan", string=True)
     state = Component(EpicsSignal,              "usxLAX:state", string=True, write_timeout=0.1)
-    time_stamp = Component(EpicsSignal,         "usxLAX:USAXS:timeStamp")
+    time_stamp = Component(EpicsSignal,         "usxLAX:timeStamp")
     user_dir = Component(EpicsSignal,           "usxLAX:userDir", string=True)
     user_name = Component(EpicsSignal,          "usxLAX:userName", string=True)
 
