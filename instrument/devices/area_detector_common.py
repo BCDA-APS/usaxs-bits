@@ -52,13 +52,14 @@ import time
 DATABROKER_ROOT_PATH = "/"
 
 area_detector_EPICS_PV_prefix = {
-    'Pilatus 100k' : 'usaxs_pilatus3:',
-    'Pilatus 200kw' : 'usaxs_pilatus2:',
+    'Pilatus 100k' : 'usaxs_pilatus3:', # SAXS
+    'Pilatus 200kw' : 'usaxs_pilatus2:',  #WAXS old  
     'PointGrey BlackFly' : 'usxFLY1:',      # radiography
     'PointGrey BlackFly Optical' : 'usxFLY2:',
     'Alta' : 'usxalta:',
     'SimDetector' : 'usxSIM1:',
     'Dexela 2315' : 'usxDEX:',
+    'Eiger 2X' : 'usaxs_eiger1:',        # WAXS  
 }
 
 

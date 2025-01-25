@@ -40,6 +40,8 @@ import pathlib
 # path seen by detector IOC
 IMAGE_DIR = "test/pilatus/%Y/%m/%d"  # our choice for file arrangement
 AD_IOC_MOUNT_PATH = pathlib.Path("/mnt/usaxscontrol/USAXS_data")
+AD_IOC_MOUNT_PATH_WAXS = pathlib.Path("/mnt/share1/USAXS_data")
+
 # WRITE_HDF5_FILE_PATH_PILATUS = "/mnt/usaxscontrol/USAXS_data/test/pilatus/%Y/%m/%d/"
 
 # path seen by databroker
@@ -48,9 +50,11 @@ BLUESKY_MOUNT_PATH = pathlib.Path("/share1/USAXS_data")
 
 # MUST end with a `/`, pathlib will NOT provide it
 WRITE_PATH_TEMPLATE = f"{AD_IOC_MOUNT_PATH / IMAGE_DIR}/"
+WRITE_PATH_TEMPLATE_WAXS = f"{AD_IOC_MOUNT_PATH_WAXS / IMAGE_DIR}/"
 READ_PATH_TEMPLATE = f"{BLUESKY_MOUNT_PATH / IMAGE_DIR}/"
 
 _validate_AD_FileWriter_path_(WRITE_PATH_TEMPLATE, DATABROKER_ROOT_PATH)
+_validate_AD_FileWriter_path_(WRITE_PATH_TEMPLATE_WAXS, DATABROKER_ROOT_PATH)
 
 class MyPilatusDetectorCam(CamMixin_V34, PilatusDetectorCam):
     """Revise SimDetectorCam for ADCore revisions."""
@@ -125,7 +129,7 @@ class CustomHDF5Plugin(AD_EpicsFileNameMixin, FileStoreHDF5SingleIterativeWrite,
 
 
 class MyPilatusDetector(SingleTrigger_V34, DetectorBase):
-    """Pilatus detector(s) as used by 20-ID-B USAXS"""
+    """Pilatus detector(s) as used by 12-ID-E USAXS"""
 
     cam = ADComponent(MyPilatusDetectorCam, "cam1:")
     image = ADComponent(ImagePlugin, "image1:")
@@ -135,6 +139,20 @@ class MyPilatusDetector(SingleTrigger_V34, DetectorBase):
         "HDF1:",
         # root = DATABROKER_ROOT_PATH,
         write_path_template = WRITE_PATH_TEMPLATE,
+        read_path_template = READ_PATH_TEMPLATE,
+        )
+
+class MyEigerDetector(SingleTrigger_V34, DetectorBase):
+    """Eiger2 detector(s) as used by 12-ID-E USAXS"""
+
+    cam = ADComponent(MyPilatusDetectorCam, "cam1:")
+    image = ADComponent(ImagePlugin, "image1:")
+
+    hdf1 = ADComponent(
+        CustomHDF5Plugin,
+        "HDF1:",
+        # root = DATABROKER_ROOT_PATH,
+        write_path_template = WRITE_PATH_TEMPLATE_WAXS,
         read_path_template = READ_PATH_TEMPLATE,
         )
 
@@ -151,10 +169,20 @@ except TimeoutError as exc_obj:
     logger.warning(msg)
     saxs_det = None
 
+# try:
+#     nm = "Pilatus 200kw"
+#     prefix = area_detector_EPICS_PV_prefix[nm]
+#     waxs_det = MyPilatusDetector(
+#         prefix, name="waxs_det", labels=["camera", "area_detector"])
+#     waxs_det.read_attrs.append("hdf1")
+# except TimeoutError as exc_obj:
+#     msg = f"Timeout connecting with {nm} ({prefix})"
+#     logger.warning(msg)
+#     waxs_det = None
 try:
-    nm = "Pilatus 200kw"
+    nm = "Eiger 2X"
     prefix = area_detector_EPICS_PV_prefix[nm]
-    waxs_det = MyPilatusDetector(
+    waxs_det = MyEigerDetector(
         prefix, name="waxs_det", labels=["camera", "area_detector"])
     waxs_det.read_attrs.append("hdf1")
 except TimeoutError as exc_obj:
