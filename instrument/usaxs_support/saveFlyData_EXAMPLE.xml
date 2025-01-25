@@ -390,8 +390,8 @@ Additionally, you can check this file for validity and that all PVs exist with t
 
                     <!-- SPEC -->
                     <PV label="SPEC_macro_file_string19" pvname="usxLAX:string19" string="true" />
-                    <PV label="SPEC_macro_file" pvname="usxLAX:USAXS:macroFile" string="true" />
-                    <PV label="SPEC_data_file" pvname="usxLAX:USAXS:specFile" string="true" />
+                    <PV label="SPEC_macro_file" pvname="usxLAX:macroFile" string="true" />
+                    <PV label="SPEC_data_file" pvname="usxLAX:specFile" string="true" />
                     <PV label="SPEC_data_dir" pvname="usxLAX:USAXS:userDir" string="true" />
                     <PV label="spec_scan" pvname="usxLAX:USAXS:specScan" string="true" />
                     <PV label="state" pvname="usxLAX:USAXS:state" string="true" />
