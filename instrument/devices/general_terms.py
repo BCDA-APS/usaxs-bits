@@ -120,7 +120,7 @@ class Parameters_transmission(Device):
 
 class Parameters_USAXS(Device):
     """internal values shared with EPICS"""
-    AX0 = Component(EpicsSignal,                      "usxLAX:SAXS:ax_in")
+    AX0 = Component(EpicsSignal,                      "usxLAX:ax_in")
     DX0 = Component(EpicsSignal,                      "usxLAX:USAXS:Diode_dx")
     ASRP0 = Component(EpicsSignal,                    "usxLAX:USAXS:ASRcenter")
     SAD = Component(EpicsSignal,                      "usxLAX:USAXS:SAD")
