@@ -207,7 +207,7 @@ class Parameters_SAXS(Device):
 
     filters = Component(Parameters_Al_Ti_Filters, "usxLAX:SAXS:Exp_")
 
-    base_dir = Component(EpicsSignal, "usxLAX:SAXS:directory", string=True)
+    base_dir = Component(EpicsSignal, "usxLAX:directory", string=True)
 
     UsaxsSaxsMode = Component(EpicsSignal, "usxLAX:SAXS:USAXSSAXSMode", put_complete=True)
     num_images = Component(EpicsSignal, "usxLAX:SAXS:NumImages")
