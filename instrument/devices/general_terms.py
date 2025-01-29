@@ -236,7 +236,7 @@ class Parameters_WAXS(Device):
     x_out = Component(EpicsSignal, "usxLAX:WAXS_x_out")
     x_limit_offset = Component(EpicsSignal, "usxLAX:WAXS_x_limit_offset")
     filters = Component(Parameters_Al_Ti_Filters, "usxLAX:WAXS:Exp_")
-    base_dir = Component(EpicsSignal, "usxLAX:WAXS:directory", string=True)
+    base_dir = Component(EpicsSignal, "usxLAX:directory", string=True)
     num_images = Component(EpicsSignal, "usxLAX:WAXS:NumImages")
     acquire_time = Component(EpicsSignal, "usxLAX:WAXS:AcquireTime")
     collecting = Component(EpicsSignal, "usxLAX:collectingWAXS")
