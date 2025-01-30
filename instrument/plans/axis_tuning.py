@@ -280,6 +280,12 @@ def tune_dx(md={}):
     scaler0.select_channels(["PD_USAXS"])
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
+    #yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1, md=md)
+    #TODO figrue this out, this shoudl not be necessary
+    #import logging
+    #_logger = logging.getLogger('ophyd.control_layer')
+    #_logger.setLevel("WARNING")
+    #TODO this is bug fix.
     print(stats.report())
     yield from bps.mv(
         ti_filter_shutter, "close",

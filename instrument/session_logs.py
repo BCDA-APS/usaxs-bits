@@ -63,7 +63,7 @@ ACTIVATE_LOGGERS = {
     # "bluesky.emit_document": "DEBUG",
     # "bluesky.RE.msg": "DEBUG",
     # "ophyd": "DEBUG",
-    "ophyd.control_layer": "DEBUG",
+    # "ophyd.control_layer": "WARNING",
     # "ophyd.objects": "DEBUG",
     # "databroker": "DEBUG",
 }
