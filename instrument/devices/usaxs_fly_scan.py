@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from apstools.plans import addDeviceDataAsStream
+from apstools.plans import write_stream
 from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 from collections import OrderedDict
@@ -252,7 +252,7 @@ class UsaxsFlyScanDevice(Device):
             ti_filter_shutter, "close",
             )
 
-        yield from addDeviceDataAsStream(
+        yield from write_stream(
             [struck.mca1, struck.mca2, struck.mca3], "mca")
         logger.debug(f"after return: {time.time() - self.t0}s")
 

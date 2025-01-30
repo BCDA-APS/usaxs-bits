@@ -33,7 +33,7 @@ import time
 
 
 logger = logging.getLogger(os.path.split(__file__)[-1])
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 # logger.addHandler(logging.NullHandler())
 
 COMMON_AD_CONFIG_DIR = "/share1/AreaDetectorConfig/FlyScan_config/"
@@ -103,7 +103,10 @@ class NeXus_Structure(object):
             # XML file is not valid, let lxml report what is wrong as an exception
             log = xmlschema.error_log    # access more details
             logger.debug(f"XML file invalid: {log}")
-            xmlschema.assertValid(config)   # basic exception report
+            try:
+                xmlschema.assertValid(config)   # basic exception report
+            except Exception as reason:
+                raise RuntimeError(f"XML validation failed: file='{self.config_filename}' {reason=}")
 
         # safe to proceed parsing the file
         root = config.getroot()
@@ -397,6 +400,6 @@ def _developer():
     logger.debug(f"connected {len(conn)} of {len(mgr.pv_registry)} PVs in {time.time()-t0:.04f} s")
 
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    _developer()
+# if __name__ == "__main__":
+#    logging.basicConfig(level=logging.DEBUG)
+#    _developer()

@@ -16,7 +16,7 @@ import time
 
 # logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(os.path.split(__file__)[-1])
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # do not warn if the HDF5 library version has changed
 # headers are 1.8.15, library is 1.8.16

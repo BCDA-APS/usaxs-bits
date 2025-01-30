@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from apstools.plans import addDeviceDataAsStream
+from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from collections import OrderedDict
@@ -243,7 +243,7 @@ def uascan(
             yield from bps.wait(group="uascan_count")               # wait for the scaler
 
             # collect data for the primary stream
-            yield from addDeviceDataAsStream(read_devices, "primary")
+            yield from write_stream(read_devices, "primary")
 
             if useDynamicTime:
                 if i < intervals/3:
