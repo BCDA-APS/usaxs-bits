@@ -71,25 +71,25 @@ axis_tune_range = TuneRanges(name="axis_tune_range")
 
 # --------------MR stage-----------------------------
 
-def mr_pretune_hook():
-    stage = m_stage.r
-    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-    yield from bps.mv(scaler0.preset_time, 0.1,)
-    scaler0.select_channels(["I0_USAXS"])
-    #TODO: this shoudl move to plans for plot handling. 
-    #y_name = TUNING_DET_SIGNAL.chname.get()
-    #scaler0.select_channels([y_name])
-    #scaler0.channels.chan01.kind = Kind.config
-    # trim_plot_by_name(n=5) #this may be needed if we make plotting again, but lineup2 does not plot by default.
-    # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
+# def mr_pretune_hook():
+#     stage = m_stage.r
+#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+#     yield from bps.mv(scaler0.preset_time, 0.1,)
+#     scaler0.select_channels(["I0_USAXS"])
+#     #TODO: this shoudl move to plans for plot handling. 
+#     #y_name = TUNING_DET_SIGNAL.chname.get()
+#     #scaler0.select_channels([y_name])
+#     #scaler0.channels.chan01.kind = Kind.config
+#     # trim_plot_by_name(n=5) #this may be needed if we make plotting again, but lineup2 does not plot by default.
+#     # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
 
 
-def mr_posttune_hook():
-    #msg = "Tuning axis {}, final position is {}"
-    #logger.info(msg.format(m_stage.r.name, m_stage.r.position))
-    # need to plot data in plans 
-    scaler0.select_channels(None)
-    yield from bps.null() 
+# def mr_posttune_hook():
+#     #msg = "Tuning axis {}, final position is {}"
+#     #logger.info(msg.format(m_stage.r.name, m_stage.r.position))
+#     # need to plot data in plans 
+#     scaler0.select_channels(None)
+#     yield from bps.null() 
 
 
 def _getScalerSignalName_(scaler, signal):
@@ -123,51 +123,51 @@ class UsaxsCollimatorStageDevice(MotorBundle):
 # -------M2RP - not needed for single crystal channelcut M stage------------------------------------
 
 
-def m2rp_pretune_hook():
-    stage = m_stage.r2p
-    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-    yield from bps.mv(scaler0.preset_time, 0.1)
-    yield from bps.mv(scaler0.delay, 0.02)
-    #scaler0.select_channels(["I0_USAXS"])
-    y_name = TUNING_DET_SIGNAL.chname.get()
-    scaler0.select_channels([y_name])
-    scaler0.channels.chan01.kind = Kind.config
-    #trim_plot_by_name(n=5)
-    # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
+# def m2rp_pretune_hook():
+#     stage = m_stage.r2p
+#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     yield from bps.mv(scaler0.delay, 0.02)
+#     #scaler0.select_channels(["I0_USAXS"])
+#     y_name = TUNING_DET_SIGNAL.chname.get()
+#     scaler0.select_channels([y_name])
+#     scaler0.channels.chan01.kind = Kind.config
+#     #trim_plot_by_name(n=5)
+#     # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
 
 
-def m2rp_posttune_hook():
-    msg = "Tuning axis {}, final position is {}"
-    logger.info(msg.format(m_stage.r2p.name, m_stage.r2p.position))
-    yield from bps.mv(scaler0.delay, 0.05)
-    #if m_stage.r2p.tuner.tune_ok:
-    #    pass    # #165: update center when/if we get a PV for that
-    scaler0.select_channels(None)
+# def m2rp_posttune_hook():
+#     msg = "Tuning axis {}, final position is {}"
+#     logger.info(msg.format(m_stage.r2p.name, m_stage.r2p.position))
+#     yield from bps.mv(scaler0.delay, 0.05)
+#     #if m_stage.r2p.tuner.tune_ok:
+#     #    pass    # #165: update center when/if we get a PV for that
+#     scaler0.select_channels(None)
 
 
 # -----END OF MSRP--------------------------------------
 # -------D stage ------------------------------------
 
 
-def dx_pretune_hook():
-    stage = d_stage.x
-    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-    yield from bps.mv(scaler0.preset_time, 0.1)
-    #scaler0.select_channels(["PD_USAXS"])
-    y_name = UPD_SIGNAL.chname.get()
-    scaler0.select_channels([y_name])
-    scaler0.channels.chan01.kind = Kind.config
-    #trim_plot_by_name(n=5)
-    # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
+# def dx_pretune_hook():
+#     stage = d_stage.x
+#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     #scaler0.select_channels(["PD_USAXS"])
+#     y_name = UPD_SIGNAL.chname.get()
+#     scaler0.select_channels([y_name])
+#     scaler0.channels.chan01.kind = Kind.config
+#     #trim_plot_by_name(n=5)
+#     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
 
 
-def dx_posttune_hook():
-    stage = d_stage.x
-    logger.info(f"Tuning axis {stage.name}, final position is {stage.position}")
-    #TODO  need to find out how to get tune_ok from the lineup2
-    #if stage.tuner.tune_ok:
-    yield from bps.mv(terms.USAXS.DX0, stage.position)
-    scaler0.select_channels(None)
+# def dx_posttune_hook():
+#     stage = d_stage.x
+#     logger.info(f"Tuning axis {stage.name}, final position is {stage.position}")
+#     #TODO  need to find out how to get tune_ok from the lineup2
+#     #if stage.tuner.tune_ok:
+#     yield from bps.mv(terms.USAXS.DX0, stage.position)
+#     scaler0.select_channels(None)
 
 
 # d_stage.x.tuner = TuneAxis(
@@ -183,25 +183,25 @@ def dx_posttune_hook():
 # -------------------------------------------
 
 
-def dy_pretune_hook():
-    stage = d_stage.y
-    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-    yield from bps.mv(scaler0.preset_time, 0.1)
-    #scaler0.select_channels(["PD_USAXS"])
-    y_name = UPD_SIGNAL.chname.get()
-    scaler0.select_channels([y_name])
-    scaler0.channels.chan01.kind = Kind.config
-    #trim_plot_by_name(n=5)
-    # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
+# def dy_pretune_hook():
+#     stage = d_stage.y
+#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     #scaler0.select_channels(["PD_USAXS"])
+#     y_name = UPD_SIGNAL.chname.get()
+#     scaler0.select_channels([y_name])
+#     scaler0.channels.chan01.kind = Kind.config
+#     #trim_plot_by_name(n=5)
+#     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
 
 
-def dy_posttune_hook():
-    stage = d_stage.y
-    logger.info(f"Tuning axis {stage.name}, final position is {stage.position}")
-    #TODO figure out how to get tune_ok back
-    #if stage.tuner.tune_ok:
-    yield from bps.mv(terms.SAXS.dy_in, stage.position)
-    scaler0.select_channels(None)
+# def dy_posttune_hook():
+#     stage = d_stage.y
+#     logger.info(f"Tuning axis {stage.name}, final position is {stage.position}")
+#     #TODO figure out how to get tune_ok back
+#     #if stage.tuner.tune_ok:
+#     yield from bps.mv(terms.SAXS.dy_in, stage.position)
+#     scaler0.select_channels(None)
 
 
 # d_stage.y.tuner = TuneAxis(
@@ -360,29 +360,29 @@ def ar_posttune_hook():
 # # --A2RP-----------------------------------------
 
 
-def a2rp_pretune_hook():
-    stage = a_stage.r2p
-    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-    yield from bps.mv(scaler0.preset_time, 0.1)
-    yield from bps.mv(scaler0.delay, 0.02)
-    #scaler0.select_channels(["PD_USAXS"])
-    y_name = UPD_SIGNAL.chname.get()
-    scaler0.select_channels([y_name])
-    scaler0.channels.chan01.kind = Kind.config
-    #trim_plot_by_name(n=5)
-    # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
+# def a2rp_pretune_hook():
+#     stage = a_stage.r2p
+#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     yield from bps.mv(scaler0.delay, 0.02)
+#     #scaler0.select_channels(["PD_USAXS"])
+#     y_name = UPD_SIGNAL.chname.get()
+#     scaler0.select_channels([y_name])
+#     scaler0.channels.chan01.kind = Kind.config
+#     #trim_plot_by_name(n=5)
+#     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
 
 
-def a2rp_posttune_hook():
-    #
-    # TODO: first, re-position piezo considering hysteresis?
-    #
-    msg = "Tuning axis {}, final position is {}"
-    logger.info(msg.format(a_stage.r2p.name, a_stage.r2p.position))
-    yield from bps.mv(scaler0.delay, 0.05)
+# def a2rp_posttune_hook():
+#     #
+#     # TODO: first, re-position piezo considering hysteresis?
+#     #
+#     msg = "Tuning axis {}, final position is {}"
+#     logger.info(msg.format(a_stage.r2p.name, a_stage.r2p.position))
+#     yield from bps.mv(scaler0.delay, 0.05)
 
-    # if a_stage.r2p.tuner.tune_ok:
-    #    pass    # #165: update center when/if we get a PV for that
+#     # if a_stage.r2p.tuner.tune_ok:
+#     #    pass    # #165: update center when/if we get a PV for that
 
     scaler0.select_channels(None)
 
@@ -425,25 +425,25 @@ class SaxsDetectorStageDevice(MotorBundle):
 
 s_stage    = UsaxsSampleStageDevice('', name='s_stage')
 d_stage    = UsaxsDetectorStageDevice('', name='d_stage')
-d_stage.x.pre_tune_method = dx_pretune_hook
-d_stage.x.post_tune_method = dx_posttune_hook
-d_stage.y.pre_tune_method = dy_pretune_hook
-d_stage.y.post_tune_method = dy_posttune_hook
+# d_stage.x.pre_tune_method = dx_pretune_hook
+# d_stage.x.post_tune_method = dx_posttune_hook
+# d_stage.y.pre_tune_method = dy_pretune_hook
+# d_stage.y.post_tune_method = dy_posttune_hook
 
 m_stage    = UsaxsCollimatorStageDevice('', name='m_stage')
-m_stage.r.pre_tune_hook = mr_pretune_hook
-m_stage.r.post_tune_hook = mr_posttune_hook
-m_stage.r2p.pre_tune_method = m2rp_pretune_hook
-m_stage.r2p.post_tune_method = m2rp_posttune_hook
+# m_stage.r.pre_tune_hook = mr_pretune_hook
+# m_stage.r.post_tune_hook = mr_posttune_hook
+# m_stage.r2p.pre_tune_method = m2rp_pretune_hook
+# m_stage.r2p.post_tune_method = m2rp_posttune_hook
 
 #ms_stage   = UsaxsCollimatorSideReflectionStageDevice('', name='ms_stage')
 
 a_stage    = UsaxsAnalyzerStageDevice('', name='a_stage')
-a_stage.r.pre_tune_method = ar_pretune_hook
-a_stage.r.post_tune_method = ar_posttune_hook
+# a_stage.r.pre_tune_method = ar_pretune_hook
+# a_stage.r.post_tune_method = ar_posttune_hook
 # as_stage   = UsaxsAnalyzerSideReflectionStageDevice('', name='as_stage')
-a_stage.r2p.pre_tune_method = a2rp_pretune_hook
-a_stage.r2p.post_tune_method = a2rp_posttune_hook
+# a_stage.r2p.pre_tune_method = a2rp_pretune_hook
+# a_stage.r2p.post_tune_method = a2rp_posttune_hook
 
 saxs_stage = SaxsDetectorStageDevice('', name='saxs_stage')
 

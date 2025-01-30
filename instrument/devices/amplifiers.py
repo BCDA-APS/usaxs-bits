@@ -74,17 +74,17 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from apstools.synApps import SwaitRecord
-from bluesky import plan_stubs as bps
+# from apstools.synApps import SwaitRecord
+# from bluesky import plan_stubs as bps
 from collections import OrderedDict
-import epics
-import numpy as np
-from ophyd import Component, Device, Signal
-from ophyd import EpicsSignal, EpicsSignalRO
-from ophyd import DynamicDeviceComponent, FormattedComponent
-from ophyd.scaler import ScalerCH, ScalerChannel
-# from .override_ScalerCH import ScalerCH, ScalerChannel
-from ophyd.utils import OrderedDefaultDict
+# import epics
+# import numpy as np
+# from ophyd import Component, Device, Signal
+# from ophyd import EpicsSignal, EpicsSignalRO
+# from ophyd import DynamicDeviceComponent, FormattedComponent
+# from ophyd.scaler import ScalerCH, ScalerChannel
+# # from .override_ScalerCH import ScalerCH, ScalerChannel
+# from ophyd.utils import OrderedDefaultDict
 
 from .aps_source import aps
 from ..framework import RE, sd
@@ -450,7 +450,7 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
             msg += f" bkg={g.background.get()}"
             msg += f" +/- {g.background_error.get()}"
 
-            logger.info(msg)
+            #logger.info(msg)
 
     scaler.stage_sigs = stage_sigs["scaler"]
     yield from bps.mv(
@@ -476,7 +476,7 @@ def measure_background(controls, shutter=None, count_time=0.2, num_readings=5):
         # do these in sequence, just in case same hardware used multiple times
         if len(control_list) > 0:
             msg = "Measuring background for: " + control_list[0].nickname
-            logger.info(msg)
+            #logger.info(msg)
             yield from _scaler_background_measurement_(control_list, count_time, num_readings)
 
 
@@ -579,10 +579,10 @@ def autoscale_amplifiers(controls, shutter=None, count_time=0.05, max_iterations
     for control_list in scaler_dict.values():
         # do amplifiers in sequence, in case same hardware used multiple times
         if len(control_list) > 0:
-            logger.info(
-                "Autoscaling amplifier for: %s",
-                control_list[0].nickname
-            )
+            #logger.info(
+            #    "Autoscaling amplifier for: %s",
+            #    control_list[0].nickname
+            #)
             try:
                 yield from _scaler_autoscale_(
                     control_list,
