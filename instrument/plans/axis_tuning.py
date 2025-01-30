@@ -108,14 +108,14 @@ def tune_mr(md={}):
     md['plan_name'] = "tune_mr"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {m_stage.r.name}")
-    #axis_start = m_stage.r.position
+    axis_start = m_stage.r.position
     yield from bps.mv(
         mono_shutter, "open",
         ti_filter_shutter, "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["I0_USAXS"])
-    trim_plot_by_name(5)
+    trim_plot_by_name(5)#this trims ALL plots to 5 scans
     stats=SignalStatsCallback()
     yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
     print(stats.report())
@@ -124,13 +124,13 @@ def tune_mr(md={}):
         scaler0.count_mode, "AutoCount",
         upd_controls.auto.mode, "auto+background",
     )
-    #trim_plot_lines(bec, 5, m_stage.r, I0_SIGNAL) #UPD_SIGNAL
+    #trim_plot_lines(5, m_stage.r, I0_SIGNAL)      #this needs to be formated correctly, but can trim specific plot.  
     scaler0.select_channels(None)
-    #if stats.analysis.success:
-    yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
-    logger.info(f"final position: {m_stage.r.position}")
-    #else:
-    #    print(f"tune_mr failed for {stats.analysis.reasons}")  
+    if stats.analysis.success:
+        yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
+        logger.info(f"final position: {m_stage.r.position}")
+    else:
+        print(f"tune_mr failed for {stats.analysis.reasons}")  
     
 
 def tune_m2rp(md={}):
@@ -176,7 +176,7 @@ def tune_ar(md={}):
     md['plan_name'] = "tune_ar"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {a_stage.r.name}")
-    #axis_start = a_stage.r.position
+    axis_start = a_stage.r.position
     yield from bps.mv(
         mono_shutter, "open",
         ti_filter_shutter, "open",
@@ -194,14 +194,14 @@ def tune_ar(md={}):
         upd_controls.auto.mode, "auto+background",
     )
     scaler0.select_channels(None)
-    #if stats.analysis.success:
-    yield from bps.mv(
-        terms.USAXS.ar_val_center, a_stage.r.position,
-        usaxs_q_calc.channels.B.input_value, a_stage.r.position,
-    )
-    logger.info(f"final position: {a_stage.r.position}")
-    #else:
-    #    print(f"tune_ar failed for {stats.analysis.reasons}")  
+    if stats.analysis.success:
+        yield from bps.mv(
+            terms.USAXS.ar_val_center, a_stage.r.position,
+            usaxs_q_calc.channels.B.input_value, a_stage.r.position,
+        )
+        logger.info(f"final position: {a_stage.r.position}")
+    else:
+        print(f"tune_ar failed for {stats.analysis.reasons}")  
  
 
 
@@ -254,10 +254,10 @@ def tune_a2rp(md={}):
         upd_controls.auto.mode, "auto+background",
     )
     scaler0.select_channels(None)
-    #if stats.analysis.success:
-    logger.info(f"final position: {a_stage.r2p.position}")
-    #else:
-    #    print(f"tune_a2rp failed for {stats.analysis.reasons}")  
+    if stats.analysis.success:
+        logger.info(f"final position: {a_stage.r2p.position}")
+    else:
+        print(f"tune_a2rp failed for {stats.analysis.reasons}")  
 
  
  
@@ -270,7 +270,7 @@ def tune_dx(md={}):
     md['plan_name'] = "tune_dx"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {d_stage.x.name}")
-    #axis_start = d_stage.x.position
+    axis_start = d_stage.x.position
     yield from bps.mv(
         mono_shutter, "open",
         ti_filter_shutter, "open",
@@ -287,13 +287,13 @@ def tune_dx(md={}):
         upd_controls.auto.mode, "auto+background",
     )
     scaler0.select_channels(None)
-    #if stats.analysis.success:
-    yield from bps.mv(
-        terms.USAXS.DX0, d_stage.x.position,
-    )
-    logger.info(f"final position: {d_stage.x.position}")
-    #else: 
-    #    print(f"tune_dx failed for {stats.analysis.reasons}")  
+    if stats.analysis.success:
+        yield from bps.mv(
+            terms.USAXS.DX0, d_stage.x.position,
+        )
+        logger.info(f"final position: {d_stage.x.position}")
+    else: 
+        print(f"tune_dx failed for {stats.analysis.reasons}")  
 
 
 # def tune_dx(md={}):
@@ -314,7 +314,7 @@ def tune_dy(md={}):
     md['plan_name'] = "tune_dy"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {d_stage.y.name}")
-    #axis_start = d_stage.y.position
+    axis_start = d_stage.y.position
     yield from bps.mv(
         mono_shutter, "open",
         ti_filter_shutter, "open",
@@ -331,11 +331,11 @@ def tune_dy(md={}):
         upd_controls.auto.mode, "auto+background",
     )
     scaler0.select_channels(None)
-    #if stats.analysis.success:
-    yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
-    logger.info(f"final position: {d_stage.y.position}")
-    #else:
-    #    print(f"tune_dy failed for {stats.analysis.reasons}")  
+    if stats.analysis.success:
+        yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
+        logger.info(f"final position: {d_stage.y.position}")
+    else:
+        print(f"tune_dy failed for {stats.analysis.reasons}")  
 
 
 
