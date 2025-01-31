@@ -494,7 +494,7 @@ def _scaler_autoscale_(controls, count_time=0.05, max_iterations=9):
     originals["count_mode"] = scaler.count_mode.get()
     yield from bps.mv(
         scaler.preset_time, count_time,
-        scaler.delay, 0.2,
+        scaler.delay, 0.02, #this was 0.2 seconds, which is VERY slow. 
         scaler.count_mode, "OneShot",
     )
 
