@@ -1073,7 +1073,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     _md["hdf5_file"] = str(WAXS_file_name)
 
     # NFS-mounted path as the Pilatus detector sees it
-    pilatus_path = os.path.join("/mnt/usaxscontrol", *WAXSscan_path.split(os.path.sep)[2:])
+    pilatus_path = os.path.join("/mnt/share1", *WAXSscan_path.split(os.path.sep)[2:])
     # area detector will create this path if needed ("Create dir. depth" setting)
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"        # area detector needs this
