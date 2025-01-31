@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 constants = {
-    "SAXS_TR_PINY_OFFSET" : 10.5, # measured on 12-16-2024 JIL on 12ID...  
+    "SAXS_TR_PINY_OFFSET" : 10.5, # measured on 1-31-2025 JIL on 12ID...  
     "SAXS_TR_TIME" : 3,         # how long to measure transmission 
     "SAXS_PINZ_OFFSET" : 5,     # move of saxs_z before any sample or saxs_x move
     "TR_MAX_ALLOWED_COUNTS" : 980000, # maximum allowed counts for upd before assume topped up
