@@ -32,6 +32,8 @@ from .area_detector_common import area_detector_EPICS_PV_prefix
 from .area_detector_common import DATABROKER_ROOT_PATH
 from .area_detector_common import EpicsDefinesHDF5FileNames
 from .area_detector_common import _validate_AD_FileWriter_path_
+from .area_detector_common import BadPixelPlugin 
+
 
 import pathlib
 
@@ -147,6 +149,7 @@ class MyEigerDetector(SingleTrigger_V34, DetectorBase):
 
     cam = ADComponent(MyPilatusDetectorCam, "cam1:")
     image = ADComponent(ImagePlugin, "image1:")
+    bad_pixel = ADComponent(BadPixelPlugin, "BadPix1:")
 
     hdf1 = ADComponent(
         CustomHDF5Plugin,
