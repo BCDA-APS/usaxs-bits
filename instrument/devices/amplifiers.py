@@ -74,17 +74,17 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-# from apstools.synApps import SwaitRecord
-# from bluesky import plan_stubs as bps
+from apstools.synApps import SwaitRecord
+from bluesky import plan_stubs as bps
 from collections import OrderedDict
-# import epics
-# import numpy as np
-# from ophyd import Component, Device, Signal
-# from ophyd import EpicsSignal, EpicsSignalRO
-# from ophyd import DynamicDeviceComponent, FormattedComponent
-# from ophyd.scaler import ScalerCH, ScalerChannel
+import epics
+import numpy as np
+from ophyd import Component, Device, Signal
+from ophyd import EpicsSignal, EpicsSignalRO
+from ophyd import DynamicDeviceComponent, FormattedComponent
+from ophyd.scaler import ScalerCH, ScalerChannel
 # # from .override_ScalerCH import ScalerCH, ScalerChannel
-# from ophyd.utils import OrderedDefaultDict
+from ophyd.utils import OrderedDefaultDict
 
 from .aps_source import aps
 from ..framework import RE, sd
