@@ -7,7 +7,7 @@ replace Bluesky file name scheme when used with area detector
 file systems on some area detectors need more work
 
 * saxs:  /mnt/share1/USAXS_data/yyyy-mm/user_working_folder_saxs/
-* waxs:  /mnt/usaxscontrol/USAXS_data/yyyy-mm/user_working_folder_waxs/
+* waxs:  /mnt/share1/USAXS_data/yyyy-mm/user_working_folder_waxs/
 * PointGrey BlackFly does not write out to file typically.  No use of HDF5 plugin.
 * PointGrey BlackFly Optical: /mnt/share1/USAXS_data/...
 * Alta: /mnt/share1/USAXS_data/...
