@@ -539,13 +539,13 @@ def _scaler_autoscale_(controls, count_time=0.05, max_iterations=9):
             else:
                 raise ValueError(f"unexpected control.signal: {control.signal}")
             converged.append(actual_rate <= max_rate)
-            logger.debug(f"gain={gain_now}  rate: {actual_rate}  max: {max_rate}  converged={converged}")
+            #logger.debug(f"gain={gain_now}  rate: {actual_rate}  max: {max_rate}  converged={converged}")
 
         if False not in converged:      # all True?
             complete = True
             for control in controls:
                 yield from bps.mv(control.auto.mode, "manual")
-            logger.debug(f"converged: {converged}")
+            #logger.debug(f"converged: {converged}")
             break   # no changes
 
     # scaler.stage_sigs = stage_sigs["scaler"]
