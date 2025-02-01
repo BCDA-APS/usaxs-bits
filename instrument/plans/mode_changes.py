@@ -230,8 +230,8 @@ def mode_WAXS(md=None):
     # move SAXS slits in, used for WAXS mode also
     v_diff = abs(guard_slit.v_size.get() - terms.SAXS.guard_v_size.get())
     h_diff = abs(guard_slit.h_size.get() - terms.SAXS.guard_h_size.get())
-    logger.debug("guard slits horizontal difference = %g" % h_diff)
-    logger.debug("guard slits vertical difference = %g" % v_diff)
+    #logger.debug("guard slits horizontal difference = %g" % h_diff)
+    #logger.debug("guard slits vertical difference = %g" % v_diff)
 
     if max(v_diff, h_diff) > 0.03:
         logger.info("changing Guard slits")
@@ -246,8 +246,8 @@ def mode_WAXS(md=None):
 
     v_diff = abs(usaxs_slit.v_size.position - terms.SAXS.v_size.get())
     h_diff = abs(usaxs_slit.h_size.position - terms.SAXS.h_size.get())
-    logger.debug("USAXS slits horizontal difference = %g" % h_diff)
-    logger.debug("USAXS slits vertical difference = %g" % v_diff)
+    #logger.debug("USAXS slits horizontal difference = %g" % h_diff)
+    #logger.debug("USAXS slits vertical difference = %g" % v_diff)
 
     if max(v_diff, h_diff) > 0.02:
        logger.info("Moving Beam defining slits")

@@ -102,7 +102,7 @@ class UsaxsFlyScanDevice(Device):
 
         @run_in_thread
         def progress_reporting():
-            logger.debug("progress_reporting has arrived")
+            #logger.debug("progress_reporting has arrived")
             t = time.time()
             timeout = t + self.scan_time.get() + self.timeout_s # extra padded time
             startup = t + self.update_interval_s/2
@@ -114,11 +114,11 @@ class UsaxsFlyScanDevice(Device):
                 if t > self.update_time:
                     self.update_time = t + self.update_interval_s
                     msg = _report_(t - self.t0)
-                    logger.debug(msg)
+                    #logger.debug(msg)
                 time.sleep(0.01)
                 t = time.time()
             msg = _report_(time.time() - self.t0)
-            logger.info(msg)
+            #logger.info(msg)
             # user_data.set_state_blocking(msg.split()[0])
             if t > timeout:
                 logger.error(f"{time.time()-self.t0}s - progress_reporting timeout!!")
