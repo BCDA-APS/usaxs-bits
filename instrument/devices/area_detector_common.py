@@ -16,6 +16,7 @@ file systems on some area detectors need more work
 __all__ = """
     _validate_AD_FileWriter_path_
     area_detector_EPICS_PV_prefix
+    BadPixelPlugin
     DATABROKER_ROOT_PATH
     EpicsDefinesHDF5FileNames
     EpicsDefinesJpegFileNames
@@ -38,11 +39,14 @@ from apstools.devices import AD_EpicsTIFFFileName
 from apstools.devices import AD_plugin_primed
 from collections import OrderedDict
 #from .ad_tiff_upstream import AD_EpicsTiffFileName - obsolete on 6/1/2024, https://bcda-aps.github.io/apstools/latest/api/_devices.html#apstools.devices.area_detector_support.AD_EpicsFileNameTIFFPlugin
+from ophyd import ADComponent
+from ophyd import EpicsSignal
 from ophyd import HDF5Plugin
 from ophyd import JPEGPlugin
 from ophyd import TIFFPlugin
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 from ophyd.areadetector.filestore_mixins import FileStoreIterativeWrite
+from ophyd.areadetector.plugins import PluginBase
 #from ophyd.utils import set_and_wait
 import itertools
 import numpy as np
@@ -69,6 +73,14 @@ def _validate_AD_FileWriter_path_(path, root_path):
             f"error in file {__file__}:\n"
             f"  path '{path}' must start with '{root_path}"
         ))
+
+
+class BadPixelPlugin(PluginBase):
+    """ADCore NDBadPixel, new in AD 3.13"""
+    _html_docs = ["NDBadPixelDoc.html"]
+    
+    file_name = ADComponent(EpicsSignal, "FileName", string=True)
+
 
 
 class Override_AD_EpicsHdf5FileName(AD_EpicsHdf5FileName):
