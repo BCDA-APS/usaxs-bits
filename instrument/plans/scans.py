@@ -372,6 +372,8 @@ def USAXSscan(x, y, thickness_mm, title, md=None):
         yield from Flyscan(x, y, thickness_mm, title, md=_md)
     else:
         yield from USAXSscanStep(x, y, thickness_mm, title, md=_md)
+    
+    yield from bps.mv(monochromator.feedback.on, MONO_FEEDBACK_ON)
 
 
 def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
@@ -1004,6 +1006,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         scaler1.update_rate, 5,
         terms.SAXS_WAXS.end_exposure_time, ts,
         scaler0.delay, old_delay,
+        monochromator.feedback.on, MONO_FEEDBACK_ON,
 
         terms.SAXS.collecting, 0,
         user_data.time_stamp, ts,
@@ -1187,6 +1190,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         scaler1.update_rate, 5,
         terms.SAXS_WAXS.end_exposure_time, ts,
         scaler0.delay, old_delay,
+        monochromator.feedback.on, MONO_FEEDBACK_ON,
 
         terms.WAXS.collecting, 0,
         user_data.time_stamp, ts,
