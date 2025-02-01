@@ -114,7 +114,7 @@ class UsaxsFlyScanDevice(Device):
                 if t > self.update_time:
                     self.update_time = t + self.update_interval_s
                     msg = _report_(t - self.t0)
-                    #logger.debug(msg)
+                    logger.debug(msg)
                 time.sleep(0.01)
                 t = time.time()
             msg = _report_(time.time() - self.t0)
