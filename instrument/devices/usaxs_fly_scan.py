@@ -118,7 +118,7 @@ class UsaxsFlyScanDevice(Device):
                 time.sleep(0.01)
                 t = time.time()
             msg = _report_(time.time() - self.t0)
-            #logger.info(msg)
+            logger.info(msg)
             # user_data.set_state_blocking(msg.split()[0])
             if t > timeout:
                 logger.error(f"{time.time()-self.t0}s - progress_reporting timeout!!")
