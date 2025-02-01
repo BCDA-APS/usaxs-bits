@@ -79,5 +79,5 @@ def insertTransmissionFilters():
     elif monochromator.dcm.energy.position < 18.1:
         al_filters = 7
     else:
-        al_filters = 30
+        al_filters = 15
     yield from _insertFilters_(al_filters)
