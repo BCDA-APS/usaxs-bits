@@ -22,13 +22,22 @@ ptc10_debug = Signal(name="ptc10_debug",value=False)
 #ptc10_debug.put(True)
 
 #this is for myPTC10Loop list of temperatures to go to. 
-TemperatureList = [50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,500,35]
+#TemperatureList = [50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,500,35]
 #SampleList = [[pos_X, pos_Y, thickness, scan_title]]
-SampleList = [[0, 0, 1.3, "Alr_20flow0"],
-    [1, 0, 1.3, "Alr_20flow1"],
-    [2, 0, 1.3, "Alr_20flow2"],
-    [3, 0, 1.3, "Alr_20flow3"],
-    [4, 0, 1.3, "Alr_20flow4"]]
+TemperatureList = [25,25,25,25,25]
+TimeList = [5,5,5,5,5]
+SampleList = [
+    [0, 0, 1.3, "Cu44CO2"],
+    [0.5, 0, 1.3, "Cu44CO2"],
+    [1, 0, 1.3, "Cu44CO2"],
+    [1.5, 0, 1.3, "Cu44CO2"],
+    [2, 0, 1.3, "Cu44CO2"],
+    ]
+assert len(TemperatureList)==len(TimeList)
+assert len(TemperatureList)==len(SampleList)
+    # [2, 0, 1.3, "Alr_20flow2"],
+    # [3, 0, 1.3, "Alr_20flow3"],
+    # [4, 0, 1.3, "Alr_20flow4"]]
 
 # utility functions to use in heater
 
@@ -198,19 +207,19 @@ def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2
     logger.info(f"finished")
 
 
-def myPTC10List(pos_X, pos_Y, thickness, scan_title, rate1Cmin, delay1min, md={}):
+def myPTC10List(rate1Cmin, md={}):
     """
     collect RT USAXS/SAXS/WAXS
-    varies ONLY temperature T to temp1 from TemperatureList
-    wait until reach temp1
+    varies temperature, time, and positions to values in TemperatureList, TimeList,SampleList
+    wait until reach temp, select location from SampleList
     collect USAXS/SAXS/WAXS in input parameters pos_X, pos_Y, thickness, scan_title
-    during delay1 seconds, collecting data repeatedly
+    during time seconds, collecting data repeatedly
     """
     def getSampleName():
         """
         return the name of the sample
         """
-        return f"{scan_title}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
+        return f"{scan_title}_{pos_X}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
 
     def collectAllThree(debug=False):
         """
@@ -239,11 +248,11 @@ def myPTC10List(pos_X, pos_Y, thickness, scan_title, rate1Cmin, delay1min, md={}
         yield from before_command_list()                #this will run usual startup scripts for scans
     
     t0 = time.time()
-    yield from collectAllThree(isDebugMode)                    #collect RT data
+    #yield from collectAllThree(isDebugMode)                    #collect RT data
 
     yield from bps.mv(ptc10.ramp, rate1Cmin/60.0)           # user wants C/min, controller wants C/s
 
-    for temp1 in TemperatureList:
+    for temp1, delay1,[pos_X, pos_Y, thickness, scan_title] in zip(TemperatureList, TimeList,SampleList):
         yield from bps.mv(ptc10.temperature.setpoint, temp1)                #Change the temperature and not wait
         yield from setheaterOn()
 
@@ -256,12 +265,13 @@ def myPTC10List(pos_X, pos_Y, thickness, scan_title, rate1Cmin, delay1min, md={}
             yield from bps.sleep(5)
 
         #logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
-        logger.info("Reached temperature, now collecting data for %s min", delay1min)
+        logger.info("Reached temperature, now collecting data for %s min", delay1)
         t1 = time.time()
+        t0 = time.time()
 
-        while time.time()-t1 < delay1min*60:                          # collects data for delay1 seconds
+        while time.time()-t1 < delay1*60:   # collects data for delay1 seconds
             #yield from bps.sleep(5)
-            logger.info(f"Collecting data for %s min",delay1min)
+            logger.info(f"Collecting data for %s min",delay1)
             yield from collectAllThree(isDebugMode)
 
     #yield from setheaterOff()

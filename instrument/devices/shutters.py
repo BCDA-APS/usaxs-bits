@@ -117,7 +117,8 @@ else:
 ti_filter_shutter = usaxs_shutter       # alias
 ti_filter_shutter.delay_s = 0.2         # shutter needs some recovery time
 
-ccd_shutter = EpicsOnOffShutter("usxRIO:Galil2Bo0_CMD", name="ccd_shutter")
+#ccd_shutter = EpicsOnOffShutter("usxRIO:Galil2Bo0_CMD", name="ccd_shutter")
+ccd_shutter = usaxs_shutter       # alias
 
 
 connect_delay_s = 1

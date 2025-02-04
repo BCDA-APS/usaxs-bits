@@ -312,7 +312,7 @@ def mode_Radiography(md=None):
     yield from user_data.set_state_plan("Radiography Mode")
     logger.info("Instrument is configured for Radiography now.")
 
-    if diagnostics.PSS.e_beam_ready.get() not in (1, 'GOOD'):
+    if diagnostics.PSS.e_beam_ready.get() not in (1, 'ON'):
         logger.warning("Not permitted to open mono shutter now.")
         logger.info("Open the mono shutter manually when permitted.")
     else:
@@ -324,20 +324,18 @@ def mode_Radiography(md=None):
             print(
                 "But before calling if you do not see an image:"
                 "\n - are you CERTAIN the sample is not blocking the beam?"
-                "\nMove sample out and try RE(preUSAXStune()) again."
+                "\nMove sample out and try RE(tune_usaxs_optics()) again."
                 "\n"
                 "\nIf still no image on the CCD, check:"
                 "\n"
-                "\n* TV on? Right TV input?"
-                "\n* Camera on (Blue button)?"
-                "\n* Beam on?"
+                "\n* Beam on? APS up and running?"
                 "\n* Shutters opened?"
                 "\n* Sample/holder out of beam?"
                 "\n"
-                "\nIf all is OK, try running RE(preUSAXStune())."
-                "\nIf preUSAXStune worked? Run RE(mode_Radiography())."
+                "\nIf all is OK, try running RE(tune_usaxs_optics())."
+                "\nIf USAXStune worked? Run RE(mode_Radiography())."
                 "\n"
-                "\nStill not working? Call Jan or Ivan."
+                "\nStill not working? Call Jan."
             )
         else:
             logger.info("The mono shutter is closed now.  APS beam dump?")
