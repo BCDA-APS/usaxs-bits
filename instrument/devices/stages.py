@@ -424,7 +424,7 @@ class SaxsDetectorStageDevice(MotorBundle):
     z = Component(EpicsMotor, 'usxAERO:m14', labels=("saxs",))
 
 class GuardSlitsStageDevice(MotorBundle):
-    """SAXS detector stage"""
+    """Guqard Slits stage"""
     x = Component(EpicsMotor, 'usxLAX:m58:c0:m7', labels=("guard_slits",))
     y = Component(EpicsMotor, 'usxLAX:m58:c0:m6', labels=("guard_slits",))
 

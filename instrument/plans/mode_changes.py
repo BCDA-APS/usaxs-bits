@@ -99,7 +99,7 @@ def mode_BlackFly(md=None):
         d_stage.x, terms.USAXS.blackfly.dx.get(),
         d_stage.y, terms.USAXS.blackfly.dy.get(),
         m_stage.x, -200,
-        a_stage.y, -200,
+        a_stage.x, -200,
         gslit_stage.x, 0,
     )
 
@@ -146,6 +146,9 @@ def mode_USAXS(md=None):
         scaler0.count_mode, SCALER_AUTOCOUNT_MODE,
         #d_stage.x, terms.USAXS.diode.dx.get(),
         #d_stage.y, terms.USAXS.diode.dy.get(),
+        a_stage.x,terms.USAXS.AX0.get(), 
+        m_stage.x, 0,
+        gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
         d_stage.x, terms.USAXS.DX0.get(),
         d_stage.y, terms.SAXS.dy_in.get(),
         guard_slit.h_size,  terms.SAXS.usaxs_guard_h_size.get(),
@@ -191,7 +194,9 @@ def mode_SAXS(md=None):
         #ccd_shutter,        "close",
         ti_filter_shutter,  "close",
         #laser.enable,  0,
-    )
+        m_stage.x, 0,
+        gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
+   )
 
     if not confirm_instrument_mode("SAXS in beam"):
         mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
@@ -218,6 +223,8 @@ def mode_WAXS(md=None):
     yield from bps.mv(
         #ccd_shutter,        "close",
         ti_filter_shutter,  "close",
+        m_stage.x, 0,
+        gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
         #laser.enable,  0,
     )
 
