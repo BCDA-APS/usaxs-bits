@@ -119,7 +119,7 @@ def mode_USAXS(md=None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
     yield from bps.mv(
-        ccd_shutter,        "close",
+        #ccd_shutter,        "close",
         ti_filter_shutter,  "close",
         #laser.enable,  0,
     )
@@ -151,24 +151,24 @@ def mode_USAXS(md=None):
         blackfly_det.cam.acquire, 0,    #stop Blackfly if it is running... 
     )
 
-    if not ccd_shutter.isClosed:
-        logger.info("!!!CCD shutter failed to close!!!")
-    else:
+    #if not ccd_shutter.isClosed:
+    #    logger.info("!!!CCD shutter failed to close!!!")
+    #else:
         # mono_shutter.open()
 
         # print("Change TV input selector to show image in hutch")
         # print("Turn off BLUE switch on CCD controller")
-        yield from insertScanFilters()
-        yield from bps.mv(ccd_shutter, "close")
+    yield from insertScanFilters()
+    yield from bps.mv(ccd_shutter, "close")
 
-        logger.info("Prepared for USAXS mode")
-        yield from user_data.set_state_plan("USAXS Mode")
-        ts = str(datetime.datetime.now())
-        yield from bps.mv(
+    logger.info("Prepared for USAXS mode")
+    yield from user_data.set_state_plan("USAXS Mode")
+    ts = str(datetime.datetime.now())
+    yield from bps.mv(
             user_data.time_stamp, ts,
             user_data.macro_file_time, ts,
             user_data.scanning, 0,
-        )
+    )
 
     if retune_needed:
         # don't tune here
@@ -184,7 +184,7 @@ def mode_SAXS(md=None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
     yield from bps.mv(
-        ccd_shutter,        "close",
+        #ccd_shutter,        "close",
         ti_filter_shutter,  "close",
         #laser.enable,  0,
     )
@@ -212,7 +212,7 @@ def mode_WAXS(md=None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
     yield from bps.mv(
-        ccd_shutter,        "close",
+        #ccd_shutter,        "close",
         ti_filter_shutter,  "close",
         #laser.enable,  0,
     )
@@ -301,7 +301,7 @@ def mode_Radiography(md=None):
     ts = str(datetime.datetime.now())
     yield from bps.mv(
         ti_filter_shutter, "open",
-        ccd_shutter, "open",
+        #ccd_shutter, "open",
         user_data.time_stamp, ts,
         user_data.macro_file_time, ts,
         user_data.scanning, 0,
@@ -355,7 +355,7 @@ def mode_OpenBeamPath(md=None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to OpenBeamPath mode")
     yield from bps.mv(
-        ccd_shutter,        "close",
+        #ccd_shutter,        "close",
         ti_filter_shutter,  "close",
         #laser.enable,  0,
     )
