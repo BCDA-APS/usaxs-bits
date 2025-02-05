@@ -9,6 +9,7 @@ __all__ = [
     'm_stage',      # collimating (monochromator)
     #'ms_stage',     # side-reflecting M
     'a_stage',      # analyzer
+    'gslit_stage',      # guard slits stage
     #'as_stage',     # side-reflecting A
     'saxs_stage',   # SAXS detector
     'waxsx',        # WAXS detector X translation
@@ -422,6 +423,13 @@ class SaxsDetectorStageDevice(MotorBundle):
     y = Component(EpicsMotor, 'usxAERO:m15', labels=("saxs",))
     z = Component(EpicsMotor, 'usxAERO:m14', labels=("saxs",))
 
+class GuardSlitsStageDevice(MotorBundle):
+    """SAXS detector stage"""
+    x = Component(EpicsMotor, 'usxLAX:m58:c0:m7', labels=("guard_slits",))
+    y = Component(EpicsMotor, 'usxLAX:m58:c0:m6', labels=("guard_slits",))
+
+
+gslit_stage = GuardSlitsStageDevice('', name='gslit_stage')
 
 s_stage    = UsaxsSampleStageDevice('', name='s_stage')
 d_stage    = UsaxsDetectorStageDevice('', name='d_stage')
@@ -457,7 +465,7 @@ waxs2x = EpicsMotor(
     name='waxs2x',
     labels=("waxs2", "motor"))  # WAXS2 X
 
-for _s in (s_stage, d_stage, a_stage, m_stage, saxs_stage):
+for _s in (s_stage, d_stage, a_stage, m_stage, saxs_stage, gslit_stage):
     sd.baseline.append(_s)
 
 sd.baseline.append(waxsx)

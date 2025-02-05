@@ -28,7 +28,7 @@ import datetime
 
 from ..devices.diagnostics import diagnostics
 from ..devices import blackfly_det
-from ..devices.stages import a_stage, d_stage, saxs_stage
+from ..devices.stages import a_stage, d_stage, saxs_stage, m_stage, gslit_stage
 from ..devices.aps_source import aps
 from ..devices.shutters import ccd_shutter, mono_shutter, ti_filter_shutter
 from ..devices.slits import guard_slit, usaxs_slit
@@ -86,20 +86,23 @@ def confirm_instrument_mode(mode_name):
 
 def mode_BlackFly(md=None):
     """
-    Sets to imaging mode, using BlackFly camera.
+    Sets to imaging mode for direct beam, using BlackFly camera.
     """
     yield from mode_USAXS()
-    yield from DCMfeedbackOFF()
+    yield from DCMfeedbackON()
     yield from user_data.set_state_plan(
         "Preparing for BlackFly imaging mode"
         )
 
     yield from bps.mv(
-        ccd_shutter,        "close",
         #laser.enable,  0,
         d_stage.x, terms.USAXS.blackfly.dx.get(),
         d_stage.y, terms.USAXS.blackfly.dy.get(),
+        m_stage.x, -200,
+        a_stage.y, -200,
+        gslit_stage.x, 0,
     )
+
     yield from insertBlackflyFilters()
     yield from bps.mv(
         ti_filter_shutter,  "open",
