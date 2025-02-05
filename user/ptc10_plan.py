@@ -24,13 +24,13 @@ ptc10_debug = Signal(name="ptc10_debug",value=False)
 #this is for myPTC10Loop list of temperatures to go to. 
 #TemperatureList = [50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,500,35]
 #SampleList = [[pos_X, pos_Y, thickness, scan_title]]
-TemperatureList = [40,40,40,40]
-TimeList = [10,5,5,5]
+TemperatureList = [60,100,150,150]
+TimeList = [5,5,5,5]
 SampleList = [
-    [0, 0, 1.3, "CoClCO2"],
-    [1, 0, 1.3, "CoClCO2"],
-    [2, 0, 1.3, "CoClCO2"],
-    [3, 0, 1.3, "CoClCO2"],
+    [0, 0, 1.3, "CoClN2"],
+    [1, 0, 1.3, "CoClN2"],
+    [2, 0, 1.3, "CoClN2"],
+    [3, 0, 1.3, "CoClN2"],
     ]
 assert len(TemperatureList)==len(TimeList)
 assert len(TemperatureList)==len(SampleList)
