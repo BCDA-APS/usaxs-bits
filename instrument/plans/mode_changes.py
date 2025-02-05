@@ -114,7 +114,8 @@ def mode_BlackFly(md=None):
         user_data.time_stamp, ts,
         user_data.macro_file_time, ts,
         user_data.scanning, 0,
-        blackfly_det.cam.acquire, 1,
+        user_data.collection_in_progress, 0,
+        blackfly_det.cam.acquire, 1,                 #we are using Blackfly now, let's start it... 
     )
 
 
