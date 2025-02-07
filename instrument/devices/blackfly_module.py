@@ -27,6 +27,7 @@ from ophyd import ImagePlugin
 from ophyd import PointGreyDetectorCam
 from ophyd import SingleTrigger
 from ophyd import TransformPlugin
+from ophyd import ProcessPlugin
 
 import os
 
@@ -37,6 +38,7 @@ from .area_detector_common import area_detector_EPICS_PV_prefix
 from .area_detector_common import DATABROKER_ROOT_PATH
 from .area_detector_common import EpicsDefinesJpegFileNames
 from .area_detector_common import EpicsDefinesTiffFileNames
+#from ophyd.areadetector.plugins import ProcessPlugin 
 
 
 RADIOGRAPHY_CAMERA = 'PointGrey BlackFly'                   # usxFLY1:
@@ -83,6 +85,7 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
         )
     trans1 = ADComponent(TransformPlugin, "Trans1:")
     cc1 = ADComponent(ColorConvPlugin, "CC1:")
+    proc1 = ADComponent(ProcessPlugin, "Proc1:")
 
     @property
     def image_file_name(self):
