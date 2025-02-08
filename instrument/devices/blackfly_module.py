@@ -179,19 +179,19 @@ _flag_save_sample_image_ = EpicsSignal(
 try:
     nm = OPTICAL_CAMERA
     prefix = area_detector_EPICS_PV_prefix[nm]
-    #blackfly_optical = MyPointGreyDetectorJPEG(
-    blackfly_optical = MyPointGreyDetectorTIFF(
+    #blackfly_optical = MyPointGreyDetectorTIFF(
+    blackfly_optical = MyPointGreyDetectorJPEG(
         prefix, name="blackfly_optical",
         labels=["camera", "area_detector"])
-    blackfly_optical.read_attrs.append("tiff1")
-    #blackfly_optical.read_attrs.append("jpeg1")
+    #blackfly_optical.read_attrs.append("tiff1")
+    blackfly_optical.read_attrs.append("jpeg1")
     #blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Single"
-    blackfly_optical.tiff1.stage_sigs["file_write_mode"] = "Capture"
-    if not Override_AD_plugin_primed(blackfly_optical.tiff1):
+    blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Capture"
+    if not Override_AD_plugin_primed(blackfly_optical.jpeg1):
         warnings.warn(
-            "NOTE: blackfly_optical.tiff1 has not been primed yet."
+            "NOTE: blackfly_optical.jpeg1 has not been primed yet."
             "  BEFORE using this detector in bluesky, call: "
-            "  AD_prime_plugin2(blackfly_optical.tiff1)"
+            "  AD_prime_plugin2(blackfly_optical.jpeg1)"
         )
 except TimeoutError as exc_obj:
     logger.warning(
