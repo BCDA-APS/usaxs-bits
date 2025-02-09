@@ -25,6 +25,7 @@ from ..devices import terms
 from ..devices import ti_filter_shutter
 from ..devices import user_data
 from .mono_feedback import DCMfeedbackON
+from .mode_changes import mode_USAXS
 
 
 def reset_USAXS():
@@ -32,6 +33,7 @@ def reset_USAXS():
     bluesky plan to set USAXS instrument in safe configuration
     """
     logger.info("Resetting USAXS")
+    yield from mode_USAXS())
     yield from user_data.set_state_plan("resetting motors")
     yield from DCMfeedbackON()
     yield from bps.mv(
