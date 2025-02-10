@@ -21,16 +21,17 @@ ptc10_debug = Signal(name="ptc10_debug",value=False)
 #   In order to run as debug (without collecting data, only control Linkam) in command line run:
 #ptc10_debug.put(True)
 
-#this is for myPTC10Loop list of temperatures to go to. 
+#this is for myPTC10List list of temperatures to go to. 
 #TemperatureList = [50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,500,35]
 #SampleList = [[pos_X, pos_Y, thickness, scan_title]]
-TemperatureList = [90,90,90]
-TimeList = [5,5,5]
+TemperatureList = [500] #deg C
+TimeList = [120] #minutes
 SampleList = [
-    [0, 0, 1.3, "KCDN2"],
-    [4, 0, 1.3, "KCDN2"],
-    [5, 0, 1.3, "KCDN2"],
+    [0, 0, 1.1, "Ore-air4"],
+    #[4, 0, 1.1, "KCDN2"],
+    #[5, 0, 1.1, "KCDN2"],
     ]
+#[sx,sy,th,"sampleName"]
 assert len(TemperatureList)==len(TimeList)
 assert len(TemperatureList)==len(SampleList)
     # [2, 0, 1.3, "Alr_20flow2"],
@@ -217,7 +218,7 @@ def myPTC10List(rate1Cmin, md={}):
         """
         return the name of the sample
         """
-        return f"{scan_title}_{pos_X}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
+        return f"{scan_title}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
 
     def collectAllThree(debug=False):
         """
@@ -229,6 +230,7 @@ def myPTC10List(rate1Cmin, md={}):
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            sampleMod = getSampleName()
             md["title"]=sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
