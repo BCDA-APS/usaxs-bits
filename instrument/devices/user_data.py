@@ -2,9 +2,9 @@
 """
 EPICS data about the user
 """
-# TODO bss is not ready. taken out apsbss
 __all__ = """
     user_data
+    apsbss
     """.split()
 
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 from bluesky import plan_stubs as bps
-#from apstools.devices import ApsBssUserInfoDevice
+from apstools.devices import ApsBssUserInfoDevice
 #from apsbss.apsbss_ophyd import EpicsBssDevice
 from apstools.utils import trim_string_for_EPICS
 from ophyd import Component, Device, EpicsSignal
@@ -137,8 +137,8 @@ class UserDataDevice(Device):
 #         _md = md or {}
 #         _md.update(
 #             dict(
-#                 bss_aps_cycle=apsbss.esaf.aps_cycle.get(),
-#                 bss_beamline_name=apsbss.proposal.beamline_name.get(),
+#                 bss_aps_cycle=apsbss.esaf.run.get(),
+#                 bss_beamline_name=apsbss.proposal.beamline.get(),
 #                 esaf_id=apsbss.esaf.esaf_id.get(),
 #                 esaf_title=apsbss.esaf.title.get(),
 #                 mail_in_flag=apsbss.proposal.mail_in_flag.get(),
@@ -160,10 +160,13 @@ class UserDataDevice(Device):
 #                 if user.pi_flag.get() in ('ON', 1):
 #                     return user.last_name.get()
 
-
 # apsbss = CustomEpicsBssDevice("12ide:bss:", name="apsbss")
 # sd.baseline.append(apsbss.proposal.raw)
 # sd.baseline.append(apsbss.esaf.raw)
+
+
+apsbss = ApsBssUserInfoDevice("12ide:bss:", name="apsbss")
+sd.baseline.append(apsbss)
 
 user_data = UserDataDevice(name="user_data")
 sd.baseline.append(user_data)

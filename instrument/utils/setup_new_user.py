@@ -264,6 +264,7 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     _setNeXusFileName(str(path), scan_id=scan_id)
     _setSpecFileName(str(path), scan_id=scan_id)    # SPEC file name
     #matchUserInApsbss(user)     # update ESAF & Proposal, if available
+    # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
 
     return str(path.absolute())
 
