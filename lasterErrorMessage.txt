@@ -5,3 +5,86 @@ Traceback (most recent call last):
   File "/home/beams11/USAXS/Documents/projects/gemviz/gemviz/chartview.py", line 26, in <module>
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 ModuleNotFoundError: No module named 'matplotlib'
+
+
+
+
+                                                                                                                                                                      
+I Fri-01:17:46 - Finished SAXS/WAXS data collection in 2.5531346797943115 seconds.
+INFO:instrument.plans.area_detector:Finished SAXS/WAXS data collection in 2.5531346797943115 seconds.
+I Fri-01:17:46 - I0 value: 163558.0
+INFO:instrument.plans.scans:I0 value: 163558.0
+I Fri-01:17:46 - Found UsaxsSaxsMode = SAXS in beam
+INFO:instrument.plans.mode_changes:Found UsaxsSaxsMode = SAXS in beam
+I Fri-01:17:46 - Moving to proper WAXS mode
+                                                                                                                                                                      
+I Fri-01:17:46 - Moving SAXS out of beam
+INFO:instrument.plans.move_instrument:Moving SAXS out of beam
+WARNING:ophyd:Status(obj=EpicsSignal(read_pv='usxLAX:SAXS:USAXSSAXSMode', name='terms_SAXS_UsaxsSaxsMode', parent='terms_SAXS', value=65535, timestamp=1739517466.44927, auto_monitor=True, string=False, write_pv='usxLAX:SAXS:USAXSSAXSMode', limits=False, put_complete=True), done=False, success=False) has timed out
+ERROR:bluesky:Run aborted
+ophyd.utils.errors.StatusTimeoutError: Status Status(obj=EpicsSignal(read_pv='usxLAX:SAXS:USAXSSAXSMode', name='terms_SAXS_UsaxsSaxsMode', parent='terms_SAXS', value=65535, timestamp=1739517466.44927, auto_monitor=True, string=False, write_pv='usxLAX:SAXS:USAXSSAXSMode', limits=False, put_complete=True), done=False, success=False) failed to complete in specified timeout.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 1580, in _run
+    msg = self._plan_stack[-1].throw(stashed_exception or resp)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1370, in __call__
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1223, in baseline_wrapper
+    return (yield from plan_mutator(plan, insert_baseline))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 845, in monitor_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 907, in fly_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/bluesky/user/linkam.py", line 212, in fanLinkamPlan
+    yield from collectAllThree(isDebugMode)
+  File "/home/beams/USAXS/bluesky/user/linkam.py", line 186, in collectAllThree
+    yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+  File "/home/beams/USAXS/bluesky/instrument/plans/scans.py", line 1035, in WAXS
+    yield from mode_WAXS()
+  File "/home/beams/USAXS/bluesky/instrument/plans/mode_changes.py", line 237, in mode_WAXS
+    yield from move_SAXSOut()
+  File "/home/beams/USAXS/bluesky/instrument/plans/move_instrument.py", line 117, in move_SAXSOut
+    yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1954, in __iter__
+    return (yield from self._iter)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 404, in mv
+    yield Msg("wait", None, group=group)
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  [Previous line repeated 2 more times]
+  File "/share1/bluesky/conda_envs/bluesky_2024_3/lib/python3.11/site-packages/bluesky/run_engine.py", line 2399, in _status_object_completed
+    raise FailedStatus(ret) from exc
+bluesky.utils.FailedStatus: Status(obj=EpicsSignal(read_pv='usxLAX:SAXS:USAXSSAXSMode', name='terms_SAXS_UsaxsSaxsMode', parent='terms_SAXS', value=65535, timestamp=1FailedStatus: Status(obj=EpicsSignal(read_pv='usxLAX:SAXS:USAXSSAXSMode', name='terms_SAXS_UsaxsSaxsMode', parent='terms_SAXS', value=65535, timestamp=1739517466.44927, auto_monitor=True, string=False, write_pv='usxLAX:SAXS:USAXSSAXSMode', limits=False, put_complete=True), done=True, success=False)
+
+
+In [39]: 
