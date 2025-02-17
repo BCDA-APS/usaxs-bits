@@ -33,7 +33,7 @@ def reset_USAXS():
     bluesky plan to set USAXS instrument in safe configuration
     """
     logger.info("Resetting USAXS")
-    yield from mode_USAXS())
+    yield from mode_USAXS()
     yield from user_data.set_state_plan("resetting motors")
     yield from DCMfeedbackON()
     yield from bps.mv(

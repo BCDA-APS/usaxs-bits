@@ -416,21 +416,22 @@ def FanCryoPlan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min, te
     if isDebugMode is not True:
         yield from before_command_list()                    #this will run usual startup scripts for scans
 
-    # Collect data at 30C as Room temperature data.
-    yield from change_rate_and_temperature(150, 30, wait=True)
     t0 = time.time()                                        # mark start time of data collection.
+    # Collect data at 30C as Room temperature data.
+    #yield from change_rate_and_temperature(10,0, wait=False)
     yield from collectAllThree(isDebugMode)
+    t0 = time.time()                                        # mark start time of data collection.
 
     #Heating cycle 1 - ramp up and hold
     yield from change_rate_and_temperature(rate1, temp1, wait=False)  
     while not linkam.temperature.inposition:                # data collection until we reach temp2.
-        yield from collectWAXSOnly(isDebugMode)
+        yield from collectAllThree(isDebugMode)
     logger.info("Ramped temperature to %s C", temp1)        # for the log file
-    t0 = time.time()                                        # mark start time of data collection at temperature 1.   
+    #t0 = time.time()                                        # mark start time of data collection at temperature 1.   
     checkpoint = time.time() + delay1min*60             # time to end ``delay1min`` hold period
     logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
     while time.time() < checkpoint:                         # collects USAXS/SAXS/WAXS data while holding at temp1
-        yield from collectWAXSOnly(isDebugMode)
+        yield from collectAllThree(isDebugMode)
 
     #cycle 2
     logger.info("Changing temperature to %s C", temp2)
@@ -438,18 +439,18 @@ def FanCryoPlan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min, te
     while not linkam.temperature.inposition:                # data collection until we reach temp2.
         yield from collectWAXSOnly(isDebugMode)            
     logger.info("Ramped temperature to %s C", temp2)        # for the log file   
-    t0 = time.time()                                        # mark start time of data collection at temperature 2
-    checkpoint = time.time() + delay2min*60             # time to end ``delay2min`` hold period
-    logger.info("Reached temperature, now collecting data for %s minutes", delay2min)
-    while time.time() < checkpoint:                         # collects USAXS/SAXS/WAXS data while holding at temp1
-        yield from collectWAXSOnly(isDebugMode)
+    #t0 = time.time()                                        # mark start time of data collection at temperature 2
+    #checkpoint = time.time() + delay2min*60             # time to end ``delay2min`` hold period
+    #logger.info("Reached temperature, now collecting data for %s minutes", delay2min)
+    #while time.time() < checkpoint:                         # collects USAXS/SAXS/WAXS data while holding at temp1
+    #    yield from collectWAXSOnly(isDebugMode)
 
     #Cooling cycle - cool down
-    logger.info("Waited for %s minutes, now changing temperature to 30 C", delay2min)
-    yield from change_rate_and_temperature(150, 30, wait=False) 
-    while not linkam.temperature.inposition:              # data collection until we reach temp2.
-        yield from collectWAXSOnly(isDebugMode)
-    logger.info("reached 40 C")                           # record we reached tmep2
+    #logger.info("Waited for %s minutes, now changing temperature to 30 C", delay2min)
+    #yield from change_rate_and_temperature(150, 30, wait=False) 
+    #while not linkam.temperature.inposition:              # data collection until we reach temp2.
+    #    yield from collectWAXSOnly(isDebugMode)
+    #logger.info("reached 40 C")                           # record we reached tmep2
 
     #End run data collection - after cooling
     yield from collectAllThree(isDebugMode)             #collect USAXS/SAXS/WAXS data at the end, typically temp2 is 40C

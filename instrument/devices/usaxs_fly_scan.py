@@ -108,7 +108,7 @@ class UsaxsFlyScanDevice(Device):
             startup = t + self.update_interval_s/2
             while t < startup and not self.flying.get():    # wait for flyscan to start
                 time.sleep(0.01)
-            labels = ("flying, s", "ar, deg", "ay, mm", "dy, mm", "channel", "elapsed, s")
+            labels = ("flying, s", "ar, deg", "ax, mm", "dx, mm", "channel", "elapsed, s")
             logger.info("  ".join([f"{s:11}" for s in labels]))
             while t < timeout and self.flying.get():
                 if t > self.update_time:
