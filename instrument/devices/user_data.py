@@ -4,8 +4,8 @@ EPICS data about the user
 """
 __all__ = """
     user_data
-    apsbss
     """.split()
+    #apsbss
 
 
 import logging
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 from bluesky import plan_stubs as bps
-from apstools.devices import ApsBssUserInfoDevice
+#from apstools.devices import ApsBssUserInfoDevice
 #from apsbss.apsbss_ophyd import EpicsBssDevice
 from apstools.utils import trim_string_for_EPICS
 from ophyd import Component, Device, EpicsSignal
@@ -165,8 +165,8 @@ class UserDataDevice(Device):
 # sd.baseline.append(apsbss.esaf.raw)
 
 
-apsbss = ApsBssUserInfoDevice("12ide:bss:", name="apsbss")
-sd.baseline.append(apsbss)
+#apsbss = ApsBssUserInfoDevice("12ide:bss:", name="apsbss")
+##sd.baseline.append(apsbss)
 
 user_data = UserDataDevice(name="user_data")
 sd.baseline.append(user_data)
