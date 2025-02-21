@@ -613,6 +613,14 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         guard_slit.h_size, terms.SAXS.usaxs_guard_h_size.get(),
         timeout=MASTER_TIMEOUT,
     )
+
+    #woraround epics bug for trajectories not uploaded. 
+    oldUA=terms.USAXS.uaterm.get()
+    yield from bps.mv(terms.USAXS.uaterm, oldUA+0.1)
+    yield from bps.sleep(0.05)  #time fo epics to recalculate
+    yield from bps.mv(terms.USAXS.uaterm, oldUA)
+    
+
     yield from before_plan()
 
     yield from bps.mv(

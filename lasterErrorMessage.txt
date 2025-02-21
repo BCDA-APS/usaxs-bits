@@ -170,3 +170,13 @@ INFO:instrument.plans.command_list:file line 117:       waxsExp        154      
 I Fri-11:44:25 - Found UsaxsSaxsMode = SAXS in beam
 INFO:instrument.plans.mode_changes:Found UsaxsSaxsMode = SAXS in beam
 I Fri-11:44:25 - Moving to proper WAXS mode
+
+
+This line ofr some reason results in two messages:
+
+ logger.info(f"Finished SAXS/WAXS data collection in {elapsed} seconds.")
+
+                                                                                                                                                                            
+I Fri-14:21:02 - Finished SAXS/WAXS data collection in 6.581214427947998 seconds.
+INFO:instrument.plans.area_detector:Finished SAXS/WAXS data collection in 6.581214427947998 seconds.
+
