@@ -156,3 +156,17 @@ INFO:instrument.devices.usaxs_fly_scan:210.01       8.3735895    12.74061     88
 E Wed-13:28:02 - 210.00794768333435s - progress_reporting timeout!!
 ERROR:instrument.devices.usaxs_fly_scan:210.00794768333435s - progress_reporting timeout!!
 
+WHy do we have same reports twice?
+
+                                                                                                                                                                            
+I Fri-11:44:25 - Finished SAXS/WAXS data collection in 2.5776214599609375 seconds.
+INFO:instrument.plans.area_detector:Finished SAXS/WAXS data collection in 2.5776214599609375 seconds.
+I Fri-11:44:25 - I0 value: 1281385.0
+INFO:instrument.plans.scans:I0 value: 1281385.0
+I Fri-11:44:25 - memory report: pmem(rss=746643456, vms=7555489792, shared=219643904, text=3293184, lib=0, data=2541850624, dirty=0)
+INFO:instrument.plans.command_list:memory report: pmem(rss=746643456, vms=7555489792, shared=219643904, text=3293184, lib=0, data=2541850624, dirty=0)
+I Fri-11:44:25 - file line 117:       waxsExp        154      72      1      "Feather2a_1"
+INFO:instrument.plans.command_list:file line 117:       waxsExp        154      72      1      "Feather2a_1"
+I Fri-11:44:25 - Found UsaxsSaxsMode = SAXS in beam
+INFO:instrument.plans.mode_changes:Found UsaxsSaxsMode = SAXS in beam
+I Fri-11:44:25 - Moving to proper WAXS mode
