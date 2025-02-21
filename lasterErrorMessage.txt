@@ -88,3 +88,71 @@ bluesky.utils.FailedStatus: Status(obj=EpicsSignal(read_pv='usxLAX:SAXS:USAXSSAX
 
 
 In [39]: 
+
+
+Need to fix the issue with flyscna and suspender...
+
+Transient Scan ID: 113     Time: 2025-02-19 13:24:32
+Persistent Unique Scan ID: '93b7991b-90b5-4246-b615-3e593af41833'
+New stream: 'baseline'
+New stream: 'aps_current_monitor'
+I Wed-13:24:32 - HDF5 config: /share1/AreaDetectorConfig/FlyScan_config/saveFlyData.xml
+INFO:instrument.devices.usaxs_fly_scan:HDF5 config: /share1/AreaDetectorConfig/FlyScan_config/saveFlyData.xml
+I Wed-13:24:32 - HDF5 output: /share1/USAXS_data/2025-02/02_19_Hoepfner/02_19_Hoepfner_usaxs/MR08Wt_42min_0033.h5
+INFO:instrument.devices.usaxs_fly_scan:HDF5 output: /share1/USAXS_data/2025-02/02_19_Hoepfner/02_19_Hoepfner_usaxs/MR08Wt_42min_0033.h5
+I Wed-13:24:32 - flying, s    ar, deg      ax, mm       dx, mm       channel      elapsed, s 
+INFO:instrument.devices.usaxs_fly_scan:flying, s    ar, deg      ax, mm       dx, mm       channel      elapsed, s 
+DEBUG:instrument.devices.usaxs_fly_scan:5.01         8.8371252    14.56094     97.27647     56           4.97       
+DEBUG:instrument.devices.usaxs_fly_scan:10.01        8.8365302    14.55861     97.26539     85           9.97       
+DEBUG:instrument.devices.usaxs_fly_scan:15.02        8.8344855    14.55058     97.22748     174          14.98      
+DEBUG:instrument.devices.usaxs_fly_scan:20.02        8.8295365    14.53117     97.13560     359          19.98      
+DEBUG:instrument.devices.usaxs_fly_scan:25.03        8.8197618    14.49280     96.95394     642          24.98      
+DEBUG:instrument.devices.usaxs_fly_scan:30.03        8.8033631    14.42842     96.64915     1009         29.98      
+DEBUG:instrument.devices.usaxs_fly_scan:35.04        8.7783149    14.33009     96.18355     1446         35.00      
+DEBUG:instrument.devices.usaxs_fly_scan:40.04        8.7424323    14.18922     95.51651     1931         40.00      
+DEBUG:instrument.devices.usaxs_fly_scan:45.05        8.6949028    14.00260     94.63282     2455         45.00      
+DEBUG:instrument.devices.usaxs_fly_scan:50.05        8.6308459    13.75111     93.44181     3008         50.00      
+DEBUG:instrument.devices.usaxs_fly_scan:55.05        8.5487890    13.42892     91.91606     3584         55.02      
+DEBUG:instrument.devices.usaxs_fly_scan:60.06        8.4462544    13.02634     90.00906     4176         60.02      
+Suspending....To get prompt hit Ctrl-C twice to pause.
+Suspension occurred at 2025-02-19 13:25:35.
+Justification for this suspension:
+Signal usaxs_CheckBeamStandard is low
+Suspending....To get prompt hit Ctrl-C twice to pause.
+Suspension occurred at 2025-02-19 13:25:36.
+Justification for this suspension:
+Signal white_beam_ready_available is low
+DEBUG:instrument.devices.usaxs_fly_scan:65.07        8.3735883    12.74060     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:70.07        8.3735886    12.74059     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:75.08        8.3735889    12.74060     88.65204     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:80.08        8.3735875    12.74060     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:85.08        8.3735881    12.74060     88.65204     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:90.09        8.3735889    12.74059     88.65202     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:95.10        8.3735889    12.74060     88.65204     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:100.10       8.3735889    12.74059     88.65201     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:105.11       8.3735889    12.74061     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:110.11       8.3735895    12.74059     88.65202     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:115.12       8.3735895    12.74060     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:120.12       8.3735908    12.74059     88.65205     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:125.13       8.3735881    12.74060     88.65205     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:130.13       8.3735895    12.74061     88.65204     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:135.14       8.3735892    12.74059     88.65202     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:140.15       8.3735903    12.74060     88.65202     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:145.15       8.3735889    12.74060     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:150.16       8.3735889    12.74061     88.65204     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:155.16       8.3735889    12.74060     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:160.16       8.3735886    12.74060     88.65201     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:165.17       8.3735895    12.74059     88.65202     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:170.17       8.3735875    12.74060     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:175.18       8.3735878    12.74059     88.65204     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:180.18       8.3735906    12.74060     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:185.18       8.3735906    12.74060     88.65201     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:190.19       8.3735881    12.74059     88.65204     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:195.19       8.3735883    12.74059     88.65203     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:200.19       8.3735906    12.74059     88.65205     4540         63.15      
+DEBUG:instrument.devices.usaxs_fly_scan:205.20       8.3735881    12.74059     88.65205     4540         63.15      
+I Wed-13:28:02 - 210.01       8.3735895    12.74061     88.65203     4540         63.15      
+INFO:instrument.devices.usaxs_fly_scan:210.01       8.3735895    12.74061     88.65203     4540         63.15      
+E Wed-13:28:02 - 210.00794768333435s - progress_reporting timeout!!
+ERROR:instrument.devices.usaxs_fly_scan:210.00794768333435s - progress_reporting timeout!!
+
