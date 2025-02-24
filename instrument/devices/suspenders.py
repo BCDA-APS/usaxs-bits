@@ -75,21 +75,28 @@ if aps.inUserOperations:
         sleep=100,  # RE sleeps _before_ calling post_plan
         post_plan=fb.mono_beam_just_came_back_but_after_sleep_plan,
     )
-    RE.install_suspender(suspender_white_beam_ready)
+        # DO NOT DO THIS!!!! this breaks all operations when APS dumps and A shutter closes
+        # 2-24-2025 JIL, hard lesson learned. Really annoying. 
+        # need to figure out better way to do this
+    # RE.install_suspender(suspender_white_beam_ready)
 
     # remove comment if likely to use this suspender (issue #170)
     # suspend_FE_shutter = bluesky.suspenders.SuspendFloor(FE_shutter.pss_state, 1)
     # RE.install_suspender(suspend_FE_shutter)
 
     logger.info(f"mono shutter connected = {mono_shutter.pss_state.connected}")
-    # remove comment if likely to use this suspender (issue #170)
-    # suspend_mono_shutter = bluesky.suspenders.SuspendFloor(mono_shutter.pss_state, 1)
+        # remove comment if likely to use this suspender (issue #170)
+        # suspend_mono_shutter = bluesky.suspenders.SuspendFloor(mono_shutter.pss_state, 1)
 
     logger.info("Defining suspend_BeamInHutch.  Install/remove in scan plans as desired.")
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)
-    # be more judicious when to use this suspender (only within scan plans) -- see #180
-    # RE.install_suspender(suspend_BeamInHutch)
-    # logger.info("BeamInHutch suspender installed")
+        # be more judicious when to use this suspender (only within scan plans) -- see #180
+        # RE.install_suspender(suspend_BeamInHutch)
+        # logger.info("BeamInHutch suspender installed")
+        # use following construct now: 
+        #@bpp.suspend_decorator(suspend_BeamInHutch) 
+        # #this is how to do proper suspender for one function, not for the whole module
+
 
 else:
     # simulators

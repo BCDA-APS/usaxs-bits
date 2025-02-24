@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 from ophyd import Kind
 import time
 
@@ -101,6 +102,7 @@ user_override.register("usaxs_minstep")
 #     # print(f"metadata={md}")  # TOO much data to print
 #     yield from _tune_base_(m_stage.r, md=md)
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_mr(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -133,6 +135,7 @@ def tune_mr(md={}):
         print(f"tune_mr failed for {stats.analysis.reasons}")  
     
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_m2rp(md={}):
     yield from bps.sleep(0.2)   # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -153,6 +156,7 @@ if m_stage.isChannelCut:
     tune_m2rp = empty_plan
 
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_msrp(md={}):
     pass
     # yield from bps.mv(scaler0.preset_time, 0.1)
@@ -169,6 +173,7 @@ def tune_msrp(md={}):
 #     yield from _tune_base_(a_stage.r, md=md)
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_ar(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -206,6 +211,7 @@ def tune_ar(md={}):
 
 
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_asrp(md={}):
     pass
 #     yield from bps.mv(ti_filter_shutter, "open")
@@ -228,6 +234,7 @@ def tune_asrp(md={}):
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 #     yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_a2rp(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
@@ -262,6 +269,7 @@ def tune_a2rp(md={}):
  
  
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_dx(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
@@ -306,6 +314,7 @@ def tune_dx(md={}):
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_dy(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
@@ -366,9 +375,9 @@ def tune_usaxs_optics(side=False, md={}):
     """
     yield from mode_USAXS()
 
-    suspender_preinstalled = suspend_BeamInHutch in RE.suspenders
-    if not suspender_preinstalled:
-        yield from bps.install_suspender(suspend_BeamInHutch)
+    #suspender_preinstalled = suspend_BeamInHutch in RE.suspenders
+    #if not suspender_preinstalled:
+    #    yield from bps.install_suspender(suspend_BeamInHutch)
 
     yield from tune_mr(md=md)
     yield from tune_m2rp(md=md)
@@ -378,8 +387,8 @@ def tune_usaxs_optics(side=False, md={}):
     yield from tune_ar(md=md)
     yield from tune_a2rp(md=md)
 
-    if not suspender_preinstalled:
-        yield from bps.remove_suspender(suspend_BeamInHutch)
+    #if not suspender_preinstalled:
+    #    yield from bps.remove_suspender(suspend_BeamInHutch)
 
     yield from bps.mv(
         terms.preUSAXStune.num_scans_last_tune, 0,

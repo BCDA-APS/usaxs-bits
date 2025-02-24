@@ -86,6 +86,7 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 """.split()
 
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def preUSAXStune(md={}):
     """
     tune the USAXS optics *only* if in USAXS mode
@@ -151,7 +152,7 @@ def preUSAXStune(md={}):
     #tuners[a_stage.r2p] = tune_a2rp        # make A stage crystals parallel
 
     # now, tune the desired axes, bail out if a tune fails
-    yield from bps.install_suspender(suspend_BeamInHutch)
+    # yield from bps.install_suspender(suspend_BeamInHutch)
     for axis, tune in tuners.items():
         yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
         yield from tune(md=md)
@@ -174,7 +175,7 @@ def preUSAXStune(md={}):
     #if not axis.tuner.tune_ok:
     #    logger.warning("!!! tune failed for axis %s !!!", "a2rp")
     #yield from bps.sleep(1)
-    yield from bps.remove_suspender(suspend_BeamInHutch)
+    # yield from bps.remove_suspender(suspend_BeamInHutch)
 
     logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
     yield from bps.mv(
@@ -188,6 +189,7 @@ def preUSAXStune(md={}):
     )
     yield from user_data.set_state_plan("pre-USAXS optics tune")
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def allUSAXStune(md={}):
     """
     tune mr, ar, a2rp, ar, a2rp USAXS optics
@@ -251,7 +253,7 @@ def allUSAXStune(md={}):
     tuners[a_stage.r2p] = tune_a2rp        # make A stage crystals parallel
 
     # now, tune the desired axes, bail out if a tune fails
-    yield from bps.install_suspender(suspend_BeamInHutch)
+    # yield from bps.install_suspender(suspend_BeamInHutch)
     for axis, tune in tuners.items():
         yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
         yield from tune(md=md)
@@ -268,7 +270,7 @@ def allUSAXStune(md={}):
         # We need to wait a short bit to allow EPICS database
         # to complete processing and report back to us.
         yield from bps.sleep(1)
-    yield from bps.remove_suspender(suspend_BeamInHutch)
+    # yield from bps.remove_suspender(suspend_BeamInHutch)
 
     logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
     yield from bps.mv(
@@ -360,6 +362,7 @@ def preSWAXStune(md={}):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def USAXSscan(x, y, thickness_mm, title, md=None):
     """
     general scan macro for fly or step USAXS with 1D or 2D collimation
@@ -460,7 +463,7 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     # That happens outside of this code.  completely.
 
     # measure transmission values using pin diode if desired
-    yield from bps.install_suspender(suspend_BeamInHutch)
+    # yield from bps.install_suspender(suspend_BeamInHutch)
     yield from measure_USAXS_Transmission(md=_md)
 
     yield from bps.mv(
@@ -554,7 +557,7 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         user_data.scanning, "no",          # for sure, we are not scanning now
         timeout=MASTER_TIMEOUT,
     )
-    yield from bps.remove_suspender(suspend_BeamInHutch)
+    # yield from bps.remove_suspender(suspend_BeamInHutch)
 
     yield from user_data.set_state_plan("USAXS step scan finished")
 
@@ -700,7 +703,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
     # measure transmission values using pin diode if desired
     usaxs_flyscan.saveFlyData_HDF5_dir = flyscan_path
     usaxs_flyscan.saveFlyData_HDF5_file = flyscan_file_name
-    yield from bps.install_suspender(suspend_BeamInHutch)
+    # yield from bps.install_suspender(suspend_BeamInHutch)
     yield from measure_USAXS_Transmission(md=_md)
 
     yield from bps.mv(
@@ -794,7 +797,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         terms.FlyScan.elapsed_time, 0,  # show the users there is no more time
         timeout=MASTER_TIMEOUT,
     )
-    yield from bps.remove_suspender(suspend_BeamInHutch)
+    # yield from bps.remove_suspender(suspend_BeamInHutch)
 
     # Check if we had bad number of PSO pulses
     diff = flyscan_trajectories.num_pulse_positions.get() - struck.current_channel.get()
@@ -845,6 +848,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
     collect SAXS data
@@ -1029,6 +1033,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
+@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
     collect WAXS data
