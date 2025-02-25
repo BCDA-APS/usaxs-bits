@@ -75,9 +75,9 @@ if aps.inUserOperations:
         sleep=100,  # RE sleeps _before_ calling post_plan
         post_plan=fb.mono_beam_just_came_back_but_after_sleep_plan,
     )
-        # DO NOT DO THIS!!!! this breaks all operations when APS dumps and A shutter closes
-        # 2-24-2025 JIL, hard lesson learned. Really annoying. 
-        # need to figure out better way to do this
+    # DO NOT INSTALL THIS for always!!!! It prevents all operations when APS dumps and A shutter closes
+    # 2-24-2025 JIL, hard lesson learned. Really annoying. 
+    # need to figure out better way to do this, can we combinee with BeamInHutch suspender?
     # RE.install_suspender(suspender_white_beam_ready)
 
     # remove comment if likely to use this suspender (issue #170)
