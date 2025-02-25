@@ -88,10 +88,12 @@ if aps.inUserOperations:
         # remove comment if likely to use this suspender (issue #170)
         # suspend_mono_shutter = bluesky.suspenders.SuspendFloor(mono_shutter.pss_state, 1)
 
-    logger.info("Defining suspend_BeamInHutch.  Install/remove in scan plans as desired.")
+    logger.info("Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired.")
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)
         # be more judicious when to use this suspender (only within scan plans) -- see #180
+        # old method: 
         # RE.install_suspender(suspend_BeamInHutch)
+        # RE.remove_suspender(suspend_BeamInHutch)
         # logger.info("BeamInHutch suspender installed")
         # use following construct now: 
         #@bpp.suspend_decorator(suspend_BeamInHutch) 
