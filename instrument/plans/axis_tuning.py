@@ -46,7 +46,7 @@ from ..devices.shutters import mono_shutter, ti_filter_shutter
 from ..devices.monochromator import monochromator
 from ..devices.scalers import scaler0, I0_SIGNAL,  UPD_SIGNAL
 from ..devices.general_terms import terms
-from ..devices.suspenders import suspend_BeamInHutch
+from ..devices.suspenders import suspend_BeamInHutch, suspend_FE_shutter
 from ..devices.miscellaneous import usaxs_q_calc 
 from ..framework import RE, bec
 from .mode_changes import mode_USAXS
@@ -102,6 +102,7 @@ user_override.register("usaxs_minstep")
 #     # print(f"metadata={md}")  # TOO much data to print
 #     yield from _tune_base_(m_stage.r, md=md)
 
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_mr(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
@@ -134,7 +135,7 @@ def tune_mr(md={}):
     else:
         print(f"tune_mr failed for {stats.analysis.reasons}")  
     
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_m2rp(md={}):
     yield from bps.sleep(0.2)   # piezo is fast, give the system time to react
@@ -155,7 +156,7 @@ if m_stage.isChannelCut:
     m_stage.r2p.post_tune_method = empty_plan
     tune_m2rp = empty_plan
 
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_msrp(md={}):
     pass
@@ -172,7 +173,7 @@ def tune_msrp(md={}):
 #     md['plan_name'] = "tune_ar"
 #     yield from _tune_base_(a_stage.r, md=md)
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_ar(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
@@ -210,7 +211,7 @@ def tune_ar(md={}):
  
 
 
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_asrp(md={}):
     pass
@@ -268,7 +269,7 @@ def tune_a2rp(md={}):
 
  
  
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_dx(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
@@ -313,7 +314,7 @@ def tune_dx(md={}):
 #     yield from _tune_base_(d_stage.x, md=md)
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def tune_dy(md={}):
     yield from bps.mv(ti_filter_shutter, "open")

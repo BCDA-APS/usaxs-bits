@@ -81,8 +81,10 @@ if aps.inUserOperations:
     # RE.install_suspender(suspender_white_beam_ready)
 
     # remove comment if likely to use this suspender (issue #170)
-    # suspend_FE_shutter = bluesky.suspenders.SuspendFloor(FE_shutter.pss_state, 1)
+    suspend_FE_shutter = bluesky.suspenders.SuspendFloor(FE_shutter.pss_state, 1)
     # RE.install_suspender(suspend_FE_shutter)
+    # use following construct now:
+    # @bpp.suspend_decorator(suspend_FE_shutter)
 
     logger.info(f"mono shutter connected = {mono_shutter.pss_state.connected}")
         # remove comment if likely to use this suspender (issue #170)
@@ -105,3 +107,4 @@ else:
     _simulated_beam_in_hutch = Signal(name="_simulated_beam_in_hutch")
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)
     # RE.install_suspender(suspend_BeamInHutch)
+    suspend_FE_shutter = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)

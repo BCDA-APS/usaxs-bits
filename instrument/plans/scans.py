@@ -52,7 +52,7 @@ from ..devices import usaxs_q_calc
 from ..devices import user_data
 from ..devices import user_override
 from ..devices import waxsx, waxs_det
-from ..devices.suspenders import suspend_BeamInHutch
+from ..devices.suspenders import suspend_BeamInHutch, suspend_FE_shutter
 from ..framework import bec, RE, specwriter
 from ..utils.cleanup_text import cleanupText
 from ..utils.setup_new_user import techniqueSubdirectory
@@ -85,7 +85,7 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
     acquire_time acquire_period num_images num_exposures
 """.split()
 
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def preUSAXStune(md={}):
     """
@@ -189,6 +189,7 @@ def preUSAXStune(md={}):
     )
     yield from user_data.set_state_plan("pre-USAXS optics tune")
 
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def allUSAXStune(md={}):
     """
@@ -361,7 +362,7 @@ def preSWAXStune(md={}):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def USAXSscan(x, y, thickness_mm, title, md=None):
     """
@@ -847,7 +848,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
@@ -945,7 +946,6 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     old_delay = scaler0.delay.get()
 
     @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
-    @bpp.suspend_decorator(suspend_BeamInHutch)
     def _image_acquisition_steps(): 
         yield from measure_SAXS_Transmission()
         yield from insertSaxsFilters()
@@ -1032,7 +1032,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
+@bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
 def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
@@ -1127,7 +1127,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     old_delay = scaler0.delay.get()
 
     @restorable_stage_sigs([waxs_det.cam, waxs_det.hdf1])
-    @bpp.suspend_decorator(suspend_BeamInHutch)
     def _image_acquisition_steps(): 
         #yield from measure_SAXS_Transmission()
         yield from insertWaxsFilters()
