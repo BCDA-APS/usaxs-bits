@@ -20,7 +20,7 @@ from .aps_source import aps
 from .monochromator import monochromator
 from .monochromator import MONO_FEEDBACK_ON
 from .permit import BeamInHutch
-from .shutters import mono_shutter
+from .shutters import mono_shutter, FE_shutter
 from .white_beam_ready_calc import white_beam_ready
 
 
