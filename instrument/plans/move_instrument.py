@@ -106,54 +106,58 @@ def move_WAXSIn():
 
 
 def move_SAXSOut():
-    # yield from plc_protect.stop_if_tripped()
-    yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
-    )
+    
+    pass
 
-    logger.info("Moving SAXS out of beam")
-    # in case there is an error in moving, it is NOT SAFE to start a scan
-    yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
+    # yield from bps.mv(
+    #     #ccd_shutter,        "close",
+    #     ti_filter_shutter,  "close",
+    # )
 
-    # move the pin_z away from sample
-    yield from bps.mv(saxs_stage.z, terms.SAXS.z_out.get())
+    # logger.info("Moving SAXS out of beam")
+    # # in case there is an error in moving, it is NOT SAFE to start a scan
+    # yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
-    # move pinhole up to out of beam position
-    yield from bps.mv(saxs_stage.y, terms.SAXS.y_out.get())
+    # # move the pin_z away from sample
+    # yield from bps.mv(saxs_stage.z, terms.SAXS.z_out.get())
 
-    logger.info("Removed SAXS from beam position")
-    yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
+    # # move pinhole up to out of beam position
+    # yield from bps.mv(saxs_stage.y, terms.SAXS.y_out.get())
+
+    # logger.info("Removed SAXS from beam position")
+    # yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
 def move_SAXSIn():
-    # yield from plc_protect.stop_if_tripped()
-    yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
-    )
+    
+    pass
 
-    logger.info("Moving to Pinhole SAXS mode")
+    # yield from bps.mv(
+    #     #ccd_shutter,        "close",
+    #     ti_filter_shutter,  "close",
+    # )
 
-    confirmUsaxsSaxsOutOfBeam()
-    # yield from plc_protect.wait_for_interlock()
+    # logger.info("Moving to Pinhole SAXS mode")
 
-    # in case there is an error in moving, it is NOT SAFE to start a scan
-    yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
+    # confirmUsaxsSaxsOutOfBeam()
+    # # yield from plc_protect.wait_for_interlock()
 
-    yield from bps.mv(
-        guard_slit.v_size, terms.SAXS.guard_v_size.get(),
-        guard_slit.h_size, terms.SAXS.guard_h_size.get(),
-        saxs_stage.y,      terms.SAXS.y_in.get(),
-        usaxs_slit.v_size, terms.SAXS.v_size.get(),
-        usaxs_slit.h_size, terms.SAXS.h_size.get(),
-    )
+    # # in case there is an error in moving, it is NOT SAFE to start a scan
+    # yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
-    # move Z _AFTER_ the others finish moving
-    yield from bps.mv(saxs_stage.z, terms.SAXS.z_in.get())
+    # yield from bps.mv(
+    #     guard_slit.v_size, terms.SAXS.guard_v_size.get(),
+    #     guard_slit.h_size, terms.SAXS.guard_h_size.get(),
+    #     saxs_stage.y,      terms.SAXS.y_in.get(),
+    #     usaxs_slit.v_size, terms.SAXS.v_size.get(),
+    #     usaxs_slit.h_size, terms.SAXS.h_size.get(),
+    # )
 
-    logger.info("Pinhole SAXS is in position")
-    yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["SAXS in beam"])
+    # # move Z _AFTER_ the others finish moving
+    # yield from bps.mv(saxs_stage.z, terms.SAXS.z_in.get())
+
+    # logger.info("Pinhole SAXS is in position")
+    # yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["SAXS in beam"])
 
 
 def move_USAXSOut():
