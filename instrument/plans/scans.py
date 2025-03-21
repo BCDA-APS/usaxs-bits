@@ -854,15 +854,13 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
     collect SAXS data
     """
-    yield from bps.null
-
     # from .command_list import after_plan, before_plan
 
-    # yield from IfRequestedStopBeforeNextScan()
+    yield from IfRequestedStopBeforeNextScan()
 
     # yield from before_plan()    # MUST come before mode_SAXS since it might tune
 
-    # yield from mode_SAXS()
+    yield from mode_SAXS()
 
     # pinz_target = terms.SAXS.z_in.get() + constants["SAXS_PINZ_OFFSET"]
     # yield from bps.mv(

@@ -107,12 +107,10 @@ def move_WAXSIn():
 
 def move_SAXSOut():
     
-    yield from bps.null
-
-    # yield from bps.mv(
-    #     #ccd_shutter,        "close",
-    #     ti_filter_shutter,  "close",
-    # )
+    yield from bps.mv(
+        #ccd_shutter,        "close",
+        ti_filter_shutter,  "close",
+    )
 
     # logger.info("Moving SAXS out of beam")
     # # in case there is an error in moving, it is NOT SAFE to start a scan
@@ -130,12 +128,10 @@ def move_SAXSOut():
 
 def move_SAXSIn():
     
-    yield from bps.null
-
-    # yield from bps.mv(
-    #     #ccd_shutter,        "close",
-    #     ti_filter_shutter,  "close",
-    # )
+    yield from bps.mv(
+        #ccd_shutter,        "close",
+        ti_filter_shutter,  "close",
+    )
 
     # logger.info("Moving to Pinhole SAXS mode")
 
