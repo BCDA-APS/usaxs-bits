@@ -854,7 +854,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
     collect SAXS data
     """
-    pass
+    yield from bps.null
 
     # from .command_list import after_plan, before_plan
 

@@ -107,7 +107,7 @@ def move_WAXSIn():
 
 def move_SAXSOut():
     
-    pass
+    yield from bps.null
 
     # yield from bps.mv(
     #     #ccd_shutter,        "close",
@@ -130,7 +130,7 @@ def move_SAXSOut():
 
 def move_SAXSIn():
     
-    pass
+    yield from bps.null
 
     # yield from bps.mv(
     #     #ccd_shutter,        "close",
