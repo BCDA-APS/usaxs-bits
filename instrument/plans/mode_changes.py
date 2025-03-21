@@ -188,33 +188,35 @@ mode_SBUSAXS = mode_USAXS       # for now
 
 
 def mode_SAXS(md=None):
-    # plc_protect.stop_if_tripped()
-    yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
-    yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
-        #laser.enable,  0,
-        m_stage.x, 0,
-        gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
-   )
 
-    if not confirm_instrument_mode("SAXS in beam"):
-        mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
-        logger.info(f"Found UsaxsSaxsMode = {mode_now}")
-        logger.info("Moving to proper SAXS mode")
-        yield from move_WAXSOut()
-        yield from move_USAXSOut()
-        yield from move_SAXSIn()
+    pass
 
-    logger.info("Prepared for SAXS mode")
-    #insertScanFilters
-    yield from user_data.set_state_plan("SAXS Mode")
-    ts = str(datetime.datetime.now())
-    yield from bps.mv(
-        user_data.time_stamp, ts,
-        user_data.macro_file_time, ts,
-        user_data.scanning, 0,
-    )
+#     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
+#     yield from bps.mv(
+#         #ccd_shutter,        "close",
+#         ti_filter_shutter,  "close",
+#         #laser.enable,  0,
+#         m_stage.x, 0,
+#         gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
+#    )
+
+#     if not confirm_instrument_mode("SAXS in beam"):
+#         mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
+#         logger.info(f"Found UsaxsSaxsMode = {mode_now}")
+#         logger.info("Moving to proper SAXS mode")
+#         yield from move_WAXSOut()
+#         yield from move_USAXSOut()
+#         yield from move_SAXSIn()
+
+#     logger.info("Prepared for SAXS mode")
+#     #insertScanFilters
+#     yield from user_data.set_state_plan("SAXS Mode")
+#     ts = str(datetime.datetime.now())
+#     yield from bps.mv(
+#         user_data.time_stamp, ts,
+#         user_data.macro_file_time, ts,
+#         user_data.scanning, 0,
+#     )
 
 
 def mode_WAXS(md=None):
