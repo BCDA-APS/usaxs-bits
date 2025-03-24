@@ -50,7 +50,7 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
     def setSampleName():
         return (
             f"{scan_title}"
-            f"_{(time.time()-t0)/60:.0f}min"
+            f"_{(time.time()-t0):.0f}sec"
         )
 
     def collectAllThree(debug=False):
@@ -62,12 +62,12 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
             sampleMod = setSampleName()
             md["title"]=sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
-            sampleMod = setSampleName()
-            md["title"]=sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
-            sampleMod = setSampleName()
-            md["title"]=sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            #sampleMod = setSampleName()
+            #md["title"]=sampleMod
+            #yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            #sampleMod = setSampleName()
+            #md["title"]=sampleMod
+            #yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = loop_debug.get()
     #isDebugMode = False

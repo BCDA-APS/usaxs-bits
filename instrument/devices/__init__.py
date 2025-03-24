@@ -94,5 +94,5 @@ from .pilatus_module import *
 # # from .simdetector import *
 
 # # and only when all devices are defined
-# from .autocollect import *
+from .autocollect import *
 
