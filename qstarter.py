@@ -17,13 +17,9 @@ How to start the queueserver process::
 import pathlib
 import sys
 
-sys.path.append(
-    str(pathlib.Path(__file__).absolute().parent)
-)
+sys.path.append(str(pathlib.Path(__file__).absolute().parent))
 
-from instrument import iconfig
 from instrument.queueserver import *
-
 
 print_instrument_configuration()
 print_devices_and_signals()

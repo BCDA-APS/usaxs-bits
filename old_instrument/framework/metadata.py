@@ -1,5 +1,4 @@
-"""
-"""
+""" """
 
 __all__ = [
     "RE",
@@ -9,20 +8,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import getpass
+import os
+import socket
+
 import apstools
 import area_detector_handlers
 import bluesky
 import databroker
 import epics
-import getpass
 import h5py
 import matplotlib
 import numpy
 import ophyd
-import os
 import pymongo
 import pyRestTable
-import socket
 import spec2nexus
 
 logger.info(__file__)

@@ -1,9 +1,10 @@
-
 """
 format a dictionary as a table
 """
 
-__all__ = ["dictionary_table",]
+__all__ = [
+    "dictionary_table",
+]
 
 import logging
 
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 import pyRestTable
+
 
 def dictionary_table(dictionary, fmt="simple", printing=True):
     """

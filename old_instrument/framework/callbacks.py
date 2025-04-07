@@ -11,14 +11,17 @@ __all__ = [
 import logging
 
 logger = logging.getLogger(__name__)
-import apstools.callbacks
-import apstools.utils
 # import datetime
 import os
 
+import apstools.callbacks
+import apstools.utils
+
 logger.info(__file__)
 
-from .initialize import RE, callback_db
+from .initialize import RE
+from .initialize import callback_db
+
 # from ..utils.check_file_exists import filename_exists
 
 # write scans to SPEC data file

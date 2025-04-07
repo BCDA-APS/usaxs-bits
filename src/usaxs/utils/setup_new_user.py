@@ -1,4 +1,3 @@
-
 """
 manage the user folder
 """
@@ -9,25 +8,25 @@ __all__ = """
     techniqueSubdirectory
     """.split()
 
-#matchUserInApsbss
- 
+# matchUserInApsbss
+
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-#from ..devices import apsbss as apsbss_object
+# from ..devices import apsbss as apsbss_object
+# from apsbss import apsbss
+import datetime
+import os
+import pathlib
+
+from apstools.utils import cleanupText
+
 from ..devices import user_data
 from ..framework import RE
 from ..framework import specwriter
 from .check_file_exists import filename_exists
-from apstools.utils import cleanupText
-#from apsbss import apsbss
-import datetime
-import os
-import pathlib
-import pyRestTable
-
 
 APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"
@@ -240,7 +239,7 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     """
     global specwriter
 
-    user_data.user_name.put(user)    # set in the PV
+    user_data.user_name.put(user)  # set in the PV
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]
@@ -250,7 +249,8 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     cwd = pathlib.Path.cwd()
     # DATA_DIR_BASE = pathlib.Path("/") / "share1" / "USAXS_data"
     path = (
-        cwd /   # instead of DATA_DIR_BASE
+        cwd  # instead of DATA_DIR_BASE
+        /
         # f"{year:04d}-{month:02d}" /
         f"{month:02d}_{day:02d}_{cleanupText(user)}"
     )
@@ -259,11 +259,11 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
         logger.info("Creating user directory: %s", path)
         path.mkdir(parents=True)
     logger.info("Current working directory: %s", cwd)
-    user_data.user_dir.put(str(path))    # set in the PV
+    user_data.user_dir.put(str(path))  # set in the PV
 
     _setNeXusFileName(str(path), scan_id=scan_id)
-    _setSpecFileName(str(path), scan_id=scan_id)    # SPEC file name
-    #matchUserInApsbss(user)     # update ESAF & Proposal, if available
+    _setSpecFileName(str(path), scan_id=scan_id)  # SPEC file name
+    # matchUserInApsbss(user)     # update ESAF & Proposal, if available
     # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
 
     return str(path.absolute())

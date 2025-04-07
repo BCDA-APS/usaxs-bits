@@ -1,10 +1,10 @@
-
 """
 shutters
 """
-# TODO need PSS system 
+
+# TODO need PSS system
 __all__ = [
-    'white_beam_ready',
+    "white_beam_ready",
 ]
 
 import logging
@@ -55,6 +55,7 @@ class WhiteBeamReadyCalc(Device):
     - current becomes OK when > current_on_threshold
     - Hysteresis in current signal is implemented.
     """
+
     available = Component(Signal, value=False)
     computed_value = Component(EpicsSignal, ".VAL")
     equation = Component(EpicsSignal, ".CALC", string=True)

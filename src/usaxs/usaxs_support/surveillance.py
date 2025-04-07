@@ -22,13 +22,14 @@ EXAMPLE::
 
 """
 
-from collections import OrderedDict
 import datetime
 import inspect
 import logging
 import os
-import psutil
 import resource
+from collections import OrderedDict
+
+import psutil
 
 logger = logging.getLogger(os.path.split(__file__)[-1])
 
@@ -48,9 +49,9 @@ def _write_archive_dict_(archive_dict):
         for k, v in archive_dict.items():
             fp.write(f"# {k}:\n")
             if k == "source_contents":
-                fp.write("-"*20 + " source " + "-"*20 + "\n")
+                fp.write("-" * 20 + " source " + "-" * 20 + "\n")
                 fp.writelines(v)
-                fp.write("-"*20 + " source " + "-"*20 + "\n")
+                fp.write("-" * 20 + " source " + "-" * 20 + "\n")
             else:
                 fp.write(f"{v}\n")
             fp.write("\n")
@@ -63,10 +64,10 @@ def _create_archive_dict_(frame, text):
     archive = OrderedDict()
     archive["text"] = text
     archive["source"] = frame.filename
-    archive["is_file"] = not frame.filename.startswith('<')
+    archive["is_file"] = not frame.filename.startswith("<")
     archive["line"] = frame.lineno
     archive["caller"] = frame.function
-    archive["caller_code"] = ''.join(frame.code_context)
+    archive["caller_code"] = "".join(frame.code_context)
     if archive["is_file"]:
         if os.path.exists(frame.filename):
             with open(frame.filename, "r") as fp:
@@ -86,11 +87,9 @@ def instrument_archive(text=None):
     """
     frameinfo = inspect.getouterframes(inspect.currentframe(), 2)
     logger.debug("instrument_archive() called from: %s", frameinfo[1].filename)
-    
+
     # archive text and caller source file
-    _write_archive_dict_(
-        _create_archive_dict_(frameinfo[1], text or "")
-    )
+    _write_archive_dict_(_create_archive_dict_(frameinfo[1], text or ""))
 
     # only return the text
     return text or ""
@@ -110,7 +109,7 @@ def resource_usage(title=None, vmem=False):
     """
     report on current resource usage
     """
-    usage=resource.getrusage(resource.RUSAGE_SELF)
+    usage = resource.getrusage(resource.RUSAGE_SELF)
     msg = ""
     if title is not None:
         msg += f"{title}:"

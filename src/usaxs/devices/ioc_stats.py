@@ -1,7 +1,8 @@
 """
 IOC statistics: synApps iocStats
 """
-# TODO: optional, remove. 
+
+# TODO: optional, remove.
 # fmt: off
 __all__ = [
     "gp_stats",
@@ -15,15 +16,16 @@ logger = logging.getLogger(__name__)
 
 logger.info(__file__)
 
-from .. import iconfig
-from ophyd import Component, Device, EpicsSignalRO
+from ophyd import Component
+from ophyd import Device
+from ophyd import EpicsSignalRO
 
+from .. import iconfig
 
 IOC = iconfig.get("GP_IOC_PREFIX", "gp:")
 
 
 class IocInfoDevice(Device):
-
     iso8601 = Component(EpicsSignalRO, "iso8601")
     uptime = Component(EpicsSignalRO, "UPTIME")
 

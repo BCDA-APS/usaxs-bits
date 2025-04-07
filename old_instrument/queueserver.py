@@ -10,23 +10,20 @@ logger.info(__file__)
 print(__file__)
 
 from . import iconfig
-from .epics_signal_config import scan_id_epics
 from .queueserver_framework import *
 
 # guides choice of module to import cat
 iconfig["framework"] = "queueserver"
 
+import pyRestTable
+from bluesky.plans import *
+from ophyd import Device
+from ophyd import Signal
+
+from .callbacks import *
 from .devices import *
 from .plans import *
 from .utils import *
-from .callbacks import *
-
-from bluesky.plans import *
-from bluesky.plan_stubs import sleep
-from ophyd import Device
-from ophyd import Signal
-import pyRestTable
-
 
 if iconfig.get("WRITE_SPEC_DATA_FILES", False):
     if specwriter is not None:

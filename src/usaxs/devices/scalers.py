@@ -1,4 +1,3 @@
-
 """
 scaler
 """
@@ -21,14 +20,14 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from apstools.devices import use_EPICS_scaler_channels
-from ophyd import Component, EpicsSignal, EpicsScaler, EpicsSignalRO
+from ophyd import EpicsSignalRO
 from ophyd.scaler import ScalerCH
 
-
-scaler0 = ScalerCH('usxLAX:vsc:c0', name='scaler0')
+scaler0 = ScalerCH("usxLAX:vsc:c0", name="scaler0")
 scaler0.stage_sigs["count_mode"] = "OneShot"
-scaler1 = ScalerCH('usxLAX:vsc:c1', name='scaler1')     # used by softGlue for SAXS transmission
+scaler1 = ScalerCH(
+    "usxLAX:vsc:c1", name="scaler1"
+)  # used by softGlue for SAXS transmission
 # scaler2 = ScalerCH('usxLAX:vsc:c2', name='scaler2')     # used by upstream feedback
 scaler2_I000_counts = EpicsSignalRO("usxLAX:vsc:c2.S2", name="scaler2_I000_counts")
 scaler2_I000_cps = EpicsSignalRO("usxLAX:vsc:c2_cts1.B", name="scaler2_I000_counts")
@@ -49,7 +48,12 @@ trd = scaler0.channels.chan05.s
 I000 = scaler0.channels.chan06.s
 
 for item in (clock, I0, I00, upd2, trd, I000):
-    item._ophyd_labels_ = set(["channel", "counter",])
+    item._ophyd_labels_ = set(
+        [
+            "channel",
+            "counter",
+        ]
+    )
     item._auto_monitor = False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -64,22 +68,22 @@ usxLAX:vsc:c0.NM3              I00_USAXS
 usxLAX:vsc:c0.NM4              PD_USAXS
 usxLAX:vsc:c0.NM5              TR diode
 usxLAX:vsc:c0.NM6              I000
-usxLAX:vsc:c0.NM7              
-usxLAX:vsc:c0.NM8              
+usxLAX:vsc:c0.NM7
+usxLAX:vsc:c0.NM8
 usxLAX:vsc:c1.NM1              10MHz_ref
 usxLAX:vsc:c1.NM2              I0
 usxLAX:vsc:c1.NM3              TR diode
-usxLAX:vsc:c1.NM4              
-usxLAX:vsc:c1.NM5              
-usxLAX:vsc:c1.NM6              
-usxLAX:vsc:c1.NM7              
-usxLAX:vsc:c1.NM8              
+usxLAX:vsc:c1.NM4
+usxLAX:vsc:c1.NM5
+usxLAX:vsc:c1.NM6
+usxLAX:vsc:c1.NM7
+usxLAX:vsc:c1.NM8
 usxLAX:vsc:c2.NM1              time
 usxLAX:vsc:c2.NM2              I000
-usxLAX:vsc:c2.NM3              
-usxLAX:vsc:c2.NM4              
-usxLAX:vsc:c2.NM5              
-usxLAX:vsc:c2.NM6              
-usxLAX:vsc:c2.NM7              
-usxLAX:vsc:c2.NM8              
+usxLAX:vsc:c2.NM3
+usxLAX:vsc:c2.NM4
+usxLAX:vsc:c2.NM5
+usxLAX:vsc:c2.NM6
+usxLAX:vsc:c2.NM7
+usxLAX:vsc:c2.NM8
 """

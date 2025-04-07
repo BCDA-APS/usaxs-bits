@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 logger.info(__file__)
 
-import os, sys
+import os
+import sys
 
 # fmt: off
 sys.path.append(
@@ -30,25 +31,17 @@ sys.path.append(
 )
 # fmt: on
 
+
+# convenience imports
+import databroker
 from bluesky import RunEngine
 from bluesky import SupplementalData
 from bluesky.callbacks.best_effort import BestEffortCallback
 from bluesky.magics import BlueskyMagics
-from bluesky.simulators import summarize_plan
 from bluesky.utils import PersistentDict
 from bluesky.utils import ProgressBarManager
-from bluesky.utils import ts_msg_hook
 from IPython import get_ipython
 from ophyd.signal import EpicsSignalBase
-import databroker
-import ophyd
-import warnings
-
-# convenience imports
-import bluesky.plans as bp
-import bluesky.plan_stubs as bps
-import bluesky.preprocessors as bpp
-import numpy as np
 
 # DATABROKER_CATALOG = "9idc_usaxs_retired_2022_01_14"  # was mongodb_config in different format
 # DATABROKER_CATALOG = "9idc_usaxs"  # last used 2022-11-07 before 8 am
@@ -70,9 +63,7 @@ def get_md_path():
 old_md = None
 md_path = get_md_path()
 if not os.path.exists(md_path):
-    logger.info(
-        "New directory to store RE.md between sessions: %s", md_path
-    )
+    logger.info("New directory to store RE.md between sessions: %s", md_path)
     os.makedirs(md_path)
     from bluesky.utils import get_history
 

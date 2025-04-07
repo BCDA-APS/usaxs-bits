@@ -1,10 +1,9 @@
-
 """
 report how much time remains in flyscan
 """
 
 __all__ = [
-    'remaining_time_reporter',
+    "remaining_time_reporter",
 ]
 
 import logging
@@ -12,8 +11,10 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from apstools.utils import run_in_thread
 import time
+
+from apstools.utils import run_in_thread
+
 
 @run_in_thread
 def remaining_time_reporter(title, duration_s, interval_s=5, poll_s=0.05):

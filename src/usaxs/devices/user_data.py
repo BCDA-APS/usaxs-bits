@@ -1,11 +1,11 @@
-
 """
 EPICS data about the user
 """
+
 __all__ = """
     user_data
     """.split()
-    #apsbss
+# apsbss
 
 
 import logging
@@ -13,15 +13,18 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from bluesky import plan_stubs as bps
-#from apstools.devices import ApsBssUserInfoDevice
-#from apsbss.apsbss_ophyd import EpicsBssDevice
+# from apstools.devices import ApsBssUserInfoDevice
+# from apsbss.apsbss_ophyd import EpicsBssDevice
 from apstools.utils import trim_string_for_EPICS
-from ophyd import Component, Device, EpicsSignal
+from bluesky import plan_stubs as bps
+from ophyd import Component
+from ophyd import Device
+from ophyd import EpicsSignal
 
 from ..framework import sd
 
 # TODO: bss is likely completely wrong, we have new support. Check with Pete.
+
 
 class EpicsSampleNameDevice(EpicsSignal):
     """
@@ -77,27 +80,26 @@ class EpicsSampleNameDevice(EpicsSignal):
                 )
 
             logger.debug(
-                "Accepted Sample name handler function: %s",
-                handler_function.__name__
+                "Accepted Sample name handler function: %s", handler_function.__name__
             )
             self._handler = handler_function
 
 
 class UserDataDevice(Device):
-    GUP_number = Component(EpicsSignal,         "usxLAX:GUPNumber")
-    macro_file = Component(EpicsSignal,         "usxLAX:macroFile")
-    macro_file_time = Component(EpicsSignal,    "usxLAX:macroFileTime")
-    run_cycle = Component(EpicsSignal,          "usxLAX:RunCycle")
-    sample_thickness = Component(EpicsSignal,   "usxLAX:sampleThickness")
+    GUP_number = Component(EpicsSignal, "usxLAX:GUPNumber")
+    macro_file = Component(EpicsSignal, "usxLAX:macroFile")
+    macro_file_time = Component(EpicsSignal, "usxLAX:macroFileTime")
+    run_cycle = Component(EpicsSignal, "usxLAX:RunCycle")
+    sample_thickness = Component(EpicsSignal, "usxLAX:sampleThickness")
     sample_title = Component(EpicsSampleNameDevice, "usxLAX:sampleTitle", string=True)
-    scanning = Component(EpicsSignal,           "usxLAX:USAXS:scanning")
-    scan_macro = Component(EpicsSignal,         "usxLAX:scanMacro")
-    spec_file = Component(EpicsSignal,          "usxLAX:specFile", string=True)
-    spec_scan = Component(EpicsSignal,          "usxLAX:specScan", string=True)
-    state = Component(EpicsSignal,              "usxLAX:state", string=True, write_timeout=0.1)
-    time_stamp = Component(EpicsSignal,         "usxLAX:timeStamp")
-    user_dir = Component(EpicsSignal,           "usxLAX:userDir", string=True)
-    user_name = Component(EpicsSignal,          "usxLAX:userName", string=True)
+    scanning = Component(EpicsSignal, "usxLAX:USAXS:scanning")
+    scan_macro = Component(EpicsSignal, "usxLAX:scanMacro")
+    spec_file = Component(EpicsSignal, "usxLAX:specFile", string=True)
+    spec_scan = Component(EpicsSignal, "usxLAX:specScan", string=True)
+    state = Component(EpicsSignal, "usxLAX:state", string=True, write_timeout=0.1)
+    time_stamp = Component(EpicsSignal, "usxLAX:timeStamp")
+    user_dir = Component(EpicsSignal, "usxLAX:userDir", string=True)
+    user_name = Component(EpicsSignal, "usxLAX:userName", string=True)
 
     # for GUI to know if user is collecting data: 0="On", 1="Off"
     collection_in_progress = Component(EpicsSignal, "usxLAX:dataColInProgress")
@@ -108,10 +110,7 @@ class UserDataDevice(Device):
         try:
             yield from bps.abs_set(self.state, msg, wait=confirm)
         except Exception as exc:
-            logger.warning(
-                "Exception while reporting instrument state: %s",
-                exc
-            )
+            logger.warning("Exception while reporting instrument state: %s", exc)
 
     def set_state_blocking(self, msg):
         """ophyd: tell EPICS about what we are doing"""
@@ -122,10 +121,7 @@ class UserDataDevice(Device):
                 msg = msg[:35] + " ..."
             self.state.put(msg)
         except Exception as exc:
-            logger.error(
-                "Could not put message (%s) to USAXS state PV: %s",
-                msg,
-                exc)
+            logger.error("Could not put message (%s) to USAXS state PV: %s", msg, exc)
 
 
 # class CustomEpicsBssDevice(EpicsBssDevice):
@@ -165,7 +161,7 @@ class UserDataDevice(Device):
 # sd.baseline.append(apsbss.esaf.raw)
 
 
-#apsbss = ApsBssUserInfoDevice("12ide:bss:", name="apsbss")
+# apsbss = ApsBssUserInfoDevice("12ide:bss:", name="apsbss")
 ##sd.baseline.append(apsbss)
 
 user_data = UserDataDevice(name="user_data")

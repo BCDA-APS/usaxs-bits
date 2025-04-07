@@ -1,20 +1,20 @@
-
 """
 Save text as a bluesky run.
 """
 
 __all__ = [
     "documentation_run",
-    ]
+]
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from ..framework import bec
 from bluesky import plan_stubs as bps
 from ophyd import Signal
+
+from ..framework import bec
 
 
 def documentation_run(words, md=None, stream=None):
@@ -24,7 +24,7 @@ def documentation_run(words, md=None, stream=None):
     text = Signal(value=words, name="text")
     stream = stream or "primary"
     _md = dict(
-        purpose=f"save text as bluesky run",
+        purpose="save text as bluesky run",
         plan_name="documentation_run",
     )
     _md.update(md or {})

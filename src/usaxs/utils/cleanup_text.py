@@ -1,9 +1,10 @@
-
 """
 return a clean version of input text
 """
 
-__all__ = ["cleanupText",]
+__all__ = [
+    "cleanupText",
+]
 
 import logging
 
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 import re
+
 
 def cleanupText(text):
     """

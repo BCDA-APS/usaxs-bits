@@ -1,9 +1,10 @@
-
 """
 plans that do not generate a run
 """
 
-__all__ = ["no_run_trigger_and_wait",]
+__all__ = [
+    "no_run_trigger_and_wait",
+]
 
 import logging
 

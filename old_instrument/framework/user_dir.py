@@ -1,4 +1,3 @@
-
 """
 support a .ipython/user directory for user files
 """
@@ -15,7 +14,7 @@ import os
 import sys
 
 user_dir = os.path.join(
-    # IPython.paths.get_ipython_dir(), 
+    # IPython.paths.get_ipython_dir(),
     os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),

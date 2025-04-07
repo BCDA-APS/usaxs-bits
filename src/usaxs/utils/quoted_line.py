@@ -1,16 +1,16 @@
-
 """
 splits a line into words some of which might be quoted
 """
 
 __all__ = [
-    'split_quoted_line',
+    "split_quoted_line",
 ]
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
 
 def split_quoted_line(line):
     """
@@ -39,7 +39,7 @@ def split_quoted_line(line):
     quoted = False
     multi = None
     for p in line.split():
-        if not quoted and p.startswith('"'):   # begin quoted text
+        if not quoted and p.startswith('"'):  # begin quoted text
             quoted = True
             multi = ""
 
@@ -47,12 +47,12 @@ def split_quoted_line(line):
             if len(multi) > 0:
                 multi += " "
             multi += p
-            if p.endswith('"'):     # end quoted text
+            if p.endswith('"'):  # end quoted text
                 quoted = False
 
         if not quoted:
             if multi is not None:
-                parts.append(multi[1:-1])   # remove enclosing quotes
+                parts.append(multi[1:-1])  # remove enclosing quotes
                 multi = None
             else:
                 parts.append(p)

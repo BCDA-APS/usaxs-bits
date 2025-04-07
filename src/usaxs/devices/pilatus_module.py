@@ -1,42 +1,38 @@
 """
 Dectris Pilatus area detectors.
 """
+
 # TODO review for newer code in APS tools
 __all__ = [
-    'saxs_det',
-    'waxs_det',
-    ]
+    "saxs_det",
+    "waxs_det",
+]
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-#from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
+# from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
 # from apstools.devices import AD_EpicsHdf5FileName
-from apstools.devices.area_detector_support import AD_EpicsFileNameMixin
-from apstools.devices import CamMixin_V34
-from apstools.devices import SingleTrigger_V34
-from ophyd import ADComponent
-from ophyd import AreaDetector
-from ophyd import Component, Device, EpicsSignalWithRBV
-from ophyd import PilatusDetectorCam
-from ophyd.areadetector import DetectorBase
-from ophyd.areadetector.filestore_mixins import FileStorePluginBase
-from ophyd.areadetector.filestore_mixins import FileStoreHDF5SingleIterativeWrite
-from ophyd.areadetector.plugins import HDF5Plugin_V34 as HDF5Plugin
-from ophyd.areadetector.plugins import ImagePlugin_V34 as ImagePlugin
+import pathlib
 import warnings
 
-from .area_detector_common import area_detector_EPICS_PV_prefix
+from apstools.devices import CamMixin_V34
+from apstools.devices import SingleTrigger_V34
+from apstools.devices.area_detector_support import AD_EpicsFileNameMixin
+from ophyd import ADComponent
+from ophyd import PilatusDetectorCam
+from ophyd.areadetector import DetectorBase
+from ophyd.areadetector.filestore_mixins import FileStoreHDF5SingleIterativeWrite
+from ophyd.areadetector.filestore_mixins import FileStorePluginBase
+from ophyd.areadetector.plugins import HDF5Plugin_V34 as HDF5Plugin
+from ophyd.areadetector.plugins import ImagePlugin_V34 as ImagePlugin
+
 from .area_detector_common import DATABROKER_ROOT_PATH
-from .area_detector_common import EpicsDefinesHDF5FileNames
+from .area_detector_common import BadPixelPlugin
 from .area_detector_common import _validate_AD_FileWriter_path_
-from .area_detector_common import BadPixelPlugin 
-
-
-import pathlib
-
+from .area_detector_common import area_detector_EPICS_PV_prefix
 
 # path for HDF5 files (as seen by EPICS area detector HDF5 plugin)
 # path seen by detector IOC
@@ -58,6 +54,7 @@ READ_PATH_TEMPLATE = f"{BLUESKY_MOUNT_PATH / IMAGE_DIR}/"
 _validate_AD_FileWriter_path_(WRITE_PATH_TEMPLATE, DATABROKER_ROOT_PATH)
 _validate_AD_FileWriter_path_(WRITE_PATH_TEMPLATE_WAXS, DATABROKER_ROOT_PATH)
 
+
 class MyPilatusDetectorCam(CamMixin_V34, PilatusDetectorCam):
     """Revise SimDetectorCam for ADCore revisions."""
 
@@ -75,7 +72,9 @@ class MyPilatusDetectorCam(CamMixin_V34, PilatusDetectorCam):
         )
 
 
-class CustomHDF5Plugin(AD_EpicsFileNameMixin, FileStoreHDF5SingleIterativeWrite, HDF5Plugin):
+class CustomHDF5Plugin(
+    AD_EpicsFileNameMixin, FileStoreHDF5SingleIterativeWrite, HDF5Plugin
+):
     """
     Add data acquisition methods to HDF5Plugin.
 
@@ -140,9 +139,10 @@ class MyPilatusDetector(SingleTrigger_V34, DetectorBase):
         CustomHDF5Plugin,
         "HDF1:",
         # root = DATABROKER_ROOT_PATH,
-        write_path_template = WRITE_PATH_TEMPLATE,
-        read_path_template = READ_PATH_TEMPLATE,
-        )
+        write_path_template=WRITE_PATH_TEMPLATE,
+        read_path_template=READ_PATH_TEMPLATE,
+    )
+
 
 class MyEigerDetector(SingleTrigger_V34, DetectorBase):
     """Eiger2 detector(s) as used by 12-ID-E USAXS"""
@@ -155,19 +155,20 @@ class MyEigerDetector(SingleTrigger_V34, DetectorBase):
         CustomHDF5Plugin,
         "HDF1:",
         # root = DATABROKER_ROOT_PATH,
-        write_path_template = WRITE_PATH_TEMPLATE_WAXS,
-        read_path_template = READ_PATH_TEMPLATE,
-        )
+        write_path_template=WRITE_PATH_TEMPLATE_WAXS,
+        read_path_template=READ_PATH_TEMPLATE,
+    )
 
 
 try:
     nm = "Pilatus 100k"
     prefix = area_detector_EPICS_PV_prefix[nm]
     saxs_det = MyPilatusDetector(
-        prefix, name="saxs_det", labels=["camera", "area_detector"])
+        prefix, name="saxs_det", labels=["camera", "area_detector"]
+    )
     saxs_det.read_attrs.append("hdf1")
     saxs_det.image.stage_sigs["blocking_callbacks"] = "No"
-except TimeoutError as exc_obj:
+except TimeoutError:
     msg = f"Timeout connecting with {nm} ({prefix})"
     logger.warning(msg)
     saxs_det = None
@@ -186,9 +187,10 @@ try:
     nm = "Eiger 2X"
     prefix = area_detector_EPICS_PV_prefix[nm]
     waxs_det = MyEigerDetector(
-        prefix, name="waxs_det", labels=["camera", "area_detector"])
+        prefix, name="waxs_det", labels=["camera", "area_detector"]
+    )
     waxs_det.read_attrs.append("hdf1")
-except TimeoutError as exc_obj:
+except TimeoutError:
     msg = f"Timeout connecting with {nm} ({prefix})"
     logger.warning(msg)
     waxs_det = None

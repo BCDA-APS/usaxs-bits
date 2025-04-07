@@ -1,4 +1,3 @@
-
 """
 Point Grey Blackfly area detector
 
@@ -6,43 +5,42 @@ note: this is one of the easiest area detector setups in Ophyd
 """
 
 __all__ = [
-    'blackfly_det',
-    'blackfly_optical',
-    ]
+    "blackfly_det",
+    "blackfly_optical",
+]
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from .area_detector_common import Override_AD_plugin_primed
+import os
+import warnings
+
 # from apstools.devices import AD_prime_plugin2
 from bluesky import plan_stubs as bps
-
 from ophyd import ADComponent
 from ophyd import AreaDetector
 from ophyd import ColorConvPlugin
 from ophyd import EpicsSignal
 from ophyd import ImagePlugin
 from ophyd import PointGreyDetectorCam
+from ophyd import ProcessPlugin
 from ophyd import SingleTrigger
 from ophyd import TransformPlugin
-from ophyd import ProcessPlugin
 
-import os
-
-import warnings
-
-from .area_detector_common import _validate_AD_FileWriter_path_
-from .area_detector_common import area_detector_EPICS_PV_prefix
 from .area_detector_common import DATABROKER_ROOT_PATH
 from .area_detector_common import EpicsDefinesJpegFileNames
 from .area_detector_common import EpicsDefinesTiffFileNames
-#from ophyd.areadetector.plugins import ProcessPlugin 
+from .area_detector_common import Override_AD_plugin_primed
+from .area_detector_common import _validate_AD_FileWriter_path_
+from .area_detector_common import area_detector_EPICS_PV_prefix
+
+# from ophyd.areadetector.plugins import ProcessPlugin
 
 
-RADIOGRAPHY_CAMERA = 'PointGrey BlackFly'                   # usxFLY1:
-OPTICAL_CAMERA = 'PointGrey BlackFly Optical'               # usxFLY2:
+RADIOGRAPHY_CAMERA = "PointGrey BlackFly"  # usxFLY1:
+OPTICAL_CAMERA = "PointGrey BlackFly Optical"  # usxFLY2:
 
 
 # path for image files (as seen by EPICS area detector writer plugin)
@@ -77,12 +75,12 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
 
     jpeg1 = ADComponent(
         EpicsDefinesJpegFileNames,
-        suffix = "JPEG1:",
-        root = DATABROKER_ROOT_PATH,
-        write_path_template = WRITE_IMAGE_FILE_PATH,
-        read_path_template = READ_IMAGE_FILE_PATH,
+        suffix="JPEG1:",
+        root=DATABROKER_ROOT_PATH,
+        write_path_template=WRITE_IMAGE_FILE_PATH,
+        read_path_template=READ_IMAGE_FILE_PATH,
         kind="normal",
-        )
+    )
     trans1 = ADComponent(TransformPlugin, "Trans1:")
     cc1 = ADComponent(ColorConvPlugin, "CC1:")
     proc1 = ADComponent(ProcessPlugin, "Proc1:")
@@ -95,9 +93,12 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
         plugin = self.jpeg1
         path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
         yield from bps.mv(
-            plugin.file_path, path,
-            plugin.file_name, filename_base,
-            plugin.file_number, order_number,
+            plugin.file_path,
+            path,
+            plugin.file_name,
+            filename_base,
+            plugin.file_number,
+            order_number,
         )
 
     @property
@@ -124,12 +125,12 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
 
     tiff1 = ADComponent(
         EpicsDefinesTiffFileNames,
-        suffix = "TIFF1:",
-        root = DATABROKER_ROOT_PATH,
-        write_path_template = WRITE_IMAGE_FILE_PATH,
-        read_path_template = READ_IMAGE_FILE_PATH,
+        suffix="TIFF1:",
+        root=DATABROKER_ROOT_PATH,
+        write_path_template=WRITE_IMAGE_FILE_PATH,
+        read_path_template=READ_IMAGE_FILE_PATH,
         kind="normal",
-        )
+    )
     trans1 = ADComponent(TransformPlugin, "Trans1:")
     cc1 = ADComponent(ColorConvPlugin, "CC1:")
     proc1 = ADComponent(ProcessPlugin, "Proc1:")
@@ -142,9 +143,12 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         plugin = self.tiff1
         path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
         yield from bps.mv(
-            plugin.file_path, path,
-            plugin.file_name, filename_base,
-            plugin.file_number, order_number,
+            plugin.file_path,
+            path,
+            plugin.file_name,
+            filename_base,
+            plugin.file_number,
+            order_number,
         )
 
     @property
@@ -161,9 +165,9 @@ try:
     nm = RADIOGRAPHY_CAMERA
     prefix = area_detector_EPICS_PV_prefix[nm]
     blackfly_det = MyPointGreyDetector(
-        prefix, name="blackfly_det",
-        labels=["camera", "area_detector"])
-except TimeoutError as exc_obj:
+        prefix, name="blackfly_det", labels=["camera", "area_detector"]
+    )
+except TimeoutError:
     msg = f"Timeout connecting with {nm} ({prefix})"
     logger.warning(msg)
     blackfly_det = None
@@ -173,19 +177,19 @@ _flag_save_sample_image_ = EpicsSignal(
     "usxLAX:saveFLY2Image",
     string=True,
     name="_flag_save_sample_image_",
-    )
+)
 
 
 try:
     nm = OPTICAL_CAMERA
     prefix = area_detector_EPICS_PV_prefix[nm]
-    #blackfly_optical = MyPointGreyDetectorTIFF(
+    # blackfly_optical = MyPointGreyDetectorTIFF(
     blackfly_optical = MyPointGreyDetectorJPEG(
-        prefix, name="blackfly_optical",
-        labels=["camera", "area_detector"])
-    #blackfly_optical.read_attrs.append("tiff1")
+        prefix, name="blackfly_optical", labels=["camera", "area_detector"]
+    )
+    # blackfly_optical.read_attrs.append("tiff1")
     blackfly_optical.read_attrs.append("jpeg1")
-    #blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Single"
+    # blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Single"
     blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Capture"
     if not Override_AD_plugin_primed(blackfly_optical.jpeg1):
         warnings.warn(
@@ -194,8 +198,5 @@ try:
             "  AD_prime_plugin2(blackfly_optical.jpeg1)"
         )
 except TimeoutError as exc_obj:
-    logger.warning(
-        "Timeout connecting with %s (%s): %s",
-        nm, prefix, exc_obj
-    )
+    logger.warning("Timeout connecting with %s (%s): %s", nm, prefix, exc_obj)
     blackfly_optical = None

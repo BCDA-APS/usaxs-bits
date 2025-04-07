@@ -8,11 +8,12 @@ __all__ = [
 
 import logging
 
+from apstools.devices import PlanarUndulator
+
 logger = logging.getLogger(__name__)
 
 logger.info(__file__)
 
-import apstools.devices
 
-undulator = apstools.devices.PlanarUndulator("S12ID:USID:", name="undulator")
+undulator = PlanarUndulator("S12ID:USID:", name="undulator")
 # undulator = apstools.devices.PlanarUndulator("ID45", name="undulator")

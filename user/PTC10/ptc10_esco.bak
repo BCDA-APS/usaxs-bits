@@ -12,7 +12,7 @@ logger.info(__file__)
 from bluesky import plan_stubs as bps
 import time
 
-from instrument.devices.ptc10_controller import ptc10  
+from instrument.devices.ptc10_controller import ptc10
 from instrument.plans import SAXS, USAXSscan, WAXS
 from instrument.plans import before_command_list, after_command_list
 from ophyd import Component, Device, EpicsSignal, EpicsSignalRO
@@ -153,8 +153,8 @@ def myEscoPlan(pos_X, pos_Y, thickness, scan_title, delay_minutes=10, p_list=Non
 def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delaySec, md={}):
     """
     Collect USAXS/SAXS/WAXS for time delaySec
-    Append to name time and temperature. 
-    PTC10 control is left to manual by user. 
+    Append to name time and temperature.
+    PTC10 control is left to manual by user.
     To run example:
     RE(myPTC10Loop(0,0,1.28,"testExp",60*60*2))
     this will run sample in sx= 0, sy=0, thickness=1.28mm for 2 hours.
@@ -163,7 +163,7 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delaySec, md={}):
     reload by
     # %run -im user.ptc10_plan
     """
-    
+
     def getSampleName():
         """
         return the name of the sample
@@ -207,7 +207,7 @@ def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2
     """
     collect RT USAXS/SAXS/WAXS - or not, change code
     change temperature T to temp1 with rate1
-    collect USAXS/SAXS/WAXS while heating or sleep= change code... 
+    collect USAXS/SAXS/WAXS while heating or sleep= change code...
     when temp1 reached, hold for delay1 seconds, collecting data repeatedly
     change T to temp2 with rate2
     collect USAXS/SAXS/WAXS while changing temp
@@ -252,7 +252,7 @@ def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2
 
     logger.info(f"Ramping temperature to {temp1} C")
 
-    while not ptc10.temperature.inposition:                      #runs data collection until next temp or sleeps. Change as needed. 
+    while not ptc10.temperature.inposition:                      #runs data collection until next temp or sleeps. Change as needed.
         yield from bps.sleep(5)
         logger.info(f"Still Ramping temperature to {temp1} C")
         #yield from collectAllThree()
@@ -273,7 +273,7 @@ def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2
 
     logger.info(f"reached {temp2} C")
     yield from setheaterOff()
-    
+
     yield from after_command_list()                  # runs standard after scan scripts.
 
     logger.info(f"finished")

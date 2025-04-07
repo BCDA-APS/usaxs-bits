@@ -1,4 +1,3 @@
-
 """
 run batch of scans from command list
 """
@@ -28,31 +27,33 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+import datetime
+import os
+import sys
+
+import pyRestTable
 from apstools.utils import ExcelDatabaseFileGeneric
 from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from IPython import get_ipython
 from ophyd import Signal
-from ..usaxs_support.nexus import reset_manager
-from ..usaxs_support.surveillance import instrument_archive
-import datetime
-import os
-import pyRestTable
-import sys
 
 from ..devices import a_shutter_autoopen
 from ..devices import constants
 from ..devices import email_notices
-from ..devices import saxs_det, waxs_det
+from ..devices import saxs_det
 from ..devices import terms
 from ..devices import ti_filter_shutter
 from ..devices import user_data
+from ..devices import waxs_det
 from ..devices.amplifiers import I0_controls
 from ..devices.amplifiers import I00_controls
 from ..devices.amplifiers import measure_background
 from ..devices.amplifiers import trd_controls
 from ..devices.amplifiers import upd_controls
 from ..devices.stages import s_stage
+from ..usaxs_support.nexus import reset_manager
+from ..usaxs_support.surveillance import instrument_archive
 from ..utils.quoted_line import split_quoted_line
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
@@ -64,15 +65,16 @@ from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
 from .requested_stop import RequestAbort
-from .sample_rotator_plans import PI_Off, PI_onF, PI_onR
-
+from .sample_rotator_plans import PI_Off
+from .sample_rotator_plans import PI_onF
+from .sample_rotator_plans import PI_onR
 
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
 
 def beforeScanComputeOtherStuff():
     """Actions before each data collection starts."""
-    yield from bps.null()       # TODO: remove this once you add the "other stuff"
+    yield from bps.null()  # TODO: remove this once you add the "other stuff"
 
 
 def postCommandsListfile2WWW(commands):
@@ -92,9 +94,11 @@ def postCommandsListfile2WWW(commands):
 
     # post to EPICS
     yield from bps.mv(
-        user_data.macro_file, os.path.split(tbl_file)[-1],
-        user_data.macro_file_time, timestamp,
-        )
+        user_data.macro_file,
+        os.path.split(tbl_file)[-1],
+        user_data.macro_file_time,
+        timestamp,
+    )
 
     # keep this list for posterity
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -102,7 +106,6 @@ def postCommandsListfile2WWW(commands):
     posterity_file = f"{timestamp}-{tbl_file}"
     with open(os.path.join(path, posterity_file), "w") as fp:
         fp.write(file_contents)
-
 
 
 def before_command_list(md=None, commands=None):
@@ -116,17 +119,23 @@ def before_command_list(md=None, commands=None):
         md = {}
 
     yield from bps.mv(
-        user_data.time_stamp, str(datetime.datetime.now()),
-        user_data.collection_in_progress, 1,
+        user_data.time_stamp,
+        str(datetime.datetime.now()),
+        user_data.collection_in_progress,
+        1,
     )
 
     yield from user_data.set_state_plan("Starting data collection")
 
     yield from bps.mv(
-        ti_filter_shutter, "close",
-        terms.SAXS.collecting, 0,
-        terms.WAXS.collecting, 0,
-        a_shutter_autoopen, 1,
+        ti_filter_shutter,
+        "close",
+        terms.SAXS.collecting,
+        0,
+        terms.WAXS.collecting,
+        0,
+        a_shutter_autoopen,
+        1,
     )
 
     if constants["MEASURE_DARK_CURRENTS"]:
@@ -140,12 +149,10 @@ def before_command_list(md=None, commands=None):
     yield from user_defined_settings()
     yield from update_EPICS_tuning_widths()
 
-    yield from beforeScanComputeOtherStuff()        # 41-commands.py
+    yield from beforeScanComputeOtherStuff()  # 41-commands.py
 
     if terms.preUSAXStune.run_tune_on_qdo.get():
-        logger.info(
-            "Running preUSAXStune as requested at start of measurements"
-        )
+        logger.info("Running preUSAXStune as requested at start of measurements")
         yield from preUSAXStune(md=md)
 
     if constants["SYNC_ORDER_NUMBERS"]:
@@ -168,36 +175,51 @@ def verify_commands(commands):
     for command in commands:
         action, args, i, raw_command = command
         if action.lower() in scan_actions:
-            #if args[2].isnumeric() is False :
+            # if args[2].isnumeric() is False :
             #    list_of_errors.append(f"line {i}: thickness incorrect for : {raw_command.strip()}")
             try:
                 sx = float(args[0])
                 sy = float(args[1])
                 sth = float(args[2])
                 snm = args[3]
-            except (IndexError,ValueError) as exc:
-                list_of_errors.append(f"line {i}: Improper command : {raw_command.strip()} : {exc}")
+            except (IndexError, ValueError) as exc:
+                list_of_errors.append(
+                    f"line {i}: Improper command : {raw_command.strip()} : {exc}"
+                )
                 continue
             # check sx against travel limits
-            if sx < s_stage.x.low_limit :
-                list_of_errors.append(f"line {i}: SX low limit: value {sx} < low limit {s_stage.x.low_limit},  command: {raw_command.strip()}")
-            if sx > s_stage.x.high_limit :
-                list_of_errors.append(f"line {i}: SX high limit: value {sx} > high limit {s_stage.x.high_limit},  command: {raw_command.strip()}")
+            if sx < s_stage.x.low_limit:
+                list_of_errors.append(
+                    f"line {i}: SX low limit: value {sx} < low limit {s_stage.x.low_limit},  command: {raw_command.strip()}"
+                )
+            if sx > s_stage.x.high_limit:
+                list_of_errors.append(
+                    f"line {i}: SX high limit: value {sx} > high limit {s_stage.x.high_limit},  command: {raw_command.strip()}"
+                )
             # check sy against travel limits
-            if sy < s_stage.y.low_limit :
-                list_of_errors.append(f"line {i}: SY low limit: value {sy} < low limit {s_stage.y.low_limit},  command: {raw_command.strip()}")
-            if sy > s_stage.y.high_limit :
-                list_of_errors.append(f"line {i}: SY high limit: value {sy} > high limit {s_stage.y.high_limit},  command: {raw_command.strip()}")
+            if sy < s_stage.y.low_limit:
+                list_of_errors.append(
+                    f"line {i}: SY low limit: value {sy} < low limit {s_stage.y.low_limit},  command: {raw_command.strip()}"
+                )
+            if sy > s_stage.y.high_limit:
+                list_of_errors.append(
+                    f"line {i}: SY high limit: value {sy} > high limit {s_stage.y.high_limit},  command: {raw_command.strip()}"
+                )
             # check sth for reasonable sample thickness value
             if sth < 0:
-                print(f"{sth = } from args[2] = float('{args[2]}') -- thickness problem")
+                print(
+                    f"{sth = } from args[2] = float('{args[2]}') -- thickness problem"
+                )
             #    list_of_errors.append(f"line {i}: thickness incorrect for : {raw_command.strip()}")
             # check snm for reasonable sample title value
     if len(list_of_errors) > 0:
-        err_msg="Errors were found in command file. Cannot continue. List of errors:\n"+"\n".join(list_of_errors)
+        err_msg = (
+            "Errors were found in command file. Cannot continue. List of errors:\n"
+            + "\n".join(list_of_errors)
+        )
         raise RuntimeError(err_msg)
-    #this is the end of this routine
-    #raise RuntimeError("Stop anyway")
+    # this is the end of this routine
+    # raise RuntimeError("Stop anyway")
     logger.info("Command file verified")
 
 
@@ -206,9 +228,12 @@ def after_command_list(md=None):
     # if md is None:
     #     md = {}
     yield from bps.mv(
-        user_data.time_stamp, str(datetime.datetime.now()),
-        user_data.collection_in_progress, 0,
-        ti_filter_shutter, "close",
+        user_data.time_stamp,
+        str(datetime.datetime.now()),
+        user_data.collection_in_progress,
+        0,
+        ti_filter_shutter,
+        "close",
     )
     yield from user_data.set_state_plan("USAXS macro file done")
 
@@ -217,14 +242,15 @@ def before_plan(md=None):
     """Actions before every data collection plan."""
     if md is None:
         md = {}
-    from .scans import preSWAXStune, preUSAXStune
+    from .scans import preSWAXStune
+    from .scans import preUSAXStune
 
     if terms.preUSAXStune.needed:
         # tune at previous sample position
         # don't overexpose the new sample position
         # select between positions
         mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
-        if mode_now == "USAXS in beam" :
+        if mode_now == "USAXS in beam":
             yield from preUSAXStune(md=md)
         else:
             yield from preSWAXStune(md=md)
@@ -232,15 +258,14 @@ def before_plan(md=None):
 
 def after_plan(weight=1, md=None):
     """Actions after every data collection plan."""
-    from .scans import preUSAXStune
 
     # if md is None:
     #     md = {}
 
-    yield from bps.mv(      # increment it
+    yield from bps.mv(  # increment it
         terms.preUSAXStune.num_scans_last_tune,
-        terms.preUSAXStune.num_scans_last_tune.get() + weight
-        )
+        terms.preUSAXStune.num_scans_last_tune.get() + weight,
+    )
 
 
 def parse_Excel_command_file(filename):
@@ -290,7 +315,7 @@ def parse_Excel_command_file(filename):
                     break
                 values = values[:-1]
 
-            commands.append((action, values, i+1, list(row.values())))
+            commands.append((action, values, i + 1, list(row.values())))
 
     return commands
 
@@ -351,11 +376,11 @@ def parse_text_command_file(filename):
     for i, raw_command in enumerate(buf):
         row = raw_command.strip()
         if row == "" or row.startswith("#"):
-            continue                    # comment or blank
+            continue  # comment or blank
 
-        else:                           # command line
+        else:  # command line
             action, *values = split_quoted_line(row)
-            commands.append((action, values, i+1, raw_command.rstrip()))
+            commands.append((action, values, i + 1, raw_command.rstrip()))
 
     return commands
 
@@ -379,7 +404,7 @@ def get_command_list(filename):
     assert os.path.exists(full_filename)
     try:
         commands = parse_Excel_command_file(filename)
-    except Exception:          # TODO: XLRDError
+    except Exception:  # TODO: XLRDError
         commands = parse_text_command_file(filename)
     return commands
 
@@ -387,10 +412,7 @@ def get_command_list(filename):
 def summarize_command_file(filename):
     """Print the command list from a text or Excel file."""
     commands = get_command_list(filename)
-    logger.info(
-        "Command file: %s\n%s",
-        command_list_as_table(commands), filename
-    )
+    logger.info("Command file: %s\n%s", command_list_as_table(commands), filename)
 
 
 def run_command_file(filename, md=None):
@@ -439,7 +461,11 @@ def execute_command_list(filename, commands, md=None):
         contents from input file, such as:
         ``SAXS 0 0 0 blank``
     """
-    from .scans import preUSAXStune, SAXS, USAXSscan, WAXS, allUSAXStune
+    from .scans import SAXS
+    from .scans import WAXS
+    from .scans import USAXSscan
+    from .scans import allUSAXStune
+    from .scans import preUSAXStune
 
     if md is None:
         md = {}
@@ -471,25 +497,27 @@ def execute_command_list(filename, commands, md=None):
         _md["filename"] = filename
         _md["line_number"] = i
         _md["action"] = action
-        _md["parameters"] = args    # args is shorter than parameters, means the same thing here
+        _md["parameters"] = (
+            args  # args is shorter than parameters, means the same thing here
+        )
         _md["iso8601"] = datetime.datetime.now().isoformat(" ")
 
-        _md.update(md or {})      # overlay with user-supplied metadata
+        _md.update(md or {})  # overlay with user-supplied metadata
 
         action = action.lower()
         simple_actions = dict(
             # command names MUST be lower case!
             # TODO: all these should accept a `md` kwarg
-            mode_blackfly = mode_BlackFly,
-            mode_radiography = mode_Radiography,
-            mode_saxs = mode_SAXS,
-            mode_usaxs = mode_USAXS,
-            mode_waxs = mode_WAXS,
-            pi_off = PI_Off,
-            pi_onf = PI_onF,
-            pi_onr = PI_onR,
-            preusaxstune = preUSAXStune,
-            allusaxstune = allUSAXStune,
+            mode_blackfly=mode_BlackFly,
+            mode_radiography=mode_Radiography,
+            mode_saxs=mode_SAXS,
+            mode_usaxs=mode_USAXS,
+            mode_waxs=mode_WAXS,
+            pi_off=PI_Off,
+            pi_onf=PI_onF,
+            pi_onr=PI_onR,
+            preusaxstune=preUSAXStune,
+            allusaxstune=allUSAXStune,
         )
 
         def _handle_actions_():
@@ -593,9 +621,12 @@ def sync_order_numbers():
     )
     logger.info("Synchronizing detector order numbers to %d", order_number)
     yield from bps.mv(
-        terms.FlyScan.order_number, order_number,
-        saxs_det.hdf1.file_number, order_number,
-        waxs_det.hdf1.file_number, order_number,
+        terms.FlyScan.order_number,
+        order_number,
+        saxs_det.hdf1.file_number,
+        order_number,
+        waxs_det.hdf1.file_number,
+        order_number,
     )
 
 
@@ -609,10 +640,7 @@ def run_python_file(filename, md=None):
     yield from bps.null()
 
     # locate `filename` in one of the paths
-    candidates = [
-        os.path.abspath(os.path.join(p, filename))
-        for p in sys.path
-    ]
+    candidates = [os.path.abspath(os.path.join(p, filename)) for p in sys.path]
     # first candidate is always relative to pwd
     candidates.insert(0, os.path.abspath(filename))
 
@@ -644,7 +672,7 @@ def run_set_command(*args):
     Does not raise an exception.  Instead, logs as _error_ and
     skips further handling of this command.
 
-    NOTE: If you intend to use this signal immediately (as with a 
+    NOTE: If you intend to use this signal immediately (as with a
     ``.get()`` operation), you may need to sleep for a short
     interval (perhaps ~ 0.1s) to allow EPICS to process this PV
     and post a CA update.
@@ -676,7 +704,8 @@ def run_set_command(*args):
             (
                 "First argument must start with 'terms.'"
                 ", received '%s'.  Skipping this command ..."
-            ) % term
+            )
+            % term
         )
         return
     # logger.info("type(value) = %s", type(value))
@@ -692,9 +721,8 @@ def run_set_command(*args):
             # print(f"{pyobj = }")
         else:
             logger.error(
-                (
-                    "'%s.%s' does not exist.  Skipping this command ..."
-                ) % (full_dotted_name, cn)
+                ("'%s.%s' does not exist.  Skipping this command ...")
+                % (full_dotted_name, cn)
             )
             return
     if isinstance(pyobj, Signal):
@@ -707,7 +735,8 @@ def run_set_command(*args):
                 "Cannot set '%s', it is not a Signal"
                 # " or positioner"
                 ".  Skipping this command ..."
-            ) % full_dotted_name
+            )
+            % full_dotted_name
         )
         return
     # print(f"{type(pyobj.get()) = }")
@@ -727,18 +756,20 @@ def run_set_command(*args):
                 (
                     "Cannot set '%s', support for data type '%s'"
                     " is not implemented yet.  Skipping this command ..."
-                ) % (full_dotted_name, type(old_value).__name__)
+                )
+                % (full_dotted_name, type(old_value).__name__)
             )
             return
     except Exception as exc:
-            logger.error(
-                (
-                    "Cannot set '%s' to '%s'"
-                    " due to exception (%s)."
-                    "  Skipping this command ..."
-                ) % (term, args[1], exc)
+        logger.error(
+            (
+                "Cannot set '%s' to '%s'"
+                " due to exception (%s)."
+                "  Skipping this command ..."
             )
-            return
+            % (term, args[1], exc)
+        )
+        return
 
     # print(f"{[full_dotted_name, value] = }")
     yield from bps.abs_set(pyobj, value, timeout=0.1, wait=False)

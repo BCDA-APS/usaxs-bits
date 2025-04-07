@@ -1,11 +1,10 @@
-
 """
 PSS, FE-EPS, BL-EPS, : diagnostics
 """
 
 __all__ = [
-    'diagnostics',
-    ]
+    "diagnostics",
+]
 
 import logging
 
@@ -13,7 +12,8 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 import apstools.synApps
-from ophyd import Component, Device
+from ophyd import Component
+from ophyd import Device
 from ophyd import EpicsSignalRO
 
 from ..framework import sd
@@ -21,22 +21,30 @@ from ..framework import sd
 
 class PSS_Parameters(Device):
     a_beam_active = Component(EpicsSignalRO, "PA:12ID:A_BEAM_ACTIVE.VAL", string=True)
-    a_shutter_open_chain_A_led = Component(EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True)
+    a_shutter_open_chain_A_led = Component(
+        EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True
+    )
 
     e_beam_active = Component(EpicsSignalRO, "PA:12ID:STA_C_NO_ACCESS.VAL", string=True)
-    e_beam_ready = Component(EpicsSignalRO, "PA:12ID:STA_C_BEAMREADY_PL.VAL", string=True)
-    e_shutter_closed_chain_B = Component(EpicsSignalRO, "PB:12ID:STA_C_SCS_CLSD_PL", string=True)
-    e_shutter_open_chain_A = Component(EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True)
+    e_beam_ready = Component(
+        EpicsSignalRO, "PA:12ID:STA_C_BEAMREADY_PL.VAL", string=True
+    )
+    e_shutter_closed_chain_B = Component(
+        EpicsSignalRO, "PB:12ID:STA_C_SCS_CLSD_PL", string=True
+    )
+    e_shutter_open_chain_A = Component(
+        EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True
+    )
 
-    #c_beam_ready_leds = Component(EpicsSignalRO, "PA:09ID:STA_C_BEAMREADY_PL", string=True)
-    #c_shutter_closed_chain_A = Component(EpicsSignalRO, "PA:09ID:SCS_PS_CLSD_LS", string=True)
-    #c_shutter_closed_chain_B = Component(EpicsSignalRO, "PB:09ID:SCS_PS_CLSD_LS", string=True)
-    #c_station_door1_closed_switch_chain_A = Component(EpicsSignalRO, "PA:09ID:STA_C_DR1_CLOSE_LS", string=True)
-    #c_station_door1_closed_switch_chain_B = Component(EpicsSignalRO, "PB:09ID:STA_C_DR1_CLOSE_LS", string=True)
-    #c_station_door2_closed_switch_chain_A = Component(EpicsSignalRO, "PA:09ID:STA_C_DR2_CLOSE_LS", string=True)
-    #c_station_door2_closed_switch_chain_B = Component(EpicsSignalRO, "PB:09ID:STA_C_DR2_CLOSE_LS", string=True)
-    #c_station_no_access_chain_A = Component(EpicsSignalRO, "PA:09ID:STA_C_NO_ACCESS.VAL", string=True)
-    #c_station_no_access_sign = Component(EpicsSignalRO, "PA:09ID:STA_C_NO_ACCESS", string=True)
+    # c_beam_ready_leds = Component(EpicsSignalRO, "PA:09ID:STA_C_BEAMREADY_PL", string=True)
+    # c_shutter_closed_chain_A = Component(EpicsSignalRO, "PA:09ID:SCS_PS_CLSD_LS", string=True)
+    # c_shutter_closed_chain_B = Component(EpicsSignalRO, "PB:09ID:SCS_PS_CLSD_LS", string=True)
+    # c_station_door1_closed_switch_chain_A = Component(EpicsSignalRO, "PA:09ID:STA_C_DR1_CLOSE_LS", string=True)
+    # c_station_door1_closed_switch_chain_B = Component(EpicsSignalRO, "PB:09ID:STA_C_DR1_CLOSE_LS", string=True)
+    # c_station_door2_closed_switch_chain_A = Component(EpicsSignalRO, "PA:09ID:STA_C_DR2_CLOSE_LS", string=True)
+    # c_station_door2_closed_switch_chain_B = Component(EpicsSignalRO, "PB:09ID:STA_C_DR2_CLOSE_LS", string=True)
+    # c_station_no_access_chain_A = Component(EpicsSignalRO, "PA:09ID:STA_C_NO_ACCESS.VAL", string=True)
+    # c_station_no_access_sign = Component(EpicsSignalRO, "PA:09ID:STA_C_NO_ACCESS", string=True)
 
     # other signals?
 
@@ -44,19 +52,19 @@ class PSS_Parameters(Device):
     def c_station_enabled(self):
         """
         this is really not needed on 12ID as both beamlines can work in parallel
-        This was used at 9ID with hutches behind. 
+        This was used at 9ID with hutches behind.
         look at the switches: are we allowed to operate?
-       
+
         #:Plug in place:
         ##  Cannot use beam in 20-ID-B.
         #  Should not use FE or mono shutters, monochromator, ti_filter_shutter...
         #:Plug removed:
-          
+
           Operations in 12-ID-C are always allowed
         """
-        #chain_A = self.c_shutter_closed_chain_A
-        #chain_B = self.c_shutter_closed_chain_B
-        #enabled = chain_A.get() == "OFF" or chain_B.get() == "OFF"
+        # chain_A = self.c_shutter_closed_chain_A
+        # chain_B = self.c_shutter_closed_chain_B
+        # enabled = chain_A.get() == "OFF" or chain_B.get() == "OFF"
         return 1
 
 
@@ -108,17 +116,19 @@ class PSS_Parameters(Device):
 
 class DiagnosticsParameters(Device):
     """for beam line diagnostics and post-mortem analyses"""
+
     beam_in_hutch_swait = Component(
-        apstools.synApps.SwaitRecord,
-        "usxLAX:blCalc:userCalc1")
+        apstools.synApps.SwaitRecord, "usxLAX:blCalc:userCalc1"
+    )
 
     PSS = Component(PSS_Parameters)
-    #BL_EPS = Component(BLEPS_Parameters)
-    #FE_EPS = Component(FEEPS_Parameters)
+    # BL_EPS = Component(BLEPS_Parameters)
+    # FE_EPS = Component(FEEPS_Parameters)
 
     @property
     def beam_in_hutch(self):
-        return self.beam_in_hutch_swait.calculated_value.get() #!= 0
+        return self.beam_in_hutch_swait.calculated_value.get()  #!= 0
+
 
 diagnostics = DiagnosticsParameters(name="diagnostics")
 sd.baseline.append(diagnostics)

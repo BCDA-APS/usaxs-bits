@@ -1,10 +1,9 @@
-
 """
 support area detector
 """
 
 __all__ = [
-    'areaDetectorAcquire',
+    "areaDetectorAcquire",
 ]
 
 import logging
@@ -12,12 +11,14 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from bluesky import plans as bp
-from bluesky import plan_stubs as bps
 import time
 
+from bluesky import plan_stubs as bps
+from bluesky import plans as bp
+
 from ..devices import user_data
-from ..framework import RE, bec
+from ..framework import RE
+from ..framework import bec
 from ..utils.reporter import remaining_time_reporter
 
 
@@ -31,7 +32,8 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
 
     t0 = time.time()
     yield from bps.mv(
-        user_data.scanning, "scanning",          # we are scanning now (or will be very soon)
+        user_data.scanning,
+        "scanning",  # we are scanning now (or will be very soon)
     )
     logger.debug(f"areaDetectorAcquire(): {det.hdf1.stage_sigs}")
     _md["method"] = "areaDetectorAcquire"
@@ -52,9 +54,7 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
     det.cam.stage_sigs["image_mode"] = image_mode
 
     # Remember what we've got now and reset it after the bp.count().
-    original_detector_staging = dict(
-        cam=det.cam.stage_sigs.copy()
-    )
+    original_detector_staging = dict(cam=det.cam.stage_sigs.copy())
     # Since we have set certain detector parameters in EPICS,
     # make sure they are not staged (to something different).
     # Turns out this is an optimization for the Pilatus
@@ -62,16 +62,21 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
     # in acquire_time takes ~0.5s for camera to complete.
     for k in "acquire_time acquire_period".split():
         if k in det.cam.stage_sigs:
-            #print(f"Removing {det.cam.name}.stage_sigs[{k}] before bp.count()")
+            # print(f"Removing {det.cam.name}.stage_sigs[{k}] before bp.count()")
             det.cam.stage_sigs.pop(k)
 
     bec.disable_table()
-    yield from bp.count([det], md=_md)          # TODO: SPEC showed users incremental progress (1 Hz updates) #175
+    yield from bp.count(
+        [det], md=_md
+    )  # TODO: SPEC showed users incremental progress (1 Hz updates) #175
     bec.enable_table()
 
     # Restore the original detector staging.
     det.cam.stage_sigs = original_detector_staging["cam"].copy()
 
-    yield from bps.mv(user_data.scanning, "no",)  # we are done
+    yield from bps.mv(
+        user_data.scanning,
+        "no",
+    )  # we are done
     elapsed = time.time() - t0
     logger.info(f"Finished SAXS/WAXS data collection in {elapsed} seconds.")

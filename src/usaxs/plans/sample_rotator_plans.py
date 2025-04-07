@@ -1,4 +1,3 @@
-
 """
 rotate the sample with PI C867 motor
 """
@@ -14,8 +13,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from ..devices import pi_c867
 from bluesky import plan_stubs as bps
+
+from ..devices import pi_c867
 
 
 def PI_Off(timeout=1, md=None):
@@ -29,8 +29,10 @@ def PI_Off(timeout=1, md=None):
         in motion.
     """
     yield from bps.mv(
-        pi_c867.jog_forward, 0,
-        pi_c867.jog_reverse, 0,
+        pi_c867.jog_forward,
+        0,
+        pi_c867.jog_reverse,
+        0,
         timeout=1,
     )
 

@@ -1,25 +1,27 @@
-
 """
 slits
 """
 
 __all__ = [
-    'guard_slit',
-    'usaxs_slit',
-    ]
+    "guard_slit",
+    "usaxs_slit",
+]
 
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from bluesky import plan_stubs as bps
-from ophyd import Component, EpicsSignal, MotorBundle, EpicsMotor
+from ophyd import Component
+from ophyd import EpicsMotor
+from ophyd import EpicsSignal
+from ophyd import MotorBundle
 
 from ..framework import sd
 from .general_terms import terms
-#from .usaxs_motor_devices import UsaxsMotor
-#from ..utils import move_motors
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
+# from .usaxs_motor_devices import UsaxsMotor
+# from ..utils import move_motors
 
 
 class UsaxsSlitDevice(MotorBundle):
@@ -29,10 +31,11 @@ class UsaxsSlitDevice(MotorBundle):
     * center of slit: (x, y)
     * aperture: (h_size, v_size)
     """
-    h_size = Component(EpicsMotor, 'usxLAX:m58:c1:m8', labels=("uslit",))
-    x      = Component(EpicsMotor, 'usxLAX:m58:c1:m6', labels=("uslit",))
-    v_size = Component(EpicsMotor, 'usxLAX:m58:c1:m7', labels=("uslit",))
-    y      = Component(EpicsMotor, 'usxLAX:m58:c1:m5', labels=("uslit",))
+
+    h_size = Component(EpicsMotor, "usxLAX:m58:c1:m8", labels=("uslit",))
+    x = Component(EpicsMotor, "usxLAX:m58:c1:m6", labels=("uslit",))
+    v_size = Component(EpicsMotor, "usxLAX:m58:c1:m7", labels=("uslit",))
+    y = Component(EpicsMotor, "usxLAX:m58:c1:m5", labels=("uslit",))
 
     def set_size(self, *args, h=None, v=None):
         """move the slits to the specified size"""
@@ -40,12 +43,13 @@ class UsaxsSlitDevice(MotorBundle):
             raise ValueError("must define horizontal size")
         if v is None:
             raise ValueError("must define vertical size")
-        #move_motors(self.h_size, h, self.v_size, v)
+        # move_motors(self.h_size, h, self.v_size, v)
         yield from bps.mv(
-            self.h_size, h,
-            self.v_size, v,
+            self.h_size,
+            h,
+            self.v_size,
+            v,
         )
-
 
 
 class GuardSlitMotor(EpicsMotor):
@@ -59,25 +63,28 @@ class GSlitDevice(MotorBundle):
 
     * aperture: (h_size, v_size)
     """
-    bot  = Component(GuardSlitMotor, 'usxLAX:m58:c1:m4', labels=("gslit",))
-    inb  = Component(GuardSlitMotor, 'usxLAX:m58:c1:m2', labels=("gslit",))
-    outb = Component(GuardSlitMotor, 'usxLAX:m58:c1:m1', labels=("gslit",))
-    top  = Component(GuardSlitMotor, 'usxLAX:m58:c1:m3', labels=("gslit",))
-    x    = Component(EpicsMotor, 'usxLAX:m58:c0:m7', labels=("gslit",))
-    y    = Component(EpicsMotor, 'usxLAX:m58:c0:m6', labels=("gslit",))
 
-    h_size = Component(EpicsSignal, 'usxLAX:GSlit1H:size')
-    v_size = Component(EpicsSignal, 'usxLAX:GSlit1V:size')
+    bot = Component(GuardSlitMotor, "usxLAX:m58:c1:m4", labels=("gslit",))
+    inb = Component(GuardSlitMotor, "usxLAX:m58:c1:m2", labels=("gslit",))
+    outb = Component(GuardSlitMotor, "usxLAX:m58:c1:m1", labels=("gslit",))
+    top = Component(GuardSlitMotor, "usxLAX:m58:c1:m3", labels=("gslit",))
+    x = Component(EpicsMotor, "usxLAX:m58:c0:m7", labels=("gslit",))
+    y = Component(EpicsMotor, "usxLAX:m58:c0:m6", labels=("gslit",))
 
-    h_sync_proc = Component(EpicsSignal, 'usxLAX:GSlit1H:sync.PROC')
-    v_sync_proc = Component(EpicsSignal, 'usxLAX:GSlit1V:sync.PROC')
+    h_size = Component(EpicsSignal, "usxLAX:GSlit1H:size")
+    v_size = Component(EpicsSignal, "usxLAX:GSlit1V:size")
 
-    gap_tolerance = 0.02        # actual must be this close to desired
-    scale_factor = 1.2    # 1.2x the size of the beam should be good guess for guard slits.
-    h_step_away = 0.2     # 0.2mm step away from beam
-    v_step_away = 0.1     # 0.1mm step away from beam
-    h_step_into = 1.1     # 1.1mm step into the beam (blocks the beam)
-    v_step_into = 0.4     # 0.4mm step into the beam (blocks the beam)
+    h_sync_proc = Component(EpicsSignal, "usxLAX:GSlit1H:sync.PROC")
+    v_sync_proc = Component(EpicsSignal, "usxLAX:GSlit1V:sync.PROC")
+
+    gap_tolerance = 0.02  # actual must be this close to desired
+    scale_factor = (
+        1.2  # 1.2x the size of the beam should be good guess for guard slits.
+    )
+    h_step_away = 0.2  # 0.2mm step away from beam
+    v_step_away = 0.1  # 0.1mm step away from beam
+    h_step_into = 1.1  # 1.1mm step into the beam (blocks the beam)
+    v_step_into = 0.4  # 0.4mm step into the beam (blocks the beam)
     tuning_intensity_threshold = 500
 
     def set_size(self, *args, h=None, v=None):
@@ -86,10 +93,12 @@ class GSlitDevice(MotorBundle):
             raise ValueError("must define horizontal size")
         if v is None:
             raise ValueError("must define vertical size")
-        #move_motors(self.h_size, h, self.v_size, v)
+        # move_motors(self.h_size, h, self.v_size, v)
         yield from bps.mv(
-            self.h_size, h,
-            self.v_size, v,
+            self.h_size,
+            h,
+            self.v_size,
+            v,
         )
 
     @property
@@ -115,7 +124,7 @@ class GSlitDevice(MotorBundle):
         yield from bps.sleep(0.05)
 
 
-guard_slit = GSlitDevice('', name='guard_slit')
-usaxs_slit = UsaxsSlitDevice('', name='usaxs_slit')
+guard_slit = GSlitDevice("", name="guard_slit")
+usaxs_slit = UsaxsSlitDevice("", name="usaxs_slit")
 sd.baseline.append(guard_slit)
 sd.baseline.append(usaxs_slit)

@@ -1,4 +1,3 @@
-
 """
 Bluesky plans to tune various axes and stages
 
@@ -28,35 +27,34 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
-from ophyd import Kind
 import time
 
-#from apstools.plans import plotxy
+from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
+from apstools.plans import lineup2
+from apstools.utils import trim_plot_by_name
+from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 
-from ..devices import autoscale_amplifiers, upd_controls, I0_controls, I00_controls
+from ..devices import I0_controls
+from ..devices import I00_controls
+
+# from apstools.plans import plotxy
+from ..devices import autoscale_amplifiers
+from ..devices import upd_controls
 from ..devices import user_override
-from ..devices.stages import axis_tune_range
-from ..devices.stages import TUNE_METHOD_PEAK_CHOICE
-from ..devices.stages import TUNING_DET_SIGNAL
-from ..devices.stages import USING_MS_STAGE
-from ..devices.stages import m_stage, s_stage, a_stage, d_stage         #as_stage, ms_stage
-from ..devices.shutters import mono_shutter, ti_filter_shutter
-from ..devices.monochromator import monochromator
-from ..devices.scalers import scaler0, I0_SIGNAL,  UPD_SIGNAL
 from ..devices.general_terms import terms
-from ..devices.suspenders import suspend_BeamInHutch, suspend_FE_shutter
-from ..devices.miscellaneous import usaxs_q_calc 
-from ..framework import RE, bec
+from ..devices.miscellaneous import usaxs_q_calc
+from ..devices.scalers import scaler0
+from ..devices.shutters import mono_shutter
+from ..devices.shutters import ti_filter_shutter
+from ..devices.stages import a_stage  # as_stage, ms_stage
+from ..devices.stages import axis_tune_range
+from ..devices.stages import d_stage  # as_stage, ms_stage
+from ..devices.stages import m_stage  # as_stage, ms_stage
+from ..devices.suspenders import suspend_BeamInHutch
+from ..devices.suspenders import suspend_FE_shutter
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
-from apstools.plans import lineup2
-from apstools.utils import trim_plot_lines
-from apstools.utils import trim_plot_by_name
-from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
-
-
 
 # used in instrument_default_tune_ranges() below
 user_override.register("usaxs_minstep")
@@ -83,7 +81,7 @@ user_override.register("usaxs_minstep")
 #     )
 #     # plotxy(uuids,I0_SIGNAL or UPD_SIGNAL)
 #     # TODO plot the data somenow, use plotxy() which takes the uuid list from tune
-#     # TODO handle multiple plots as we had before AND keep number of ploted data sensible. 
+#     # TODO handle multiple plots as we had before AND keep number of ploted data sensible.
 #     #found = axis.tuner.peak_detected()
 #     #logger.info(f"axis: {axis.name}")
 #     #logger.info(f"starting position: {axis_start}")
@@ -102,47 +100,67 @@ user_override.register("usaxs_minstep")
 #     # print(f"metadata={md}")  # TOO much data to print
 #     yield from _tune_base_(m_stage.r, md=md)
 
+
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(
+    suspend_BeamInHutch
+)  # this is how to do proper suspender for one function, not for the whole module
 def tune_mr(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
-    md['plan_name'] = "tune_mr"
+    md["plan_name"] = "tune_mr"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {m_stage.r.name}")
     axis_start = m_stage.r.position
     yield from bps.mv(
-        mono_shutter, "open",
-        ti_filter_shutter, "open",
+        mono_shutter,
+        "open",
+        ti_filter_shutter,
+        "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["I0_USAXS"])
-    trim_plot_by_name(5)#this trims ALL plots to 5 scans
-    stats=SignalStatsCallback()
-    yield from lineup2([scaler0],m_stage.r, -m_stage.r.tune_range.get(),m_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
+    trim_plot_by_name(5)  # this trims ALL plots to 5 scans
+    stats = SignalStatsCallback()
+    yield from lineup2(
+        [scaler0],
+        m_stage.r,
+        -m_stage.r.tune_range.get(),
+        m_stage.r.tune_range.get(),
+        31,
+        nscans=1,
+        signal_stats=stats,
+        md=md,
+    )
     print(stats.report())
     yield from bps.mv(
-        ti_filter_shutter, "close",
-        scaler0.count_mode, "AutoCount",
-        upd_controls.auto.mode, "auto+background",
+        ti_filter_shutter,
+        "close",
+        scaler0.count_mode,
+        "AutoCount",
+        upd_controls.auto.mode,
+        "auto+background",
     )
-    #trim_plot_lines(5, m_stage.r, I0_SIGNAL)      #this needs to be formated correctly, but can trim specific plot.  
+    # trim_plot_lines(5, m_stage.r, I0_SIGNAL)      #this needs to be formated correctly, but can trim specific plot.
     scaler0.select_channels(None)
     if stats.analysis.success:
         yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
         logger.info(f"final position: {m_stage.r.position}")
     else:
-        print(f"tune_mr failed for {stats.analysis.reasons}")  
-    
+        print(f"tune_mr failed for {stats.analysis.reasons}")
+
+
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(
+    suspend_BeamInHutch
+)  # this is how to do proper suspender for one function, not for the whole module
 def tune_m2rp(md={}):
-    yield from bps.sleep(0.2)   # piezo is fast, give the system time to react
+    yield from bps.sleep(0.2)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
-    md['plan_name'] = "tune_m2rp"
+    md["plan_name"] = "tune_m2rp"
     yield from _tune_base_(m_stage.r2p, md=md)
-    yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
+    yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
 
 
 def empty_plan(*args, **kwargs):
@@ -151,13 +169,16 @@ def empty_plan(*args, **kwargs):
 
 
 if m_stage.isChannelCut:
-    m_stage.r2p.tuner = empty_plan      # TODO: should mimic TuneAxis()?
+    m_stage.r2p.tuner = empty_plan  # TODO: should mimic TuneAxis()?
     m_stage.r2p.pre_tune_method = empty_plan
     m_stage.r2p.post_tune_method = empty_plan
     tune_m2rp = empty_plan
 
+
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(
+    suspend_BeamInHutch
+)  # this is how to do proper suspender for one function, not for the whole module
 def tune_msrp(md={}):
     pass
     # yield from bps.mv(scaler0.preset_time, 0.1)
@@ -174,47 +195,68 @@ def tune_msrp(md={}):
 #     yield from _tune_base_(a_stage.r, md=md)
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(
+    suspend_BeamInHutch
+)  # this is how to do proper suspender for one function, not for the whole module
 def tune_ar(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
-    md['plan_name'] = "tune_ar"
+    md["plan_name"] = "tune_ar"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {a_stage.r.name}")
     axis_start = a_stage.r.position
     yield from bps.mv(
-        mono_shutter, "open",
-        ti_filter_shutter, "open",
+        mono_shutter,
+        "open",
+        ti_filter_shutter,
+        "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     trim_plot_by_name(5)
     scaler0.select_channels(["PD_USAXS"])
-    stats=SignalStatsCallback()
-    yield from lineup2([scaler0],a_stage.r, -a_stage.r.tune_range.get(),a_stage.r.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
-    #trim_plot_lines(bec, 5, a_stage.r, UPD_SIGNAL) #UPD_SIGNAL
+    stats = SignalStatsCallback()
+    yield from lineup2(
+        [scaler0],
+        a_stage.r,
+        -a_stage.r.tune_range.get(),
+        a_stage.r.tune_range.get(),
+        31,
+        nscans=1,
+        signal_stats=stats,
+        md=md,
+    )
+    # trim_plot_lines(bec, 5, a_stage.r, UPD_SIGNAL) #UPD_SIGNAL
     print(stats.report())
     yield from bps.mv(
-        ti_filter_shutter, "close",
-        scaler0.count_mode, "AutoCount",
-        upd_controls.auto.mode, "auto+background",
+        ti_filter_shutter,
+        "close",
+        scaler0.count_mode,
+        "AutoCount",
+        upd_controls.auto.mode,
+        "auto+background",
     )
     scaler0.select_channels(None)
     if stats.analysis.success:
         yield from bps.mv(
-            terms.USAXS.ar_val_center, a_stage.r.position,
-            usaxs_q_calc.channels.B.input_value, a_stage.r.position,
+            terms.USAXS.ar_val_center,
+            a_stage.r.position,
+            usaxs_q_calc.channels.B.input_value,
+            a_stage.r.position,
         )
         logger.info(f"final position: {a_stage.r.position}")
     else:
-        print(f"tune_ar failed for {stats.analysis.reasons}")  
- 
+        print(f"tune_ar failed for {stats.analysis.reasons}")
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(
+    suspend_BeamInHutch
+)  # this is how to do proper suspender for one function, not for the whole module
 def tune_asrp(md={}):
     pass
+
+
 #     yield from bps.mv(ti_filter_shutter, "open")
 #     ##redundant## yield from autoscale_amplifiers([upd_controls])
 #     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -235,74 +277,107 @@ def tune_asrp(md={}):
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 #     yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
 
-@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+
+@bpp.suspend_decorator(
+    suspend_BeamInHutch
+)  # this is how to do proper suspender for one function, not for the whole module
 def tune_a2rp(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
-    yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
+    yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
-    md['plan_name'] = "tune_a2rp"
+    md["plan_name"] = "tune_a2rp"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {a_stage.r2p.name}")
     axis_start = a_stage.r2p.position
     yield from bps.mv(
-        mono_shutter, "open",
-        ti_filter_shutter, "open",
+        mono_shutter,
+        "open",
+        ti_filter_shutter,
+        "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
     trim_plot_by_name(5)
-    stats=SignalStatsCallback()
-    yield from lineup2([scaler0],a_stage.r2p, -a_stage.r2p.tune_range.get(),a_stage.r2p.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
+    stats = SignalStatsCallback()
+    yield from lineup2(
+        [scaler0],
+        a_stage.r2p,
+        -a_stage.r2p.tune_range.get(),
+        a_stage.r2p.tune_range.get(),
+        31,
+        nscans=1,
+        signal_stats=stats,
+        md=md,
+    )
     print(stats.report())
-    #trim_plot_lines(bec, 5, a_stage.r2p, UPD_SIGNAL) #UPD_SIGNAL
+    # trim_plot_lines(bec, 5, a_stage.r2p, UPD_SIGNAL) #UPD_SIGNAL
     yield from bps.mv(
-        ti_filter_shutter, "close",
-        scaler0.count_mode, "AutoCount",
-        upd_controls.auto.mode, "auto+background",
+        ti_filter_shutter,
+        "close",
+        scaler0.count_mode,
+        "AutoCount",
+        upd_controls.auto.mode,
+        "auto+background",
     )
     scaler0.select_channels(None)
     if stats.analysis.success:
         logger.info(f"final position: {a_stage.r2p.position}")
     else:
-        print(f"tune_a2rp failed for {stats.analysis.reasons}")  
+        print(f"tune_a2rp failed for {stats.analysis.reasons}")
 
- 
- 
+
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(
+    suspend_BeamInHutch
+)  # this is how to do proper suspender for one function, not for the whole module
 def tune_dx(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
-    yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
+    yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
-    md['plan_name'] = "tune_dx"
+    md["plan_name"] = "tune_dx"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {d_stage.x.name}")
     axis_start = d_stage.x.position
     yield from bps.mv(
-        mono_shutter, "open",
-        ti_filter_shutter, "open",
+        mono_shutter,
+        "open",
+        ti_filter_shutter,
+        "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     trim_plot_by_name(5)
     scaler0.select_channels(["PD_USAXS"])
-    stats=SignalStatsCallback()
-    yield from lineup2([scaler0],d_stage.x, -d_stage.x.tune_range.get(),d_stage.x.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
+    stats = SignalStatsCallback()
+    yield from lineup2(
+        [scaler0],
+        d_stage.x,
+        -d_stage.x.tune_range.get(),
+        d_stage.x.tune_range.get(),
+        31,
+        nscans=1,
+        signal_stats=stats,
+        md=md,
+    )
     print(stats.report())
     yield from bps.mv(
-        ti_filter_shutter, "close",
-        scaler0.count_mode, "AutoCount",
-        upd_controls.auto.mode, "auto+background",
+        ti_filter_shutter,
+        "close",
+        scaler0.count_mode,
+        "AutoCount",
+        upd_controls.auto.mode,
+        "auto+background",
     )
     scaler0.select_channels(None)
     if stats.analysis.success:
         yield from bps.mv(
-            terms.USAXS.DX0, d_stage.x.position,
+            terms.USAXS.DX0,
+            d_stage.x.position,
         )
         logger.info(f"final position: {d_stage.x.position}")
-    else: 
-        print(f"tune_dx failed for {stats.analysis.reasons}")  
+    else:
+        print(f"tune_dx failed for {stats.analysis.reasons}")
 
 
 # def tune_dx(md={}):
@@ -314,39 +389,55 @@ def tune_dx(md={}):
 #     yield from _tune_base_(d_stage.x, md=md)
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 
+
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(
+    suspend_BeamInHutch
+)  # this is how to do proper suspender for one function, not for the whole module
 def tune_dy(md={}):
     yield from bps.mv(ti_filter_shutter, "open")
-    yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
+    yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
-    md['plan_name'] = "tune_dy"
+    md["plan_name"] = "tune_dy"
     yield from IfRequestedStopBeforeNextScan()
     logger.info(f"tuning axis: {d_stage.y.name}")
     axis_start = d_stage.y.position
     yield from bps.mv(
-        mono_shutter, "open",
-        ti_filter_shutter, "open",
+        mono_shutter,
+        "open",
+        ti_filter_shutter,
+        "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     scaler0.select_channels(["PD_USAXS"])
     trim_plot_by_name(5)
-    stats=SignalStatsCallback()
-    yield from lineup2([scaler0],d_stage.y, -d_stage.y.tune_range.get(),d_stage.y.tune_range.get(),31,nscans=1,signal_stats=stats, md=md)
+    stats = SignalStatsCallback()
+    yield from lineup2(
+        [scaler0],
+        d_stage.y,
+        -d_stage.y.tune_range.get(),
+        d_stage.y.tune_range.get(),
+        31,
+        nscans=1,
+        signal_stats=stats,
+        md=md,
+    )
     print(stats.report())
     yield from bps.mv(
-        ti_filter_shutter, "close",
-        scaler0.count_mode, "AutoCount",
-        upd_controls.auto.mode, "auto+background",
+        ti_filter_shutter,
+        "close",
+        scaler0.count_mode,
+        "AutoCount",
+        upd_controls.auto.mode,
+        "auto+background",
     )
     scaler0.select_channels(None)
     if stats.analysis.success:
         yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
         logger.info(f"final position: {d_stage.y.position}")
     else:
-        print(f"tune_dy failed for {stats.analysis.reasons}")  
-
+        print(f"tune_dy failed for {stats.analysis.reasons}")
 
 
 # def tune_dy(md={}):
@@ -376,8 +467,8 @@ def tune_usaxs_optics(side=False, md={}):
     """
     yield from mode_USAXS()
 
-    #suspender_preinstalled = suspend_BeamInHutch in RE.suspenders
-    #if not suspender_preinstalled:
+    # suspender_preinstalled = suspend_BeamInHutch in RE.suspenders
+    # if not suspender_preinstalled:
     #    yield from bps.install_suspender(suspend_BeamInHutch)
 
     yield from tune_mr(md=md)
@@ -388,12 +479,14 @@ def tune_usaxs_optics(side=False, md={}):
     yield from tune_ar(md=md)
     yield from tune_a2rp(md=md)
 
-    #if not suspender_preinstalled:
+    # if not suspender_preinstalled:
     #    yield from bps.remove_suspender(suspend_BeamInHutch)
 
     yield from bps.mv(
-        terms.preUSAXStune.num_scans_last_tune, 0,
-        terms.preUSAXStune.epoch_last_tune, time.time(),
+        terms.preUSAXStune.num_scans_last_tune,
+        0,
+        terms.preUSAXStune.epoch_last_tune,
+        time.time(),
     )
 
 
@@ -401,8 +494,9 @@ def tune_saxs_optics(md={}):
     yield from tune_mr(md=md)
     yield from tune_m2rp(md=md)
     yield from bps.mv(
-        #terms.preUSAXStune.num_scans_last_tune, 0,
-        terms.preUSAXStune.epoch_last_tune, time.time(),
+        # terms.preUSAXStune.num_scans_last_tune, 0,
+        terms.preUSAXStune.epoch_last_tune,
+        time.time(),
     )
 
 
@@ -427,8 +521,8 @@ def instrument_default_tune_ranges():
     """
     yield from bps.null()
 
-    #d_stage.x.tuner.width = 11
-    #d_stage.x.tuner.width = 11
+    # d_stage.x.tuner.width = 11
+    # d_stage.x.tuner.width = 11
 
     # if monochromator.dcm.energy.position < 10.99:  # ~ 10 keV for Si 220 crystals
     #     m_stage.r.tuner.width = 0.005

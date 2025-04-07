@@ -1,26 +1,25 @@
-
 """
 suspenders : conditions that will interrupt the RunEngine execution
 """
 
-__all__ = [
-]
+__all__ = []
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from bluesky import plan_stubs as bps
 import bluesky.suspenders
+from bluesky import plan_stubs as bps
 from ophyd import Signal
 
-from ..framework import RE, sd
+from ..framework import sd
 from .aps_source import aps
-from .monochromator import monochromator
 from .monochromator import MONO_FEEDBACK_ON
+from .monochromator import monochromator
 from .permit import BeamInHutch
-from .shutters import mono_shutter, FE_shutter
+from .shutters import FE_shutter
+from .shutters import mono_shutter
 from .white_beam_ready_calc import white_beam_ready
 
 
@@ -30,12 +29,14 @@ class FeedbackHandlingDuringSuspension:
 
     See https://github.com/APS-USAXS/ipython-usaxs/issues/520
     """
+
     previous = None  # feedback setting just before beam dump
     timeout = 100  # used for setting feedback ON or previous value
 
     def turn_feedback_on(self):
         yield from bps.mv(
-            monochromator.feedback.on, MONO_FEEDBACK_ON,
+            monochromator.feedback.on,
+            MONO_FEEDBACK_ON,
             timeout=self.timeout,
         )
 
@@ -76,7 +77,7 @@ if aps.inUserOperations:
         post_plan=fb.mono_beam_just_came_back_but_after_sleep_plan,
     )
     # DO NOT INSTALL THIS for always!!!! It prevents all operations when APS dumps and A shutter closes
-    # 2-24-2025 JIL, hard lesson learned. Really annoying. 
+    # 2-24-2025 JIL, hard lesson learned. Really annoying.
     # need to figure out better way to do this, can we combinee with BeamInHutch suspender?
     # RE.install_suspender(suspender_white_beam_ready)
 
@@ -87,19 +88,21 @@ if aps.inUserOperations:
     # @bpp.suspend_decorator(suspend_FE_shutter)
 
     logger.info(f"mono shutter connected = {mono_shutter.pss_state.connected}")
-        # remove comment if likely to use this suspender (issue #170)
-        # suspend_mono_shutter = bluesky.suspenders.SuspendFloor(mono_shutter.pss_state, 1)
+    # remove comment if likely to use this suspender (issue #170)
+    # suspend_mono_shutter = bluesky.suspenders.SuspendFloor(mono_shutter.pss_state, 1)
 
-    logger.info("Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired.")
+    logger.info(
+        "Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired."
+    )
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)
-        # be more judicious when to use this suspender (only within scan plans) -- see #180
-        # old method: 
-        # RE.install_suspender(suspend_BeamInHutch)
-        # RE.remove_suspender(suspend_BeamInHutch)
-        # logger.info("BeamInHutch suspender installed")
-        # use following construct now: 
-        #@bpp.suspend_decorator(suspend_BeamInHutch) 
-        # #this is how to do proper suspender for one function, not for the whole module
+# be more judicious when to use this suspender (only within scan plans) -- see #180
+# old method:
+# RE.install_suspender(suspend_BeamInHutch)
+# RE.remove_suspender(suspend_BeamInHutch)
+# logger.info("BeamInHutch suspender installed")
+# use following construct now:
+# @bpp.suspend_decorator(suspend_BeamInHutch)
+# #this is how to do proper suspender for one function, not for the whole module
 
 
 else:

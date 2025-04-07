@@ -1,4 +1,3 @@
-
 """
 user-customizable sample title function
 """

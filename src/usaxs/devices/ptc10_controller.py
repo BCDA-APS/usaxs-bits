@@ -13,7 +13,6 @@ logger.info(__file__)
 
 from apstools.devices import PTC10AioChannel
 from apstools.devices import PTC10PositionerMixin
-from apstools.devices import PTC10RtdChannel
 from ophyd import Component
 from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
@@ -71,7 +70,7 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     250	215	210	198
     300	259	252	239
     Note: at 70C the offset is under 7 degrees for right end NMR tube, heater set to 77 degrees, NMR tube is 70.4C.
-    For 5th NMR tube from right, the offset is pretty much 0 - 70C and sample temperature is 71. So we need to verify offset every time, it clearly varies at different positions a  lot. 
+    For 5th NMR tube from right, the offset is pretty much 0 - 70C and sample temperature is 71. So we need to verify offset every time, it clearly varies at different positions a  lot.
     """
 
     # PVPositioner interface

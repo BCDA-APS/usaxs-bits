@@ -3,27 +3,23 @@ Linkam temperature controllers: T96 (tc1)
 """
 
 __all__ = [
-    'linkam_tc1',
-    ]
+    "linkam_tc1",
+]
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-import warnings
 import datetime
 import pathlib
-import random  # for testing
 import time
-from ophyd import Component
-from ophyd import Device
-from ophyd import EpicsSignal
-from ophyd import EpicsSignalRO
-from ophyd import EpicsSignalWithRBV
-from ophyd import Signal
-from .linkam_support import Linkam_T96_Device
+import warnings
+
 from bluesky import plan_stubs as bps
+from ophyd import EpicsSignalRO
+
+from .linkam_support import Linkam_T96_Device
 
 SECOND = 1
 MINUTE = 60 * SECOND
@@ -38,9 +34,10 @@ log_file_name = pathlib.Path(user_dir.get()) / (
 )
 
 # first we need to redefine Linkam_T96_Device to add some methods we really want to use.
-# then we define the instance we are going to use here. 
+# then we define the instance we are going to use here.
 
 # new device definition
+
 
 class My_Linkam_T96_Device(Linkam_T96_Device):
     """
@@ -51,11 +48,12 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
     EXAMPLE::
 
         tc1 = My_Linkam_T96_Device("IOC:tc1:", name="tc1")
-    
+
     to get temperature, ramprate etc:
     linkam_tc1.temperature.position which returns the current T in C
 
     """
+
     def readable_time(self, duration, rounding=2):
         """
         Return a string representation of the duration.
@@ -69,25 +67,20 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         weeks = int(duration / WEEK)
         known = weeks * WEEK
 
-        days = ((duration - known) // DAY)
+        days = (duration - known) // DAY
         known += days * DAY
 
-        hours = ((duration - known) // HOUR)
+        hours = (duration - known) // HOUR
         known += hours * HOUR
 
-        minutes = ((duration - known) // MINUTE)
+        minutes = (duration - known) // MINUTE
         known += minutes * MINUTE
 
         seconds = round(duration - known, rounding)
         db = dict(w=weeks, d=days, h=hours, m=minutes, s=seconds)
 
-        s = [
-            f"{v}{k}"
-            for k, v in db.items()
-            if v != 0
-        ]
+        s = [f"{v}{k}" for k, v in db.items() if v != 0]
         return " ".join(s)
-
 
     def log_it(self, text):
         """Cheap, lazy way to add to log file.  Gotta be better way..."""
@@ -101,9 +94,8 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
             # write the payload
             dt = datetime.datetime.now()
             # ISO-8601 format time, ms precision
-            iso8601 = dt.isoformat(sep=" ", timespec='milliseconds')
+            iso8601 = dt.isoformat(sep=" ", timespec="milliseconds")
             f.write(f"{iso8601}: {text}\n")
-
 
     def linkam_report(self):
         """Report current values for selected controller."""
@@ -118,8 +110,6 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
             f" done: {self.temperature.done.get()}"
         )
 
-
- 
     def set_target(self, value, wait=True):
         """
         BS plan: change the temperature setpoint and wait for inposition.
@@ -132,12 +122,10 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         """
         t0 = time.time()
         yield from bps.mv(
-            self.temperature.setpoint, value,
-            self.temperature.actuate, "On"
+            self.temperature.setpoint, value, self.temperature.actuate, "On"
         )
         self.log_it(
-            f"Set {self.name} setpoint to"
-            f" {self.temperature.setpoint.get():.2f} C"
+            f"Set {self.name} setpoint to" f" {self.temperature.setpoint.get():.2f} C"
         )
         if not wait:
             return
@@ -147,10 +135,9 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
             if time.time() >= checkpoint:
                 checkpoint = time.time() + 60
                 self.linkam_report()
-            yield from bps.sleep(.1)
+            yield from bps.sleep(0.1)
         self.log_it(f"Done, that took {time.time()-t0:.2f}s")
         self.linkam_report()
-
 
     def hold(self, duration):
         """BS plan: hold at temperature for the duration (s)."""
@@ -158,18 +145,18 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         t0 = time.time()
         time_expires = t0 + duration
         while time.time() < time_expires:
-            yield from bps.sleep(.5)
+            yield from bps.sleep(0.5)
         self.log_it(f"{linkam.name} holding period ended")
         self.linkam_report()
 
 
-### now we can define our instance... 
+### now we can define our instance...
 
 linkam_tc1 = My_Linkam_T96_Device("usxLINKAM:tc1:", name="linkam_tc1")
 
 try:
     linkam_tc1.wait_for_connection()
-except Exception as exc:
+except Exception:
     warnings.warn(f"Linkam controller {linkam_tc1.name} not connected.")
 
 

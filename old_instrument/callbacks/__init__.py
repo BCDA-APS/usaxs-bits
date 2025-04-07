@@ -3,4 +3,3 @@
 from .. import iconfig
 
 del iconfig
-

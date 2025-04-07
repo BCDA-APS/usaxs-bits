@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 
 
-'''
+"""
 save EPICS data from USAXS Fly Scan to a NeXus file
-'''
-
+"""
 
 import datetime
 import logging
-import numpy
 import os
 import sys
 import time
+
+import numpy
+
 # from importlib import import_module
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -21,41 +22,46 @@ logger.setLevel(logging.INFO)
 # do not warn if the HDF5 library version has changed
 # headers are 1.8.15, library is 1.8.16
 # THIS SETTING MIGHT BITE US IN THE FUTURE!
-os.environ['HDF5_DISABLE_VERSION_CHECK'] = '2'
+os.environ["HDF5_DISABLE_VERSION_CHECK"] = "2"
 import h5py
 
 # matches IOC for big arrays
-os.environ['EPICS_CA_MAX_ARRAY_BYTES'] = '1280000'    # was 200000000
+os.environ["EPICS_CA_MAX_ARRAY_BYTES"] = "1280000"  # was 200000000
 try:
-    import nexus        # when run standalone
+    import nexus  # when run standalone
 except ImportError:
-    from . import nexus # when imported in a package
+    from . import nexus  # when imported in a package
 
 
 COMMON_AD_CONFIG_DIR = "/share1/AreaDetectorConfig/FlyScan_config/"
 path = os.path.dirname(__file__)
-XML_CONFIGURATION_FILE = os.path.join(COMMON_AD_CONFIG_DIR, 'saveFlyData.xml')
-XSD_SCHEMA_FILE = os.path.join(path, 'saveFlyData.xsd')
+XML_CONFIGURATION_FILE = os.path.join(COMMON_AD_CONFIG_DIR, "saveFlyData.xml")
+XSD_SCHEMA_FILE = os.path.join(path, "saveFlyData.xsd")
 
 
-class TimeoutException(Exception): pass
-class EpicsNotConnected(Exception): pass
+class TimeoutException(Exception):
+    pass
+
+
+class EpicsNotConnected(Exception):
+    pass
+
 
 NOT_CONNECTED_TEXT = "not connected"
 NO_DATA_TEXT = "no data"
 
 
 class SaveFlyScan(object):
-    '''watch trigger PV, save data to NeXus file after scan is done'''
+    """watch trigger PV, save data to NeXus file after scan is done"""
 
-    trigger_pv = 'usxLAX:USAXSfly:Start'
-    trigger_accepted_values = (0, 'Done')
+    trigger_pv = "usxLAX:USAXSfly:Start"
+    trigger_accepted_values = (0, "Done")
     trigger_poll_interval_s = 0.1
-    scantime_pv = 'usxLAX:USAXS:FS_ScanTime'
-    creator_version = 'unknown'
-    flyScanNotSaved_pv = 'usxLAX:USAXS:FlyScanNotSaved'
+    scantime_pv = "usxLAX:USAXS:FS_ScanTime"
+    creator_version = "unknown"
+    flyScanNotSaved_pv = "usxLAX:USAXS:FlyScanNotSaved"
 
-    def __init__(self, hdf5_file, config_file = None):
+    def __init__(self, hdf5_file, config_file=None):
         self.hdf5_file_name = hdf5_file
 
         path = self._get_support_code_dir()
@@ -97,13 +103,14 @@ class SaveFlyScan(object):
                 continue
             elif pv_spec in not_connected_PVs:
                 logger.warning(
-                    "preliminaryWriteFile(): PV %s is not connected now",
-                    pv_spec.pvname
+                    "preliminaryWriteFile(): PV %s is not connected now", pv_spec.pvname
                 )
                 value = NOT_CONNECTED_TEXT
                 # continue
             elif pv_spec.as_string:
-                value = pv_spec.ophyd_signal.get(as_string=True, timeout=10, use_monitor=False)
+                value = pv_spec.ophyd_signal.get(
+                    as_string=True, timeout=10, use_monitor=False
+                )
             else:
                 value = pv_spec.ophyd_signal.get(timeout=10, use_monitor=False)
             if value is None:
@@ -121,7 +128,9 @@ class SaveFlyScan(object):
 
             hdf5_parent = pv_spec.group_parent.hdf5_group
             try:
-                logger.debug('preliminaryWriteFile(name="%s", data=%s)', pv_spec.label, value)
+                logger.debug(
+                    'preliminaryWriteFile(name="%s", data=%s)', pv_spec.label, value
+                )
                 ds = makeDataset(hdf5_parent, pv_spec.label, value)
                 if ds is None:
                     logger.debug(f"Could not create {pv_spec.label}")
@@ -130,26 +139,25 @@ class SaveFlyScan(object):
                 addAttributes(ds, **pv_spec.attrib)
             except IOError as e:
                 logger.debug("preliminaryWriteFile():")
-                logger.debug("ERROR: pv_spec.label=%s, value=%s", pv_spec.label, str(value))
+                logger.debug(
+                    "ERROR: pv_spec.label=%s, value=%s", pv_spec.label, str(value)
+                )
                 logger.debug("MESSAGE: %s", e)
                 logger.debug("RESOLUTION: writing as error message string")
-                makeDataset(hdf5_parent, pv_spec.label, [str(e).encode('utf8')])
+                makeDataset(hdf5_parent, pv_spec.label, [str(e).encode("utf8")])
 
     def saveFile(self):
-        '''write all desired data to the file and exit this code'''
+        """write all desired data to the file and exit this code"""
         t = datetime.datetime.now()
         timestamp = datetime.datetime.isoformat(t, sep=" ")
-        f = self.mgr.group_registry['/'].hdf5_group
+        f = self.mgr.group_registry["/"].hdf5_group
         f.attrs["timestamp"] = timestamp
 
         # note: len(caget(array)) returns NORD (number of useful data)
         not_connected_PVs = self.mgr.unconnected_signals
         for pv_spec in self.mgr.pv_registry.values():
             if pv_spec in not_connected_PVs:
-                logger.warning(
-                    "saveFile(): PV %s is not connected now",
-                    pv_spec.pvname
-                )
+                logger.warning("saveFile(): PV %s is not connected now", pv_spec.pvname)
                 # value = NOT_CONNECTED_TEXT  # unused assignment
                 # continue
             if not pv_spec.acquire_after_scan:
@@ -163,45 +171,52 @@ class SaveFlyScan(object):
             if not isinstance(value, numpy.ndarray):
                 value = [value]
             else:
-                if pv_spec.length_limit and pv_spec.length_limit in self.mgr.pv_registry:
-                    length_limit = self.mgr.pv_registry[pv_spec.length_limit].ophyd_signal.get()
+                if (
+                    pv_spec.length_limit
+                    and pv_spec.length_limit in self.mgr.pv_registry
+                ):
+                    length_limit = self.mgr.pv_registry[
+                        pv_spec.length_limit
+                    ].ophyd_signal.get()
                     if len(value) > length_limit:
                         value = value[:length_limit]
 
             hdf5_parent = pv_spec.group_parent.hdf5_group
             try:
-                logger.debug(f"saveFile(name=\"{pv_spec.label}\", data={value})")
+                logger.debug(f'saveFile(name="{pv_spec.label}", data={value})')
                 ds = makeDataset(hdf5_parent, pv_spec.label, value)
                 self._attachEpicsAttributes(ds, pv_spec)
                 addAttributes(ds, **pv_spec.attrib)
             except Exception as e:
                 logger.debug("saveFile():")
-                logger.debug("ERROR: pv_spec.label=%s, value=%s", pv_spec.label, str(value))
+                logger.debug(
+                    "ERROR: pv_spec.label=%s, value=%s", pv_spec.label, str(value)
+                )
                 logger.debug("MESSAGE: %s", e)
                 logger.debug("RESOLUTION: writing as error message string")
-                makeDataset(hdf5_parent, pv_spec.label, [str(e).encode('utf8')])
+                makeDataset(hdf5_parent, pv_spec.label, [str(e).encode("utf8")])
 
         # as the final step, make all the links as directed
         for _k, v in self.mgr.link_registry.items():
             v.make_link(f)
 
-        f.close()    # be CERTAIN to close the file
+        f.close()  # be CERTAIN to close the file
         logger.debug("saveFile(): file closed")
 
     def _get_support_code_dir(self):
         return os.path.split(os.path.abspath(__file__))[0]
 
     def _prepare_to_acquire(self):
-        '''connect with EPICS and create HDF5 file and structure'''
+        """connect with EPICS and create HDF5 file and structure"""
         t0 = time.time()
         if not self.mgr.configured:
             self.mgr._read_configuration()
             self.mgr._connect_ophyd()
-            for _i in range(50):   # limited wait to connect
+            for _i in range(50):  # limited wait to connect
                 verdict = self.mgr.connected
                 logger.debug(f"connected: {verdict}  time:{time.time()-t0}")
                 if verdict:
-                    break       # seems to take about 60-70 ms with current XML file
+                    break  # seems to take about 60-70 ms with current XML file
                 time.sleep(0.01)
 
         connect_timeout = 15.0
@@ -210,14 +225,16 @@ class SaveFlyScan(object):
                 for item in self.mgr.unconnected_signals:
                     logger.warning(
                         "Not connected PV=%s  ophyd=%s",
-                        item.pvname, item.ophyd_signal.name)
+                        item.pvname,
+                        item.ophyd_signal.name,
+                    )
                 # raise EpicsNotConnected()
                 break
             time.sleep(0.1)
 
         # create the file
         for key, xture in sorted(self.mgr.group_registry.items()):
-            if key == '/':
+            if key == "/":
                 # create the file and internal structure
                 f = h5py.File(self.hdf5_file_name, "w")
                 # the following are attributes to the root element of the HDF5 file
@@ -238,11 +255,13 @@ class SaveFlyScan(object):
             addAttributes(xture.hdf5_group, **xture.attrib)
 
         for field in self.mgr.field_registry.values():
-            if isinstance(field.text, type(u"unicode")):
-                field.text = field.text.encode('utf8')
+            if isinstance(field.text, type("unicode")):
+                field.text = field.text.encode("utf8")
             try:
-                ds = makeDataset(field.group_parent.hdf5_group, field.name, [field.text])
-                #ds = field.group_parent.hdf5_group
+                ds = makeDataset(
+                    field.group_parent.hdf5_group, field.name, [field.text]
+                )
+                # ds = field.group_parent.hdf5_group
                 addAttributes(ds, **field.attrib)
             except Exception as _exc:
                 msg = "problem with field={}, text={}, exception={}".format(
@@ -251,30 +270,30 @@ class SaveFlyScan(object):
                 raise Exception(msg)
 
     def _attachEpicsAttributes(self, node, pv):
-        '''attach common attributes from EPICS to the HDF5 tree node'''
+        """attach common attributes from EPICS to the HDF5 tree node"""
         if hasattr(pv.ophyd_signal, "desc"):
             desc = pv.ophyd_signal.desc.value
         else:
-            desc = ''
+            desc = ""
 
         attr = {}
-        attr["epics_pv"] = pv.pvname.encode('utf8')
+        attr["epics_pv"] = pv.pvname.encode("utf8")
         if hasattr(pv, "units"):
             t = pv.units
         else:
             t = ""
-        attr["units"] = t.encode('utf8')
+        attr["units"] = t.encode("utf8")
         if hasattr(pv, "type"):
             t = pv.type
         else:
             t = ""
         attr["epics_type"] = t
-        attr["epics_description"] = desc.encode('utf8')
+        attr["epics_description"] = desc.encode("utf8")
         addAttributes(node, **attr)
 
 
-def makeDataset(parent, name, data = None, **attr):
-    '''
+def makeDataset(parent, name, data=None, **attr):
+    """
     create and write data to a dataset in the HDF5 file hierarchy
 
     Any named parameters in the call to this method
@@ -295,7 +314,7 @@ def makeDataset(parent, name, data = None, **attr):
     # gzip         815366
     # lzf          861396
     # ===========  =================
-    '''
+    """
     if data is None:
         obj = parent.create_dataset(name)
     else:
@@ -313,8 +332,8 @@ def makeDataset(parent, name, data = None, **attr):
             logger.debug(f"Unexpected Exception: {name} : {_exc}")
             obj = None
 
-        #obj = parent.create_dataset(name, data=data, compression="gzip")
-        #obj = parent.create_dataset(name, data=data, compression="lzf")
+        # obj = parent.create_dataset(name, data=data, compression="gzip")
+        # obj = parent.create_dataset(name, data=data, compression="lzf")
     if obj is not None:
         addAttributes(obj, **attr)
     return obj
@@ -335,15 +354,14 @@ def addAttributes(parent, **attr):
 
 def get_CLI_options():
     import argparse
+
     parser = argparse.ArgumentParser(description=__doc__)
 
-    parser.add_argument('data_file',
-                    action='store',
-                    help="/path/to/new/hdf5/data/file")
+    parser.add_argument("data_file", action="store", help="/path/to/new/hdf5/data/file")
 
-    parser.add_argument('xml_config_file',
-                    action='store',
-                    help="XML configuration file")
+    parser.add_argument(
+        "xml_config_file", action="store", help="XML configuration file"
+    )
 
     return parser.parse_args()
 
@@ -353,16 +371,16 @@ def main():
     dataFile = cli_options.data_file
     path = os.path.dirname(dataFile)
     if len(path) > 0 and not os.path.exists(path):
-        msg = 'directory for that file does not exist: ' + dataFile
+        msg = "directory for that file does not exist: " + dataFile
         raise RuntimeError(msg)
 
     if os.path.exists(dataFile):
-        msg = 'file exists: ' + dataFile
+        msg = "file exists: " + dataFile
         raise RuntimeError(msg)
 
     configFile = cli_options.xml_config_file
     if not os.path.exists(configFile):
-        msg = 'config file not found: ' + configFile
+        msg = "config file not found: " + configFile
         raise RuntimeError(msg)
 
     sfs = SaveFlyScan(dataFile, configFile)
@@ -370,12 +388,12 @@ def main():
         sfs.waitForData()
     except TimeoutException as _exception_message:
         logger.warning("exiting because of timeout!!!!!!!")
-        sys.exit(1)     # exit silently with error, 1=TIMEOUT
-    logger.debug('wrote file: ' + dataFile)
+        sys.exit(1)  # exit silently with error, 1=TIMEOUT
+    logger.debug("wrote file: " + dataFile)
 
 
 def developer_bluesky():
-    sfs = SaveFlyScan('test.h5', XML_CONFIGURATION_FILE)
+    sfs = SaveFlyScan("test.h5", XML_CONFIGURATION_FILE)
     sfs.waitForData()
 
 
@@ -386,16 +404,16 @@ def developer_spec():
     sfs.saveFile()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()  # production system - SPEC uses this
     # developer_bluesky()
     # developer_spec()
 
 
-'''
+"""
 cd /home/beams/USAXS/Documents/eclipse/USAXS/tools
 /bin/rm test.h5
 caput usxLAX:USAXSfly:Start 0
 /APSshare/anaconda/x86_64/bin/python ./saveFlyData.py ./test.h5 ./saveFlyData.xml
 /APSshare/anaconda/x86_64/bin/python ~/bin/h5toText.py ./test.h5
-'''
+"""

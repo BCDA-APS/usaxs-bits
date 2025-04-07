@@ -12,10 +12,10 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from . import iconfig
 from ophyd.signal import EpicsSignal
 from ophyd.signal import EpicsSignalBase
 
+from . import iconfig
 
 # set default timeout for all EpicsSignal connections & communications
 # always first, before ANY ophyd EPICS-based signals are created

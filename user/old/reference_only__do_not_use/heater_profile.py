@@ -16,18 +16,17 @@ both of which are in directory ``~/.ipython/profile/bluesky/usaxs_support/``.
 See https://github.com/APS-USAXS/ipython-usaxs/issues/482 for details.
 """
 
-#from apstools.devices import Linkam_CI94_Device
-#from apstools.devices import Linkam_T96_Device
-from ....instrument.devices.linkam import linkam_tc1
-from bluesky import plan_stubs as bps
-from ophyd import EpicsSignal
-from ophyd import EpicsSignalRO
-
+# from apstools.devices import Linkam_CI94_Device
+# from apstools.devices import Linkam_T96_Device
 import datetime
 import pathlib
 import random  # for testing
 import time
 
+from bluesky import plan_stubs as bps
+from ophyd import EpicsSignalRO
+
+from ....instrument.devices.linkam import linkam_tc1
 
 SECOND = 1
 MINUTE = 60 * SECOND
@@ -42,8 +41,8 @@ log_file_name = pathlib.Path(user_dir.get()) / (
     datetime.datetime.now().strftime("%m%d-%H%M-heater-log.txt")
 )
 
-linkam = linkam_tc1     # choose which one#
-#linkam = linkam_ci94     # choose which one
+linkam = linkam_tc1  # choose which one#
+# linkam = linkam_ci94     # choose which one
 
 
 class HeaterStopAndHoldRequested(Exception):
@@ -77,11 +76,7 @@ def readable_time(duration, rounding=2):
     seconds = round(duration - known, rounding)
     db = dict(w=weeks, d=days, h=hours, m=minutes, s=seconds)
 
-    s = [
-        f"{v}{k}"
-        for k, v in db.items()
-        if v != 0
-    ]
+    s = [f"{v}{k}" for k, v in db.items() if v != 0]
     return " ".join(s)
 
 
@@ -97,7 +92,7 @@ def log_it(text):
         # write the payload
         dt = datetime.datetime.now()
         # ISO-8601 format time, ms precision
-        iso8601 = dt.isoformat(sep=" ", timespec='milliseconds')
+        iso8601 = dt.isoformat(sep=" ", timespec="milliseconds")
         f.write(f"{iso8601}: {text}\n")
 
 
@@ -119,16 +114,14 @@ def change_ramp_rate(value):
     """BS plan: change controller's ramp rate."""
     yield from check_for_exit_request(time.time())
     yield from bps.mv(linkam.ramp.setpoint, value)
-    log_it(
-        f"Set {linkam.name} rate to {linkam.ramp.setpoint.get():.0f} C/min"
-    )
+    log_it(f"Set {linkam.name} rate to {linkam.ramp.setpoint.get():.0f} C/min")
 
 
 def check_for_exit_request(t0):
     """
     BS plan: Hold linkam at current temperature & exit planHeaterProcess().
 
-    Raise ``StopHeaterPlan`` exception if exit was requested.  The 
+    Raise ``StopHeaterPlan`` exception if exit was requested.  The
     planHeaterProcess() will catch this and return.  Otherwise return ```None``
 
     Can't call linkam.temperature.stop() since that has blocking code.
@@ -165,16 +158,14 @@ def linkam_change_setpoint(value, wait=True):
     t0 = time.time()
     yield from check_for_exit_request(t0)
     yield from bps.mv(
-        linkam.temperature.setpoint, value,
-        linkam.temperature.actuate, "On"
+        linkam.temperature.setpoint, value, linkam.temperature.actuate, "On"
     )
     # if isinstance(linkam, Linkam_T96_Device):
     #     yield from bps.mv(
     #         linkam.temperature.actuate, "On"
     #     )
     log_it(
-        f"Set {linkam.name} setpoint to"
-        f" {linkam.temperature.setpoint.get():.2f} C"
+        f"Set {linkam.name} setpoint to" f" {linkam.temperature.setpoint.get():.2f} C"
     )
     if not wait:
         return
@@ -185,7 +176,7 @@ def linkam_change_setpoint(value, wait=True):
             checkpoint = time.time() + 60
             linkam_report()
         yield from check_for_exit_request(t0)
-        yield from bps.sleep(.1)
+        yield from bps.sleep(0.1)
     log_it(f"Done, that took {time.time()-t0:.2f}s")
     linkam_report()
 
@@ -197,7 +188,7 @@ def linkam_hold(duration):
     time_expires = t0 + duration
     while time.time() < time_expires:
         yield from check_for_exit_request(t0)
-        yield from bps.sleep(.1)
+        yield from bps.sleep(0.1)
     log_it(f"{linkam.name} holding period ended")
     linkam_report()
 
@@ -212,7 +203,9 @@ def planHeaterProcess():
         yield from change_ramp_rate(20)  # TODO: value used in testing
         yield from linkam_change_setpoint(80)  # TODO: value used in testing
         # two hours = 2 * HOUR, two minutes = 2 * MINUTE
-        random_testing_hold_time = (1*MINUTE + 12*SECOND)*random.random()  # TODO: value used in testing
+        random_testing_hold_time = (
+            1 * MINUTE + 12 * SECOND
+        ) * random.random()  # TODO: value used in testing
         yield from linkam_hold(random_testing_hold_time)
         yield from change_ramp_rate(20)  # TODO: value used in testing
         yield from linkam_change_setpoint(40)  # TODO: value used in testing

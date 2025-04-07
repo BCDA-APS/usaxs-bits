@@ -44,7 +44,7 @@ def calc_R_Q(
     ar_center=None,
     V_f_gain=None,
 ):
-    """
+    r"""
     Calculate 1-D :math:`R(Q)` from raw USAXS data.
 
     :param float wavelength: :math:`lambda`, (:math:`\A`)

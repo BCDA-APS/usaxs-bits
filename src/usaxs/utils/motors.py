@@ -1,10 +1,9 @@
-
 """
 motor functions
 """
 
 __all__ = [
-    'move_motors',
+    "move_motors",
 ]
 
 import logging
@@ -12,8 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from apstools.utils import pairwise
 import ophyd
+from apstools.utils import pairwise
+
 
 def move_motors(*args):
     """

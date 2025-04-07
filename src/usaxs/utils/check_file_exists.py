@@ -1,11 +1,12 @@
-
 """
 test if file name exists, Windows-unique
 
 see: https://github.com/APS-USAXS/ipython-usaxs/issues/343
 """
 
-__all__ = ["filename_exists",]
+__all__ = [
+    "filename_exists",
+]
 
 import logging
 
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 import os
+
 
 def filename_exists(fname, case_insensitive=True):
     """

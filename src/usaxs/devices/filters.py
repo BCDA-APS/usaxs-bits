@@ -1,23 +1,21 @@
-
 """
 beam attenuating filters
 """
 
 __all__ = [
-    'Filter_AlTi',
-    ]
+    "Filter_AlTi",
+]
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from ophyd import Component
+from ophyd import DerivedSignal
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import FormattedComponent
-from ophyd import DerivedSignal
 
 
 class FilterBank(Device):
@@ -30,34 +28,37 @@ class FilterBank(Device):
 
         pfilter = FilterBank("ioc:", name="pfilter", bank="FL1")
 
-    :see: 
+    :see:
     """
 
- 
     class TransmDerivedSignal(DerivedSignal):
         def forward(self, value):
-            return 1/value      
-         
-        def inverse(self, value):
-            return 1/value
-        
+            return 1 / value
 
-    fPos = FormattedComponent(EpicsSignal, "{prefix}{_bank}:sortedIndex") #, kind="config")
-    #control = FormattedComponent(EpicsSignalRO, "{prefix}bank{_bank}", string=True, kind="config")
-    #bits = FormattedComponent(EpicsSignalRO, "{prefix}bitFlag{_bank}", kind="config")
-    attenuation = FormattedComponent(EpicsSignalRO, "{prefix}{_bank}:attenuation_actual", kind="config")
-    #transmission = Component(TransmDerivedSignal,derived_from="attenuation")
-    transmission = FormattedComponent(EpicsSignalRO, "{prefix}{_bank}:transmission_RBV", kind="config")
+        def inverse(self, value):
+            return 1 / value
+
+    fPos = FormattedComponent(
+        EpicsSignal, "{prefix}{_bank}:sortedIndex"
+    )  # , kind="config")
+    # control = FormattedComponent(EpicsSignalRO, "{prefix}bank{_bank}", string=True, kind="config")
+    # bits = FormattedComponent(EpicsSignalRO, "{prefix}bitFlag{_bank}", kind="config")
+    attenuation = FormattedComponent(
+        EpicsSignalRO, "{prefix}{_bank}:attenuation_actual", kind="config"
+    )
+    # transmission = Component(TransmDerivedSignal,derived_from="attenuation")
+    transmission = FormattedComponent(
+        EpicsSignalRO, "{prefix}{_bank}:transmission_RBV", kind="config"
+    )
 
     def __init__(self, prefix, bank=None, **kwargs):
         self._bank = bank
         super().__init__(prefix, **kwargs)
 
 
-Filter_AlTi = FilterBank("12idPyFilter:", name="Filter_AlTi",bank="FL1")
+Filter_AlTi = FilterBank("12idPyFilter:", name="Filter_AlTi", bank="FL1")
 
-#pf4_glass = DualPf4FilterBox("usxRIO:pf42:", name="pf4_glass")
-
+# pf4_glass = DualPf4FilterBox("usxRIO:pf42:", name="pf4_glass")
 
 
 # class FilterCommon(Device):
@@ -93,7 +94,3 @@ Filter_AlTi = FilterBank("12idPyFilter:", name="Filter_AlTi",bank="FL1")
 #     energy_keV_mono = Component(EpicsSignal, "EnergyBeamline", kind="config")
 
 #     mode = Component(EpicsSignal, "EnergySelect", string=True, kind="config")
-
-
-
-

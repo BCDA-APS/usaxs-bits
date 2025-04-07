@@ -1,11 +1,11 @@
-from collections import defaultdict
-from dataclasses import dataclass
 import calendar
 import datetime
-import numpy
 import pathlib
 import typing
+from collections import defaultdict
+from dataclasses import dataclass
 
+import numpy
 
 PATH = pathlib.Path(__file__).parent
 LOGFILE = PATH / "_camonitor.log"

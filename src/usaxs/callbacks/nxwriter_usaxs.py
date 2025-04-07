@@ -180,7 +180,6 @@ class OurCustomNXWriterBase(NXWriterAPS):
 
 
 class NXWriterFlyScan(OurCustomNXWriterBase):
-
     supported_plans = ("Flyscan",)
 
     def write_streams(self, parent):
@@ -278,7 +277,7 @@ class NXWriterUascan(OurCustomNXWriterBase):
         """
         group: /entry/instrument/slits:NXnote/SLIT:NXslit
         """
-        group = self.create_NX_group(parent, f"slits:NXnote")
+        group = self.create_NX_group(parent, "slits:NXnote")
         for pre in "guard_slit usaxs_slit".split():
             slit = self.create_NX_group(group, f"{pre}:NXslit")
             slit["x_gap"] = self.get_stream_link(f"{pre}_h_size")
