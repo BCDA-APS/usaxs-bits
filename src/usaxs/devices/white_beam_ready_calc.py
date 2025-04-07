@@ -3,19 +3,15 @@ shutters
 """
 
 # TODO need PSS system
-__all__ = [
-    "white_beam_ready",
-]
-
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import Signal
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 CALC_PV = "usxLAX:userCalc9"
 SHUTTER_PV = "PA:12ID:STA_A_FES_OPEN_PL"

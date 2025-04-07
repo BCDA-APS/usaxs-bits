@@ -11,6 +11,7 @@ from ophyd import EpicsSignal
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+
 class Autosave(Device):
     """control of autosave routine in EPICS IOC"""
 

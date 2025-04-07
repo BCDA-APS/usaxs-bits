@@ -10,10 +10,6 @@ __all__ = [
 ]
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import os
 import warnings
 
@@ -35,6 +31,9 @@ from .area_detector_common import EpicsDefinesTiffFileNames
 from .area_detector_common import Override_AD_plugin_primed
 from .area_detector_common import _validate_AD_FileWriter_path_
 from .area_detector_common import area_detector_EPICS_PV_prefix
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 # from ophyd.areadetector.plugins import ProcessPlugin
 
