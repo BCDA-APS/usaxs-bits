@@ -2,15 +2,6 @@
 PTC10 Programmable Temperature Controller
 """
 
-__all__ = [
-    "ptc10",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from apstools.devices import PTC10AioChannel
 from apstools.devices import PTC10PositionerMixin
 from ophyd import Component
@@ -101,10 +92,12 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     # pidD = Component(PTC10AioChannel, "5D:")  # unused now
 
 
-ptc10 = USAXS_PTC10("usxTEMP:tc1:", name="ptc10")
-ptc10.report_dmov_changes.put(True)  # a diagnostic
-ptc10.tolerance.put(1.0)  # done when |readback-setpoint|<=tolerance
 
-# aliases to make PTC10 have same terms as Linkam controllers
-ptc10.temperature = ptc10
-ptc10.ramp = ptc10.pid.ramprate
+
+# TODO: What is this?
+# ptc10.report_dmov_changes.put(True)  # a diagnostic
+# ptc10.tolerance.put(1.0)  # done when |readback-setpoint|<=tolerance
+
+# # aliases to make PTC10 have same terms as Linkam controllers
+# ptc10.temperature = ptc10
+# ptc10.ramp = ptc10.pid.ramprate

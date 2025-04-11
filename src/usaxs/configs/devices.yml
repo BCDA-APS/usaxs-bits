@@ -24,7 +24,7 @@ usaxs.devices.filters.FilterBank:
   prefix: "12idPyFilter:"
   bank: FL1
 
-usaxs.devices.ioc_state.IocInfoDevice:
+usaxs.devices.ioc_stats.IocInfoDevice:
 - name: gp_stats
   prefix: "gp:"
 
@@ -36,9 +36,14 @@ apstools.synApps.swait.UserCalcsDevice:
 - name : userCalcs_lax
   prefix: "usxLAX:"
 
-ophyd.EpicsSignal:
+ophyd.EpicsSignal: #TODO: Double check my work
 - name: ar_start
-  prefix: usxLAX:USAXS:ARstart
+  read_pv: usxLAX:USAXS:ARstart
+
+ophyd.EpicsSignalRO:
+- name: usaxs_CheckBeamStandard
+  read_pv: usxLAX:blCalc:userCalc1
+  auto_monitor: False
 
 ophyd.EpicsMotor:
 - {name: LAXm1, prefix: usxLAX:m58:c0:m1, labels: ["LAXm1"]}
@@ -49,6 +54,19 @@ ophyd.EpicsMotor:
 - {name: LAXm6, prefix: usxLAX:m58:c0:m6, labels: ["LAXgsy"]}
 - {name: LAXm7, prefix: usxLAX:m58:c0:m7, labels: ["LAXgsx"]}
 - {name: LAXm8, prefix: usxLAX:m58:c0:m8, labels: ["LAXm8"]}
+
+usaxs.devices.ptc10_controller.USAXS_PTC10:
+- name: ptc10
+  prefix: "usxTEMP:tc1:"
+
+usaxs.devices.sample_data.SampleDataDevice:
+- name: sample_data_device
+
+usaxs.devices.sample_rotator.SampleRotator:
+- name: pi_c867
+  prefix: usxPI:c867:c0:m1
+
+usaxs.devices.shutters.My12IdPssShutter:
 
 
 # ophyd.Signal:

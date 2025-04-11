@@ -2,21 +2,10 @@
 EPICS data about the sample
 """
 
-__all__ = [
-    "sample_data",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from bluesky import plan_stubs as bps
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
-
-from ..framework import sd
 
 
 class SampleDataDevice(Device):
@@ -80,4 +69,6 @@ class SampleDataDevice(Device):
 
 
 sample_data = SampleDataDevice(name="sample_data")
-sd.baseline.append(sample_data)
+
+# TODO: Append why, when?
+# sd.baseline.append(sample_data)

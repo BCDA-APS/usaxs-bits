@@ -2,15 +2,6 @@
 rotate the sample with PI C867 motor
 """
 
-__all__ = [
-    "pi_c867",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
@@ -74,6 +65,3 @@ class SampleRotator(Device):
     def stop(self, *, success=False):
         self.motor_stop.put(1, wait=False)
         super().stop(success=success)
-
-
-pi_c867 = SampleRotator("usxPI:c867:c0:m1", name="pi_c867")

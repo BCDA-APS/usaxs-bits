@@ -63,8 +63,8 @@ from ..devices import usaxs_slit
 from ..devices import user_data
 from ..devices import user_override
 from ..devices import waxs_det
-from ..devices.suspenders import suspend_BeamInHutch
-from ..devices.suspenders import suspend_FE_shutter
+from ..misc.suspenders import suspend_BeamInHutch
+from ..misc.suspenders import suspend_FE_shutter
 from ..framework import RE
 from ..framework import bec
 from ..framework import specwriter

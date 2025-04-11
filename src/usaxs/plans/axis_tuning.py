@@ -51,8 +51,8 @@ from ..devices.stages import a_stage  # as_stage, ms_stage
 from ..devices.stages import axis_tune_range
 from ..devices.stages import d_stage  # as_stage, ms_stage
 from ..devices.stages import m_stage  # as_stage, ms_stage
-from ..devices.suspenders import suspend_BeamInHutch
-from ..devices.suspenders import suspend_FE_shutter
+from ..misc.suspenders import suspend_BeamInHutch
+from ..misc.suspenders import suspend_FE_shutter
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
 
