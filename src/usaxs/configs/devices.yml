@@ -8,6 +8,21 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 - name: shutter
   labels: ["shutters"]
 
+apstools.devices.ApsMachineParametersDevice:
+- name: aps
+
+apstools.devices.PlanarUndulator:
+- name: undulator
+  prefix: "S12ID:USID:" 
+
+usaxs.devices.Autosave:
+- name: lax_autosave
+  prefix: "usxLAX:"
+
+usaxs.devices.IocInfoDevice:
+- name: gp_stats
+  prefix: "gp:"
+
 # ophyd.Signal:
 # - name: test
 #   value: 50.7

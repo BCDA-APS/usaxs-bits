@@ -98,3 +98,34 @@ class Linkam_T96_Device(Device):
 
         # temperature component is the main value
         self.temperature.name = self.name
+
+    # these are unused or old things we are not using
+    # # #ramp_at_limit = Component(EpicsSignalRO, "rampAtLimit_RBV", kind="omitted")
+    # stage_config = Component(EpicsSignalRO, "STAGE:CONFIG", kind="omitted")
+    # status_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
+    # vacuum = Component(EpicsSignal, "VACUUM:SET", kind="omitted")
+    # vacuum_at_limit = Component(EpicsSignalRO, "VACUUM", kind="omitted")
+    # # #vacuum_limit_readback = Component(EpicsSignalWithRBV, "vacuumLimit", kind="omitted")
+    # vacuum_status = Component(EpicsSignalRO, "STAT:VAC:CNTRL", kind="omitted")  # calc
+    # controller_config = Component(EpicsSignalRO, "CONFIG", kind="omitted")
+    # controller_status = Component(EpicsSignalRO, "STATUS", kind="omitted")
+    # humidity = Component(EpicsSignalRO, "HUMIDITY", kind="omitted")
+    # lnp_mode = Component(EpicsSignal, "LNP_MODE:SET", kind="omitted")
+    # lnp_speed = Component(EpicsSignalWithRBV, "LNP_SPEED:SET", kind="omitted")
+    # lnp_status = Component(EpicsSignalRO, "STAT:LNP:PUMPING", kind="omitted")
+    # vacuum = Component(EpicsSignalRO, "VACUUM", kind="omitted")
+
+    # alias("$(P):CTRLLR:ERR", "$(PA)$(TA):controllerError_RBV")
+    # alias("$(P):CONFIG", "$(PA)$(TA):controllerConfig_RBV")
+    # alias("$(P):STATUS", "$(PA)$(TA):controllerStatus_RBV")
+    # alias("$(P):STAGE:CONFIG", "$(PA)$(TA):stageConfig_RBV")
+    # alias("$(P):TEMP", "$(PA)$(TA):temperature_RBV")
+    # alias("$(P):STARTHEAT", "$(PA)$(TA):heating")
+    # alias("$(P):RAMPRATE:SET", "$(PA)$(TA):rampRate")
+    # alias("$(P):RAMPRATE", "$(PA)$(TA):rampRate_RBV")
+    # alias("$(P):SETPOINT:SET", "$(PA)$(TA):rampLimit")
+    # alias("$(P):SETPOINT", "$(PA)$(TA):rampLimit_RBV")
+    # alias("$(P):POWER", "$(PA)$(TA):heaterPower_RBV")
+    # alias("$(P):LNP_SPEED", "$(PA)$(TA):lnpSpeed_RBV")
+    # alias("$(P):LNP_MODE:SET", "$(PA)$(TA):lnpMode")
+    # alias("$(P):LNP_SPEED:SET", "$(PA)$(TA):lnpSpeed")

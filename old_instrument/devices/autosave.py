@@ -18,3 +18,6 @@ class Autosave(Device):
     disable = Component(EpicsSignal, "SR_disable", auto_monitor=False)
     max_time = Component(EpicsSignal, "SR_disableMaxSecs")
 
+
+# autosave on LAX
+lax_autosave = Autosave("usxLAX:", name="lax_autosave")  # LAX is an IOC
