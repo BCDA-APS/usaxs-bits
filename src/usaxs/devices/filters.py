@@ -2,15 +2,6 @@
 beam attenuating filters
 """
 
-__all__ = [
-    "Filter_AlTi",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from ophyd import DerivedSignal
 from ophyd import Device
 from ophyd import EpicsSignal
@@ -56,7 +47,7 @@ class FilterBank(Device):
         super().__init__(prefix, **kwargs)
 
 
-Filter_AlTi = FilterBank("12idPyFilter:", name="Filter_AlTi", bank="FL1")
+# Filter_AlTi = FilterBank("12idPyFilter:", name="Filter_AlTi", bank="FL1")
 
 # pf4_glass = DualPf4FilterBox("usxRIO:pf42:", name="pf4_glass")
 

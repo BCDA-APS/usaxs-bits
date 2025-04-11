@@ -2,15 +2,6 @@
 instrument constants
 """
 
-__all__ = [
-    "constants",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 constants = {
     "SAXS_TR_PINY_OFFSET": 10.5,  # measured on 1-31-2025 JIL on 12ID...
     "SAXS_TR_TIME": 2,  # how long to measure transmission

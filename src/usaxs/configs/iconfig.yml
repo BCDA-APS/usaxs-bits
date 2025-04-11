@@ -6,14 +6,14 @@ ICONFIG_VERSION: 2.0.0
 # Add additional configuration for use with your instrument.
 
 ### The short name for the databroker catalog.
-DATABROKER_CATALOG: &databroker_catalog temp
+DATABROKER_CATALOG: &databroker_catalog usaxs
 
 ### RunEngine configuration
 RUN_ENGINE:
     DEFAULT_METADATA:
-        beamline_id: demo_instrument
-        instrument_name: Most Glorious Scientific Instrument
-        proposal_id: commissioning
+        beamline_id: 12IDE
+        instrument_name: APS USAXS/SAXS/WAXS
+        proposal_id: Beamline
         databroker_catalog: *databroker_catalog
 
     ### EPICS PV to use for the `scan_id`.
