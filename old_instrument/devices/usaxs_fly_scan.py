@@ -38,9 +38,9 @@ sfs.saveFile()
 
 from ..framework import RE
 from ..framework import specwriter
-from ...src.usaxs.devices.amplifiers import AutorangeSettings
-from ...src.usaxs.devices.amplifiers import upd_controls
-from .general_terms import terms
+from ...src.usaxs.misc.amplifiers import AutorangeSettings
+from ...src.usaxs.misc.amplifiers import upd_controls
+from ...src.usaxs.devices.general_terms import terms
 from .shutters import ti_filter_shutter
 from .stages import a_stage
 from .stages import d_stage

@@ -9,7 +9,7 @@
 # from .laser import *# from .noisy_detector import *
 # from .shutter_simulator import *
 # from .temperature_signal import *
-from ...src.usaxs.devices.amplifiers import *
+from ...src.usaxs.misc.amplifiers import *
 from .aps_source import *
 from .aps_undulator import *
 
@@ -59,12 +59,12 @@ from ...src.usaxs.devices.blackfly_module import *
 from .constants import *
 
 # from .axis_tuning import *
-from .diagnostics import *
-from .emails import *
+from ...src.usaxs.devices.diagnostics import *
+from ...src.usaxs.misc.emails import *
 
 # from .emails import *
 from .filters import *
-from .general_terms import *
+from ...src.usaxs.devices.general_terms import *
 from .linkam import *
 from .miscellaneous import *
 from .monochromator import *

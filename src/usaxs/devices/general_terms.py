@@ -2,15 +2,6 @@
 general parameters and terms
 """
 
-__all__ = [
-    "terms",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import time
 
 from ophyd import Component
@@ -18,8 +9,7 @@ from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import Signal
 
-from ..framework import sd
-from ...src.usaxs.devices.amplifiers import upd_controls
+from ..misc.amplifiers import upd_controls
 
 # TODO :  resolve issues with LAX PV database
 
@@ -337,5 +327,3 @@ class GeneralParameters(Device):
 
 
 # NOTE: ALL referenced PVs **MUST** exist or get() operations will fail!
-terms = GeneralParameters(name="terms")
-sd.baseline.append(terms)

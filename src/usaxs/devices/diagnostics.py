@@ -2,21 +2,10 @@
 PSS, FE-EPS, BL-EPS, : diagnostics
 """
 
-__all__ = [
-    "diagnostics",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import apstools.synApps
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignalRO
-
-from ..framework import sd
 
 
 class PSS_Parameters(Device):
@@ -130,5 +119,3 @@ class DiagnosticsParameters(Device):
         return self.beam_in_hutch_swait.calculated_value.get()  #!= 0
 
 
-diagnostics = DiagnosticsParameters(name="diagnostics")
-sd.baseline.append(diagnostics)

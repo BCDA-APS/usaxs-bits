@@ -8,8 +8,6 @@ from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import MotorBundle
 
-# from ..framework import sd
-from .general_terms import terms
 
 # from .usaxs_motor_devices import UsaxsMotor
 # from ..utils import move_motors

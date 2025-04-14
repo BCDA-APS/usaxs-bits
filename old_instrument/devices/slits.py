@@ -16,7 +16,7 @@ from ophyd import EpicsSignal
 from ophyd import MotorBundle
 
 from ..framework import sd
-from .general_terms import terms
+from ...src.usaxs.devices.general_terms import terms
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

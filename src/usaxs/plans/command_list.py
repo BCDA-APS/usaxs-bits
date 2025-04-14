@@ -46,11 +46,11 @@ from ..devices import terms
 from ..devices import ti_filter_shutter
 from ..devices import user_data
 from ..devices import waxs_det
-from ..devices.amplifiers import I0_controls
-from ..devices.amplifiers import I00_controls
-from ..devices.amplifiers import measure_background
-from ..devices.amplifiers import trd_controls
-from ..devices.amplifiers import upd_controls
+from ..misc.amplifiers import I0_controls
+from ..misc.amplifiers import I00_controls
+from ..misc.amplifiers import measure_background
+from ..misc.amplifiers import trd_controls
+from ..misc.amplifiers import upd_controls
 from ..devices.stages import s_stage
 from ..usaxs_support.nexus import reset_manager
 from ..usaxs_support.surveillance import instrument_archive

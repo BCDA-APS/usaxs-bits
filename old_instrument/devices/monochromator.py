@@ -23,7 +23,7 @@ from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 
 from ..framework import sd
-from .emails import email_notices
+from ...src.usaxs.misc.emails import email_notices
 
 
 class My12EidDcmEnergy(PVPositionerSoftDoneWithStop):
