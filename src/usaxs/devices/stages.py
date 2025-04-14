@@ -3,21 +3,6 @@ stages
 """
 
 # TODO check, refactor and verify...
-__all__ = [
-    "s_stage",  # sample
-    "d_stage",  # detector
-    "m_stage",  # collimating (monochromator)
-    #'ms_stage',     # side-reflecting M
-    "a_stage",  # analyzer
-    "gslit_stage",  # guard slits stage
-    #'as_stage',     # side-reflecting A
-    "saxs_stage",  # SAXS detector
-    "waxsx",  # WAXS detector X translation
-    "waxs2x",  # WAXS2 detector X translation
-]
-
-
-import logging
 
 from ophyd import Component
 from ophyd import Device
@@ -25,17 +10,11 @@ from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import MotorBundle
 
-# from ..misc.scalers import I0_SIGNAL
-# from ..misc.scalers import I00_SIGNAL
-# from ..misc.scalers import UPD_SIGNAL
-# from ..misc.amplifiers import autoscale_amplifiers
 from ..misc.usaxs_motor_devices import TunableEpicsMotor2
 from ..misc.usaxs_motor_devices import TunableEpicsMotor2WTolerance
 
-logger = logging.getLogger(__name__)
-
 # this is for tuning part of the code.
-# 2024-06-28 we need to merge stages.py with axis_tuning.py since the new tunable motor 
+# 2024-06-28 we need to merge stages.py with axis_tuning.py since the new tunable motor
 # class is defined here.
 # use center-of-mass, and not peak value: "com"
 TUNE_METHOD_PEAK_CHOICE = "centroid"
@@ -103,7 +82,6 @@ class UsaxsCollimatorStageDevice(MotorBundle):
             "collimator",
             "tunable",
         ),
-        detectors=[I0_SIGNAL],
         tune_range=axis_tune_range.mr,
         # defaults everything else
     )
@@ -116,7 +94,6 @@ class UsaxsCollimatorStageDevice(MotorBundle):
             "collimator",
             "tunable",
         ),
-        detectors=[I0_SIGNAL],
         tune_range=axis_tune_range.m2rp,
         # defaults everything else
     )
@@ -229,7 +206,6 @@ class UsaxsDetectorStageDevice(MotorBundle):
             "detector",
             "tunable",
         ),
-        detectors=[UPD_SIGNAL],
         tune_range=axis_tune_range.dx,
     )
     y = Component(
@@ -239,7 +215,6 @@ class UsaxsDetectorStageDevice(MotorBundle):
             "detector",
             "tunable",
         ),
-        detectors=[UPD_SIGNAL],
         tune_range=axis_tune_range.dy,
     )
 
@@ -369,7 +344,6 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
         TunableEpicsMotor2WTolerance,
         "usxAERO:m6",
         labels=("analyzer", "tunable"),
-        detectors=[UPD_SIGNAL],
         tune_range=axis_tune_range.ar,
     )
     x = Component(EpicsMotor, "usxAERO:m4", labels=("analyzer",))
@@ -379,7 +353,6 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
         TunableEpicsMotor2,
         "usxLAX:pi:c0:m1",
         labels=("analyzer", "tunable"),
-        detectors=[UPD_SIGNAL],
         tune_range=axis_tune_range.a2rp,
     )
     # rt = Component(EpicsMotor, 'usxLAX:m58:c1:m3', labels=("analyzer",))
@@ -411,33 +384,5 @@ class GuardSlitsStageDevice(MotorBundle):
     y = Component(EpicsMotor, "usxLAX:m58:c0:m6", labels=("guard_slits",))
 
 
-gslit_stage = GuardSlitsStageDevice("", name="gslit_stage")
 
-s_stage = UsaxsSampleStageDevice("", name="s_stage")
-d_stage = UsaxsDetectorStageDevice("", name="d_stage")
-# d_stage.x.pre_tune_method = dx_pretune_hook
-# d_stage.x.post_tune_method = dx_posttune_hook
-# d_stage.y.pre_tune_method = dy_pretune_hook
-# d_stage.y.post_tune_method = dy_posttune_hook
-
-m_stage = UsaxsCollimatorStageDevice("", name="m_stage")
-# m_stage.r.pre_tune_hook = mr_pretune_hook
-# m_stage.r.post_tune_hook = mr_posttune_hook
-# m_stage.r2p.pre_tune_method = m2rp_pretune_hook
-# m_stage.r2p.post_tune_method = m2rp_posttune_hook
-
-# ms_stage   = UsaxsCollimatorSideReflectionStageDevice('', name='ms_stage')
-
-a_stage = UsaxsAnalyzerStageDevice("", name="a_stage")
-# a_stage.r.pre_tune_method = ar_pretune_hook
-# a_stage.r.post_tune_method = ar_posttune_hook
-# as_stage   = UsaxsAnalyzerSideReflectionStageDevice('', name='as_stage')
-# a_stage.r2p.pre_tune_method = a2rp_pretune_hook
-# a_stage.r2p.post_tune_method = a2rp_posttune_hook
-
-saxs_stage = SaxsDetectorStageDevice("", name="saxs_stage")
-
-waxsx = EpicsMotor("usxAERO:m3", name="waxsx", labels=("waxs", "motor"))  # WAXS X
-
-waxs2x = EpicsMotor("usxAERO:m7", name="waxs2x", labels=("waxs2", "motor"))  # WAXS2 X
 

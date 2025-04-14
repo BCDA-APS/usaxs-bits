@@ -71,6 +71,8 @@ ophyd.EpicsMotor:
 - {name: LAXm6, prefix: usxLAX:m58:c0:m6, labels: ["LAXgsy"]}
 - {name: LAXm7, prefix: usxLAX:m58:c0:m7, labels: ["LAXgsx"]}
 - {name: LAXm8, prefix: usxLAX:m58:c0:m8, labels: ["LAXm8"]}
+- {name: waxsx, prefix: usxAERO:m3, labels: ["wasxs", "motor"]}
+- {name: waxs2x, prefix: usxAERO:m7, labels: ["waxs2x", "motor"]}
 
 usaxs.devices.ptc10_controller.USAXS_PTC10:
 - name: ptc10
@@ -107,6 +109,23 @@ usaxs.devices.white_beam_ready_calc.WhiteBeamReadyCalc:
 - name: white_beam_ready
   prefix: "usxLAX:userCalc9"
 
+usaxs.devices.stages.GuardSlitsStageDevice:
+- name: gslit_stage
+
+usaxs.devices.stages.UsaxsSampleStageDevice:
+- name: s_stage
+
+usaxs.devices.stages.UsaxsDetectorStageDevice:
+- name: d_stage
+
+usaxs.devices.stages.UsaxsCollimatorStageDevice:
+- name: m_stage
+
+usaxs.devices.stages.UsaxsAnalyzerStageDevice:
+- name: a_stage
+
+usaxs.devices.stages.SaxsDetectorStageDevice:
+- name: saxs_stage
 
 # ophyd.Signal:
 # - name: test
