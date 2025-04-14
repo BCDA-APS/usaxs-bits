@@ -7,21 +7,19 @@ __all__ = """
     """.split()
 # apsbss
 
-
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
-# from apstools.devices import ApsBssUserInfoDevice
-# from apsbss.apsbss_ophyd import EpicsBssDevice
 from apstools.utils import trim_string_for_EPICS
 from bluesky import plan_stubs as bps
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 
-from ..framework import sd
+logger = logging.getLogger(__name__)
+logger.info(__file__)
+
+# from apstools.devices import ApsBssUserInfoDevice
+# from apsbss.apsbss_ophyd import EpicsBssDevice
 
 # TODO: bss is likely completely wrong, we have new support. Check with Pete.
 
@@ -164,5 +162,5 @@ class UserDataDevice(Device):
 # apsbss = ApsBssUserInfoDevice("12ide:bss:", name="apsbss")
 ##sd.baseline.append(apsbss)
 
-user_data = UserDataDevice(name="user_data")
-sd.baseline.append(user_data)
+# user_data = UserDataDevice(name="user_data")
+# sd.baseline.append(user_data)

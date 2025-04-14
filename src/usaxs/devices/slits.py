@@ -2,24 +2,15 @@
 slits
 """
 
-__all__ = [
-    "guard_slit",
-    "usaxs_slit",
-]
-
-import logging
-
 from bluesky import plan_stubs as bps
 from ophyd import Component
 from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import MotorBundle
 
-from ..framework import sd
+# from ..framework import sd
 from .general_terms import terms
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 # from .usaxs_motor_devices import UsaxsMotor
 # from ..utils import move_motors
 
@@ -124,7 +115,7 @@ class GSlitDevice(MotorBundle):
         yield from bps.sleep(0.05)
 
 
-guard_slit = GSlitDevice("", name="guard_slit")
-usaxs_slit = UsaxsSlitDevice("", name="usaxs_slit")
-sd.baseline.append(guard_slit)
-sd.baseline.append(usaxs_slit)
+# guard_slit = GSlitDevice("", name="guard_slit")
+# usaxs_slit = UsaxsSlitDevice("", name="usaxs_slit")
+# sd.baseline.append(guard_slit)
+# sd.baseline.append(usaxs_slit)

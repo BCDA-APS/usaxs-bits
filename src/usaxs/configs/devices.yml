@@ -62,11 +62,33 @@ usaxs.devices.ptc10_controller.USAXS_PTC10:
 usaxs.devices.sample_data.SampleDataDevice:
 - name: sample_data_device
 
-usaxs.devices.sample_rotator.SampleRotator:
+usaxs.devices.sample_rotator.SampleRotator: 
 - name: pi_c867
   prefix: usxPI:c867:c0:m1
 
-usaxs.devices.shutters.My12IdPssShutter:
+usaxs.devices.shutters.My12IdPssShutter: # TODO: make sure this is correct
+
+apstools.devices.Struck3820:
+- name: struck
+  prefix: "usxLAX:3820:"
+
+usaxs.devices.slits.GSlitDevice:
+- name: guard_slit
+  prefix: ""
+
+usaxs.devices.slits.UsaxsSlitDevice:
+- name: usaxs_slit
+  prefix: ""
+
+usaxs.devices.trajectories.TrajectoryDevice:
+- name: "flyscan_trajectories"
+
+usaxs.devices.user_devices.UserDevice:
+- name: user_device
+
+usaxs.devices.white_beam.WhiteBeamReadyCalc:
+- name: white_beam_ready
+  prefix: "usxLAX:userCalc9"
 
 
 # ophyd.Signal:

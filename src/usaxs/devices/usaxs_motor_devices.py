@@ -9,15 +9,6 @@ TunableEpicsMotor2WTolerance adds tolerance to TunableEpicsMotor2WTolerance
 
 """
 
-__all__ = [
-    "TunableEpicsMotor2" "TunableEpicsMotor2WTolerance",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 # from apstools.devices import AxisTunerMixin
 from apstools.plans import lineup2
 from ophyd import Component

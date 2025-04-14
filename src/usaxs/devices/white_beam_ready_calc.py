@@ -13,7 +13,6 @@ from ophyd import Signal
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-CALC_PV = "usxLAX:userCalc9"
 SHUTTER_PV = "PA:12ID:STA_A_FES_OPEN_PL"
 APS_CURRENT_PV = "S:SRCurrentAI"
 UNDULATOR_ENERGY_PV = "ID12ds:Energy"
@@ -99,4 +98,4 @@ class WhiteBeamReadyCalc(Device):
         return self.available.get()
 
 
-white_beam_ready = WhiteBeamReadyCalc(CALC_PV, name="white_beam_ready")
+# white_beam_ready = WhiteBeamReadyCalc(CALC_PV, name="white_beam_ready")
