@@ -26,13 +26,9 @@ __all__ = """
     """.split()
 
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 # from ophyd.utils import set_and_wait
 import itertools
+import logging
 import time
 from collections import OrderedDict
 
@@ -50,6 +46,8 @@ from ophyd import TIFFPlugin
 from ophyd.areadetector.filestore_mixins import FileStoreBase
 from ophyd.areadetector.filestore_mixins import FileStoreIterativeWrite
 from ophyd.areadetector.plugins import PluginBase
+
+logger = logging.getLogger(__name__)
 
 DATABROKER_ROOT_PATH = "/"
 
