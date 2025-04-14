@@ -22,8 +22,8 @@ usaxs.devices.autocollect.AutoCollectDataDevice:
 usaxs.devices.diagnostics.DiagnosticsParameters:
 - name: diagnostics
 
-usaxs.devices.general_parameters.GeneralParameters:
-- name: terms
+# usaxs.devices.general_terms.GeneralParameters: #TODO: look at this again
+# - name: terms
 
 usaxs.devices.autosave.Autosave:
 - name: lax_autosave
@@ -37,6 +37,13 @@ usaxs.devices.filters.FilterBank:
 usaxs.devices.ioc_stats.IocInfoDevice:
 - name: gp_stats
   prefix: "gp:"
+
+# usaxs.devices.linkam.My_Linkam_T96_Device: #TODO: Double check my work
+# - name: linkam_tc1
+#   prefix: "usxLINKAM:tc1:"
+
+usaxs.devices.monochromator.MyMonochromator:
+- name: monochromator
 
 apstools.synApps.swait.SwaitRecord:
 - name: usaxs_q_calc
@@ -90,13 +97,13 @@ usaxs.devices.slits.UsaxsSlitDevice:
 - name: usaxs_slit
   prefix: ""
 
-usaxs.devices.trajectories.TrajectoryDevice:
+usaxs.devices.trajectories.Trajectories:
 - name: "flyscan_trajectories"
 
-usaxs.devices.user_devices.UserDevice:
+usaxs.devices.user_data.UserDataDevice:
 - name: user_device
 
-usaxs.devices.white_beam.WhiteBeamReadyCalc:
+usaxs.devices.white_beam_ready_calc.WhiteBeamReadyCalc:
 - name: white_beam_ready
   prefix: "usxLAX:userCalc9"
 

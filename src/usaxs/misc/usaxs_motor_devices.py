@@ -9,6 +9,11 @@ TunableEpicsMotor2WTolerance adds tolerance to TunableEpicsMotor2WTolerance
 
 """
 
+__all__ = [
+    "TunableEpicsMotor2" "TunableEpicsMotor2WTolerance",
+]
+
+
 # from apstools.devices import AxisTunerMixin
 from apstools.plans import lineup2
 from ophyd import Component
@@ -18,7 +23,7 @@ from ophyd import PositionerBase
 from ophyd import Signal
 from ophyd.status import wait as status_wait
 
-from . import scaler0
+from ....old_instrument.devices import scaler0
 
 
 class TunableEpicsMotor2(EpicsMotor):

@@ -65,25 +65,25 @@ from ...src.usaxs.misc.emails import *
 # from .emails import *
 from .filters import *
 from ...src.usaxs.devices.general_terms import *
-from .linkam import *
+from ...src.usaxs.devices.linkam import *
 from .miscellaneous import *
-from .monochromator import *
+from ...src.usaxs.devices.monochromator import *
 from .motorsLAX import *
-from .override_parameters import *
+from ...src.usaxs.misc.override_parameters import *
 
 # from .dexela_module import *
 from ...src.usaxs.devices.pilatus_module import *
 from .ptc10_controller import *
 from .sample_data import *
 from .sample_rotator import *
-from .scalers import *
+from ...src.usaxs.misc.scalers import *
 from .shutters import *
 from .slits import *
-from .stages import *
+from ...src.usaxs.devices.stages import *
 from .struck3820 import *
 from .suspenders import *
 from .trajectories import *
-from .usaxs_fly_scan import *
+from ...src.usaxs.misc.usaxs_fly_scan import *
 
 # TODO : bss code needs fixing.
 from .user_data import *

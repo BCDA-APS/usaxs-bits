@@ -2,16 +2,7 @@
 monochromator
 """
 
-__all__ = [
-    "monochromator",
-    "MONO_FEEDBACK_OFF",
-    "MONO_FEEDBACK_ON",
-]
-
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 # from apstools.devices import KohzuSeqCtl_Monochromator
 from apstools.devices import PVPositionerSoftDoneWithStop
@@ -22,8 +13,9 @@ from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 
-from ..framework import sd
-from ...src.usaxs.misc.emails import email_notices
+from ..misc.emails import email_notices
+
+logger = logging.getLogger(__name__)
 
 
 class My12EidDcmEnergy(PVPositionerSoftDoneWithStop):
@@ -52,9 +44,9 @@ class My12IdEDcm(Device):
     wavelength = Component(My12EidWavelengthRO, "12ida2:LambdaCalc")
     theta = Component(EpicsMotor, "12ida2:m19")
 
-
-# simple enumeration used by DCM_Feedback()
-MONO_FEEDBACK_OFF, MONO_FEEDBACK_ON = range(2)
+# TODO: very intersting code
+# # simple enumeration used by DCM_Feedback()
+# MONO_FEEDBACK_OFF, MONO_FEEDBACK_ON = range(2)
 
 
 # TODO: fix feedback system when ready.
@@ -104,5 +96,3 @@ class MyMonochromator(Device):
     # cryo_level = Component(EpicsSignal, "9idCRYO:MainLevel:val")
 
 
-monochromator = MyMonochromator(name="monochromator")
-sd.baseline.append(monochromator)

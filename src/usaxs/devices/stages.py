@@ -19,36 +19,29 @@ __all__ = [
 
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
-from bluesky import plan_stubs as bps
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsMotor
-from ophyd import EpicsScaler
 from ophyd import EpicsSignal
-from ophyd import Kind
 from ophyd import MotorBundle
-from ophyd.scaler import ScalerCH
 
-from ..framework import sd
-from .scalers import I0_SIGNAL
-from .scalers import I00_SIGNAL
-from .scalers import UPD_SIGNAL
+# from ..misc.scalers import I0_SIGNAL
+# from ..misc.scalers import I00_SIGNAL
+# from ..misc.scalers import UPD_SIGNAL
+# from ..misc.amplifiers import autoscale_amplifiers
+from ..misc.usaxs_motor_devices import TunableEpicsMotor2
+from ..misc.usaxs_motor_devices import TunableEpicsMotor2WTolerance
 
-# from .amplifiers import autoscale_amplifiers
-from .scalers import scaler0
-from .usaxs_motor_devices import TunableEpicsMotor2
-from .usaxs_motor_devices import TunableEpicsMotor2WTolerance
+logger = logging.getLogger(__name__)
 
 # this is for tuning part of the code.
-# 2024-06-28 we need to merge stages.py with axis_tuning.py since the new tunable motor class is defined here.
+# 2024-06-28 we need to merge stages.py with axis_tuning.py since the new tunable motor 
+# class is defined here.
 # use center-of-mass, and not peak value: "com"
 TUNE_METHOD_PEAK_CHOICE = "centroid"
 
 USING_MS_STAGE = False
-TUNING_DET_SIGNAL = {True: I00_SIGNAL, False: I0_SIGNAL}[USING_MS_STAGE]
+# TUNING_DET_SIGNAL = {True: I00_SIGNAL, False: I0_SIGNAL}[USING_MS_STAGE]
 
 
 class TuneRanges(Device):
@@ -86,7 +79,8 @@ axis_tune_range = TuneRanges(name="axis_tune_range")
 #     #y_name = TUNING_DET_SIGNAL.chname.get()
 #     #scaler0.select_channels([y_name])
 #     #scaler0.channels.chan01.kind = Kind.config
-#     # trim_plot_by_name(n=5) #this may be needed if we make plotting again, but lineup2 does not plot by default.
+#     # trim_plot_by_name(n=5)
+# #this may be needed if we make plotting again, but lineup2 does not plot by default.
 #     # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
 
 
@@ -97,12 +91,6 @@ axis_tune_range = TuneRanges(name="axis_tune_range")
 #     scaler0.select_channels(None)
 #     yield from bps.null()
 
-
-def _getScalerSignalName_(scaler, signal):
-    if isinstance(scaler, ScalerCH):
-        return signal.chname.get()
-    elif isinstance(scaler, EpicsScaler):
-        return signal.name
 
 
 class UsaxsCollimatorStageDevice(MotorBundle):
@@ -136,7 +124,7 @@ class UsaxsCollimatorStageDevice(MotorBundle):
 
 
 # ----- end of MR ------
-# -------M2RP - not needed for single crystal channelcut M stage------------------------------------
+# -------M2RP - not needed for single crystal channelcut M stage--------------------
 
 
 # def m2rp_pretune_hook():
@@ -299,33 +287,7 @@ class UsaxsSampleStageDevice(MotorBundle):
 # ----A stage ---------------------------------------
 
 
-def ar_pretune_hook():
-    stage = a_stage.r
-    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-    yield from bps.mv(scaler0.preset_time, 0.1)
-    # scaler0.select_channels(["PD_USAXS"])
-    y_name = UPD_SIGNAL.chname.get()
-    scaler0.select_channels([y_name])
-    scaler0.channels.chan01.kind = Kind.config
-    # trim_plot_by_name(n=5)
-    # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
 
-
-def ar_posttune_hook():
-    msg = "Tuning axis {}, final position is {}"
-    logger.info(msg.format(a_stage.r.name, a_stage.r.position))
-    # TODO need to verify how to get tube_ok signal from new tuning
-    if a_stage.r.tuner.tune_ok:
-        yield from bps.mv(terms.USAXS.ar_val_center, a_stage.r.position)
-        # remember the Q calculation needs a new 2theta0
-        # use the current AR encoder position
-        yield from bps.mv(
-            usaxs_q_calc.channels.B.input_value,
-            terms.USAXS.ar_val_center.get(),
-            a_stage.r,
-            terms.USAXS.ar_val_center.get(),
-        )
-    scaler0.select_channels(None)
 
     # a_stage.r.tuner = TuneAxis(
     #         [scaler0],
@@ -398,7 +360,6 @@ def ar_posttune_hook():
     #     # if a_stage.r2p.tuner.tune_ok:
     #     #    pass    # #165: update center when/if we get a PV for that
 
-    scaler0.select_channels(None)
 
 
 class UsaxsAnalyzerStageDevice(MotorBundle):
@@ -480,8 +441,3 @@ waxsx = EpicsMotor("usxAERO:m3", name="waxsx", labels=("waxs", "motor"))  # WAXS
 
 waxs2x = EpicsMotor("usxAERO:m7", name="waxs2x", labels=("waxs2", "motor"))  # WAXS2 X
 
-for _s in (s_stage, d_stage, a_stage, m_stage, saxs_stage, gslit_stage):
-    sd.baseline.append(_s)
-
-sd.baseline.append(waxsx)
-sd.baseline.append(waxs2x)

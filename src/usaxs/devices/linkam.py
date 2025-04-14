@@ -2,30 +2,23 @@
 Linkam temperature controllers: T96 (tc1)
 """
 
-__all__ = [
-    "linkam_tc1",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 import datetime
 import pathlib
 import time
-import warnings
 
+from apstools.devices.linkam_controllers import Linkam_T96_Device
 from bluesky import plan_stubs as bps
 from ophyd import EpicsSignalRO
-
-from .linkam_support import Linkam_T96_Device
 
 SECOND = 1
 MINUTE = 60 * SECOND
 HOUR = 60 * MINUTE
 DAY = 24 * HOUR
 WEEK = 7 * DAY
+
+
+# TODO: what is the point of this? Why do we need to run this before anything else?
 # write output to log file in userDir, name=MMDD-HHmm-heater-log.txt
 user_dir = EpicsSignalRO("usxLAX:userDir", name="user_dir", string=True)
 
@@ -146,28 +139,10 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         time_expires = t0 + duration
         while time.time() < time_expires:
             yield from bps.sleep(0.5)
-        self.log_it(f"{linkam.name} holding period ended")
+        # self.log_it(f"{linkam.name} holding period ended") # TODO: do you need this?
         self.linkam_report()
 
 
 ### now we can define our instance...
 
-linkam_tc1 = My_Linkam_T96_Device("usxLINKAM:tc1:", name="linkam_tc1")
 
-try:
-    linkam_tc1.wait_for_connection()
-except Exception:
-    warnings.warn(f"Linkam controller {linkam_tc1.name} not connected.")
-
-
-if linkam_tc1.connected:
-    # set tolerance for "in position" (Python term, not an EPICS PV)
-    # note: done = |readback - setpoint| <= tolerance
-    linkam_tc1.temperature.tolerance.put(1.0)
-
-    # sync the "inposition" computation
-    linkam_tc1.temperature.cb_readback()
-
-    # easy access to the engineering units
-    linkam_tc1.units.put(linkam_tc1.temperature.readback.metadata["units"])
-    linkam_tc1.ramp = linkam_tc1.ramprate

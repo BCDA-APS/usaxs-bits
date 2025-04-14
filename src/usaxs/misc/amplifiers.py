@@ -87,10 +87,10 @@ from ophyd.scaler import ScalerChannel
 # # from .override_ScalerCH import ScalerCH, ScalerChannel
 from ophyd.utils import OrderedDefaultDict
 
-from ....old_instrument.devices.scalers import I0_SIGNAL
-from ....old_instrument.devices.scalers import I00_SIGNAL
-from ....old_instrument.devices.scalers import TRD_SIGNAL
-from ....old_instrument.devices.scalers import UPD_SIGNAL
+from .scalers import I0_SIGNAL
+from .scalers import I00_SIGNAL
+from .scalers import TRD_SIGNAL
+from .scalers import UPD_SIGNAL
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

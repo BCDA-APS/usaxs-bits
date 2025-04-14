@@ -6,12 +6,8 @@ __all__ = [
     "usaxs_flyscan",
 ]
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import datetime
+import logging
 import os
 import time
 import uuid
@@ -26,8 +22,21 @@ from ophyd import EpicsSignal
 from ophyd import Signal
 from ophyd.status import Status
 
+from ....old_instrument.framework import RE
+from ....old_instrument.framework import specwriter
+from ..devices.general_terms import terms
+from ..devices.stages import a_stage
+from ..devices.stages import d_stage
 from ..usaxs_support.saveFlyData import XML_CONFIGURATION_FILE
 from ..usaxs_support.saveFlyData import SaveFlyScan
+from .amplifiers import AutorangeSettings
+from .amplifiers import upd_controls
+from .shutters import ti_filter_shutter
+from .struck3820 import struck
+from .user_data import user_data
+
+logger = logging.getLogger(__name__)
+
 
 # NOTES for testing SaveFlyScan() command
 """
@@ -36,16 +45,7 @@ sfs.preliminaryWriteFile()
 sfs.saveFile()
 """
 
-from ..framework import RE
-from ..framework import specwriter
-from ...src.usaxs.misc.amplifiers import AutorangeSettings
-from ...src.usaxs.misc.amplifiers import upd_controls
-from ...src.usaxs.devices.general_terms import terms
-from .shutters import ti_filter_shutter
-from .stages import a_stage
-from .stages import d_stage
-from .struck3820 import struck
-from .user_data import user_data
+
 
 FALLBACK_DIR = "/share1/USAXS_data"
 

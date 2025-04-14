@@ -64,3 +64,58 @@ def operations_on():
     while not mono_shutter.pss_state.connected:
         logger.info(f"Waiting {connect_delay_s}s for mono shutter PV to connect")
         time.sleep(connect_delay_s)
+
+def linkam_setup():
+    try:
+        linkam_tc1.wait_for_connection()
+    except Exception:
+        warnings.warn(f"Linkam controller {linkam_tc1.name} not connected.")
+
+
+    if linkam_tc1.connected:
+        # set tolerance for "in position" (Python term, not an EPICS PV)
+        # note: done = |readback - setpoint| <= tolerance
+        linkam_tc1.temperature.tolerance.put(1.0)
+
+        # sync the "inposition" computation
+        linkam_tc1.temperature.cb_readback()
+
+        # easy access to the engineering units
+        linkam_tc1.units.put(linkam_tc1.temperature.readback.metadata["units"])
+        linkam_tc1.ramp = linkam_tc1.ramprate
+
+
+def _getScalerSignalName_(scaler, signal):
+    if isinstance(scaler, ScalerCH):
+        return signal.chname.get()
+    elif isinstance(scaler, EpicsScaler):
+        return signal.name
+
+def ar_pretune_hook():
+    stage = a_stage.r
+    logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+    yield from bps.mv(scaler0.preset_time, 0.1)
+    # scaler0.select_channels(["PD_USAXS"])
+    y_name = UPD_SIGNAL.chname.get()
+    scaler0.select_channels([y_name])
+    scaler0.channels.chan01.kind = Kind.config
+    # trim_plot_by_name(n=5)
+    # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
+
+
+def ar_posttune_hook():
+    msg = "Tuning axis {}, final position is {}"
+    logger.info(msg.format(a_stage.r.name, a_stage.r.position))
+    # TODO need to verify how to get tube_ok signal from new tuning
+    if a_stage.r.tuner.tune_ok:
+        yield from bps.mv(terms.USAXS.ar_val_center, a_stage.r.position)
+        # remember the Q calculation needs a new 2theta0
+        # use the current AR encoder position
+        yield from bps.mv(
+            usaxs_q_calc.channels.B.input_value,
+            terms.USAXS.ar_val_center.get(),
+            a_stage.r,
+            terms.USAXS.ar_val_center.get(),
+        )
+    scaler0.select_channels(None)
+    scaler0.select_channels(None)

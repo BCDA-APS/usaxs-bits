@@ -2,16 +2,7 @@
 user reconfiguration of various USAXS parameters
 """
 
-__all__ = [
-    "user_override",
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
 import pyRestTable
-
-logger.info(__file__)
 
 
 class UserOverride:
