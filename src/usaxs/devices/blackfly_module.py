@@ -3,11 +3,7 @@ Point Grey Blackfly area detector
 
 note: this is one of the easiest area detector setups in Ophyd
 """
-
-__all__ = [
-    "blackfly_det",
-    "blackfly_optical",
-]
+#TODO: THis is an ad
 
 import logging
 import os
@@ -29,11 +25,14 @@ from .area_detector_common import DATABROKER_ROOT_PATH
 from .area_detector_common import EpicsDefinesJpegFileNames
 from .area_detector_common import EpicsDefinesTiffFileNames
 from .area_detector_common import Override_AD_plugin_primed
-from .area_detector_common import _validate_AD_FileWriter_path_
-from .area_detector_common import area_detector_EPICS_PV_prefix
+from .area_detector_common import (
+    _validate_AD_FileWriter_path_,
+)
+from .area_detector_common import (
+    area_detector_EPICS_PV_prefix,
+)
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 # from ophyd.areadetector.plugins import ProcessPlugin
 

@@ -14,14 +14,15 @@ __all__ = """
     UPD_SIGNAL
     TRD_SIGNAL
     """.split()
-# TODO Eric - review me!
-import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
+import logging
 
 from ophyd import EpicsSignalRO
 from ophyd.scaler import ScalerCH
+
+logger = logging.getLogger(__name__)
+
+
 
 scaler0 = ScalerCH("usxLAX:vsc:c0", name="scaler0")
 scaler0.stage_sigs["count_mode"] = "OneShot"

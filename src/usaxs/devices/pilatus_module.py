@@ -1,17 +1,11 @@
 """
 Dectris Pilatus area detectors.
 """
+#TODO: THis is an ad
 
 # TODO review for newer code in APS tools
-__all__ = [
-    "saxs_det",
-    "waxs_det",
-]
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 # from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
 # from apstools.devices import AD_EpicsHdf5FileName
@@ -31,8 +25,14 @@ from ophyd.areadetector.plugins import ImagePlugin_V34 as ImagePlugin
 
 from .area_detector_common import DATABROKER_ROOT_PATH
 from .area_detector_common import BadPixelPlugin
-from .area_detector_common import _validate_AD_FileWriter_path_
-from .area_detector_common import area_detector_EPICS_PV_prefix
+from .area_detector_common import (
+    _validate_AD_FileWriter_path_,
+)
+from .area_detector_common import (
+    area_detector_EPICS_PV_prefix,
+)
+
+logger = logging.getLogger(__name__)
 
 # path for HDF5 files (as seen by EPICS area detector HDF5 plugin)
 # path seen by detector IOC

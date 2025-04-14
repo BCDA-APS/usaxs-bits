@@ -19,7 +19,7 @@ from ophyd import EpicsSignal
 from ophyd import Signal
 
 from ..framework import sd
-from .amplifiers import upd_controls
+from ...src.usaxs.devices.amplifiers import upd_controls
 
 # TODO :  resolve issues with LAX PV database
 

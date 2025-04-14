@@ -9,7 +9,7 @@
 # from .laser import *# from .noisy_detector import *
 # from .shutter_simulator import *
 # from .temperature_signal import *
-from .amplifiers import *
+from ...src.usaxs.devices.amplifiers import *
 from .aps_source import *
 from .aps_undulator import *
 
@@ -55,7 +55,7 @@ from .autosave import *
 
 # finally these area detectors
 # from .alta_module import *
-from .blackfly_module import *
+from ...src.usaxs.devices.blackfly_module import *
 from .constants import *
 
 # from .axis_tuning import *
@@ -72,7 +72,7 @@ from .motorsLAX import *
 from .override_parameters import *
 
 # from .dexela_module import *
-from .pilatus_module import *
+from ...src.usaxs.devices.pilatus_module import *
 from .ptc10_controller import *
 from .sample_data import *
 from .sample_rotator import *

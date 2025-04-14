@@ -11,7 +11,6 @@ from ophyd import EpicsSignal
 from ophyd import Signal
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 SHUTTER_PV = "PA:12ID:STA_A_FES_OPEN_PL"
 APS_CURRENT_PV = "S:SRCurrentAI"
