@@ -71,7 +71,6 @@ axis_tune_range = TuneRanges(name="axis_tune_range")
 #     yield from bps.null()
 
 
-
 class UsaxsCollimatorStageDevice(MotorBundle):
     """USAXS Collimator (Monochromator) stage"""
 
@@ -262,79 +261,76 @@ class UsaxsSampleStageDevice(MotorBundle):
 # ----A stage ---------------------------------------
 
 
+# a_stage.r.tuner = TuneAxis(
+#         [scaler0],
+#         a_stage.r,
+#         signal_name=_getScalerSignalName_(scaler0, UPD_SIGNAL),
+#         width_signal=axis_tune_range.ar,
+# )
+# a_stage.r.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
+# a_stage.r.tuner.num = 35
+# a_stage.r.tuner.width = axis_tune_range.ar.get()     # -0.004
 
+# --ASRP-----------------------------------------
 
-    # a_stage.r.tuner = TuneAxis(
-    #         [scaler0],
-    #         a_stage.r,
-    #         signal_name=_getScalerSignalName_(scaler0, UPD_SIGNAL),
-    #         width_signal=axis_tune_range.ar,
-    # )
-    # a_stage.r.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
-    # a_stage.r.tuner.num = 35
-    # a_stage.r.tuner.width = axis_tune_range.ar.get()     # -0.004
+# def asrp_pretune_hook():
+#     stage = as_stage.rp
+#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     y_name = UPD_SIGNAL.chname.get()
+#     scaler0.select_channels([y_name])
+#     scaler0.channels.chan01.kind = Kind.config
+#     trim_plot_by_name(n=5)
+#     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
 
-    # --ASRP-----------------------------------------
+# def asrp_posttune_hook():
+#     msg = "Tuning axis {}, final position is {}"
+#     logger.info(msg.format(as_stage.rp.name, as_stage.rp.position))
+#     yield from bps.mv(terms.USAXS.asr_val_center, as_stage.rp.position)
 
-    # def asrp_pretune_hook():
-    #     stage = as_stage.rp
-    #     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-    #     yield from bps.mv(scaler0.preset_time, 0.1)
-    #     y_name = UPD_SIGNAL.chname.get()
-    #     scaler0.select_channels([y_name])
-    #     scaler0.channels.chan01.kind = Kind.config
-    #     trim_plot_by_name(n=5)
-    #     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
+#     if as_stage.rp.tuner.tune_ok:
+#         pass    # #165: update center when/if we get a PV for that
 
-    # def asrp_posttune_hook():
-    #     msg = "Tuning axis {}, final position is {}"
-    #     logger.info(msg.format(as_stage.rp.name, as_stage.rp.position))
-    #     yield from bps.mv(terms.USAXS.asr_val_center, as_stage.rp.position)
+#     scaler0.select_channels(None)
 
-    #     if as_stage.rp.tuner.tune_ok:
-    #         pass    # #165: update center when/if we get a PV for that
+# # use I00 (if MS stage is used, use I0)
+# as_stage.rp.tuner = TuneAxis(
+#     [scaler0],
+#     as_stage.rp,
+#     signal_name=_getScalerSignalName_(scaler0, UPD_SIGNAL),
+#     width_signal=axis_tune_range.asrp,
+# )
+# as_stage.rp.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
+# as_stage.rp.tuner.num = 21
+# as_stage.rp.tuner.width = axis_tune_range.asrp.get()     # 6
 
-    #     scaler0.select_channels(None)
+# as_stage.rp.pre_tune_method = asrp_pretune_hook
+# as_stage.rp.post_tune_method = asrp_posttune_hook
 
-    # # use I00 (if MS stage is used, use I0)
-    # as_stage.rp.tuner = TuneAxis(
-    #     [scaler0],
-    #     as_stage.rp,
-    #     signal_name=_getScalerSignalName_(scaler0, UPD_SIGNAL),
-    #     width_signal=axis_tune_range.asrp,
-    # )
-    # as_stage.rp.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
-    # as_stage.rp.tuner.num = 21
-    # as_stage.rp.tuner.width = axis_tune_range.asrp.get()     # 6
+# # --A2RP-----------------------------------------
 
-    # as_stage.rp.pre_tune_method = asrp_pretune_hook
-    # as_stage.rp.post_tune_method = asrp_posttune_hook
+# def a2rp_pretune_hook():
+#     stage = a_stage.r2p
+#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
+#     yield from bps.mv(scaler0.preset_time, 0.1)
+#     yield from bps.mv(scaler0.delay, 0.02)
+#     #scaler0.select_channels(["PD_USAXS"])
+#     y_name = UPD_SIGNAL.chname.get()
+#     scaler0.select_channels([y_name])
+#     scaler0.channels.chan01.kind = Kind.config
+#     #trim_plot_by_name(n=5)
+#     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
 
-    # # --A2RP-----------------------------------------
+# def a2rp_posttune_hook():
+#     #
+#     # TODO: first, re-position piezo considering hysteresis?
+#     #
+#     msg = "Tuning axis {}, final position is {}"
+#     logger.info(msg.format(a_stage.r2p.name, a_stage.r2p.position))
+#     yield from bps.mv(scaler0.delay, 0.05)
 
-    # def a2rp_pretune_hook():
-    #     stage = a_stage.r2p
-    #     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-    #     yield from bps.mv(scaler0.preset_time, 0.1)
-    #     yield from bps.mv(scaler0.delay, 0.02)
-    #     #scaler0.select_channels(["PD_USAXS"])
-    #     y_name = UPD_SIGNAL.chname.get()
-    #     scaler0.select_channels([y_name])
-    #     scaler0.channels.chan01.kind = Kind.config
-    #     #trim_plot_by_name(n=5)
-    #     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
-
-    # def a2rp_posttune_hook():
-    #     #
-    #     # TODO: first, re-position piezo considering hysteresis?
-    #     #
-    #     msg = "Tuning axis {}, final position is {}"
-    #     logger.info(msg.format(a_stage.r2p.name, a_stage.r2p.position))
-    #     yield from bps.mv(scaler0.delay, 0.05)
-
-    #     # if a_stage.r2p.tuner.tune_ok:
-    #     #    pass    # #165: update center when/if we get a PV for that
-
+#     # if a_stage.r2p.tuner.tune_ok:
+#     #    pass    # #165: update center when/if we get a PV for that
 
 
 class UsaxsAnalyzerStageDevice(MotorBundle):
@@ -382,7 +378,3 @@ class GuardSlitsStageDevice(MotorBundle):
 
     x = Component(EpicsMotor, "usxLAX:m58:c0:m7", labels=("guard_slits",))
     y = Component(EpicsMotor, "usxLAX:m58:c0:m6", labels=("guard_slits",))
-
-
-
-

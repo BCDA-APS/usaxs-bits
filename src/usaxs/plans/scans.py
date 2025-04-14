@@ -63,11 +63,11 @@ from ..devices import usaxs_slit
 from ..devices import user_data
 from ..devices import user_override
 from ..devices import waxs_det
-from ..misc.suspenders import suspend_BeamInHutch
-from ..misc.suspenders import suspend_FE_shutter
 from ..framework import RE
 from ..framework import bec
 from ..framework import specwriter
+from ..misc.suspenders import suspend_BeamInHutch
+from ..misc.suspenders import suspend_FE_shutter
 from ..utils.a2q_q2a import q2angle
 from ..utils.cleanup_text import cleanupText
 from ..utils.setup_new_user import techniqueSubdirectory

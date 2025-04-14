@@ -8,7 +8,6 @@ def operations_in_12ide():
 
 
 def operations_on():
-
     if aps.inUserOperations and operations_in_12ide():
         FE_shutter = My12IdPssShutter(
             # 12id:shutter0_opn and 12id:shutter0_cls
@@ -37,7 +36,9 @@ def operations_on():
             close_pv="12idc:uniblitz:shutter:close",
         )
 
-        a_shutter_autoopen = EpicsSignal("12ida2:AShtr:Enable", name="a_shutter_autoopen")
+        a_shutter_autoopen = EpicsSignal(
+            "12ida2:AShtr:Enable", name="a_shutter_autoopen"
+        )
 
     else:
         logger.warning("!" * 30)
@@ -52,25 +53,23 @@ def operations_on():
         usaxs_shutter = SimulatedApsPssShutterWithStatus(name="usaxs_shutter")
         a_shutter_autoopen = Signal(name="a_shutter_autoopen", value=0)
 
-
     ti_filter_shutter = usaxs_shutter  # alias
     ti_filter_shutter.delay_s = 0.2  # shutter needs some recovery time
 
     # ccd_shutter = EpicsOnOffShutter("usxRIO:Galil2Bo0_CMD", name="ccd_shutter")
     ccd_shutter = usaxs_shutter  # alias
 
-
     connect_delay_s = 1
     while not mono_shutter.pss_state.connected:
         logger.info(f"Waiting {connect_delay_s}s for mono shutter PV to connect")
         time.sleep(connect_delay_s)
+
 
 def linkam_setup():
     try:
         linkam_tc1.wait_for_connection()
     except Exception:
         warnings.warn(f"Linkam controller {linkam_tc1.name} not connected.")
-
 
     if linkam_tc1.connected:
         # set tolerance for "in position" (Python term, not an EPICS PV)
@@ -90,6 +89,7 @@ def _getScalerSignalName_(scaler, signal):
         return signal.chname.get()
     elif isinstance(scaler, EpicsScaler):
         return signal.name
+
 
 def ar_pretune_hook():
     stage = a_stage.r

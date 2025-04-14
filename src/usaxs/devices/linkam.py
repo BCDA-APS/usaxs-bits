@@ -2,7 +2,6 @@
 Linkam temperature controllers: T96 (tc1)
 """
 
-
 import datetime
 import pathlib
 import time
@@ -144,5 +143,3 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
 
 
 ### now we can define our instance...
-
-

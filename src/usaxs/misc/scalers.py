@@ -23,7 +23,6 @@ from ophyd.scaler import ScalerCH
 logger = logging.getLogger(__name__)
 
 
-
 scaler0 = ScalerCH("usxLAX:vsc:c0", name="scaler0")
 scaler0.stage_sigs["count_mode"] = "OneShot"
 scaler1 = ScalerCH(

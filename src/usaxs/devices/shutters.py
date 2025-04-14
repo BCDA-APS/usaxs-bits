@@ -46,4 +46,3 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
 
 # pss_shutters = PssShutters("", name="pss_shutters")
 # pvstatus = PA:20ID:STA_A_FES_OPEN_PL or B_SBS results on "OFF" or "ON"
-

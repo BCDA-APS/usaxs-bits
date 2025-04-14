@@ -1,6 +1,6 @@
-'''
+"""
 Plans for autocollect device
-'''
+"""
 
 import datetime
 import logging
@@ -17,10 +17,12 @@ logger = logging.getLogger(__name__)
 
 user_data = oregistry["user_data"]
 
+
 def idle_reporter():
     """Update the console while waiting for next remote command."""
     ts = datetime.datetime.now().isoformat(sep=" ", timespec="seconds")
     print(f"{ts}: auto_collect is waiting for next command from EPICS ...", end="\r")
+
 
 def remote_ops(self, *args, **kwargs):
     """

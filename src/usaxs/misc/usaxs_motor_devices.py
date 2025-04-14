@@ -61,7 +61,6 @@ class TunableEpicsMotor2(EpicsMotor):
     post_tune_hook = None
 
 
-
 # copied from https://github.com/NSLS-II-SST/sst_base/blob/5c019a3f0feb9032cfa1c5a5e84b9322eb5b309d/sst_base/positioners.py#L8-L72
 
 

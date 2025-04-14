@@ -3,14 +3,11 @@ shutters
 """
 
 # TODO need PSS system
-import logging
 
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import Signal
-
-logger = logging.getLogger(__name__)
 
 SHUTTER_PV = "PA:12ID:STA_A_FES_OPEN_PL"
 APS_CURRENT_PV = "S:SRCurrentAI"
@@ -95,6 +92,3 @@ class WhiteBeamReadyCalc(Device):
     @property
     def is_available(self):
         return self.available.get()
-
-
-# white_beam_ready = WhiteBeamReadyCalc(CALC_PV, name="white_beam_ready")

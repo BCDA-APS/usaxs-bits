@@ -13,14 +13,14 @@ import bluesky.suspenders
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
+from ..devices.shutters import FE_shutter
+from ..devices.shutters import mono_shutter
+from ..devices.white_beam_ready_calc import white_beam_ready
 from ..framework import sd
 from .aps_source import aps
 from .monochromator import MONO_FEEDBACK_ON
 from .monochromator import monochromator
 from .permit import BeamInHutch
-from ..devices.shutters import FE_shutter
-from ..devices.shutters import mono_shutter
-from ..devices.white_beam_ready_calc import white_beam_ready
 
 
 class FeedbackHandlingDuringSuspension:

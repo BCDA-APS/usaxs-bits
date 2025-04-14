@@ -68,7 +68,7 @@ MAKE_DEVICES:
     LOG_LEVEL: info
 
 # Instrument Constants
-CONSTANTS: 
+CONSTANTS:
     SAXS_TR_PINY_OFFSET: 10.5  # measured on 1-31-2025 JIL on 12ID...
     SAXS_TR_TIME: 2 # how long to measure transmission
     SAXS_PINZ_OFFSET: 5 # move of saxs_z before any sample or saxs_x move

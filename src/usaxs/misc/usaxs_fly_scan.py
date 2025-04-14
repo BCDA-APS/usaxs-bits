@@ -46,7 +46,6 @@ sfs.saveFile()
 """
 
 
-
 FALLBACK_DIR = "/share1/USAXS_data"
 
 

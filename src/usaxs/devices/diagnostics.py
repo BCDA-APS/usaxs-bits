@@ -117,5 +117,3 @@ class DiagnosticsParameters(Device):
     @property
     def beam_in_hutch(self):
         return self.beam_in_hutch_swait.calculated_value.get()  #!= 0
-
-

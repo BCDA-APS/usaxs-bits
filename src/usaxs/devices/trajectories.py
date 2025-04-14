@@ -18,4 +18,3 @@ class Trajectories(Device):
     dx = Component(EpicsSignal, "usxAERO:pm1:M1Positions")
     # num_pulse_positions = Component(EpicsSignal, "usxLAX:traj1:NumPulsePositions")
     num_pulse_positions = Component(EpicsSignal, "usxAERO:pm1:NumPoints")
-

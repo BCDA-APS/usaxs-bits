@@ -12,4 +12,3 @@ class Autosave(Device):
 
     disable = Component(EpicsSignal, "SR_disable", auto_monitor=False)
     max_time = Component(EpicsSignal, "SR_disableMaxSecs")
-

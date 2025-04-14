@@ -44,6 +44,7 @@ class My12IdEDcm(Device):
     wavelength = Component(My12EidWavelengthRO, "12ida2:LambdaCalc")
     theta = Component(EpicsMotor, "12ida2:m19")
 
+
 # TODO: very intersting code
 # # simple enumeration used by DCM_Feedback()
 # MONO_FEEDBACK_OFF, MONO_FEEDBACK_ON = range(2)
@@ -94,5 +95,3 @@ class MyMonochromator(Device):
     feedback = Component(DCM_Feedback, "usxLAX:fbe:omega")
     # temperature = Component(EpicsSignal, "9ida:DP41:s1:temp")
     # cryo_level = Component(EpicsSignal, "9idCRYO:MainLevel:val")
-
-

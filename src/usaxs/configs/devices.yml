@@ -13,7 +13,7 @@ apstools.devices.ApsMachineParametersDevice:
 
 apstools.devices.PlanarUndulator:
 - name: undulator
-  prefix: "S12ID:USID:" 
+  prefix: "S12ID:USID:"
 
 usaxs.devices.autocollect.AutoCollectDataDevice:
 - name: auto_collect
@@ -81,7 +81,7 @@ usaxs.devices.ptc10_controller.USAXS_PTC10:
 usaxs.devices.sample_data.SampleDataDevice:
 - name: sample_data_device
 
-usaxs.devices.sample_rotator.SampleRotator: 
+usaxs.devices.sample_rotator.SampleRotator:
 - name: pi_c867
   prefix: usxPI:c867:c0:m1
 

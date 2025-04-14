@@ -92,8 +92,6 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     # pidD = Component(PTC10AioChannel, "5D:")  # unused now
 
 
-
-
 # TODO: What is this?
 # ptc10.report_dmov_changes.put(True)  # a diagnostic
 # ptc10.tolerance.put(1.0)  # done when |readback-setpoint|<=tolerance
