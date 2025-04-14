@@ -2,9 +2,6 @@
 EPICS data about the user
 """
 
-__all__ = """
-    user_data
-    """.split()
 # apsbss
 
 import logging
@@ -16,7 +13,6 @@ from ophyd import Device
 from ophyd import EpicsSignal
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 # from apstools.devices import ApsBssUserInfoDevice
 # from apsbss.apsbss_ophyd import EpicsBssDevice
