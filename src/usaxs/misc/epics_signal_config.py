@@ -15,7 +15,7 @@ logger.info(__file__)
 from ophyd.signal import EpicsSignal
 from ophyd.signal import EpicsSignalBase
 
-from . import iconfig
+from ....old_instrument import iconfig
 
 # set default timeout for all EpicsSignal connections & communications
 # always first, before ANY ophyd EPICS-based signals are created
