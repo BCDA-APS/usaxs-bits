@@ -50,7 +50,7 @@ from .aps_undulator import *
 # from .pilatus_module import *
 # # from .simdetector import *
 # # and only when all devices are defined
-from .autocollect import *
+from ...src.usaxs.devices.autocollect import *
 from .autosave import *
 
 # finally these area detectors
