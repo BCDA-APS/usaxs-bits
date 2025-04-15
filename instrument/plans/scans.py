@@ -854,173 +854,173 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
     collect SAXS data
     """
-    #yield from bps.null()       #so something happens here if all commented out
-    from .command_list import after_plan, before_plan
+    yield from bps.null()       #so something happens here if all commented out
+    # from .command_list import after_plan, before_plan
 
-    yield from IfRequestedStopBeforeNextScan()
+    # yield from IfRequestedStopBeforeNextScan()
 
-    yield from before_plan()    # MUST come before mode_SAXS since it might tune
+    # yield from before_plan()    # MUST come before mode_SAXS since it might tune
 
-    yield from mode_SAXS()
+    # yield from mode_SAXS()
 
-    pinz_target = terms.SAXS.z_in.get() + constants["SAXS_PINZ_OFFSET"]
-    yield from bps.mv(
-        usaxs_slit.v_size, terms.SAXS.v_size.get(),
-        usaxs_slit.h_size, terms.SAXS.h_size.get(),
-        guard_slit.v_size, terms.SAXS.guard_v_size.get(),
-        guard_slit.h_size, terms.SAXS.guard_h_size.get(),
-        saxs_stage.z, pinz_target,      # MUST move before sample stage moves!
-        user_data.sample_thickness, thickness,
-        terms.SAXS.collecting, 1,
-        # user_data.collection_in_progress, 1,
-        timeout=MASTER_TIMEOUT,
-    )
+    # pinz_target = terms.SAXS.z_in.get() + constants["SAXS_PINZ_OFFSET"]
+    # yield from bps.mv(
+    #     usaxs_slit.v_size, terms.SAXS.v_size.get(),
+    #     usaxs_slit.h_size, terms.SAXS.h_size.get(),
+    #     guard_slit.v_size, terms.SAXS.guard_v_size.get(),
+    #     guard_slit.h_size, terms.SAXS.guard_h_size.get(),
+    #     saxs_stage.z, pinz_target,      # MUST move before sample stage moves!
+    #     user_data.sample_thickness, thickness,
+    #     terms.SAXS.collecting, 1,
+    #     # user_data.collection_in_progress, 1,
+    #     timeout=MASTER_TIMEOUT,
+    # )
 
-    yield from bps.mv(
-        s_stage.x, pos_X,
-        s_stage.y, pos_Y,
-        timeout=MASTER_TIMEOUT,
-    )
+    # yield from bps.mv(
+    #     s_stage.x, pos_X,
+    #     s_stage.y, pos_Y,
+    #     timeout=MASTER_TIMEOUT,
+    # )
 
-    # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
-    #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
-    scan_title = getSampleTitle(scan_title)
-    #_md = apsbss.update_MD(md or {})
-    _md = md or OrderedDict()
-    _md.update(md or {})
-    _md['plan_name'] = "SAXS"
-    _md["sample_thickness_mm"] = thickness
-    _md["title"] = scan_title
+    # # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
+    # #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
+    # scan_title = getSampleTitle(scan_title)
+    # #_md = apsbss.update_MD(md or {})
+    # _md = md or OrderedDict()
+    # _md.update(md or {})
+    # _md['plan_name'] = "SAXS"
+    # _md["sample_thickness_mm"] = thickness
+    # _md["title"] = scan_title
 
-    scan_title_clean = cleanupText(scan_title)
+    # scan_title_clean = cleanupText(scan_title)
 
-    # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"]+1     # the next scan number (user-controllable)
+    # # SPEC-compatibility
+    # SCAN_N = RE.md["scan_id"]+1     # the next scan number (user-controllable)
 
-    # these two templates match each other, sort of
-    ad_file_template = AD_FILE_TEMPLATE
-    local_file_template = LOCAL_FILE_TEMPLATE
+    # # these two templates match each other, sort of
+    # ad_file_template = AD_FILE_TEMPLATE
+    # local_file_template = LOCAL_FILE_TEMPLATE
 
-    # path on local file system
-    SAXSscan_path = techniqueSubdirectory("saxs")
-    SAXS_file_name = local_file_template % (scan_title_clean, saxs_det.hdf1.file_number.get())
-    _md["hdf5_path"] = str(SAXSscan_path)
-    _md["hdf5_file"] = str(SAXS_file_name)
+    # # path on local file system
+    # SAXSscan_path = techniqueSubdirectory("saxs")
+    # SAXS_file_name = local_file_template % (scan_title_clean, saxs_det.hdf1.file_number.get())
+    # _md["hdf5_path"] = str(SAXSscan_path)
+    # _md["hdf5_file"] = str(SAXS_file_name)
 
-    # NFS-mounted path as the Pilatus detector sees it
-    pilatus_path = os.path.join("/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:])
-    # area detector will create this path if needed ("Create dir. depth" setting)
-    if not pilatus_path.endswith("/"):
-        pilatus_path += "/"        # area detector needs this
-    local_name = os.path.join(SAXSscan_path, SAXS_file_name)
-    logger.info(f"Area Detector HDF5 file: {local_name}")
-    pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
-    logger.info(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
+    # # NFS-mounted path as the Pilatus detector sees it
+    # pilatus_path = os.path.join("/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:])
+    # # area detector will create this path if needed ("Create dir. depth" setting)
+    # if not pilatus_path.endswith("/"):
+    #     pilatus_path += "/"        # area detector needs this
+    # local_name = os.path.join(SAXSscan_path, SAXS_file_name)
+    # logger.info(f"Area Detector HDF5 file: {local_name}")
+    # pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
+    # logger.info(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
-    saxs_det.hdf1.file_path._auto_monitor = False
-    saxs_det.hdf1.file_template._auto_monitor = False
-    yield from bps.mv(
-        saxs_det.hdf1.file_name, scan_title_clean,
-        saxs_det.hdf1.file_path, pilatus_path,
-        saxs_det.hdf1.file_template, ad_file_template,
-        timeout=MASTER_TIMEOUT,
-        # auto_monitor=False,
-    )
-    saxs_det.hdf1.file_path._auto_monitor = True
-    saxs_det.hdf1.file_template._auto_monitor = True
+    # saxs_det.hdf1.file_path._auto_monitor = False
+    # saxs_det.hdf1.file_template._auto_monitor = False
+    # yield from bps.mv(
+    #     saxs_det.hdf1.file_name, scan_title_clean,
+    #     saxs_det.hdf1.file_path, pilatus_path,
+    #     saxs_det.hdf1.file_template, ad_file_template,
+    #     timeout=MASTER_TIMEOUT,
+    #     # auto_monitor=False,
+    # )
+    # saxs_det.hdf1.file_path._auto_monitor = True
+    # saxs_det.hdf1.file_template._auto_monitor = True
 
-    ts = str(datetime.datetime.now())
-    yield from bps.mv(
-        user_data.sample_title, scan_title,
-        user_data.sample_thickness, thickness,
-        user_data.spec_scan, str(SCAN_N),
-        user_data.time_stamp, ts,
-        user_data.scan_macro, "SAXS",       # match the value in the scan logs
-        timeout=MASTER_TIMEOUT,
-    )
-    yield from user_data.set_state_plan("starting SAXS collection")
-    yield from bps.mv(
-        user_data.spec_file, os.path.split(specwriter.spec_filename)[-1],
-        timeout=MASTER_TIMEOUT,
-    )
-    old_delay = scaler0.delay.get()
+    # ts = str(datetime.datetime.now())
+    # yield from bps.mv(
+    #     user_data.sample_title, scan_title,
+    #     user_data.sample_thickness, thickness,
+    #     user_data.spec_scan, str(SCAN_N),
+    #     user_data.time_stamp, ts,
+    #     user_data.scan_macro, "SAXS",       # match the value in the scan logs
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    # yield from user_data.set_state_plan("starting SAXS collection")
+    # yield from bps.mv(
+    #     user_data.spec_file, os.path.split(specwriter.spec_filename)[-1],
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    # old_delay = scaler0.delay.get()
 
-    @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
-    def _image_acquisition_steps(): 
-        yield from measure_SAXS_Transmission()
-        yield from insertSaxsFilters()
+    # @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
+    # def _image_acquisition_steps(): 
+    #     yield from measure_SAXS_Transmission()
+    #     yield from insertSaxsFilters()
 
-        yield from bps.mv(
-            mono_shutter, "open",
-            monochromator.feedback.on, MONO_FEEDBACK_OFF,
-            ti_filter_shutter, "open",
-            saxs_det.cam.num_images, terms.SAXS.num_images.get(),
-            saxs_det.cam.acquire_time, terms.SAXS.acquire_time.get(),
-            saxs_det.cam.acquire_period, terms.SAXS.acquire_time.get() + 0.004,
-            timeout=MASTER_TIMEOUT,
-        )
-        for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
-            if k in saxs_det.cam.stage_sigs:
-                #print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
-                saxs_det.cam.stage_sigs.pop(k)
-        saxs_det.hdf1.stage_sigs["file_template"] = ad_file_template
-        saxs_det.hdf1.stage_sigs["file_write_mode"] = "Single"
-        saxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
+    #     yield from bps.mv(
+    #         mono_shutter, "open",
+    #         monochromator.feedback.on, MONO_FEEDBACK_OFF,
+    #         ti_filter_shutter, "open",
+    #         saxs_det.cam.num_images, terms.SAXS.num_images.get(),
+    #         saxs_det.cam.acquire_time, terms.SAXS.acquire_time.get(),
+    #         saxs_det.cam.acquire_period, terms.SAXS.acquire_time.get() + 0.004,
+    #         timeout=MASTER_TIMEOUT,
+    #     )
+    #     for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
+    #         if k in saxs_det.cam.stage_sigs:
+    #             #print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
+    #             saxs_det.cam.stage_sigs.pop(k)
+    #     saxs_det.hdf1.stage_sigs["file_template"] = ad_file_template
+    #     saxs_det.hdf1.stage_sigs["file_write_mode"] = "Single"
+    #     saxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
-        yield from bps.sleep(0.2)
-        yield from autoscale_amplifiers([I0_controls])
+    #     yield from bps.sleep(0.2)
+    #     yield from autoscale_amplifiers([I0_controls])
 
-        yield from bps.mv(
-            ti_filter_shutter, "close",
-            timeout=MASTER_TIMEOUT,
-        )
+    #     yield from bps.mv(
+    #         ti_filter_shutter, "close",
+    #         timeout=MASTER_TIMEOUT,
+    #     )
 
-        SCAN_N = RE.md["scan_id"]+1     # update with next number
-        yield from bps.mv(
-            scaler1.preset_time, terms.SAXS.acquire_time.get() + 1,
-            scaler0.preset_time, 1.2*terms.SAXS.acquire_time.get() + 1,
-            scaler0.count_mode, "OneShot",
-            scaler1.count_mode, "OneShot",
+    #     SCAN_N = RE.md["scan_id"]+1     # update with next number
+    #     yield from bps.mv(
+    #         scaler1.preset_time, terms.SAXS.acquire_time.get() + 1,
+    #         scaler0.preset_time, 1.2*terms.SAXS.acquire_time.get() + 1,
+    #         scaler0.count_mode, "OneShot",
+    #         scaler1.count_mode, "OneShot",
 
-            # update as fast as hardware will allow
-            # this is needed to make sure we get as up to date I0 number as possible for AD software.
-            scaler0.update_rate, 60,
-            scaler1.update_rate, 60,
-            scaler0.count, 0,
-            scaler1.count, 0,
+    #         # update as fast as hardware will allow
+    #         # this is needed to make sure we get as up to date I0 number as possible for AD software.
+    #         scaler0.update_rate, 60,
+    #         scaler1.update_rate, 60,
+    #         scaler0.count, 0,
+    #         scaler1.count, 0,
 
-            scaler0.delay, 0,
-            terms.SAXS_WAXS.start_exposure_time, ts,
-            user_data.spec_scan, str(SCAN_N),
-            timeout=MASTER_TIMEOUT,
-        )
-        yield from user_data.set_state_plan(f"SAXS collection for {terms.SAXS.acquire_time.get()} s")
+    #         scaler0.delay, 0,
+    #         terms.SAXS_WAXS.start_exposure_time, ts,
+    #         user_data.spec_scan, str(SCAN_N),
+    #         timeout=MASTER_TIMEOUT,
+    #     )
+    #     yield from user_data.set_state_plan(f"SAXS collection for {terms.SAXS.acquire_time.get()} s")
 
-        yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
-        yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
+    #     yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
+    #     yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
 
-    yield from _image_acquisition_steps()
+    # yield from _image_acquisition_steps()
 
-    ts = str(datetime.datetime.now())
-    #below stopping the scalers shoudl be done in userTrans2, but no harm stopping it twice 
-    yield from bps.mv(
-        scaler0.count, 0,   
-        scaler1.count, 0,
-        terms.SAXS_WAXS.I0, scaler1.channels.chan02.s.get(),
-        scaler0.update_rate, 5,
-        scaler1.update_rate, 5,
-        terms.SAXS_WAXS.end_exposure_time, ts,
-        scaler0.delay, old_delay,
-        monochromator.feedback.on, MONO_FEEDBACK_ON,
+    # ts = str(datetime.datetime.now())
+    # #below stopping the scalers shoudl be done in userTrans2, but no harm stopping it twice 
+    # yield from bps.mv(
+    #     scaler0.count, 0,   
+    #     scaler1.count, 0,
+    #     terms.SAXS_WAXS.I0, scaler1.channels.chan02.s.get(),
+    #     scaler0.update_rate, 5,
+    #     scaler1.update_rate, 5,
+    #     terms.SAXS_WAXS.end_exposure_time, ts,
+    #     scaler0.delay, old_delay,
+    #     monochromator.feedback.on, MONO_FEEDBACK_ON,
 
-        terms.SAXS.collecting, 0,
-        user_data.time_stamp, ts,
-        # user_data.collection_in_progress, 0,
-        timeout=MASTER_TIMEOUT,
-    )
-    yield from user_data.set_state_plan("Done SAXS")
-    logger.info(f"I0 value: {terms.SAXS_WAXS.I0.get()}")
-    yield from after_plan()
+    #     terms.SAXS.collecting, 0,
+    #     user_data.time_stamp, ts,
+    #     # user_data.collection_in_progress, 0,
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    # yield from user_data.set_state_plan("Done SAXS")
+    # logger.info(f"I0 value: {terms.SAXS_WAXS.I0.get()}")
+    # yield from after_plan()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
