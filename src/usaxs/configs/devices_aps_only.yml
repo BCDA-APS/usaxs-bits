@@ -4,3 +4,5 @@
 
 apstools.devices.ApsMachineParametersDevice:
   - name: aps
+
+# usaxs.devices.shutters.My12IdPssShutter: # TODO: make sure logic is implemented
