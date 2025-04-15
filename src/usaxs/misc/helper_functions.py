@@ -5,6 +5,10 @@ the USAXS instrument, including shutter control, temperature control, and
 stage movement.
 """
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def operations_in_12ide():
     """Check if operations are in 12-ID-E station.

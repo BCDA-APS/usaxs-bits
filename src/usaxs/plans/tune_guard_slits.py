@@ -12,27 +12,15 @@ __all__ = """
 import datetime
 import logging
 from collections import defaultdict
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 import pyRestTable
 from apstools.plans import TuneAxis
 from bluesky import plan_stubs as bps
 from ophyd import Kind
 
-from ..devices import MONO_FEEDBACK_OFF
-from ..devices import MONO_FEEDBACK_ON
-from ..devices import UPD_SIGNAL
-from ..devices import I0_controls
-from ..devices import I00_controls
-from ..devices import autoscale_amplifiers
-from ..devices import guard_slit
-from ..devices import monochromator
-from ..devices import scaler0
-from ..devices import terms
-from ..devices import ti_filter_shutter
-from ..devices import upd_controls
-from ..devices import usaxs_slit
-from ..devices import user_data
-from ..framework import RE
 from ..utils.derivative import numerical_derivative
 from ..utils.peak_centers import peak_center
 from .filters import insertTransmissionFilters
@@ -46,13 +34,40 @@ logger.info(__file__)
 class GuardSlitTuneError(RuntimeError): ...  # custom error
 
 
-def tune_GslitsCenter():
+def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
     """
-    plan: optimize the guard slits' position
+    Plan: optimize the guard slits' position.
 
-    tune to the peak centers
+    Tune to the peak centers.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
     """
-    yield from IfRequestedStopBeforeNextScan()
+    # Get devices from oregistry
+    MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
+    MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+    UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+    I0_controls = oregistry["I0_controls"]
+    I00_controls = oregistry["I00_controls"]
+    autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+    guard_slit = oregistry["guard_slit"]
+    monochromator = oregistry["monochromator"]
+    scaler0 = oregistry["scaler0"]
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    upd_controls = oregistry["upd_controls"]
+    usaxs_slit = oregistry["usaxs_slit"]
+    user_data = oregistry["user_data"]
+    RE = oregistry["RE"]
+
+    yield from IfRequestedStopBeforeNextScan(oregistry)
     title = "tuning USAXS Gslit center"
     ts = str(datetime.datetime.now())
     yield from bps.mv(
@@ -67,7 +82,7 @@ def tune_GslitsCenter():
     )
     yield from user_data.set_state_plan("tune Guard slits center")
 
-    yield from mode_USAXS()
+    yield from mode_USAXS(oregistry)
     yield from bps.mv(
         usaxs_slit.v_size,
         terms.SAXS.usaxs_v_size.get(),
@@ -75,7 +90,7 @@ def tune_GslitsCenter():
         terms.SAXS.usaxs_h_size.get(),
     )
     yield from bps.mv(ti_filter_shutter, "open")
-    yield from insertTransmissionFilters()
+    yield from insertTransmissionFilters(oregistry)
     yield from bps.sleep(0.1)
     yield from user_data.set_state_plan("autoranging the PD")
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -159,15 +174,31 @@ def tune_GslitsCenter():
     yield from bps.mv(ti_filter_shutter, "close")
 
 
-def _USAXS_tune_guardSlits():
+def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
     """
-    plan: (internal) this performs the guard slit scan
+    Plan: (internal) this performs the guard slit scan.
 
-    Called from tune_GslitsSize()
+    Called from tune_GslitsSize().
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
     """
-    # # define proper counters and set the geometry...
-    # plotselect upd2
-    # counters cnt_num(I0) cnt_num(upd2)
+    # Get devices from oregistry
+    UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+    I0_controls = oregistry["I0_controls"]
+    I00_controls = oregistry["I00_controls"]
+    autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+    guard_slit = oregistry["guard_slit"]
+    scaler0 = oregistry["scaler0"]
+    upd_controls = oregistry["upd_controls"]
+    user_data = oregistry["user_data"]
 
     # remember original motor positons
     original_position = dict(
@@ -380,9 +411,27 @@ def _USAXS_tune_guardSlits():
     )
     yield from guard_slit.process_motor_records()
 
+    # Return the results
+    return tunes
 
-def _unstick_GslitsSizeMotors():
-    """Workaround for issue #425 (and #404)."""
+
+def _unstick_GslitsSizeMotors(oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Plan: (internal) unstick the guard slit motors.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+    """
+    # Get devices from oregistry
+    guard_slit = oregistry["guard_slit"]
+
     pause = 4
     logger.info("Workaround for Guard Slit 'motor stuck in moving'.")
     yield from bps.sleep(pause)  # activity pause, empirical
@@ -419,14 +468,38 @@ def _unstick_GslitsSizeMotors():
     logger.info("Workaround Complete.")
 
 
-def tune_GslitsSize():
+def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
     """
-    plan: optimize the guard slits' gap
+    Plan: optimize the guard slits' size.
 
-    tune to the slit edges (peak of the derivative of diode vs. position)
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
     """
-    yield from IfRequestedStopBeforeNextScan()
-    yield from mode_USAXS()
+    # Get devices from oregistry
+    MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
+    MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+    I0_controls = oregistry["I0_controls"]
+    I00_controls = oregistry["I00_controls"]
+    autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+    guard_slit = oregistry["guard_slit"]
+    monochromator = oregistry["monochromator"]
+    scaler0 = oregistry["scaler0"]
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    upd_controls = oregistry["upd_controls"]
+    usaxs_slit = oregistry["usaxs_slit"]
+    user_data = oregistry["user_data"]
+    RE = oregistry["RE"]
+
+    yield from tune_GslitsCenter(oregistry)
+    yield from mode_USAXS(oregistry)
     yield from bps.mv(
         usaxs_slit.v_size,
         terms.SAXS.v_size.get(),
@@ -444,9 +517,9 @@ def tune_GslitsSize():
         "open",
     )
     # insertCCDfilters
-    yield from insertTransmissionFilters()
+    yield from insertTransmissionFilters(oregistry)
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-    yield from _USAXS_tune_guardSlits()
+    yield from _USAXS_tune_guardSlits(oregistry)
     yield from bps.mv(
         ti_filter_shutter,
         "close",
@@ -459,16 +532,29 @@ def tune_GslitsSize():
     )
 
     # workaround for issue #425 (#404)
-    yield from _unstick_GslitsSizeMotors()
+    yield from _unstick_GslitsSizeMotors(oregistry)
 
     logger.info(
         f"Guard slit now: V={guard_slit.v_size.get()} and H={guard_slit.h_size.get()}"
     )
 
 
-def tune_Gslits():
+def tune_Gslits(oregistry: Optional[Dict[str, Any]] = None):
     """
-    plan: scan and find optimal guard slit positions
+    Plan: optimize the guard slits' position and size.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
     """
-    yield from tune_GslitsCenter()
-    yield from tune_GslitsSize()
+    # Get devices from oregistry
+    user_data = oregistry["user_data"]
+
+    yield from tune_GslitsCenter(oregistry)
+    yield from tune_GslitsSize(oregistry)

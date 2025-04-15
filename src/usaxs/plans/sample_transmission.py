@@ -8,21 +8,14 @@ __all__ = """
 """.split()
 
 import logging
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 import numpy as np
 import pyRestTable
 from bluesky import plan_stubs as bps
 
-from ..devices import I0_controls
-from ..devices import a_stage
-from ..devices import autoscale_amplifiers
-from ..devices import constants
-from ..devices import saxs_stage
-from ..devices import scaler0
-from ..devices import terms
-from ..devices import ti_filter_shutter
-from ..devices import trd_controls
-from ..devices import user_data
 from .filters import insertScanFilters
 from .filters import insertTransmissionFilters
 from .mode_changes import mode_SAXS
@@ -33,14 +26,38 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-def measure_USAXS_Transmission(md={}):
+def measure_USAXS_Transmission(md={}, oregistry: Optional[Dict[str, Any]] = None):
     """
-    measure the sample transmission in USAXS mode
+    Measure the sample transmission in USAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default {}
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
     """
+    # Get devices from oregistry
+    I0_controls = oregistry["I0_controls"]
+    a_stage = oregistry["a_stage"]
+    autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+    constants = oregistry["constants"]
+    saxs_stage = oregistry["saxs_stage"]
+    scaler0 = oregistry["scaler0"]
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    trd_controls = oregistry["trd_controls"]
+    user_data = oregistry["user_data"]
+
     trmssn = terms.USAXS.transmission  # for convenience
     yield from user_data.set_state_plan("Measure USAXS transmission")
     if trmssn.measure.get():
-        yield from mode_USAXS()
+        yield from mode_USAXS(oregistry=oregistry)
         ax_target = (
             terms.SAXS.ax_in.get()
             + constants["USAXS_AY_OFFSET"]
@@ -54,7 +71,7 @@ def measure_USAXS_Transmission(md={}):
             ti_filter_shutter,
             "open",
         )
-        yield from insertTransmissionFilters()
+        yield from insertTransmissionFilters(oregistry=oregistry)
 
         yield from autoscale_amplifiers([I0_controls, trd_controls])
 
@@ -86,7 +103,7 @@ def measure_USAXS_Transmission(md={}):
             ti_filter_shutter,
             "close",
         )
-        yield from insertScanFilters()
+        yield from insertScanFilters(oregistry=oregistry)
         yield from bps.mv(
             trmssn.diode_counts,
             s["TR diode"]["value"],
@@ -123,11 +140,34 @@ def measure_USAXS_Transmission(md={}):
         logger.info("Did not measure USAXS transmission.")
 
 
-def measure_SAXS_Transmission(md={}):
+def measure_SAXS_Transmission(md={}, oregistry: Optional[Dict[str, Any]] = None):
     """
-    measure the sample transmission in SAXS mode
+    Measure the sample transmission in SAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default {}
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
     """
-    # FIXME: this failed when USAXS was already in position
+    # Get devices from oregistry
+    I0_controls = oregistry["I0_controls"]
+    a_stage = oregistry["a_stage"]
+    autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+    constants = oregistry["constants"]
+    saxs_stage = oregistry["saxs_stage"]
+    scaler0 = oregistry["scaler0"]
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    trd_controls = oregistry["trd_controls"]
+    user_data = oregistry["user_data"]
+
     yield from user_data.set_state_plan("Measure SAXS transmission")
     yield from mode_SAXS()
     yield from insertTransmissionFilters()

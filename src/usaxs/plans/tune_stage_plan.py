@@ -11,20 +11,28 @@ from typing import Optional
 
 from bluesky.plans import lineup2
 
-from ..devices.scalers import scaler0
 
-
-def tune(self, md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, Any]:
+def tune(
+    self,
+    md: Optional[Dict[str, Any]] = None,
+    oregistry: Optional[Dict[str, Any]] = None,
+) -> Generator[Any, None, Any]:
     """Execute a tuning plan.
 
     This function performs a scan to tune a stage motor by optimizing
     a detector signal.
 
-    Args:
-        md (dict, optional): Metadata dictionary. Defaults to None.
+    Parameters
+    ----------
+    md : Dict[str, Any], optional
+        Metadata dictionary, by default None
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
 
-    Returns:
-        Generator: A sequence of plan messages
+    Returns
+    -------
+    Generator[Any, None, Any]
+        A sequence of plan messages
     """
     _md = {}
     _md.update(md or {})
@@ -35,6 +43,7 @@ def tune(self, md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, Any]
 
         # TODO: if self.signal_stats is None, create one and use it
         print(self.detectors)
+        scaler0 = oregistry["scaler0"]
         yield from lineup2(
             # self.detectors,
             [scaler0],

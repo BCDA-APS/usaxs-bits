@@ -12,25 +12,40 @@ import datetime
 import logging
 import time
 from typing import Any
+from typing import Dict
 from typing import Generator
+from typing import Optional
 
 import bluesky
 from bluesky import plan_stubs as bps
 from bluesky.run_engine import RequestAbort
 
-from ..devices import mono_shutter
-from ..devices import terms
-from ..devices import ti_filter_shutter
-from ..devices import user_data
-from ..framework import RE
-
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-def IfRequestedStopBeforeNextScan() -> Generator[Any, None, None]:
-    """plan: wait if requested"""
-    global RE
+def IfRequestedStopBeforeNextScan(
+    oregistry: Optional[Dict[str, Any]] = None,
+) -> Generator[Any, None, None]:
+    """
+    Plan: wait if requested.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+    """
+    terms = oregistry["terms"]
+    mono_shutter = oregistry["mono_shutter"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    user_data = oregistry["user_data"]
+    RE = oregistry["RE"]
+
     open_the_shutter = False
     t0 = time.time()
 

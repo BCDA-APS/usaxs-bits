@@ -16,73 +16,82 @@ import logging
 import os
 import time
 from collections import OrderedDict
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from apstools.plans import restorable_stage_sigs
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from ..devices import MONO_FEEDBACK_OFF
-from ..devices import MONO_FEEDBACK_ON
-from ..devices import NOTIFY_ON_BAD_FLY_SCAN
-from ..devices import NOTIFY_ON_BADTUNE
-from ..devices import I0_controls
-from ..devices import I00_controls
-from ..devices import a_stage  # , as_stage
+# Get devices from oregistry
+from .. import oregistry
 
-# from ..devices import apsbss
-from ..devices import ar_start
-from ..devices import autoscale_amplifiers
-from ..devices import ccd_shutter
-from ..devices import constants
-from ..devices import d_stage
-from ..devices import email_notices
-from ..devices import flyscan_trajectories
-from ..devices import guard_slit
-from ..devices import lax_autosave
-from ..devices import m_stage  # , ms_stage
-from ..devices import mono_shutter
-from ..devices import monochromator
-from ..devices import s_stage
-from ..devices import saxs_det
-from ..devices import saxs_stage
-from ..devices import scaler0
-from ..devices import scaler1
-from ..devices import struck
-from ..devices import terms
-from ..devices import ti_filter_shutter
-from ..devices import trd_controls
-from ..devices import upd_controls
-from ..devices import usaxs_flyscan
-from ..devices import usaxs_q_calc
-from ..devices import usaxs_slit
-from ..devices import user_data
-from ..devices import user_override
-from ..devices import waxs_det
-from ..framework import RE
-from ..framework import bec
-from ..framework import specwriter
-from ..misc.suspenders import suspend_BeamInHutch
-from ..misc.suspenders import suspend_FE_shutter
-from ..utils.a2q_q2a import q2angle
-from ..utils.cleanup_text import cleanupText
-from ..utils.setup_new_user import techniqueSubdirectory
-from ..utils.user_sample_title import getSampleTitle
-from .area_detector import areaDetectorAcquire
-from .axis_tuning import tune_a2rp  # , tune_asrp
-from .axis_tuning import tune_ar  # , tune_asrp
-from .axis_tuning import tune_m2rp  # , tune_msrp
-from .axis_tuning import tune_mr  # , tune_msrp
-from .filters import insertSaxsFilters
-from .filters import insertWaxsFilters
-from .mode_changes import mode_SAXS
-from .mode_changes import mode_USAXS
-from .mode_changes import mode_WAXS
-from .requested_stop import IfRequestedStopBeforeNextScan
-from .sample_imaging import record_sample_image_on_demand
-from .sample_transmission import measure_SAXS_Transmission
-from .sample_transmission import measure_USAXS_Transmission
-from .uascan import uascan
+# Constants
+MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
+MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
+NOTIFY_ON_BADTUNE = oregistry["NOTIFY_ON_BADTUNE"]
+
+# Device instances
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+a_stage = oregistry["a_stage"]
+ar_start = oregistry["ar_start"]
+autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+ccd_shutter = oregistry["ccd_shutter"]
+constants = oregistry["constants"]
+d_stage = oregistry["d_stage"]
+email_notices = oregistry["email_notices"]
+flyscan_trajectories = oregistry["flyscan_trajectories"]
+guard_slit = oregistry["guard_slit"]
+lax_autosave = oregistry["lax_autosave"]
+m_stage = oregistry["m_stage"]
+mono_shutter = oregistry["mono_shutter"]
+monochromator = oregistry["monochromator"]
+s_stage = oregistry["s_stage"]
+saxs_det = oregistry["saxs_det"]
+saxs_stage = oregistry["saxs_stage"]
+scaler0 = oregistry["scaler0"]
+scaler1 = oregistry["scaler1"]
+struck = oregistry["struck"]
+terms = oregistry["terms"]
+ti_filter_shutter = oregistry["ti_filter_shutter"]
+trd_controls = oregistry["trd_controls"]
+upd_controls = oregistry["upd_controls"]
+usaxs_flyscan = oregistry["usaxs_flyscan"]
+usaxs_q_calc = oregistry["usaxs_q_calc"]
+usaxs_slit = oregistry["usaxs_slit"]
+user_data = oregistry["user_data"]
+user_override = oregistry["user_override"]
+waxs_det = oregistry["waxs_det"]
+RE = oregistry["RE"]
+bec = oregistry["bec"]
+specwriter = oregistry["specwriter"]
+suspend_BeamInHutch = oregistry["suspend_BeamInHutch"]
+suspend_FE_shutter = oregistry["suspend_FE_shutter"]
+q2angle = oregistry["q2angle"]
+cleanupText = oregistry["cleanupText"]
+techniqueSubdirectory = oregistry["techniqueSubdirectory"]
+getSampleTitle = oregistry["getSampleTitle"]
+areaDetectorAcquire = oregistry["areaDetectorAcquire"]
+tune_a2rp = oregistry["tune_a2rp"]
+tune_ar = oregistry["tune_ar"]
+tune_m2rp = oregistry["tune_m2rp"]
+tune_mr = oregistry["tune_mr"]
+insertSaxsFilters = oregistry["insertSaxsFilters"]
+insertWaxsFilters = oregistry["insertWaxsFilters"]
+mode_SAXS = oregistry["mode_SAXS"]
+mode_USAXS = oregistry["mode_USAXS"]
+mode_WAXS = oregistry["mode_WAXS"]
+IfRequestedStopBeforeNextScan = oregistry["IfRequestedStopBeforeNextScan"]
+record_sample_image_on_demand = oregistry["record_sample_image_on_demand"]
+measure_SAXS_Transmission = oregistry["measure_SAXS_Transmission"]
+measure_USAXS_Transmission = oregistry["measure_USAXS_Transmission"]
+uascan = oregistry["uascan"]
+after_plan = oregistry["after_plan"]
+before_plan = oregistry["before_plan"]
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -104,12 +113,41 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def preUSAXStune(md={}):
+def preUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
     """
-    tune the USAXS optics *only* if in USAXS mode
+    Tune the USAXS optics *only* if in USAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default {}
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
 
     USAGE:  ``RE(preUSAXStune())``
     """
+    # Get devices from oregistry
+    monochromator = oregistry["monochromator"]
+    mono_shutter = oregistry["mono_shutter"]
+    ccd_shutter = oregistry["ccd_shutter"]
+    terms = oregistry["terms"]
+    s_stage = oregistry["s_stage"]
+    d_stage = oregistry["d_stage"]
+    user_data = oregistry["user_data"]
+    usaxs_slit = oregistry["usaxs_slit"]
+    guard_slit = oregistry["guard_slit"]
+    scaler0 = oregistry["scaler0"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    m_stage = oregistry["m_stage"]
+    tune_msrp = oregistry["tune_msrp"]
+    tune_mr = oregistry["tune_mr"]
+    tune_m2rp = oregistry["tune_m2rp"]
+
     yield from bps.mv(
         monochromator.feedback.on,
         MONO_FEEDBACK_ON,
@@ -119,9 +157,11 @@ def preUSAXStune(md={}):
         "close",
         timeout=MASTER_TIMEOUT,
     )
-    yield from IfRequestedStopBeforeNextScan()  # stop if user chose to do so.
+    yield from IfRequestedStopBeforeNextScan(
+        oregistry=oregistry
+    )  # stop if user chose to do so.
 
-    yield from mode_USAXS()
+    yield from mode_USAXS(oregistry=oregistry)
 
     if terms.preUSAXStune.use_specific_location.get() in (1, "yes"):
         yield from bps.mv(
@@ -168,8 +208,7 @@ def preUSAXStune(md={}):
     if not m_stage.isChannelCut:
         tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
     if terms.USAXS.useMSstage.get():
-        # tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
-        pass
+        tuners[m_stage.r] = tune_mr  # tune M stage to monochromator
     if terms.USAXS.useSBUSAXS.get():
         # tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage
         #                                     # and set ASRP0 value
@@ -183,7 +222,7 @@ def preUSAXStune(md={}):
     # yield from bps.install_suspender(suspend_BeamInHutch)
     for axis, tune in tuners.items():
         yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
-        yield from tune(md=md)
+        yield from tune(md=md, oregistry=oregistry)
         # if not axis.tuner.tune_ok:
         #    logger.warning("!!! tune failed for axis %s !!!", axis.name)
         #    if NOTIFY_ON_BADTUNE:
@@ -227,12 +266,40 @@ def preUSAXStune(md={}):
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def allUSAXStune(md={}):
+def allUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
     """
-    tune mr, ar, a2rp, ar, a2rp USAXS optics
+    Tune mr, ar, a2rp, ar, a2rp USAXS optics.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default {}
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
 
     USAGE:  ``RE(allUSAXStune())``
     """
+    # Get devices from oregistry
+    monochromator = oregistry["monochromator"]
+    mono_shutter = oregistry["mono_shutter"]
+    ccd_shutter = oregistry["ccd_shutter"]
+    terms = oregistry["terms"]
+    s_stage = oregistry["s_stage"]
+    d_stage = oregistry["d_stage"]
+    user_data = oregistry["user_data"]
+    usaxs_slit = oregistry["usaxs_slit"]
+    guard_slit = oregistry["guard_slit"]
+    scaler0 = oregistry["scaler0"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    m_stage = oregistry["m_stage"]
+    a_stage = oregistry["a_stage"]
+    email_notices = oregistry["email_notices"]
+
     yield from bps.mv(
         monochromator.feedback.on,
         MONO_FEEDBACK_ON,
@@ -242,9 +309,11 @@ def allUSAXStune(md={}):
         "close",
         timeout=MASTER_TIMEOUT,
     )
-    yield from IfRequestedStopBeforeNextScan()  # stop if user chose to do so.
+    yield from IfRequestedStopBeforeNextScan(
+        oregistry=oregistry
+    )  # stop if user chose to do so.
 
-    yield from mode_USAXS()
+    yield from mode_USAXS(oregistry=oregistry)
 
     if terms.preUSAXStune.use_specific_location.get() in (1, "yes"):
         yield from bps.mv(
@@ -304,7 +373,7 @@ def allUSAXStune(md={}):
     # yield from bps.install_suspender(suspend_BeamInHutch)
     for axis, tune in tuners.items():
         yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
-        yield from tune(md=md)
+        yield from tune(md=md, oregistry=oregistry)
         if not axis.tuner.tune_ok:
             logger.warning("!!! tune failed for axis %s !!!", axis.name)
             if NOTIFY_ON_BADTUNE:
@@ -341,77 +410,113 @@ def allUSAXStune(md={}):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-def preSWAXStune(md={}):
+def preSWAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
     """
-    tune the SAXS & WAXS optics in any mode, is safe
+    Tune the SAXS & WAXS optics in any mode, is safe.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default {}
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
 
     USAGE:  ``RE(preSWAXStune())``
     """
-    # yield from bps.mv(
-    #     monochromator.feedback.on, MONO_FEEDBACK_ON,
-    #     mono_shutter, "open",
-    #     ccd_shutter, "close",
-    #     timeout=MASTER_TIMEOUT,
-    # )
-    # yield from IfRequestedStopBeforeNextScan()         # stop if user chose to do so.
+    # Get devices from oregistry
+    monochromator = oregistry["monochromator"]
+    mono_shutter = oregistry["mono_shutter"]
+    ccd_shutter = oregistry["ccd_shutter"]
+    terms = oregistry["terms"]
+    s_stage = oregistry["s_stage"]
+    user_data = oregistry["user_data"]
+    scaler0 = oregistry["scaler0"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    m_stage = oregistry["m_stage"]
+    ms_stage = oregistry["ms_stage"]
+    tune_msrp = oregistry["tune_msrp"]
+    tune_mr = oregistry["tune_mr"]
+    tune_m2rp = oregistry["tune_m2rp"]
 
-    # if terms.preUSAXStune.use_specific_location.get() in (1, "yes"):
-    #     yield from bps.mv(
-    #         s_stage.x, terms.preUSAXStune.sx.get(),
-    #         s_stage.y, terms.preUSAXStune.sy.get(),
-    #         timeout=MASTER_TIMEOUT,
-    #         )
+    yield from bps.mv(
+        monochromator.feedback.on,
+        MONO_FEEDBACK_ON,
+        mono_shutter,
+        "open",
+        ccd_shutter,
+        "close",
+        timeout=MASTER_TIMEOUT,
+    )
+    yield from IfRequestedStopBeforeNextScan(
+        oregistry=oregistry
+    )  # stop if user chose to do so.
 
-    # yield from bps.mv(
-    #     user_data.time_stamp, str(datetime.datetime.now()),
-    #     # user_data.collection_in_progress, 1,
+    if terms.preUSAXStune.use_specific_location.get() in (1, "yes"):
+        yield from bps.mv(
+            s_stage.x,
+            terms.preUSAXStune.sx.get(),
+            s_stage.y,
+            terms.preUSAXStune.sy.get(),
+            timeout=MASTER_TIMEOUT,
+        )
 
-    #     scaler0.preset_time,  0.1,
-    #     timeout=MASTER_TIMEOUT,
-    # )
-    # yield from user_data.set_state_plan("pre-SWAXS optics tune")
+    yield from bps.mv(
+        user_data.time_stamp,
+        str(datetime.datetime.now()),
+        scaler0.preset_time,
+        0.1,
+        timeout=MASTER_TIMEOUT,
+    )
+    yield from user_data.set_state_plan("pre-SWAXS optics tune")
 
-    # # when all that is complete, then ...
-    # yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+    # when all that is complete, then ...
+    yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
 
-    # # TODO: install suspender using usaxs_CheckBeamStandard.get()
+    # TODO: install suspender using usaxs_CheckBeamStandard.get()
 
-    # tuners = OrderedDict()                 # list the axes to tune
-    # tuners[m_stage.r] = tune_mr            # tune M stage to monochromator
-    # if not m_stage.isChannelCut:
-    #     tuners[m_stage.r2p] = tune_m2rp        # make M stage crystals parallel
-    # if terms.USAXS.useMSstage.get():
-    #     tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
+    tuners = OrderedDict()  # list the axes to tune
+    tuners[m_stage.r] = tune_mr  # tune M stage to monochromator
+    if not m_stage.isChannelCut:
+        tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
+    if terms.USAXS.useMSstage.get():
+        tuners[ms_stage.rp] = tune_msrp  # align MSR stage with M stage
 
-    # # now, tune the desired axes, bail out if a tune fails
-    # yield from bps.install_suspender(suspend_BeamInHutch)
-    # for axis, tune in tuners.items():
-    #     yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
-    #     yield from tune(md=md)
-    #     if axis.tuner.tune_ok:
-    #         # If we don't wait, the next tune often fails
-    #         # intensity stays flat, statistically
-    #         # We need to wait a short bit to allow EPICS database
-    #         # to complete processing and report back to us.
-    #         yield from bps.sleep(1)
-    #     else:
-    #         logger.warning("!!! tune failed for axis %s !!!", axis.name)
-    #         # break
-    # yield from bps.remove_suspender(suspend_BeamInHutch)
+    # now, tune the desired axes, bail out if a tune fails
+    yield from bps.install_suspender(suspend_BeamInHutch)
+    for axis, tune in tuners.items():
+        yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+        yield from tune(md=md, oregistry=oregistry)
+        if axis.tuner.tune_ok:
+            # If we don't wait, the next tune often fails
+            # intensity stays flat, statistically
+            # We need to wait a short bit to allow EPICS database
+            # to complete processing and report back to us.
+            yield from bps.sleep(1)
+        else:
+            logger.warning("!!! tune failed for axis %s !!!", axis.name)
+            # break
+    yield from bps.remove_suspender(suspend_BeamInHutch)
 
-    # logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
-    # yield from bps.mv(
-    #     scaler0.preset_time,        terms.USAXS.usaxs_time.get(),
-    #     user_data.time_stamp,       str(datetime.datetime.now()),
-    #     # user_data.collection_in_progress, 0,
-
-    #     terms.preUSAXStune.num_scans_last_tune, 0,
-    #     terms.preUSAXStune.run_tune_next,       0,
-    #     terms.preUSAXStune.epoch_last_tune,     time.time(),
-    #     timeout=MASTER_TIMEOUT,
-    # )
-    # yield from user_data.set_state_plan("pre-SWAXS optics tune")
-    yield from bps.null()
+    logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
+    yield from bps.mv(
+        scaler0.preset_time,
+        terms.USAXS.usaxs_time.get(),
+        user_data.time_stamp,
+        str(datetime.datetime.now()),
+        terms.preUSAXStune.num_scans_last_tune,
+        0,
+        terms.preUSAXStune.run_tune_next,
+        0,
+        terms.preUSAXStune.epoch_last_tune,
+        time.time(),
+        timeout=MASTER_TIMEOUT,
+    )
+    yield from user_data.set_state_plan("pre-SWAXS optics tune")
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -441,9 +546,6 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     """
     general scan macro for step USAXS for both 1D & 2D collimation
     """
-
-    from .command_list import after_plan
-    from .command_list import before_plan
 
     # bluesky_runengine_running = RE.state != "idle"
 
@@ -990,7 +1092,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @bpp.suspend_decorator(suspend_FE_shutter)
-# @bpp.suspend_decorator(suspend_BeamInHutch) 
+# @bpp.suspend_decorator(suspend_BeamInHutch)
 # this is how to do proper suspender for one function, not for the whole module
 def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
@@ -1394,8 +1496,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             scaler1.update_rate,
             60,
             scaler0.count,
-            0,
-            scaler1.count,
             0,
             scaler0.delay,
             0,

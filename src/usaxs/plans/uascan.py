@@ -14,26 +14,45 @@ from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from ..devices import I00
-from ..devices import I000
-from ..devices import MONO_FEEDBACK_ON
-from ..devices import I0_controls
-from ..devices import I00_controls
-from ..devices import a_stage  # , as_stage
-from ..devices import d_stage  # , as_stage
+# Get devices from oregistry
+from .. import oregistry
 
-# from ..devices import fuel_spray_bit
-from ..devices import m_stage  # , as_stage
-from ..devices import monochromator
-from ..devices import s_stage  # , as_stage
-from ..devices import scaler0
-from ..devices import terms
-from ..devices import ti_filter_shutter
-from ..devices import trd
-from ..devices import trd_controls
-from ..devices import upd_controls
-from ..devices import user_data
-from ..usaxs_support.ustep import Ustep
+# Constants
+MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+
+# Device instances
+I00 = oregistry["I00"]
+I000 = oregistry["I000"]
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+a_stage = oregistry["a_stage"]
+d_stage = oregistry["d_stage"]
+m_stage = oregistry["m_stage"]
+monochromator = oregistry["monochromator"]
+s_stage = oregistry["s_stage"]
+scaler0 = oregistry["scaler0"]
+terms = oregistry["terms"]
+
+# from ..devices import I00
+# from ..devices import I000
+# from ..devices import MONO_FEEDBACK_ON
+# from ..devices import I0_controls
+# from ..devices import I00_controls
+# from ..devices import a_stage  # , as_stage
+# from ..devices import d_stage  # , as_stage
+
+# # from ..devices import fuel_spray_bit
+# from ..devices import m_stage  # , as_stage
+# from ..devices import monochromator
+# from ..devices import s_stage  # , as_stage
+# from ..devices import scaler0
+# from ..devices import terms
+# from ..devices import ti_filter_shutter
+# from ..devices import trd
+# from ..devices import trd_controls
+# from ..devices import upd_controls
+# from ..devices import user_data
+# from ..usaxs_support.ustep import Ustep
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

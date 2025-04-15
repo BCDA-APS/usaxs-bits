@@ -12,22 +12,39 @@ import time
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 
-from ..devices import user_data
 from ..utils.reporter import remaining_time_reporter
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-def areaDetectorAcquire(det, create_directory=None, RE=None, beck=None, md=None):
+def areaDetectorAcquire(
+    det, create_directory=None, RE=None, bec=None, md=None, oregistry=None
+):
     """
     acquire image(s) from the named area detector
+
+    Parameters
+    ----------
+    det : Device
+        The area detector to acquire from
+    create_directory : str, optional
+        Directory to create for the data, by default None
+    RE : RunEngine, optional
+        The RunEngine instance, by default None
+    beck : BestEffortCallback, optional
+        The BestEffortCallback instance, by default None
+    md : dict, optional
+        Metadata for the scan, by default None
+    oregistry : dict, optional
+        The ophyd registry containing device instances, by default None
     """
     _md = md or {}
     acquire_time = det.cam.acquire_time.get()
     # Note: AD's HDF File Writer can use up to 5 seconds to finish writing the file
 
     t0 = time.time()
+    user_data = oregistry["user_data"]
     yield from bps.mv(
         user_data.scanning,
         "scanning",  # we are scanning now (or will be very soon)
@@ -62,11 +79,13 @@ def areaDetectorAcquire(det, create_directory=None, RE=None, beck=None, md=None)
             # print(f"Removing {det.cam.name}.stage_sigs[{k}] before bp.count()")
             det.cam.stage_sigs.pop(k)
 
-    bec.disable_table()
+    if bec is not None:
+        bec.disable_table()
     yield from bp.count(
         [det], md=_md
     )  # TODO: SPEC showed users incremental progress (1 Hz updates) #175
-    bec.enable_table()
+    if bec is not None:
+        bec.enable_table()
 
     # Restore the original detector staging.
     det.cam.stage_sigs = original_detector_staging["cam"].copy()
