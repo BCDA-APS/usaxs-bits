@@ -123,10 +123,10 @@ class NeXus_Structure(object):
             logger.debug(f"XML file invalid: {log}")
             try:
                 xmlschema.assertValid(config)  # basic exception report
-            except Exception as reason:
+            except Exception as err:
                 raise RuntimeError(
-                    f"XML validation failed: file='{self.config_filename}' {reason=}"
-                )
+                    f"XML validation failed: file='{self.config_filename}' {err=}"
+                ) from err
 
         # safe to proceed parsing the file
         root = config.getroot()

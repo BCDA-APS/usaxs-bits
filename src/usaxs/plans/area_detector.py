@@ -9,6 +9,7 @@ __all__ = [
 import logging
 import time
 
+from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 
@@ -17,10 +18,11 @@ from ..utils.reporter import remaining_time_reporter
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+# Device instances
+user_data = oregistry["user_data"]
 
-def areaDetectorAcquire(
-    det, create_directory=None, RE=None, bec=None, md=None, oregistry=None
-):
+
+def areaDetectorAcquire(det, create_directory=None, RE=None, bec=None, md=None):
     """
     acquire image(s) from the named area detector
 
@@ -36,15 +38,12 @@ def areaDetectorAcquire(
         The BestEffortCallback instance, by default None
     md : dict, optional
         Metadata for the scan, by default None
-    oregistry : dict, optional
-        The ophyd registry containing device instances, by default None
     """
     _md = md or {}
     acquire_time = det.cam.acquire_time.get()
     # Note: AD's HDF File Writer can use up to 5 seconds to finish writing the file
 
     t0 = time.time()
-    user_data = oregistry["user_data"]
     yield from bps.mv(
         user_data.scanning,
         "scanning",  # we are scanning now (or will be very soon)

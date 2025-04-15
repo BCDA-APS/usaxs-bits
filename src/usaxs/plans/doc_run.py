@@ -12,12 +12,15 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
+from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+# Device instances
+bec = oregistry["bec"]
 
 def documentation_run(
     words: str,
@@ -52,7 +55,6 @@ def documentation_run(
     )
     _md.update(md or {})
 
-    bec = oregistry["bec"]
     bec.disable_plots()
     bec.disable_table()
     uid = yield from bps.open_run(md=_md)

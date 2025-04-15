@@ -81,11 +81,13 @@ class OurCustomNXWriterBase(NXWriterAPS):
         self,
         parent,
         pre="monochromator_dcm",
-        keys="wavelength energy theta".split(),  # <- removed: y_offset mode
+        keys=None,  # <- removed: y_offset mode
     ):
         """
         group: /entry/instrument/monochromator:NXmonochromator
         """
+        if keys is None:
+            keys = ["wavelength", "energy", "theta"]
 
         try:
             links = {key: self.get_stream_link(f"{pre}_{key}") for key in keys}
@@ -168,7 +170,7 @@ class OurCustomNXWriterBase(NXWriterAPS):
                         f"Could not write '{d[item]}' to h5py from baseline:"
                         f" k={k}, v={v}, key={key}"
                         f"\n{exc}"
-                    )
+                    ) from exc
 
     def h5string(self, text):
         """Local fix for issue #459."""

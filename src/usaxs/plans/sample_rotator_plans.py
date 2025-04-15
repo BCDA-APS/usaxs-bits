@@ -16,8 +16,13 @@ from typing import Optional
 
 from bluesky import plan_stubs as bps
 
+from .. import oregistry
+
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+# Device instances
+pi_c867 = oregistry["pi_c867"]
 
 
 def PI_Off(
@@ -48,9 +53,6 @@ def PI_Off(
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    # Get devices from oregistry
-    pi_c867 = oregistry["pi_c867"]
-
     yield from bps.mv(
         pi_c867.jog_forward,
         0,
@@ -82,9 +84,6 @@ def PI_onF(
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    # Get devices from oregistry
-    pi_c867 = oregistry["pi_c867"]
-
     yield from bps.mv(pi_c867.home, "forward", timeout=timeout)
     yield from bps.abs_set(pi_c867.jog_forward, 1)
 
@@ -111,8 +110,5 @@ def PI_onR(
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    # Get devices from oregistry
-    pi_c867 = oregistry["pi_c867"]
-
     yield from bps.mv(pi_c867.home, "reverse", timeout=timeout)
     yield from bps.abs_set(pi_c867.jog_reverse, 1)

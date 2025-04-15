@@ -75,10 +75,12 @@ class UsaxsFlyScanDevice(Device):
         self.flying._status = Status()  # issue #501
         self.flying._status.set_finished()
 
-    def plan(self, md={}):
+    def plan(self, md=None):
         """
         run the USAXS fly scan
         """
+        if md is None:
+            md = {}
         bluesky_runengine_running = RE.state != "idle"
 
         def _report_(t):
@@ -211,7 +213,8 @@ class UsaxsFlyScanDevice(Device):
             yield from bps.abs_set(self.flying, False)
 
         if bluesky_runengine_running:
-            prepare_HDF5_file()  # prepare HDF5 file to save fly scan data (background thread)
+            # prepare HDF5 file to save fly scan data (background thread)
+            prepare_HDF5_file()
         # path = os.path.abspath(self.saveFlyData_HDF5_dir)
         specwriter._cmt("start", f"HDF5 configuration file: {self.saveFlyData_config}")
 

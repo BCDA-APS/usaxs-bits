@@ -12,6 +12,7 @@ from typing import Any
 from typing import Dict
 from typing import Generator
 
+from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
 
 from ..utils.setup_new_user import techniqueSubdirectory
@@ -19,6 +20,11 @@ from ..utils.setup_new_user import techniqueSubdirectory
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+# Device instances
+blackfly_optical = oregistry["blackfly_optical"]
+saxs_det = oregistry["saxs_det"]
+terms = oregistry["terms"]
+waxs_det = oregistry["waxs_det"]
 
 def record_sample_image_on_demand(
     technique_name: str,
@@ -48,11 +54,6 @@ def record_sample_image_on_demand(
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    blackfly_optical = oregistry["blackfly_optical"]
-    saxs_det = oregistry["saxs_det"]
-    terms = oregistry["terms"]
-    waxs_det = oregistry["waxs_det"]
-
     if blackfly_optical is not None and blackfly_optical.should_save_image:
         det = blackfly_optical  # define once here, in case it ever changes
         path = techniqueSubdirectory(technique_name)

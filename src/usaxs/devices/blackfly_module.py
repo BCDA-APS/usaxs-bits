@@ -245,7 +245,8 @@ try:
         warnings.warn(
             "NOTE: blackfly_optical.jpeg1 has not been primed yet."
             "  BEFORE using this detector in bluesky, call: "
-            "  AD_prime_plugin2(blackfly_optical.jpeg1)"
+            "  AD_prime_plugin2(blackfly_optical.jpeg1)",
+            stacklevel=2,
         )
 except TimeoutError as exc_obj:
     logger.warning("Timeout connecting with %s (%s): %s", nm, prefix, exc_obj)

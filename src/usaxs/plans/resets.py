@@ -10,31 +10,34 @@ import logging
 from typing import Any
 from typing import Generator
 
+from apsbits.utils.controls_setup import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 
-from ..devices import I00
-from ..devices import I000
-from ..devices import NOTIFY_ON_RESET
 from ..devices import AutorangeSettings
-from ..devices import I0_controls
-from ..devices import I00_controls
-from ..devices import a_stage  # as_stage
-from ..devices import d_stage  # as_stage
-from ..devices import email_notices
-from ..devices import m_stage  # as_stage
-from ..devices import s_stage  # as_stage
-from ..devices import scaler0
-from ..devices import terms
-from ..devices import ti_filter_shutter
-from ..devices import trd
-from ..devices import upd_controls
-from ..devices import user_data
 from .mode_changes import mode_USAXS
 from .mono_feedback import DCMfeedbackON
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+# Device instances
+I00 = oregistry["I00"]
+I000 = oregistry["I000"]
+NOTIFY_ON_RESET = oregistry["NOTIFY_ON_RESET"]
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+a_stage = oregistry["a_stage"]
+d_stage = oregistry["d_stage"]
+email_notices = oregistry["email_notices"]
+m_stage = oregistry["m_stage"]
+s_stage = oregistry["s_stage"]
+scaler0 = oregistry["scaler0"]
+terms = oregistry["terms"]
+ti_filter_shutter = oregistry["ti_filter_shutter"]
+trd = oregistry["trd"]
+upd_controls = oregistry["upd_controls"]
+user_data = oregistry["user_data"]
 
 
 def reset_USAXS() -> Generator[Any, None, None]:

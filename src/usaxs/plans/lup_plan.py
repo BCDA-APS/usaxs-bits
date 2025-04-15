@@ -13,6 +13,7 @@ from typing import Generator
 from typing import List
 from typing import Optional
 
+from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 from ophyd import Device
@@ -21,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 logger.info(__file__)
 
+# Device instances
+bec = oregistry["bec"]
 
 def lup(
     detectors: List[Device],

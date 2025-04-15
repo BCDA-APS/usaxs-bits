@@ -432,7 +432,7 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
         # readings is a PV-keyed dictionary
         readings = {getScalerChannelPvname(s): [] for s in signals}
 
-        for m in range(num_readings):
+        for _ in range(num_readings):
             yield from bps.sleep(0.05)  # allow amplifier to stabilize on gain
             # count and wait to complete
             yield from bps.trigger(scaler, wait=True)  # timeout=count_time+1.0)
@@ -539,7 +539,7 @@ def _scaler_autoscale_(controls, count_time=0.05, max_iterations=9):
     # Also, make sure no detector count rates are stuck at max
 
     complete = False
-    for iteration in range(max_iterations):
+    for _ in range(max_iterations):
         converged = []  # append True is convergence criteria is satisfied
         yield from bps.trigger(scaler, wait=True)  # timeout=count_time+1.0)
 

@@ -9,14 +9,17 @@ __all__ = [
 import logging
 import math
 from collections import OrderedDict
+from typing import Any
+from typing import Dict
+from typing import Optional
 
+# Get devices from oregistry
+from apsbits.utils.controls_setup import oregistry
 from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
-
-# Get devices from oregistry
-from .. import oregistry
-
+# Add these imports at the top of the file
+from ..usaxs_support.ustep import Ustep
 # Constants
 MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
 
@@ -32,6 +35,11 @@ monochromator = oregistry["monochromator"]
 s_stage = oregistry["s_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
+upd_controls = oregistry["upd_controls"]
+ti_filter_shutter = oregistry["ti_filter_shutter"]
+trd_controls = oregistry["trd_controls"]
+trd = oregistry["trd"]
+user_data = oregistry["user_data"]
 
 # from ..devices import I00
 # from ..devices import I000
@@ -53,6 +61,8 @@ terms = oregistry["terms"]
 # from ..devices import upd_controls
 # from ..devices import user_data
 # from ..usaxs_support.ustep import Ustep
+
+
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -87,11 +97,43 @@ def uascan(
     ax0,
     SAD_mm,
     useDynamicTime=True,
-    md={},
+    md: Optional[Dict[str, Any]] = None,
 ):
     """
     USAXS ascan (step size varies with distance from a reference point)
+
+    Parameters
+    ----------
+    start : float
+        Starting position
+    reference : float
+        Reference position
+    finish : float
+        Finishing position
+    minStep : float
+        Minimum step size
+    exponent : float
+        Exponent for step size calculation
+    intervals : int
+        Number of intervals
+    count_time : float
+        Count time per point
+    dx0 : float
+        Initial dx position
+    SDD_mm : float
+        Sample to detector distance in mm
+    ax0 : float
+        Initial ax position
+    SAD_mm : float
+        Sample to analyzer distance in mm
+    useDynamicTime : bool, optional
+        Whether to use dynamic time, by default True
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
     """
+    if md is None:
+        md = {}
+
     if intervals <= 0:
         raise ValueError(f"intervals must be >0, given: {intervals}")
 
@@ -263,16 +305,16 @@ def uascan(
                 # adjust the ASRP piezo on the AS side-bounce stage
                 tanBragg = math.tan(reference * math.pi / 180)
                 cosScatAngle = math.cos((reference - target_ar) * math.pi / 180)
-                diff = math.atan(tanBragg / cosScatAngle) * 180 / math.pi - reference
-
                 # Note on asrp adjustment: NOTE: seems wrong, but may need to be revisited???
-                #   use "-" when reflecting inboard towards storage ring (single bounce setup)
-                #   use "+" when reflecting outboard towards experimenters (channel-cut setup)
-                ### on 2/06/2002 Andrew realized, that we are moving in wrong direction
-                ## the sign change to - moves ASRP towards larger Bragg angles...
-                ## verified experimentally - higher voltage on piezo = lower Bragg angle...
-                ## and we need to INCREASE the Bragg Angle with increasing Q,
-                ## to correct for tilt down...
+                # use "-" when reflecting inboard towards storage ring
+                # (single bounce setup)
+                # use "+" when reflecting outboard towards experimenters
+                # (channel-cut setup)
+                # on 2/06/2002 Andrew realized, that we are moving in wrong direction
+                # the sign change to - moves ASRP towards larger Bragg angles...
+                # verified experimentally - higher voltage on piezo = lower Bragg angle...
+                # and we need to INCREASE the Bragg Angle with increasing Q,
+                # to correct for tilt down...
 
                 # asrp_vdc = asrp0 - diff/terms.usaxs.asrp_degrees_per_VDC.get()
                 # moves += [as_stage.rp, asrp_vdc]

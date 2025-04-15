@@ -17,6 +17,7 @@ from typing import Dict
 from typing import Optional
 
 import pyRestTable
+from apsbits.utils.controls_setup import oregistry
 from apstools.plans import TuneAxis
 from bluesky import plan_stubs as bps
 from ophyd import Kind
@@ -29,6 +30,12 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+# Device instances
+guard_slit = oregistry["guard_slit"]
+scaler0 = oregistry["scaler0"]
+terms = oregistry["terms"]
+user_data = oregistry["user_data"]
 
 
 class GuardSlitTuneError(RuntimeError): ...  # custom error

@@ -15,26 +15,14 @@ from typing import Any
 from typing import Generator
 
 import pyRestTable
+from apsbits.utils.controls_setup import oregistry
 from apstools.utils import ExcelDatabaseFileGeneric
 from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from IPython import get_ipython
 from ophyd import Signal
 
-from ..devices import a_shutter_autoopen
-from ..devices import constants
-from ..devices import email_notices
-from ..devices import saxs_det
-from ..devices import terms
-from ..devices import ti_filter_shutter
-from ..devices import user_data
-from ..devices import waxs_det
-from ..devices.stages import s_stage
-from ..misc.amplifiers import I0_controls
-from ..misc.amplifiers import I00_controls
 from ..misc.amplifiers import measure_background
-from ..misc.amplifiers import trd_controls
-from ..misc.amplifiers import upd_controls
 from ..usaxs_support.nexus import reset_manager
 from ..usaxs_support.surveillance import instrument_archive
 from ..utils.quoted_line import split_quoted_line
@@ -48,12 +36,24 @@ from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
 from .requested_stop import RequestAbort
-from .sample_rotator_plans import PI_Off
-from .sample_rotator_plans import PI_onF
-from .sample_rotator_plans import PI_onR
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+# Device instances
+a_shutter_autoopen = oregistry["a_shutter_autoopen"]
+constants = oregistry["constants"]
+email_notices = oregistry["email_notices"]
+saxs_det = oregistry["saxs_det"]
+terms = oregistry["terms"]
+ti_filter_shutter = oregistry["ti_filter_shutter"]
+user_data = oregistry["user_data"]
+waxs_det = oregistry["waxs_det"]
+s_stage = oregistry["s_stage"]
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+trd_controls = oregistry["trd_controls"]
+upd_controls = oregistry["upd_controls"]
 
 __all__ = """
     after_command_list

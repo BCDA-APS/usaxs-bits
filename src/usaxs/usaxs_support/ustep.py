@@ -87,23 +87,29 @@ class Ustep(object):
             key = {True: 1, False: 0}[diff > d[1]]
             f[key] = factor
             d[key] = diff
-            # print(f"expand: diff={diff} key={key}  factor={factor} last={self.series(factor)[-1]}")
+            # print(
+            #     f"expand: diff={diff} key={key} factor={factor} "
+            #     f"last={self.series(factor)[-1]}"
+            # )
 
         # now: d[0] < 0 and d[1] > 0, squeeze f[0] & f[1] to converge
         for _ in range(100):
             if (d[1] - d[0]) > span_target:
-                factor = (f[0] + f[1]) / 2  # bracket by bisection when not close
+                # bracket by bisection when not close
+                factor = (f[0] + f[1]) / 2
             else:
-                factor = f[0] - d[0] * (f[1] - f[0]) / (
-                    d[1] - d[0]
-                )  # linear interpolation when close
+                # linear interpolation when close
+                factor = f[0] - d[0] * (f[1] - f[0]) / (d[1] - d[0])
             diff = assess_diff(factor)
             if abs(diff) <= span_precision:
                 break
             key = {True: 0, False: 1}[diff < 0]
             f[key] = factor
             d[key] = diff
-            # print(f"squeeze: diff={diff} key={key}  factor={factor} last={self.series(factor)[-1]}")
+            # print(
+            #     f"squeeze: diff={diff} key={key} factor={factor} "
+            #     f"last={self.series(factor)[-1]}"
+            # )
 
         return factor
 

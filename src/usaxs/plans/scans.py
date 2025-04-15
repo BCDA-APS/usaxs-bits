@@ -16,17 +16,24 @@ import logging
 import os
 import time
 from collections import OrderedDict
-from typing import Any
-from typing import Dict
-from typing import Optional
+from typing import Any, Dict, Generator, Optional
 
+from apsbits.utils.controls_setup import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from apstools.plans import restorable_stage_sigs
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from bluesky.utils import Msg
+from ophyd import Device, Signal
 
-# Get devices from oregistry
-from .. import oregistry
+# Import RE, bec, and specwriter
+from bluesky import RunEngine
+from bluesky.callbacks.best_effort import BestEffortCallback
+from bluesky.callbacks.streaming import LiveSpecFile
+
+RE = RunEngine()
+bec = BestEffortCallback()
+specwriter = LiveSpecFile()
 
 # Constants
 MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
@@ -66,9 +73,6 @@ usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_data"]
 user_override = oregistry["user_override"]
 waxs_det = oregistry["waxs_det"]
-RE = oregistry["RE"]
-bec = oregistry["bec"]
-specwriter = oregistry["specwriter"]
 suspend_BeamInHutch = oregistry["suspend_BeamInHutch"]
 suspend_FE_shutter = oregistry["suspend_FE_shutter"]
 q2angle = oregistry["q2angle"]
@@ -110,19 +114,23 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(
-    suspend_BeamInHutch
-)  # this is how to do proper suspender for one function, not for the whole module
-def preUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
+@bpp.suspend_decorator(suspend_BeamInHutch)
+def preUSAXStune(
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+):
     """
     Tune the USAXS optics *only* if in USAXS mode.
 
     Parameters
     ----------
-    md : dict, optional
-        Metadata dictionary, by default {}
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        RunEngine instance, by default None
+    bec : Optional[Any], optional
+        BestEffortCallback instance, by default None
 
     Returns
     -------
@@ -131,22 +139,8 @@ def preUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
 
     USAGE:  ``RE(preUSAXStune())``
     """
-    # Get devices from oregistry
-    monochromator = oregistry["monochromator"]
-    mono_shutter = oregistry["mono_shutter"]
-    ccd_shutter = oregistry["ccd_shutter"]
-    terms = oregistry["terms"]
-    s_stage = oregistry["s_stage"]
-    d_stage = oregistry["d_stage"]
-    user_data = oregistry["user_data"]
-    usaxs_slit = oregistry["usaxs_slit"]
-    guard_slit = oregistry["guard_slit"]
-    scaler0 = oregistry["scaler0"]
-    ti_filter_shutter = oregistry["ti_filter_shutter"]
-    m_stage = oregistry["m_stage"]
-    tune_msrp = oregistry["tune_msrp"]
-    tune_mr = oregistry["tune_mr"]
-    tune_m2rp = oregistry["tune_m2rp"]
+    if md is None:
+        md = {}
 
     yield from bps.mv(
         monochromator.feedback.on,
@@ -157,11 +151,9 @@ def preUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
         "close",
         timeout=MASTER_TIMEOUT,
     )
-    yield from IfRequestedStopBeforeNextScan(
-        oregistry=oregistry
-    )  # stop if user chose to do so.
+    yield from IfRequestedStopBeforeNextScan()  # stop if user chose to do so.
 
-    yield from mode_USAXS(oregistry=oregistry)
+    yield from mode_USAXS()
 
     if terms.preUSAXStune.use_specific_location.get() in (1, "yes"):
         yield from bps.mv(
@@ -208,28 +200,30 @@ def preUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
     if not m_stage.isChannelCut:
         tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
     if terms.USAXS.useMSstage.get():
-        tuners[m_stage.r] = tune_mr  # tune M stage to monochromator
+        # tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
+        pass
     if terms.USAXS.useSBUSAXS.get():
-        # tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage
-        #                                     # and set ASRP0 value
+        # tuners[as_stage.rp] = tune_asrp
+        #     align ASR stage with MSR stage
+        #     and set ASRP0 value
         pass
     tuners[a_stage.r] = tune_ar  # tune A stage to M stage
     tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
-    # moving this up improves overall stability at 20IDB
-    # tuners[a_stage.r2p] = tune_a2rp        # make A stage crystals parallel
+    tuners[a_stage.r] = tune_ar  # tune A stage to M stage
+    tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
 
     # now, tune the desired axes, bail out if a tune fails
     # yield from bps.install_suspender(suspend_BeamInHutch)
     for axis, tune in tuners.items():
         yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
-        yield from tune(md=md, oregistry=oregistry)
-        # if not axis.tuner.tune_ok:
-        #    logger.warning("!!! tune failed for axis %s !!!", axis.name)
-        #    if NOTIFY_ON_BADTUNE:
-        #        email_notices.send(
-        #            f"USAXS tune failed for axis {axis.name}",
-        #            f"USAXS tune failed for axis {axis.name}"
-        #            )
+        yield from tune(md=md)
+        if not axis.tuner.tune_ok:
+            logger.warning("!!! tune failed for axis %s !!!", axis.name)
+            if NOTIFY_ON_BADTUNE:
+                email_notices.send(
+                    f"USAXS tune failed for axis {axis.name}",
+                    f"USAXS tune failed for axis {axis.name}",
+                )
 
         # If we don't wait, the next tune often fails
         # intensity stays flat, statistically
@@ -263,18 +257,18 @@ def preUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(
-    suspend_BeamInHutch
-)  # this is how to do proper suspender for one function, not for the whole module
-def allUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
+@bpp.suspend_decorator(suspend_BeamInHutch)
+def allUSAXStune(
+    md: Optional[Dict[str, Any]] = None,
+):
     """
     Tune mr, ar, a2rp, ar, a2rp USAXS optics.
 
     Parameters
     ----------
-    md : dict, optional
-        Metadata dictionary, by default {}
-    oregistry : Dict[str, Any], optional
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    oregistry : Optional[Dict[str, Any]], optional
         The ophyd registry containing device instances, by default None
 
     Returns
@@ -284,6 +278,9 @@ def allUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
 
     USAGE:  ``RE(allUSAXStune())``
     """
+    if md is None:
+        md = {}
+
     # Get devices from oregistry
     monochromator = oregistry["monochromator"]
     mono_shutter = oregistry["mono_shutter"]
@@ -362,7 +359,7 @@ def allUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
         # tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
         pass
     if terms.USAXS.useSBUSAXS.get():
-        # tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage and set ASRP0 value
+        # tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage
         pass
     tuners[a_stage.r] = tune_ar  # tune A stage to M stage
     tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
@@ -410,15 +407,17 @@ def allUSAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-def preSWAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
+def preSWAXStune(
+    md: Optional[Dict[str, Any]] = None,
+):
     """
     Tune the SAXS & WAXS optics in any mode, is safe.
 
     Parameters
     ----------
-    md : dict, optional
-        Metadata dictionary, by default {}
-    oregistry : Dict[str, Any], optional
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    oregistry : Optional[Dict[str, Any]], optional
         The ophyd registry containing device instances, by default None
 
     Returns
@@ -428,6 +427,9 @@ def preSWAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
 
     USAGE:  ``RE(preSWAXStune())``
     """
+    if md is None:
+        md = {}
+
     # Get devices from oregistry
     monochromator = oregistry["monochromator"]
     mono_shutter = oregistry["mono_shutter"]
@@ -523,9 +525,7 @@ def preSWAXStune(md={}, oregistry: Optional[Dict[str, Any]] = None):
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(
-    suspend_BeamInHutch
-)  # this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(suspend_BeamInHutch)
 def USAXSscan(x, y, thickness_mm, title, md=None):
     """
     general scan macro for fly or step USAXS with 1D or 2D collimation
@@ -1270,8 +1270,6 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             60,
             scaler0.count,
             0,
-            scaler1.count,
-            0,
             scaler0.delay,
             0,
             terms.SAXS_WAXS.start_exposure_time,
@@ -1325,9 +1323,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(
-    suspend_BeamInHutch
-)  # this is how to do proper suspender for one function, not for the whole module
+@bpp.suspend_decorator(suspend_BeamInHutch)
 def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
     collect WAXS data

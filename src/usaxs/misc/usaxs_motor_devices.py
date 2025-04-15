@@ -10,7 +10,8 @@ TunableEpicsMotor2WTolerance adds tolerance to TunableEpicsMotor2WTolerance
 """
 
 __all__ = [
-    "TunableEpicsMotor2" "TunableEpicsMotor2WTolerance",
+    "TunableEpicsMotor2",
+    "TunableEpicsMotor2WTolerance",
 ]
 
 
@@ -110,7 +111,8 @@ class DeadbandMixin(Device, PositionerBase):
                     )
                 else:
                     pass
-                    # print(f"{timestamp}: {self.name}, {value} not within {tolerance} of {setpoint}")
+                    # print(f"{timestamp}: {self.name}, {value} not within {tolerance} "
+                    #       f"of {setpoint}")
 
             def clear_deadband(*args, timestamp, **kwargs):
                 # print(f"{timestamp}: Ran deadband clear for {self.name}")
