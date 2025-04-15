@@ -30,7 +30,7 @@ copyright = "2014-2025, APS"
 line-length = 115
 target-version = [ "py311",]
 include = "\\.pyi?$"
-exclude = "(\n  /(\n      \\.eggs         # exclude a few common directories in the\n    | \\.git          # root of the project\n    | \\.hg\n    | \\.mypy_cache\n    | \\.tox\n    | \\.venv\n    | \\.pytest_cache\n    | _build\n    | build\n    | dist\n    | docs\n  )/\n)\n"
+exclude = "(\n  /(\n      \\.eggs         # exclude a few common directories in the\n    | \\.git          # root of the project\n    | \\.hg\n    | \\.mypy_cache\n    | \\.tox\n    | \\.venv\n    | \\.pytest_cache\n    | _build\n    | build\n    | dist\n    | docs\n  | user\n  )/\n)\n"
 
 [tool.flake8]
 max-line-length = 115

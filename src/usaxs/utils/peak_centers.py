@@ -6,10 +6,6 @@ __all__ = [
     "peak_center",
 ]
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 import numpy as np
 

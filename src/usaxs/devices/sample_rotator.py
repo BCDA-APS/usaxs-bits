@@ -2,6 +2,8 @@
 rotate the sample with PI C867 motor
 """
 
+from typing import Any
+
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
@@ -11,10 +13,16 @@ from ophyd.utils.epics_pvs import raise_if_disconnected
 
 
 class SampleRotatorHoming(Device):
-    forward = Component(EpicsSignal, ".HOMF", kind="omitted", auto_monitor=True)
-    reverse = Component(EpicsSignal, ".HOMR", kind="omitted", auto_monitor=True)
+    """Device for homing the sample rotator in forward or reverse direction."""
 
-    def set(self, value, timeout=10):
+    forward: Component[EpicsSignal] = Component(
+        EpicsSignal, ".HOMF", kind="omitted", auto_monitor=True
+    )
+    reverse: Component[EpicsSignal] = Component(
+        EpicsSignal, ".HOMR", kind="omitted", auto_monitor=True
+    )
+
+    def set(self, value: str, timeout: float = 10) -> Status:
         """Find the Home pulse in either forward or reverse direction."""
         if not hasattr(self, value):
             raise KeyError("either 'forward' or 'reverse'" f", not: '{value}'")
@@ -22,7 +30,7 @@ class SampleRotatorHoming(Device):
 
         st = Status(self, timeout=timeout)
 
-        def put_cb(**kwargs):
+        def put_cb(**kwargs: Any) -> None:
             st._finished(success=True)
 
         signal.put(1, use_complete=True, callback=put_cb)
@@ -46,22 +54,31 @@ class SampleRotator(Device):
     counters and stops mid way.
     """
 
-    home = Component(SampleRotatorHoming, "")
-    jog_forward = Component(EpicsSignal, ".JOGF", kind="omitted", auto_monitor=True)
-    jog_reverse = Component(EpicsSignal, ".JOGR", kind="omitted", auto_monitor=True)
+    home: Component[SampleRotatorHoming] = Component(SampleRotatorHoming, "")
+    jog_forward: Component[EpicsSignal] = Component(
+        EpicsSignal, ".JOGF", kind="omitted", auto_monitor=True
+    )
+    jog_reverse: Component[EpicsSignal] = Component(
+        EpicsSignal, ".JOGR", kind="omitted", auto_monitor=True
+    )
 
-    motor_done_move = Component(
+    motor_done_move: Component[EpicsSignalRO] = Component(
         EpicsSignalRO, ".DMOV", kind="omitted", auto_monitor=True
     )
-    motor_is_moving = Component(
+    motor_is_moving: Component[EpicsSignalRO] = Component(
         EpicsSignalRO, ".MOVN", kind="omitted", auto_monitor=True
     )
-    motor_stop = Component(EpicsSignal, ".STOP", kind="omitted", auto_monitor=True)
-    speed = Component(EpicsSignal, ".S", kind="config")
-    user_readback = Component(EpicsSignalRO, ".RBV", kind="hinted", auto_monitor=True)
-    velocity = Component(EpicsSignal, ".VELO", kind="config")
+    motor_stop: Component[EpicsSignal] = Component(
+        EpicsSignal, ".STOP", kind="omitted", auto_monitor=True
+    )
+    speed: Component[EpicsSignal] = Component(EpicsSignal, ".S", kind="config")
+    user_readback: Component[EpicsSignalRO] = Component(
+        EpicsSignalRO, ".RBV", kind="hinted", auto_monitor=True
+    )
+    velocity: Component[EpicsSignal] = Component(EpicsSignal, ".VELO", kind="config")
 
     @raise_if_disconnected
-    def stop(self, *, success=False):
+    def stop(self, *, success: bool = False) -> None:
+        """Stop the motor rotation."""
         self.motor_stop.put(1, wait=False)
         super().stop(success=success)

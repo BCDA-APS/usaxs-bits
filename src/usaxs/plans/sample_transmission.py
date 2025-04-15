@@ -9,9 +9,6 @@ __all__ = """
 
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import numpy as np
 import pyRestTable
 from bluesky import plan_stubs as bps
@@ -31,6 +28,9 @@ from .filters import insertTransmissionFilters
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .no_run import no_run_trigger_and_wait
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 
 def measure_USAXS_Transmission(md={}):

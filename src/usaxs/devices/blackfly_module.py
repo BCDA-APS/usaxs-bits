@@ -8,6 +8,8 @@ note: this is one of the easiest area detector setups in Ophyd
 import logging
 import os
 import warnings
+from typing import Any
+from typing import Generator
 
 # from apstools.devices import AD_prime_plugin2
 from bluesky import plan_stubs as bps
@@ -51,8 +53,8 @@ _validate_AD_FileWriter_path_(READ_IMAGE_FILE_PATH, DATABROKER_ROOT_PATH)
 class MyPointGreyDetector(SingleTrigger, AreaDetector):
     """PointGrey Black Fly detector(s) as used by 12-ID-E USAXS"""
 
-    cam = ADComponent(PointGreyDetectorCam, "cam1:")
-    image = ADComponent(ImagePlugin, "image1:")
+    cam: ADComponent[PointGreyDetectorCam] = ADComponent(PointGreyDetectorCam, "cam1:")
+    image: ADComponent[ImagePlugin] = ADComponent(ImagePlugin, "image1:")
 
 
 class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
@@ -67,7 +69,7 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
 
     """
 
-    jpeg1 = ADComponent(
+    jpeg1: ADComponent[EpicsDefinesJpegFileNames] = ADComponent(
         EpicsDefinesJpegFileNames,
         suffix="JPEG1:",
         root=DATABROKER_ROOT_PATH,
@@ -75,15 +77,32 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
         read_path_template=READ_IMAGE_FILE_PATH,
         kind="normal",
     )
-    trans1 = ADComponent(TransformPlugin, "Trans1:")
-    cc1 = ADComponent(ColorConvPlugin, "CC1:")
-    proc1 = ADComponent(ProcessPlugin, "Proc1:")
+    trans1: ADComponent[TransformPlugin] = ADComponent(TransformPlugin, "Trans1:")
+    cc1: ADComponent[ColorConvPlugin] = ADComponent(ColorConvPlugin, "CC1:")
+    proc1: ADComponent[ProcessPlugin] = ADComponent(ProcessPlugin, "Proc1:")
 
     @property
-    def image_file_name(self):
+    def image_file_name(self) -> str:
+        """Get the full file name of the JPEG image.
+
+        Returns:
+            str: Full path and name of the JPEG image file.
+        """
         return self.jpeg1.full_file_name.get()
 
-    def image_prep(self, path, filename_base, order_number):
+    def image_prep(
+        self, path: str, filename_base: str, order_number: int
+    ) -> Generator[Any, None, None]:
+        """Prepare image file path and name settings.
+
+        Args:
+            path: Directory path where image will be saved.
+            filename_base: Base name for the image file.
+            order_number: Sequential number for the image file.
+
+        Yields:
+            Generator for setting file path and name parameters.
+        """
         plugin = self.jpeg1
         path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
         yield from bps.mv(
@@ -96,10 +115,20 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
         )
 
     @property
-    def should_save_image(self):
+    def should_save_image(self) -> bool:
+        """Check if the image should be saved.
+
+        Returns:
+            bool: True if image should be saved, False otherwise.
+        """
         return _flag_save_sample_image_.get() in (1, "Yes")
 
-    def take_image(self):
+    def take_image(self) -> Generator[Any, None, None]:
+        """Take an image using the detector.
+
+        Yields:
+            Generator for staging, triggering, and unstaging the detector.
+        """
         yield from bps.stage(self)
         yield from bps.trigger(self, wait=True)
         yield from bps.unstage(self)
@@ -117,7 +146,7 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
 
     """
 
-    tiff1 = ADComponent(
+    tiff1: ADComponent[EpicsDefinesTiffFileNames] = ADComponent(
         EpicsDefinesTiffFileNames,
         suffix="TIFF1:",
         root=DATABROKER_ROOT_PATH,
@@ -125,15 +154,32 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         read_path_template=READ_IMAGE_FILE_PATH,
         kind="normal",
     )
-    trans1 = ADComponent(TransformPlugin, "Trans1:")
-    cc1 = ADComponent(ColorConvPlugin, "CC1:")
-    proc1 = ADComponent(ProcessPlugin, "Proc1:")
+    trans1: ADComponent[TransformPlugin] = ADComponent(TransformPlugin, "Trans1:")
+    cc1: ADComponent[ColorConvPlugin] = ADComponent(ColorConvPlugin, "CC1:")
+    proc1: ADComponent[ProcessPlugin] = ADComponent(ProcessPlugin, "Proc1:")
 
     @property
-    def image_file_name(self):
+    def image_file_name(self) -> str:
+        """Get the full file name of the TIFF image.
+
+        Returns:
+            str: Full path and name of the TIFF image file.
+        """
         return self.tiff1.full_file_name.get()
 
-    def image_prep(self, path, filename_base, order_number):
+    def image_prep(
+        self, path: str, filename_base: str, order_number: int
+    ) -> Generator[Any, None, None]:
+        """Prepare image file path and name settings.
+
+        Args:
+            path: Directory path where image will be saved.
+            filename_base: Base name for the image file.
+            order_number: Sequential number for the image file.
+
+        Yields:
+            Generator for setting file path and name parameters.
+        """
         plugin = self.tiff1
         path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
         yield from bps.mv(
@@ -146,10 +192,20 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         )
 
     @property
-    def should_save_image(self):
+    def should_save_image(self) -> bool:
+        """Check if the image should be saved.
+
+        Returns:
+            bool: True if image should be saved, False otherwise.
+        """
         return _flag_save_sample_image_.get() in (1, "Yes")
 
-    def take_image(self):
+    def take_image(self) -> Generator[Any, None, None]:
+        """Take an image using the detector.
+
+        Yields:
+            Generator for staging, triggering, and unstaging the detector.
+        """
         yield from bps.stage(self)
         yield from bps.trigger(self, wait=True)
         yield from bps.unstage(self)

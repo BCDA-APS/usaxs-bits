@@ -14,11 +14,14 @@ class UserOverride:
     =============== ============================
     method          usage
     =============== ============================
-    ``register()``  First, register a new parameter name to be supported by user overrides.
+    ``register()``  First, register a new parameter name to be
+                   supported by user overrides.
     ``set()``       Define an override value for a known parameter.
-    ``pick()``      Choose value for a known parameter, picking between override and default value.
+    ``pick()``      Choose value for a known parameter, picking
+                   between override and default value.
     ``summary()``   Print a table of all known parameters and values.
-    ``reset()``     Remove an override value for a known parameter.  (sets it to undefined)
+    ``reset()``     Remove an override value for a known parameter.
+                   (sets it to undefined)
     ``reset_all()`` Remove override values for all known parameters.
     =============== ============================
 
@@ -41,6 +44,11 @@ class UserOverride:
     """
 
     def __init__(self):
+        """
+        Initialize the UserOverride object.
+
+        Creates an empty parameters dictionary and defines an undefined marker object.
+        """
         # ALWAYS use ``user_override.undefined`` for comparisons and resets.
         self.undefined = object()
         self._parameters = {}
@@ -58,7 +66,9 @@ class UserOverride:
         """
         if parameter_name not in self._parameters:
             raise KeyError(
-                f"Unknown {parameter_name = }.  Should call register() first."
+                "Unknown parameter_name = {}.  Should call register() first.".format(
+                    parameter_name
+                )
             )
         self._parameters[parameter_name] = value
 
@@ -68,7 +78,9 @@ class UserOverride:
         """
         if parameter_name not in self._parameters:
             raise KeyError(
-                f"Unknown {parameter_name = }.  Should call register() first."
+                "Unknown parameter_name = {}.  Should call register() first.".format(
+                    parameter_name
+                )
             )
         self._parameters[parameter_name] = self.undefined
 
@@ -97,7 +109,6 @@ class UserOverride:
         """
         tbl = pyRestTable.Table()
         tbl.labels = "parameter value".split()
-        methods = "pick reset summary undefined".split()
         for parm in sorted(self._parameters.keys()):
             tbl.addRow((parm, self.pick(parm, "--undefined--")))
         print(tbl)

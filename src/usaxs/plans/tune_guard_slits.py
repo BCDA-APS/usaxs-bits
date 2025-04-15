@@ -9,12 +9,8 @@ __all__ = """
     tune_GslitsSize
 """.split()
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import datetime
+import logging
 from collections import defaultdict
 
 import pyRestTable
@@ -42,6 +38,9 @@ from ..utils.peak_centers import peak_center
 from .filters import insertTransmissionFilters
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 
 class GuardSlitTuneError(RuntimeError): ...  # custom error

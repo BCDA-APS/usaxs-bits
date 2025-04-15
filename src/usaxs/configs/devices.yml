@@ -50,7 +50,7 @@ apstools.synApps.swait.SwaitRecord:
   prefix: usxLAX:USAXS:Q
 
 apstools.synApps.swait.UserCalcsDevice:
-- name : userCalcs_lax
+- name: userCalcs_lax
   prefix: "usxLAX:"
 
 ophyd.EpicsSignal: #TODO: Double check my work
@@ -60,19 +60,39 @@ ophyd.EpicsSignal: #TODO: Double check my work
 ophyd.EpicsSignalRO:
 - name: usaxs_CheckBeamStandard
   read_pv: usxLAX:blCalc:userCalc1
-  auto_monitor: False
+  auto_monitor: false
 
 ophyd.EpicsMotor:
-- {name: LAXm1, prefix: usxLAX:m58:c0:m1, labels: ["LAXm1"]}
-- {name: LAXm2, prefix: usxLAX:m58:c0:m2, labels: ["LAXm2"]}
-- {name: LAXm3, prefix: usxLAX:m58:c0:m3, labels: ["LAXm3"]}
-- {name: LAXm4, prefix: usxLAX:m58:c0:m4, labels: ["LAXm4"]}
-- {name: LAXm5, prefix: usxLAX:m58:c0:m5, labels: ["LAXtcam"]}
-- {name: LAXm6, prefix: usxLAX:m58:c0:m6, labels: ["LAXgsy"]}
-- {name: LAXm7, prefix: usxLAX:m58:c0:m7, labels: ["LAXgsx"]}
-- {name: LAXm8, prefix: usxLAX:m58:c0:m8, labels: ["LAXm8"]}
-- {name: waxsx, prefix: usxAERO:m3, labels: ["wasxs", "motor"]}
-- {name: waxs2x, prefix: usxAERO:m7, labels: ["waxs2x", "motor"]}
+- name: LAXm1
+  prefix: usxLAX:m58:c0:m1
+  labels: ["LAXm1"]
+- name: LAXm2
+  prefix: usxLAX:m58:c0:m2
+  labels: ["LAXm2"]
+- name: LAXm3
+  prefix: usxLAX:m58:c0:m3
+  labels: ["LAXm3"]
+- name: LAXm4
+  prefix: usxLAX:m58:c0:m4
+  labels: ["LAXm4"]
+- name: LAXm5
+  prefix: usxLAX:m58:c0:m5
+  labels: ["LAXtcam"]
+- name: LAXm6
+  prefix: usxLAX:m58:c0:m6
+  labels: ["LAXgsy"]
+- name: LAXm7
+  prefix: usxLAX:m58:c0:m7
+  labels: ["LAXgsx"]
+- name: LAXm8
+  prefix: usxLAX:m58:c0:m8
+  labels: ["LAXm8"]
+- name: waxsx
+  prefix: usxAERO:m3
+  labels: ["wasxs", "motor"]
+- name: waxs2x
+  prefix: usxAERO:m7
+  labels: ["waxs2x", "motor"]
 
 usaxs.devices.ptc10_controller.USAXS_PTC10:
 - name: ptc10

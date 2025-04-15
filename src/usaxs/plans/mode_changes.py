@@ -16,12 +16,8 @@ __all__ = """
     mode_WAXS
 """.split()
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import datetime
+import logging
 
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
@@ -57,6 +53,9 @@ from .move_instrument import move_USAXSIn
 from .move_instrument import move_USAXSOut
 from .move_instrument import move_WAXSIn
 from .move_instrument import move_WAXSOut
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 
 def confirm_instrument_mode(mode_name):

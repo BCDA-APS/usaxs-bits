@@ -5,18 +5,8 @@ See ``instrument.utils.setup_new_user.newFile()``
 to replace ``instrument.framework.callbacks.newSpecFile()``
 """
 
-__all__ = [
-    # "NXWriterFlyScan",    # not yet tested
-    "NXWriterUascan",
-    # "NXWriterSaxsWaxs",    # not yet tested
-]
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import datetime
+import logging
 import os
 
 import numpy as np
@@ -26,6 +16,15 @@ from ..devices import terms
 from ..devices.user_data import user_data
 from ..utils.cleanup_text import cleanupText
 from ..utils.setup_new_user import techniqueSubdirectory
+
+__all__ = [
+    # "NXWriterFlyScan",    # not yet tested
+    "NXWriterUascan",
+    # "NXWriterSaxsWaxs",    # not yet tested
+]
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 
 class OurCustomNXWriterBase(NXWriterAPS):

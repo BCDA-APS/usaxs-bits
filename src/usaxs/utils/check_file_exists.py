@@ -8,10 +8,6 @@ __all__ = [
     "filename_exists",
 ]
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 import os
 

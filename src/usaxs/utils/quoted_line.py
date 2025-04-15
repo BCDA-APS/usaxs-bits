@@ -6,11 +6,6 @@ __all__ = [
     "split_quoted_line",
 ]
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 
 def split_quoted_line(line):
     """

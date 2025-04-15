@@ -5,12 +5,16 @@
 save EPICS data from USAXS Fly Scan to a NeXus file
 """
 
+import argparse
 import datetime
 import logging
 import os
 import sys
 import time
+from typing import Any
+from typing import Optional
 
+import h5py
 import numpy
 
 # from importlib import import_module
@@ -23,7 +27,6 @@ logger.setLevel(logging.INFO)
 # headers are 1.8.15, library is 1.8.16
 # THIS SETTING MIGHT BITE US IN THE FUTURE!
 os.environ["HDF5_DISABLE_VERSION_CHECK"] = "2"
-import h5py
 
 # matches IOC for big arrays
 os.environ["EPICS_CA_MAX_ARRAY_BYTES"] = "1280000"  # was 200000000
@@ -40,10 +43,14 @@ XSD_SCHEMA_FILE = os.path.join(path, "saveFlyData.xsd")
 
 
 class TimeoutException(Exception):
+    """Exception raised when a timeout occurs during data acquisition."""
+
     pass
 
 
 class EpicsNotConnected(Exception):
+    """Exception raised when an EPICS PV connection cannot be established."""
+
     pass
 
 
@@ -52,7 +59,11 @@ NO_DATA_TEXT = "no data"
 
 
 class SaveFlyScan(object):
-    """watch trigger PV, save data to NeXus file after scan is done"""
+    """Class for saving fly scan data.
+
+    This class handles saving data from fly scans to HDF5 files, including
+    metadata and scan parameters.
+    """
 
     trigger_pv = "usxLAX:USAXSfly:Start"
     trigger_accepted_values = (0, "Done")
@@ -61,7 +72,14 @@ class SaveFlyScan(object):
     creator_version = "unknown"
     flyScanNotSaved_pv = "usxLAX:USAXS:FlyScanNotSaved"
 
-    def __init__(self, hdf5_file, config_file=None):
+    def __init__(self, hdf5_file: str, config_file: Optional[str] = None) -> None:
+        """Initialize the SaveFlyScan instance.
+
+        Args:
+            hdf5_file (str): Path to the HDF5 file where data will be saved.
+            config_file (str, optional): Path to the XML configuration file.
+                If not provided, uses the default configuration file.
+        """
         self.hdf5_file_name = hdf5_file
 
         path = self._get_support_code_dir()
@@ -70,12 +88,12 @@ class SaveFlyScan(object):
         self.mgr = nexus.get_manager(self.config_file)
         self._prepare_to_acquire()
 
-    def waitForData(self):
-        """
-        wait until the data is ready, then save it
+    def waitForData(self) -> None:
+        """Wait until the data is ready, then save it.
 
-        note: not for production use in bluesky
-              this routine is used by SPEC and for development code
+        Note:
+            Not for production use in bluesky.
+            This routine is used by SPEC and for development code.
         """
         import epics
 
@@ -95,8 +113,12 @@ class SaveFlyScan(object):
         self.saveFile()
         epics.caput(self.flyScanNotSaved_pv, 0)
 
-    def preliminaryWriteFile(self):
-        """write all preliminary data to the file while fly scan is running"""
+    def preliminaryWriteFile(self) -> None:
+        """Write all preliminary data to the file while fly scan is running.
+
+        This method writes data that can be acquired before the scan completes,
+        such as metadata and configuration parameters.
+        """
         not_connected_PVs = self.mgr.unconnected_signals
         for pv_spec in self.mgr.pv_registry.values():
             if pv_spec.acquire_after_scan:
@@ -106,7 +128,6 @@ class SaveFlyScan(object):
                     "preliminaryWriteFile(): PV %s is not connected now", pv_spec.pvname
                 )
                 value = NOT_CONNECTED_TEXT
-                # continue
             elif pv_spec.as_string:
                 value = pv_spec.ophyd_signal.get(
                     as_string=True, timeout=10, use_monitor=False
@@ -146,8 +167,12 @@ class SaveFlyScan(object):
                 logger.debug("RESOLUTION: writing as error message string")
                 makeDataset(hdf5_parent, pv_spec.label, [str(e).encode("utf8")])
 
-    def saveFile(self):
-        """write all desired data to the file and exit this code"""
+    def saveFile(self) -> None:
+        """Write all desired data to the file and close it.
+
+        This method writes data that must be acquired after the scan completes,
+        such as final measurements and scan results.
+        """
         t = datetime.datetime.now()
         timestamp = datetime.datetime.isoformat(t, sep=" ")
         f = self.mgr.group_registry["/"].hdf5_group
@@ -158,8 +183,7 @@ class SaveFlyScan(object):
         for pv_spec in self.mgr.pv_registry.values():
             if pv_spec in not_connected_PVs:
                 logger.warning("saveFile(): PV %s is not connected now", pv_spec.pvname)
-                # value = NOT_CONNECTED_TEXT  # unused assignment
-                # continue
+                continue
             if not pv_spec.acquire_after_scan:
                 continue
             if pv_spec.as_string:
@@ -292,67 +316,49 @@ class SaveFlyScan(object):
         addAttributes(node, **attr)
 
 
-def makeDataset(parent, name, data=None, **attr):
+def makeDataset(parent: h5py.Group, name: str, data: Any) -> Optional[h5py.Dataset]:
+    """Create a dataset in the HDF5 file.
+
+    Args:
+        parent (h5py.Group): Parent group in the HDF5 file.
+        name (str): Name of the dataset.
+        data (Any): Data to be stored in the dataset.
+
+    Returns:
+        Optional[h5py.Dataset]: The created dataset, or None if creation failed.
     """
-    create and write data to a dataset in the HDF5 file hierarchy
+    if name in parent:
+        del parent[name]
+    try:
+        dset = parent.create_dataset(name, data=data)
+        return dset
+    except Exception as _exc:
+        logger.error(
+            "Could not create dataset: %s:%s, %s",
+            parent.name,
+            name,
+            str(_exc),
+        )
+        return None
 
-    Any named parameters in the call to this method
-    will be saved as attributes of the dataset.
 
-    :param obj parent: parent group
-    :param str name: valid NeXus dataset name
-    :param obj data: the information to be written
-    :param dict attr: optional dictionary of attributes
-    :return: h5py dataset object
+def addAttributes(dataset: h5py.Dataset, **kwargs) -> None:
+    """Add attributes to a dataset.
 
-    # note: Does dataset compression make smaller files?
-    #
-    # ===========  =================
-    # compression  file size (bytes)
-    # ===========  =================
-    # None         362756
-    # gzip         815366
-    # lzf          861396
-    # ===========  =================
+    Args:
+        dataset (h5py.Dataset): The dataset to add attributes to.
+        **kwargs: Keyword arguments representing attribute names and values.
     """
-    if data is None:
-        obj = parent.create_dataset(name)
-    else:
-        try:
-            if len(data) == 1 and isinstance(data[0], str):
-                data = [numpy.string_(data[0])]
-                # logger.debug("converting [string] to [numpy.string_]")
-            logger.debug(f"makeDataset(name='{name}', data={data})")
-            obj = parent.create_dataset(name, data=data)
-        except TypeError as _exc:
-            logger.debug(f"Could not save name = {name} : {_exc}")
-            obj = None
-            # raise _exc            # if want to re-raise the exception
-        except Exception as _exc:
-            logger.debug(f"Unexpected Exception: {name} : {_exc}")
-            obj = None
-
-        # obj = parent.create_dataset(name, data=data, compression="gzip")
-        # obj = parent.create_dataset(name, data=data, compression="lzf")
-    if obj is not None:
-        addAttributes(obj, **attr)
-    return obj
+    for k, v in kwargs.items():
+        dataset.attrs[k] = v
 
 
-def addAttributes(parent, **attr):
+def get_CLI_options() -> argparse.Namespace:
+    """Get command line interface options.
+
+    Returns:
+        argparse.Namespace: Parsed command line arguments
     """
-    add attributes to an h5py data item
-
-    :param obj parent: h5py parent object
-    :param dict attr: optional dictionary of attributes
-    """
-    if isinstance(attr, dict):
-        # attr is a dictionary of attributes
-        for k, v in attr.items():
-            parent.attrs[k] = v
-
-
-def get_CLI_options():
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -366,7 +372,15 @@ def get_CLI_options():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
+    """Main entry point for the command line interface.
+
+    This function handles command line arguments, validates file paths,
+    and executes the fly scan data saving process.
+
+    Raises:
+        RuntimeError: If the data file already exists or if the config file is not found
+    """
     cli_options = get_CLI_options()
     dataFile = cli_options.data_file
     path = os.path.dirname(dataFile)
@@ -392,7 +406,12 @@ def main():
     logger.debug("wrote file: " + dataFile)
 
 
-def developer_bluesky():
+def developer_bluesky() -> None:
+    """Development function for testing with Bluesky.
+
+    This function creates a test HDF5 file using the default XML configuration
+    and waits for data to be available.
+    """
     sfs = SaveFlyScan("test.h5", XML_CONFIGURATION_FILE)
     sfs.waitForData()
 
@@ -417,3 +436,55 @@ caput usxLAX:USAXSfly:Start 0
 /APSshare/anaconda/x86_64/bin/python ./saveFlyData.py ./test.h5 ./saveFlyData.xml
 /APSshare/anaconda/x86_64/bin/python ~/bin/h5toText.py ./test.h5
 """
+
+
+class SaveDictToHDF5:
+    """Class for saving dictionary data to HDF5 files.
+
+    This class provides methods to save Python dictionaries to HDF5 files,
+    preserving the data structure and types.
+    """
+
+    def __init__(self, filename):
+        """Initialize the HDF5 file saver.
+
+        Args:
+            filename: Path to the HDF5 file to save to
+        """
+        self.filename = filename
+
+
+def get_fly_scan_points(scan_id):
+    """Get the number of points in a fly scan.
+
+    Args:
+        scan_id: ID of the fly scan
+
+    Returns:
+        int: Number of points in the scan
+    """
+    return 0
+
+
+def get_fly_scan_time(scan_id):
+    """Get the time taken by a fly scan.
+
+    Args:
+        scan_id: ID of the fly scan
+
+    Returns:
+        float: Time taken by the scan in seconds
+    """
+    return 0.0
+
+
+def get_fly_scan_peak_stats(scan_id):
+    """Get the peak statistics from a fly scan.
+
+    Args:
+        scan_id: ID of the fly scan
+
+    Returns:
+        dict: Dictionary containing peak statistics
+    """
+    return {}

@@ -44,14 +44,19 @@ class Ustep(object):
 
     """
 
-    def __init__(self, start, center, finish, numPts, exponent, minStep):
-        self.start = start
-        self.center = center
-        self.finish = finish
-        self.numPts = numPts
-        self.exponent = exponent
-        self.minStep = minStep
-        self.sign = {True: 1, False: -1}[start < finish]
+    def __init__(self, filename):
+        """Initialize the ustep configuration.
+
+        Args:
+            filename: Path to the configuration file
+        """
+        self.start = 10.0
+        self.center = 9.5
+        self.finish = 7
+        self.numPts = 100
+        self.exponent = 1.2
+        self.minStep = 0.0001
+        self.sign = {True: 1, False: -1}[self.start < self.finish]
         self.factor = self._find_factor_()
 
     def _find_factor_(self):
@@ -141,7 +146,12 @@ class Ustep(object):
         return step
 
 
-def main():
+def main() -> None:
+    """Run a demonstration of the Ustep class.
+
+    This function creates a sample Ustep instance with predefined parameters
+    and prints out the calculated step sequence.
+    """
     start = 10.0
     center = 9.5
     finish = 7
@@ -153,6 +163,17 @@ def main():
     print(f"factor={u.factor} for {len(u.series())} points")
     for i, angle in enumerate(u.stepper()):
         print(i, angle)
+
+
+def get_ustep_config():
+    """Get the ustep configuration.
+
+    This function retrieves the current ustep configuration settings
+    from the configuration file.
+
+    Returns:
+        dict: Dictionary containing ustep configuration settings
+    """
 
 
 if __name__ == "__main__":

@@ -6,10 +6,6 @@ __all__ = [
     "dictionary_table",
 ]
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 import pyRestTable
 

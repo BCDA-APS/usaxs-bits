@@ -23,11 +23,10 @@ __all__ = """
     """.split()
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import time
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 from apstools.plans import lineup2
@@ -37,8 +36,6 @@ from bluesky import preprocessors as bpp
 
 from ..devices import I0_controls
 from ..devices import I00_controls
-
-# from apstools.plans import plotxy
 from ..devices import autoscale_amplifiers
 from ..devices import upd_controls
 from ..devices import user_override
@@ -47,14 +44,17 @@ from ..devices.miscellaneous import usaxs_q_calc
 from ..devices.scalers import scaler0
 from ..devices.shutters import mono_shutter
 from ..devices.shutters import ti_filter_shutter
-from ..devices.stages import a_stage  # as_stage, ms_stage
+from ..devices.stages import a_stage
 from ..devices.stages import axis_tune_range
-from ..devices.stages import d_stage  # as_stage, ms_stage
-from ..devices.stages import m_stage  # as_stage, ms_stage
+from ..devices.stages import d_stage
+from ..devices.stages import m_stage
 from ..misc.suspenders import suspend_BeamInHutch
 from ..misc.suspenders import suspend_FE_shutter
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 # used in instrument_default_tune_ranges() below
 user_override.register("usaxs_minstep")
@@ -105,7 +105,14 @@ user_override.register("usaxs_minstep")
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def tune_mr(md={}):
+def tune_mr(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the MR stage.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -155,15 +162,69 @@ def tune_mr(md={}):
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def tune_m2rp(md={}):
+def tune_m2rp(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the M2RP stage.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     yield from bps.sleep(0.2)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     md["plan_name"] = "tune_m2rp"
-    yield from _tune_base_(m_stage.r2p, md=md)
-    yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
+    yield from IfRequestedStopBeforeNextScan()
+    logger.info(f"tuning axis: {m_stage.r2p.name}")
+    axis_start = m_stage.r2p.position
+    yield from bps.mv(
+        mono_shutter,
+        "open",
+        ti_filter_shutter,
+        "open",
+    )
+    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    scaler0.select_channels(["PD_USAXS"])
+    trim_plot_by_name(5)
+    stats = SignalStatsCallback()
+    yield from lineup2(
+        [scaler0],
+        m_stage.r2p,
+        -m_stage.r2p.tune_range.get(),
+        m_stage.r2p.tune_range.get(),
+        31,
+        nscans=1,
+        signal_stats=stats,
+        md=md,
+    )
+    print(stats.report())
+    yield from bps.mv(
+        ti_filter_shutter,
+        "close",
+        scaler0.count_mode,
+        "AutoCount",
+        upd_controls.auto.mode,
+        "auto+background",
+    )
+    scaler0.select_channels(None)
+    if stats.analysis.success:
+        logger.info(f"final position: {m_stage.r2p.position}")
+    else:
+        print(f"tune_m2rp failed for {stats.analysis.reasons}")
 
 
 def empty_plan(*args, **kwargs):
+    """A placeholder plan that yields nothing and logs its arguments.
+
+    This function is used as a no-op plan that can be assigned to tuning methods
+    when tuning is not needed or not applicable (e.g., for channel-cut crystals).
+
+    Args:
+        *args: Variable length argument list that will be logged.
+        **kwargs: Arbitrary keyword arguments that will be logged.
+
+    Yields:
+        None: This plan yields nothing.
+    """
     logger.info(f"Doing nothing: args={args}, kwargs={kwargs}")
     yield from bps.null()
 
@@ -179,26 +240,67 @@ if m_stage.isChannelCut:
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def tune_msrp(md={}):
-    pass
-    # yield from bps.mv(scaler0.preset_time, 0.1)
-    # md['plan_name'] = "tune_msrp"
-    # yield from _tune_base_(ms_stage.rp, md=md)
+def tune_msrp(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the MSRP stage.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
+    yield from bps.mv(scaler0.preset_time, 0.1)
+    md["plan_name"] = "tune_msrp"
+    yield from IfRequestedStopBeforeNextScan()
+    logger.info(f"tuning axis: {m_stage.rp.name}")
+    axis_start = m_stage.rp.position
+    yield from bps.mv(
+        mono_shutter,
+        "open",
+        ti_filter_shutter,
+        "open",
+    )
+    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    scaler0.select_channels(["PD_USAXS"])
+    trim_plot_by_name(5)
+    stats = SignalStatsCallback()
+    yield from lineup2(
+        [scaler0],
+        m_stage.rp,
+        -m_stage.rp.tune_range.get(),
+        m_stage.rp.tune_range.get(),
+        31,
+        nscans=1,
+        signal_stats=stats,
+        md=md,
+    )
+    print(stats.report())
+    yield from bps.mv(
+        ti_filter_shutter,
+        "close",
+        scaler0.count_mode,
+        "AutoCount",
+        upd_controls.auto.mode,
+        "auto+background",
+    )
+    scaler0.select_channels(None)
+    if stats.analysis.success:
+        logger.info(f"final position: {m_stage.rp.position}")
+    else:
+        print(f"tune_msrp failed for {stats.analysis.reasons}")
 
 
-# def tune_ar(md={}):
-#     yield from bps.mv(ti_filter_shutter, "open")
-#     ##redundant## yield from autoscale_amplifiers([upd_controls])
-#     yield from bps.mv(scaler0.preset_time, 0.1)
-#     yield from bps.mv(upd_controls.auto.mode, "manual")
-#     md['plan_name'] = "tune_ar"
-#     yield from _tune_base_(a_stage.r, md=md)
-#     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def tune_ar(md={}):
+def tune_ar(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the AR stage.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -253,8 +355,55 @@ def tune_ar(md={}):
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def tune_asrp(md={}):
-    pass
+def tune_asrp(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the ASRP stage.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
+    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(scaler0.preset_time, 0.1)
+    yield from bps.mv(upd_controls.auto.mode, "manual")
+    md["plan_name"] = "tune_asrp"
+    yield from IfRequestedStopBeforeNextScan()
+    logger.info(f"tuning axis: {a_stage.rp.name}")
+    axis_start = a_stage.rp.position
+    yield from bps.mv(
+        mono_shutter,
+        "open",
+        ti_filter_shutter,
+        "open",
+    )
+    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    trim_plot_by_name(5)
+    scaler0.select_channels(["PD_USAXS"])
+    stats = SignalStatsCallback()
+    yield from lineup2(
+        [scaler0],
+        a_stage.rp,
+        -a_stage.rp.tune_range.get(),
+        a_stage.rp.tune_range.get(),
+        31,
+        nscans=1,
+        signal_stats=stats,
+        md=md,
+    )
+    print(stats.report())
+    yield from bps.mv(
+        ti_filter_shutter,
+        "close",
+        scaler0.count_mode,
+        "AutoCount",
+        upd_controls.auto.mode,
+        "auto+background",
+    )
+    scaler0.select_channels(None)
+    if stats.analysis.success:
+        logger.info(f"final position: {a_stage.rp.position}")
+    else:
+        print(f"tune_asrp failed for {stats.analysis.reasons}")
 
 
 #     yield from bps.mv(ti_filter_shutter, "open")
@@ -281,7 +430,14 @@ def tune_asrp(md={}):
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def tune_a2rp(md={}):
+def tune_a2rp(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the A2RP stage.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -331,7 +487,14 @@ def tune_a2rp(md={}):
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def tune_dx(md={}):
+def tune_dx(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the DX stage.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -394,7 +557,14 @@ def tune_dx(md={}):
 @bpp.suspend_decorator(
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
-def tune_dy(md={}):
+def tune_dy(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the DY stage.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     yield from bps.mv(ti_filter_shutter, "open")
     yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -450,7 +620,14 @@ def tune_dy(md={}):
 #     yield from bps.mv(upd_controls.auto.mode, "auto+background")
 
 
-def tune_diode(md={}):
+def tune_diode(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the diode.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     yield from tune_dx(md=md)
     yield from tune_dy(md=md)
 
@@ -458,13 +635,15 @@ def tune_diode(md={}):
 # -------------------------------------------
 
 
-def tune_usaxs_optics(side=False, md={}):
-    """
-    tune all the instrument optics currently in configuration
+def tune_usaxs_optics(side: bool = False, md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the USAXS optics.
 
-    This plan is for staff use.
-    Users are advised to use preUSAXStune() instead.
+    Args:
+        side: Which side to tune
+        md: Optional metadata dictionary to be added to the scan
     """
+    if md is None:
+        md = {}
     yield from mode_USAXS()
 
     # suspender_preinstalled = suspend_BeamInHutch in RE.suspenders
@@ -490,7 +669,14 @@ def tune_usaxs_optics(side=False, md={}):
     )
 
 
-def tune_saxs_optics(md={}):
+def tune_saxs_optics(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune the SAXS optics.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     yield from tune_mr(md=md)
     yield from tune_m2rp(md=md)
     yield from bps.mv(
@@ -500,7 +686,14 @@ def tune_saxs_optics(md={}):
     )
 
 
-def tune_after_imaging(md={}):
+def tune_after_imaging(md: Optional[Dict[str, Any]] = None) -> None:
+    """Tune after imaging.
+
+    Args:
+        md: Optional metadata dictionary to be added to the scan
+    """
+    if md is None:
+        md = {}
     epics_ar_tune_range = axis_tune_range.ar.get()  # remember
 
     # tune_ar with custom tune range if that is larger

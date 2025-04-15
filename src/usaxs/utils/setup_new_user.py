@@ -8,30 +8,137 @@ __all__ = """
     techniqueSubdirectory
     """.split()
 
-# matchUserInApsbss
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
-# from ..devices import apsbss as apsbss_object
-# from apsbss import apsbss
 import datetime
+import logging
 import os
 import pathlib
 
 from apstools.utils import cleanupText
 
+from ..callbacks.nxwriter import nxwriter
+from ..callbacks.specwriter import specwriter
 from ..devices import user_data
-from ..framework import RE
-from ..framework import specwriter
 from .check_file_exists import filename_exists
+
+logger = logging.getLogger(__name__)
+logger.bsdev(__file__)
 
 APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"
 
 NX_FILE_EXTENSION = ".h5"
+
+
+def _setNeXusFileName(path, scan_id=1):
+    """
+    NeXus file name
+    """
+
+    fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
+    nxwriter.file_name = fname
+    logger.info(f"NeXus file name : {nxwriter.file_name!r}")
+    logger.info("File will be written at end of next bluesky scan.")
+
+
+def _setSpecFileName(path, RE=None, scan_id=1):
+    """
+    SPEC file name
+    """
+    fname = os.path.join(path, f"{os.path.basename(path)}.dat")
+    if filename_exists(fname):
+        logger.warning(">>> file already exists: %s <<<", fname)
+        specwriter.newfile(fname, RE=RE)
+        handled = "appended"
+    else:
+        specwriter.newfile(fname, scan_id=scan_id, RE=RE)
+        handled = "created"
+    logger.info(f"SPEC file name : {specwriter.spec_filename}")
+    logger.info(f"File will be {handled} at end of next bluesky scan.")
+
+
+def newUser(user, scan_id=1, year=None, month=None, day=None):
+    """
+    setup for a new user
+
+    Create (if necessary) new user directory in
+    standard directory with month, day, and
+    given user name as shown in the following table.
+    Each technique (SAXS, USAXS, WAXS) will be
+    reponsible for creating its subdirectory
+    as needed.
+
+    ======================  ========================
+    purpose                 folder
+    ======================  ========================
+    user data folder base   <CWD>/MM_DD_USER
+    SPEC data file          <CWD>/MM_DD_USER/MM_DD_USER.dat
+    AD folder - SAXS        <CWD>/MM_DD_USER/MM_DD_USER_saxs/
+    folder - USAXS          <CWD>/MM_DD_USER/MM_DD_USER_usaxs/
+    AD folder - WAXS        <CWD>/MM_DD_USER/MM_DD_USER_waxs/
+    ======================  ========================
+
+    CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
+    """
+    global specwriter
+
+    user_data.user_name.put(user)  # set in the PV
+
+    dt = datetime.datetime.now()
+    year = year or dt.year  # lgtm [py/unused-local-variable]
+    month = month or dt.month
+    day = day or dt.day
+
+    cwd = pathlib.Path.cwd()
+    # DATA_DIR_BASE = pathlib.Path("/") / "share1" / "USAXS_data"
+    path = (
+        cwd  # instead of DATA_DIR_BASE
+        /
+        # f"{year:04d}-{month:02d}" /
+        f"{month:02d}_{day:02d}_{cleanupText(user)}"
+    )
+
+    if not path.exists():
+        logger.info("Creating user directory: %s", path)
+        path.mkdir(parents=True)
+    logger.info("Current working directory: %s", cwd)
+    user_data.user_dir.put(str(path))  # set in the PV
+
+    _setNeXusFileName(str(path), scan_id=scan_id)
+    _setSpecFileName(str(path), scan_id=scan_id)  # SPEC file name
+    # matchUserInApsbss(user)     # update ESAF & Proposal, if available
+    # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
+
+    return str(path.absolute())
+
+
+def get_data_dir():
+    """
+    Get the data directory from EPICS.
+
+    The directory MUST exist or raises a FileNotFoundError exception.
+    """
+    data_path = pathlib.Path(user_data.user_dir.get())
+    if not data_path.exists():
+        raise FileNotFoundError(f"Cannot find user directory: {data_path}")
+    return str(data_path)
+
+
+def techniqueSubdirectory(technique):
+    """
+    Create a technique-based subdirectory per table in ``newUser()``.
+
+    NOTE: Assumes CWD is now the directory returned by ``newFile()``
+    """
+    data_path = get_data_dir()
+    stub = os.path.basename(data_path)
+    path = os.path.join(data_path, f"{stub}_{technique}")
+
+    if not os.path.exists(path):
+        logger.info("Creating technique directory: %s", path)
+        os.mkdir(path)
+
+    return os.path.abspath(path)
 
 
 # def _pick_esaf(user, now, cycle):
@@ -184,115 +291,3 @@ NX_FILE_EXTENSION = ".h5"
 #         logger.warning("APSBSS not updated.")
 #     logger.warning(
 #         "You should check that PVs in APSBSS contain correct information.")
-
-
-def _setNeXusFileName(path, scan_id=1):
-    """
-    NeXus file name
-    """
-    from ..callbacks.nxwriter import nxwriter
-
-    fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
-    nxwriter.file_name = fname
-    logger.info(f"NeXus file name : {nxwriter.file_name!r}")
-    logger.info("File will be written at end of next bluesky scan.")
-
-
-def _setSpecFileName(path, scan_id=1):
-    """
-    SPEC file name
-    """
-    fname = os.path.join(path, f"{os.path.basename(path)}.dat")
-    if filename_exists(fname):
-        logger.warning(">>> file already exists: %s <<<", fname)
-        specwriter.newfile(fname, RE=RE)
-        handled = "appended"
-    else:
-        specwriter.newfile(fname, scan_id=scan_id, RE=RE)
-        handled = "created"
-    logger.info(f"SPEC file name : {specwriter.spec_filename}")
-    logger.info(f"File will be {handled} at end of next bluesky scan.")
-
-
-def newUser(user, scan_id=1, year=None, month=None, day=None):
-    """
-    setup for a new user
-
-    Create (if necessary) new user directory in
-    standard directory with month, day, and
-    given user name as shown in the following table.
-    Each technique (SAXS, USAXS, WAXS) will be
-    reponsible for creating its subdirectory
-    as needed.
-
-    ======================  ========================
-    purpose                 folder
-    ======================  ========================
-    user data folder base   <CWD>/MM_DD_USER
-    SPEC data file          <CWD>/MM_DD_USER/MM_DD_USER.dat
-    AD folder - SAXS        <CWD>/MM_DD_USER/MM_DD_USER_saxs/
-    folder - USAXS          <CWD>/MM_DD_USER/MM_DD_USER_usaxs/
-    AD folder - WAXS        <CWD>/MM_DD_USER/MM_DD_USER_waxs/
-    ======================  ========================
-
-    CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
-    """
-    global specwriter
-
-    user_data.user_name.put(user)  # set in the PV
-
-    dt = datetime.datetime.now()
-    year = year or dt.year  # lgtm [py/unused-local-variable]
-    month = month or dt.month
-    day = day or dt.day
-
-    cwd = pathlib.Path.cwd()
-    # DATA_DIR_BASE = pathlib.Path("/") / "share1" / "USAXS_data"
-    path = (
-        cwd  # instead of DATA_DIR_BASE
-        /
-        # f"{year:04d}-{month:02d}" /
-        f"{month:02d}_{day:02d}_{cleanupText(user)}"
-    )
-
-    if not path.exists():
-        logger.info("Creating user directory: %s", path)
-        path.mkdir(parents=True)
-    logger.info("Current working directory: %s", cwd)
-    user_data.user_dir.put(str(path))  # set in the PV
-
-    _setNeXusFileName(str(path), scan_id=scan_id)
-    _setSpecFileName(str(path), scan_id=scan_id)  # SPEC file name
-    # matchUserInApsbss(user)     # update ESAF & Proposal, if available
-    # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
-
-    return str(path.absolute())
-
-
-def get_data_dir():
-    """
-    Get the data directory from EPICS.
-
-    The directory MUST exist or raises a FileNotFoundError exception.
-    """
-    data_path = pathlib.Path(user_data.user_dir.get())
-    if not data_path.exists():
-        raise FileNotFoundError(f"Cannot find user directory: {data_path}")
-    return str(data_path)
-
-
-def techniqueSubdirectory(technique):
-    """
-    Create a technique-based subdirectory per table in ``newUser()``.
-
-    NOTE: Assumes CWD is now the directory returned by ``newFile()``
-    """
-    data_path = get_data_dir()
-    stub = os.path.basename(data_path)
-    path = os.path.join(data_path, f"{stub}_{technique}")
-
-    if not os.path.exists(path):
-        logger.info("Creating technique directory: %s", path)
-        os.mkdir(path)
-
-    return os.path.abspath(path)

@@ -1,35 +1,18 @@
+"""Command list execution and management module.
+
+This module provides functionality to run batches of scans from command lists,
+including parsing Excel and text command files, executing commands, and managing
+the scanning process.
 """
-run batch of scans from command list
-"""
 
-__all__ = """
-    after_command_list
-    after_plan
-    before_command_list
-    before_plan
-    beforeScanComputeOtherStuff
-    command_list_as_table
-    execute_command_list
-    get_command_list
-    parse_Excel_command_file
-    parse_text_command_file
-    postCommandsListfile2WWW
-    run_command_file
-    run_python_file
-    run_set_command
-    summarize_command_file
-    sync_order_numbers
-""".split()
-
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
+from __future__ import annotations
 
 import datetime
+import logging
 import os
 import sys
+from typing import Any
+from typing import Generator
 
 import pyRestTable
 from apstools.utils import ExcelDatabaseFileGeneric
@@ -69,15 +52,37 @@ from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
 from .sample_rotator_plans import PI_onR
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
+
+__all__ = """
+    after_command_list
+    after_plan
+    before_command_list
+    before_plan
+    beforeScanComputeOtherStuff
+    command_list_as_table
+    execute_command_list
+    get_command_list
+    parse_Excel_command_file
+    parse_text_command_file
+    postCommandsListfile2WWW
+    run_command_file
+    run_python_file
+    run_set_command
+    summarize_command_file
+    sync_order_numbers
+""".split()
+
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
 
-def beforeScanComputeOtherStuff():
+def beforeScanComputeOtherStuff() -> Generator:
     """Actions before each data collection starts."""
     yield from bps.null()  # TODO: remove this once you add the "other stuff"
 
 
-def postCommandsListfile2WWW(commands):
+def postCommandsListfile2WWW(commands: list[tuple]) -> Generator:
     """Post list of commands to WWW and archive the list for posterity."""
     tbl_file = "commands.txt"
     tbl = command_list_as_table(commands)
@@ -108,8 +113,32 @@ def postCommandsListfile2WWW(commands):
         fp.write(file_contents)
 
 
-def before_command_list(md=None, commands=None):
-    """Actions before a command list is run."""
+def before_command_list(
+    md: dict | None = None, commands: list[tuple] | None = None
+) -> Generator:
+    """Execute preparatory actions before running a command list.
+
+    This function performs several initialization steps before executing a command list:
+    1. Verifies commands if provided
+    2. Updates timestamps and collection status
+    3. Configures shutters and controls
+    4. Measures dark currents if enabled
+    5. Sets up tuning ranges and updates EPICS settings
+    6. Performs pre-USAXS tuning if requested
+    7. Synchronizes order numbers if enabled
+
+    Parameters
+    ----------
+    md : dict | None, optional
+        Metadata dictionary to be used during the scan, by default None
+    commands : list[tuple] | None, optional
+        List of command tuples to be verified, by default None
+
+    Yields
+    ------
+    Generator
+        Bluesky plan for executing the preparatory actions
+    """
     from .scans import preUSAXStune
 
     if commands is not None:
@@ -166,8 +195,27 @@ def before_command_list(md=None, commands=None):
     reset_manager()
 
 
-def verify_commands(commands):
-    """Verifies command input parameters to check if they are valid"""
+def verify_commands(commands: list[tuple]) -> None:
+    """Verify the validity of command input parameters.
+
+    This function checks each command in the list for:
+    1. Valid scan action types
+    2. Proper numeric values for coordinates and thickness
+    3. Stage travel limits for X and Y coordinates
+    4. Sample thickness validity
+    5. Sample name presence
+
+    Parameters
+    ----------
+    commands : list[tuple]
+        List of command tuples, where each tuple contains:
+        (action, args, line_number, raw_command)
+
+    Raises
+    ------
+    RuntimeError
+        If any command validation fails, with detailed error messages
+    """
     # create string for error logging
     list_of_errors = []
     # separate commands into individual components, see execute_command_list for details
@@ -175,13 +223,12 @@ def verify_commands(commands):
     for command in commands:
         action, args, i, raw_command = command
         if action.lower() in scan_actions:
-            # if args[2].isnumeric() is False :
-            #    list_of_errors.append(f"line {i}: thickness incorrect for : {raw_command.strip()}")
             try:
                 sx = float(args[0])
                 sy = float(args[1])
                 sth = float(args[2])
-                snm = args[3]
+                # Verify sample name exists but don't use it
+                _ = args[3]
             except (IndexError, ValueError) as exc:
                 list_of_errors.append(
                     f"line {i}: Improper command : {raw_command.strip()} : {exc}"
@@ -190,41 +237,58 @@ def verify_commands(commands):
             # check sx against travel limits
             if sx < s_stage.x.low_limit:
                 list_of_errors.append(
-                    f"line {i}: SX low limit: value {sx} < low limit {s_stage.x.low_limit},  command: {raw_command.strip()}"
+                    f"line {i}: SX low limit: value {sx} < low limit "
+                    f"{s_stage.x.low_limit},  command: {raw_command.strip()}"
                 )
             if sx > s_stage.x.high_limit:
                 list_of_errors.append(
-                    f"line {i}: SX high limit: value {sx} > high limit {s_stage.x.high_limit},  command: {raw_command.strip()}"
+                    f"line {i}: SX high limit: value {sx} > high limit "
+                    f"{s_stage.x.high_limit},  command: {raw_command.strip()}"
                 )
             # check sy against travel limits
             if sy < s_stage.y.low_limit:
                 list_of_errors.append(
-                    f"line {i}: SY low limit: value {sy} < low limit {s_stage.y.low_limit},  command: {raw_command.strip()}"
+                    f"line {i}: SY low limit: value {sy} < low limit "
+                    f"{s_stage.y.low_limit},  command: {raw_command.strip()}"
                 )
             if sy > s_stage.y.high_limit:
                 list_of_errors.append(
-                    f"line {i}: SY high limit: value {sy} > high limit {s_stage.y.high_limit},  command: {raw_command.strip()}"
+                    f"line {i}: SY high limit: value {sy} > high limit "
+                    f"{s_stage.y.high_limit},  command: {raw_command.strip()}"
                 )
             # check sth for reasonable sample thickness value
             if sth < 0:
                 print(
                     f"{sth = } from args[2] = float('{args[2]}') -- thickness problem"
                 )
-            #    list_of_errors.append(f"line {i}: thickness incorrect for : {raw_command.strip()}")
-            # check snm for reasonable sample title value
     if len(list_of_errors) > 0:
         err_msg = (
             "Errors were found in command file. Cannot continue. List of errors:\n"
             + "\n".join(list_of_errors)
         )
         raise RuntimeError(err_msg)
-    # this is the end of this routine
-    # raise RuntimeError("Stop anyway")
     logger.info("Command file verified")
 
 
-def after_command_list(md=None):
-    """Actions after a command list is run."""
+def after_command_list(md: dict | None = None) -> Generator:
+    """Execute cleanup actions after running a command list.
+
+    This function performs several cleanup steps:
+    1. Updates timestamps
+    2. Marks collection as complete
+    3. Closes shutters
+    4. Updates system state
+
+    Parameters
+    ----------
+    md : dict | None, optional
+        Metadata dictionary used during the scan, by default None
+
+    Yields
+    ------
+    Generator
+        Bluesky plan for executing the cleanup actions
+    """
     # if md is None:
     #     md = {}
     yield from bps.mv(
@@ -238,8 +302,23 @@ def after_command_list(md=None):
     yield from user_data.set_state_plan("USAXS macro file done")
 
 
-def before_plan(md=None):
-    """Actions before every data collection plan."""
+def before_plan(md: dict | None = None) -> Generator:
+    """Execute preparatory actions before each data collection plan.
+
+    This function:
+    1. Determines the current mode (USAXS or SWAXS)
+    2. Performs appropriate tuning based on the mode
+
+    Parameters
+    ----------
+    md : dict | None, optional
+        Metadata dictionary to be used during the scan, by default None
+
+    Yields
+    ------
+    Generator
+        Bluesky plan for executing the preparatory actions
+    """
     if md is None:
         md = {}
     from .scans import preSWAXStune
@@ -256,8 +335,24 @@ def before_plan(md=None):
             yield from preSWAXStune(md=md)
 
 
-def after_plan(weight=1, md=None):
-    """Actions after every data collection plan."""
+def after_plan(weight: int = 1, md: dict | None = None) -> Generator:
+    """Execute cleanup actions after each data collection plan.
+
+    This function:
+    1. Increments the number of scans since last tune
+
+    Parameters
+    ----------
+    weight : int, optional
+        Weight to increment the scan counter by, by default 1
+    md : dict | None, optional
+        Metadata dictionary used during the scan, by default None
+
+    Yields
+    ------
+    Generator
+        Bluesky plan for executing the cleanup actions
+    """
 
     # if md is None:
     #     md = {}
@@ -268,36 +363,35 @@ def after_plan(weight=1, md=None):
     )
 
 
-def parse_Excel_command_file(filename):
-    """
-    Parse an Excel spreadsheet with commands, return as command list.
+def parse_Excel_command_file(filename: str) -> list[tuple]:
+    """Parse an Excel spreadsheet containing scan commands.
 
-    TEXT view of spreadsheet (Excel file line numbers shown)::
+    The spreadsheet should be formatted with the following columns:
+    - scan: The type of scan to perform
+    - sx: Sample X position
+    - sy: Sample Y position
+    - thickness: Sample thickness
+    - sample name: Name or description of the sample
 
-        [1] List of sample scans to be run
-        [2]
-        [3]
-        [4] scan    sx  sy  thickness   sample name
-        [5] FlyScan 0   0   0   blank
-        [6] FlyScan 5   2   0   blank
+    Example spreadsheet format:
+    ```
+    List of sample scans to be run
 
-    PARAMETERS
+    scan    sx  sy  thickness   sample name
+    FlyScan 0   0   0          blank
+    FlyScan 5   2   0          blank
+    ```
 
+    Parameters
+    ----------
     filename : str
-        Name of input Excel spreadsheet file.  Can be relative or absolute path,
-        such as "actions.xslx", "../sample.xslx", or
-        "/path/to/overnight.xslx".
+        Path to the Excel spreadsheet file. Can be relative or absolute path.
 
-    RETURNS
-
-    list of commands : list[command]
-        List of command tuples for use in ``execute_command_list()``
-
-    RAISES
-
-    FileNotFoundError
-        if file cannot be found
-
+    Returns
+    -------
+    list[tuple]
+        List of command tuples, where each tuple contains:
+        (action, args, line_number, raw_command)
     """
     full_filename = os.path.abspath(filename)
     assert os.path.exists(full_filename)
@@ -320,7 +414,7 @@ def parse_Excel_command_file(filename):
     return commands
 
 
-def parse_text_command_file(filename):
+def parse_text_command_file(filename: str) -> list[tuple]:
     """
     Parse a text file with commands, return as command list.
 
@@ -385,7 +479,7 @@ def parse_text_command_file(filename):
     return commands
 
 
-def command_list_as_table(commands):
+def command_list_as_table(commands: list[tuple]) -> pyRestTable.Table:
     """Format a command list as a :class:`pyRestTable.Table()` object."""
     tbl = pyRestTable.Table()
     tbl.addLabel("line #")
@@ -398,7 +492,7 @@ def command_list_as_table(commands):
     return tbl
 
 
-def get_command_list(filename):
+def get_command_list(filename: str) -> list[tuple]:
     """Return command list from either text or Excel file."""
     full_filename = os.path.abspath(filename)
     assert os.path.exists(full_filename)
@@ -409,15 +503,14 @@ def get_command_list(filename):
     return commands
 
 
-def summarize_command_file(filename):
+def summarize_command_file(filename: str) -> None:
     """Print the command list from a text or Excel file."""
     commands = get_command_list(filename)
     logger.info("Command file: %s\n%s", command_list_as_table(commands), filename)
 
 
-def run_command_file(filename, md=None):
-    """
-    Plan: execute a list of commands from a text or Excel file.
+def run_command_file(filename: str, md: dict | None = None) -> Generator:
+    """Plan: execute a list of commands from a text or Excel file.
 
     * Parse the file into a command list
     * yield the command list to the RunEngine (or other)
@@ -428,21 +521,21 @@ def run_command_file(filename, md=None):
     yield from execute_command_list(filename, commands, md=md)
 
 
-def execute_command_list(filename, commands, md=None):
-    """
-    Plan: execute the command list.
+def execute_command_list(
+    filename: str, commands: list[tuple], md: dict | None = None
+) -> Generator:
+    """Plan: execute the command list.
 
     The command list is a tuple described below.
 
     * Only recognized commands will be executed.
     * Unrecognized commands will be reported as comments.
 
-    PARAMETERS
-
+    Parameters
+    ----------
     filename : str
-        Name of input text file.  Can be relative or absolute path,
-        such as "actions.txt", "../sample.txt", or
-        "/path/to/overnight.txt".
+        Name of input text file. Can be relative or absolute path,
+        such as "actions.txt", "../sample.txt", or "/path/to/overnight.txt".
     commands : list[command]
         List of command tuples for use in ``execute_command_list()``
 
@@ -487,6 +580,56 @@ def execute_command_list(filename, commands, md=None):
     instrument_archive(text)
 
     yield from before_command_list(md=md, commands=commands)
+
+    def _handle_actions_(
+        action: str,
+        args: list,
+        _md: dict,
+        i: int,
+        raw_command: str,
+        simple_actions: dict,
+    ) -> Generator:
+        """Inner function to make try..except clause more clear."""
+        if action in ("flyscan", "usaxsscan"):
+            # handles either step or fly scan
+            sx = float(args[0])
+            sy = float(args[1])
+            sth = float(args[2])
+            snm = args[3]
+            _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
+            yield from USAXSscan(sx, sy, sth, snm, md=_md)
+
+        elif action in ("saxs", "saxsexp"):
+            sx = float(args[0])
+            sy = float(args[1])
+            sth = float(args[2])
+            snm = args[3]
+            _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
+            yield from SAXS(sx, sy, sth, snm, md=_md)
+
+        elif action in ("waxs", "waxsexp"):
+            sx = float(args[0])
+            sy = float(args[1])
+            sth = float(args[2])
+            snm = args[3]
+            _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
+            yield from WAXS(sx, sy, sth, snm, md=_md)
+
+        elif action in ("run_python", "run"):
+            filename = args[0]
+            yield from run_python_file(filename, md={})
+
+        elif action in ("set",):
+            yield from run_set_command(*args)
+
+        elif action in simple_actions:
+            yield from simple_actions[action](md=_md)
+
+        else:
+            logger.info("no handling for line %d: %s", i, raw_command)
+            yield from bps.null()
+        logger.info("memory report: %s", rss_mem())
+
     for command in commands:
         action, args, i, raw_command = command
         logger.info("file line %d: %s", i, raw_command)
@@ -520,48 +663,6 @@ def execute_command_list(filename, commands, md=None):
             allusaxstune=allUSAXStune,
         )
 
-        def _handle_actions_():
-            """Inner function to make try..except clause more clear."""
-            if action in ("flyscan", "usaxsscan"):
-                # handles either step or fly scan
-                sx = float(args[0])
-                sy = float(args[1])
-                sth = float(args[2])
-                snm = args[3]
-                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
-                yield from USAXSscan(sx, sy, sth, snm, md=_md)
-
-            elif action in ("saxs", "saxsexp"):
-                sx = float(args[0])
-                sy = float(args[1])
-                sth = float(args[2])
-                snm = args[3]
-                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
-                yield from SAXS(sx, sy, sth, snm, md=_md)
-
-            elif action in ("waxs", "waxsexp"):
-                sx = float(args[0])
-                sy = float(args[1])
-                sth = float(args[2])
-                snm = args[3]
-                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
-                yield from WAXS(sx, sy, sth, snm, md=_md)
-
-            elif action in ("run_python", "run"):
-                filename = args[0]
-                yield from run_python_file(filename, md={})
-
-            elif action in ("set",):
-                yield from run_set_command(*args)
-
-            elif action in simple_actions:
-                yield from simple_actions[action](md=_md)
-
-            else:
-                logger.info("no handling for line %d: %s", i, raw_command)
-                yield from bps.null()
-            logger.info("memory report: %s", rss_mem())
-
         attempt = 0  # count the number of attempts
         maximum_attempts = MAXIMUM_ATTEMPTS  # set an upper limit
         exit_requested = False
@@ -570,7 +671,9 @@ def execute_command_list(filename, commands, md=None):
         while attempt < maximum_attempts:
             try:
                 # call the inner function (above)
-                yield from _handle_actions_()
+                yield from _handle_actions_(
+                    action, args, _md, i, raw_command, simple_actions
+                )
                 break  # leave the while loop
             # TODO: need to handle some Exceptions, fail on others
             except Exception as exc:
@@ -607,7 +710,7 @@ def execute_command_list(filename, commands, md=None):
     logger.info("memory report: %s", rss_mem())
 
 
-def sync_order_numbers():
+def sync_order_numbers() -> Generator:
     """
     Synchronize the order numbers between the various detectors.
 
@@ -630,7 +733,7 @@ def sync_order_numbers():
     )
 
 
-def run_python_file(filename, md=None):
+def run_python_file(filename: str, md: dict | None = None) -> Generator:
     """
     Plan: load and run a Python file using the IPython `%mov` magic.
 
@@ -654,7 +757,7 @@ def run_python_file(filename, md=None):
         logger.warning("Did you forget the '.py' suffix on '%s'?", filename)
 
 
-def run_set_command(*args):
+def run_set_command(*args: Any) -> Generator:
     """
     Change a general parameter from a command file.
 

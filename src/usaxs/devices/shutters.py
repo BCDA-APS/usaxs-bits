@@ -2,6 +2,9 @@
 shutters
 """
 
+from typing import List
+from typing import Union
+
 from apstools.devices import ApsPssShutterWithStatus
 from ophyd import Component
 from ophyd import EpicsSignal
@@ -22,12 +25,14 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
     """
 
     # bo records that reset after a short time, set to 1 to move
-    open_signal = Component(EpicsSignal, "_opn")
-    close_signal = Component(EpicsSignal, "_cls")
+    open_signal: Component[EpicsSignal] = Component(EpicsSignal, "_opn")
+    close_signal: Component[EpicsSignal] = Component(EpicsSignal, "_cls")
     # bi record ZNAM=OFF, ONAM=ON
-    pss_state = FormattedComponent(EpicsSignalRO, "{self.state_pv}")
-    pss_state_open_values = [1, "ON"]
-    pss_state_closed_values = [0, "OFF"]
+    pss_state: FormattedComponent[EpicsSignalRO] = FormattedComponent(
+        EpicsSignalRO, "{self.state_pv}"
+    )
+    pss_state_open_values: List[Union[int, str]] = [1, "ON"]
+    pss_state_closed_values: List[Union[int, str]] = [0, "OFF"]
 
 
 # class PssShutters(Device):

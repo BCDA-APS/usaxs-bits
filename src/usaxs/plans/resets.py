@@ -7,9 +7,8 @@ __all__ = [
 ]
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
+from typing import Any
+from typing import Generator
 
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
@@ -34,8 +33,11 @@ from ..devices import user_data
 from .mode_changes import mode_USAXS
 from .mono_feedback import DCMfeedbackON
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
-def reset_USAXS():
+
+def reset_USAXS() -> Generator[Any, None, None]:
     """
     bluesky plan to set USAXS instrument in safe configuration
     """

@@ -16,9 +16,6 @@ __all__ = """
 
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from bluesky import plan_stubs as bps
 
 from ..devices import waxsx
@@ -31,6 +28,9 @@ from ..devices.slits import usaxs_slit
 from ..devices.stages import a_stage
 from ..devices.stages import d_stage
 from ..devices.stages import saxs_stage
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 UsaxsSaxsModes = {
     "dirty": -1,  # moving or prior move did not finish correctly

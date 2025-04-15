@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 class My12EidDcmEnergy(PVPositionerSoftDoneWithStop):
+    """Energy control for the DCM monochromator."""
+
     readback = Component(EpicsSignalRO, "12ida2:EnCalc")
     setpoint = Component(EpicsSignal, "12ida2:E2P_driveValue.A")
     egu = "keV"
@@ -27,12 +29,22 @@ class My12EidDcmEnergy(PVPositionerSoftDoneWithStop):
 
 
 class My12EidWavelengthRO(EpicsSignalRO):
+    """Read-only wavelength signal for the monochromator."""
+
     @property
-    def position(self):
+    def position(self) -> float:
+        """
+        Get the current wavelength position.
+
+        Returns:
+            float: The current wavelength value
+        """
         return self.get()
 
 
 class My12IdEDcm(Device):
+    """Double crystal monochromator device."""
+
     energy = Component(
         My12EidDcmEnergy,
         "",  # PV prefix should be blank, in this case
@@ -68,14 +80,30 @@ class DCM_Feedback(Device):
     oval = Component(EpicsSignal, ".OVAL")
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
+        """
+        Check if feedback is enabled.
+
+        Returns:
+            bool: True if feedback is on, False otherwise
+        """
         return self.on.get() == 1
 
     @run_in_thread
-    def _send_emails(self, subject, message):
+    def _send_emails(self, subject: str, message: str) -> None:
+        """
+        Send email notifications.
+
+        Args:
+            subject: Email subject
+            message: Email message
+        """
         email_notices.send(subject, message)
 
-    def check_position(self):
+    def check_position(self) -> None:
+        """
+        Check if the feedback position is within limits and send notifications if not.
+        """
         diff_hi = self.drvh.get() - self.oval.get()
         diff_lo = self.oval.get() - self.drvl.get()
         if min(diff_hi, diff_lo) < 0.2:
@@ -90,6 +118,8 @@ class DCM_Feedback(Device):
 
 
 class MyMonochromator(Device):
+    """Main monochromator device combining DCM and feedback control."""
+
     # dcm = Component(KohzuSeqCtl_Monochromator, "9ida:")
     dcm = Component(My12IdEDcm, "")
     feedback = Component(DCM_Feedback, "usxLAX:fbe:omega")

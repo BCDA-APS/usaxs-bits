@@ -2,11 +2,17 @@
 slits
 """
 
+from typing import Any
+from typing import Generator
+from typing import Optional
+
 from bluesky import plan_stubs as bps
 from ophyd import Component
 from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import MotorBundle
+
+from ..devices.general_terms import terms
 
 # from .usaxs_motor_devices import UsaxsMotor
 # from ..utils import move_motors
@@ -25,7 +31,9 @@ class UsaxsSlitDevice(MotorBundle):
     v_size = Component(EpicsMotor, "usxLAX:m58:c1:m7", labels=("uslit",))
     y = Component(EpicsMotor, "usxLAX:m58:c1:m5", labels=("uslit",))
 
-    def set_size(self, *args, h=None, v=None):
+    def set_size(
+        self, *args: Any, h: Optional[float] = None, v: Optional[float] = None
+    ) -> Generator[Any, None, None]:
         """move the slits to the specified size"""
         if h is None:
             raise ValueError("must define horizontal size")
@@ -41,6 +49,12 @@ class UsaxsSlitDevice(MotorBundle):
 
 
 class GuardSlitMotor(EpicsMotor):
+    """
+    Motor for guard slits with additional process record and status update signals.
+
+    This class extends EpicsMotor to add functionality specific to guard slit motors.
+    """
+
     process_record = Component(EpicsSignal, ".PROC", kind="omitted")
     status_update = Component(EpicsSignal, ".STUP", kind="omitted")
 
@@ -65,17 +79,19 @@ class GSlitDevice(MotorBundle):
     h_sync_proc = Component(EpicsSignal, "usxLAX:GSlit1H:sync.PROC")
     v_sync_proc = Component(EpicsSignal, "usxLAX:GSlit1V:sync.PROC")
 
-    gap_tolerance = 0.02  # actual must be this close to desired
-    scale_factor = (
+    gap_tolerance: float = 0.02  # actual must be this close to desired
+    scale_factor: float = (
         1.2  # 1.2x the size of the beam should be good guess for guard slits.
     )
-    h_step_away = 0.2  # 0.2mm step away from beam
-    v_step_away = 0.1  # 0.1mm step away from beam
-    h_step_into = 1.1  # 1.1mm step into the beam (blocks the beam)
-    v_step_into = 0.4  # 0.4mm step into the beam (blocks the beam)
-    tuning_intensity_threshold = 500
+    h_step_away: float = 0.2  # 0.2mm step away from beam
+    v_step_away: float = 0.1  # 0.1mm step away from beam
+    h_step_into: float = 1.1  # 1.1mm step into the beam (blocks the beam)
+    v_step_into: float = 0.4  # 0.4mm step into the beam (blocks the beam)
+    tuning_intensity_threshold: int = 500
 
-    def set_size(self, *args, h=None, v=None):
+    def set_size(
+        self, *args: Any, h: Optional[float] = None, v: Optional[float] = None
+    ) -> Generator[Any, None, None]:
         """move the slits to the specified size"""
         if h is None:
             raise ValueError("must define horizontal size")
@@ -90,20 +106,44 @@ class GSlitDevice(MotorBundle):
         )
 
     @property
-    def h_gap_ok(self):
+    def h_gap_ok(self) -> bool:
+        """
+        Check if the horizontal gap is within tolerance.
+
+        Returns:
+            bool: True if the horizontal gap is within tolerance, False otherwise.
+        """
         gap = self.outb.position - self.inb.position
         return abs(gap - terms.SAXS.guard_h_size.get()) <= self.gap_tolerance
 
     @property
-    def v_h_gap_ok(self):
+    def v_h_gap_ok(self) -> bool:
+        """
+        Check if the vertical gap is within tolerance.
+
+        Returns:
+            bool: True if the vertical gap is within tolerance, False otherwise.
+        """
         gap = self.top.position - self.bot.position
         return abs(gap - terms.SAXS.guard_v_size.get()) <= self.gap_tolerance
 
     @property
-    def gap_ok(self):
+    def gap_ok(self) -> bool:
+        """
+        Check if both horizontal and vertical gaps are within tolerance.
+
+        Returns:
+            bool: True if both gaps are within tolerance, False otherwise.
+        """
         return self.h_gap_ok and self.v_h_gap_ok
 
-    def process_motor_records(self):
+    def process_motor_records(self) -> Generator[Any, None, None]:
+        """
+        Process motor records to update their status.
+
+        Yields:
+            Generator: A generator that yields control flow back to the caller.
+        """
         yield from bps.mv(self.top.process_record, 1)
         yield from bps.mv(self.outb.process_record, 1)
         yield from bps.sleep(0.05)

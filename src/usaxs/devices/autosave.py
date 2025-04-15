@@ -8,7 +8,17 @@ from ophyd import EpicsSignal
 
 
 class Autosave(Device):
-    """control of autosave routine in EPICS IOC"""
+    """Control of autosave routine in EPICS IOC.
 
-    disable = Component(EpicsSignal, "SR_disable", auto_monitor=False)
-    max_time = Component(EpicsSignal, "SR_disableMaxSecs")
+    This device manages the EPICS IOC autosave functionality, allowing control
+    over the autosave feature and its timing parameters.
+
+    Attributes:
+        disable: EpicsSignal to disable autosave functionality
+        max_time: EpicsSignal for maximum time in seconds before autosave
+    """
+
+    disable: Component[EpicsSignal] = Component(
+        EpicsSignal, "SR_disable", auto_monitor=False
+    )
+    max_time: Component[EpicsSignal] = Component(EpicsSignal, "SR_disableMaxSecs")

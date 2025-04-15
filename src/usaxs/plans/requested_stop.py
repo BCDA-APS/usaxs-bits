@@ -8,13 +8,11 @@ __all__ = [
     "IfRequestedStopBeforeNextScan",
 ]
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import datetime
+import logging
 import time
+from typing import Any
+from typing import Generator
 
 import bluesky
 from bluesky import plan_stubs as bps
@@ -26,8 +24,11 @@ from ..devices import ti_filter_shutter
 from ..devices import user_data
 from ..framework import RE
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
-def IfRequestedStopBeforeNextScan():
+
+def IfRequestedStopBeforeNextScan() -> Generator[Any, None, None]:
     """plan: wait if requested"""
     global RE
     open_the_shutter = False

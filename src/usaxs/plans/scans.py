@@ -11,12 +11,8 @@ __all__ = """
     WAXS
 """.split()
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import datetime
+import logging
 import os
 import time
 from collections import OrderedDict
@@ -87,6 +83,9 @@ from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_SAXS_Transmission
 from .sample_transmission import measure_USAXS_Transmission
 from .uascan import uascan
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 # these two templates match each other, sort of
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"

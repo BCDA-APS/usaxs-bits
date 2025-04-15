@@ -1,8 +1,35 @@
-def tune(self, md=None):
+from typing import Any
+from typing import Dict
+from typing import Generator
+from typing import Optional
+
+from bluesky.plans import lineup2
+
+from ..devices.scalers import scaler0
+
+"""Stage tuning plans for the USAXS instrument.
+
+This module provides plans for tuning various stages of the USAXS instrument,
+including alignment and optimization procedures.
+"""
+
+
+def tune(self, md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, Any]:
+    """Execute a tuning plan.
+
+    This function performs a scan to tune a stage motor by optimizing
+    a detector signal.
+
+    Args:
+        md (dict, optional): Metadata dictionary. Defaults to None.
+
+    Returns:
+        Generator: A sequence of plan messages
+    """
     _md = {}
     _md.update(md or {})
 
-    def _inner():
+    def _inner() -> Generator[Any, None, Any]:
         if self.pre_tune_hook is not None:
             yield from self.pre_tune_hook()
 

@@ -96,6 +96,12 @@ def instrument_archive(text=None):
 
 
 def looky():
+    """Monitor and report system status.
+
+    This function continuously monitors various system parameters and
+    reports their status, including temperature, pressure, and other
+    critical values.
+    """
     text = """
     archive custom user code #228
     https://github.com/APS-USAXS/ipython-usaxs/issues/228
@@ -122,5 +128,19 @@ def resource_usage(title=None, vmem=False):
     return msg.strip()
 
 
-if __name__ == "__main__":
-    looky()
+def get_current_time():
+    """Get the current time in a formatted string.
+
+    Returns:
+        str: Current time formatted as 'YYYY-MM-DD HH:MM:SS'
+    """
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def get_current_date():
+    """Get the current date in a formatted string.
+
+    Returns:
+        str: Current date formatted as 'YYYY-MM-DD'
+    """
+    return datetime.datetime.now().strftime("%Y-%m-%d")

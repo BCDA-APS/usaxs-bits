@@ -7,22 +7,19 @@ __all__ = [
 ]
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import time
 
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 
 from ..devices import user_data
-from ..framework import RE
-from ..framework import bec
 from ..utils.reporter import remaining_time_reporter
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
-def areaDetectorAcquire(det, create_directory=None, md=None):
+
+def areaDetectorAcquire(det, create_directory=None, RE=None, beck=None, md=None):
     """
     acquire image(s) from the named area detector
     """

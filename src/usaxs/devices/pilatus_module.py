@@ -11,6 +11,7 @@ import logging
 # from apstools.devices import AD_EpicsHdf5FileName
 import pathlib
 import warnings
+from typing import Any
 
 from apstools.devices import CamMixin_V34
 from apstools.devices import SingleTrigger_V34
@@ -54,7 +55,14 @@ _validate_AD_FileWriter_path_(WRITE_PATH_TEMPLATE_WAXS, DATABROKER_ROOT_PATH)
 class MyPilatusDetectorCam(CamMixin_V34, PilatusDetectorCam):
     """Revise SimDetectorCam for ADCore revisions."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Initialize the Pilatus detector camera.
+
+        Args:
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments
+        """
         super().__init__(*args, **kwargs)
         self.stage_sigs.update(
             dict(
@@ -79,7 +87,14 @@ class CustomHDF5Plugin(
     * ``generate_datum()`` - coordinate image storage metadata
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Initialize the HDF5 plugin.
+
+        Args:
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments
+        """
         # super().__init__(*args, **kwargs)
         # alternative from AD_EpicsHdf5FileName
         # Skip over the HDF5Plugin.__init__().
@@ -117,10 +132,16 @@ class CustomHDF5Plugin(
             if k in self.stage_sigs:
                 self.stage_sigs.pop(k)
 
-    def stage(self):
+    def stage(self) -> None:
+        """
+        Stage the HDF5 plugin for data acquisition.
+        Ensures capture is not used with file_write_mode='Single'.
+        """
         # Again, do not press the Capture button in the HDF plugin
         if "capture" in self.stage_sigs:
-            warnings.warn("Do not use capture with file_write_mode='Single'")
+            warnings.warn(
+                "Do not use capture with file_write_mode='Single'", stacklevel=2
+            )
             self.stage_sigs.pop("capture")
         super().stage()
 
@@ -128,10 +149,10 @@ class CustomHDF5Plugin(
 class MyPilatusDetector(SingleTrigger_V34, DetectorBase):
     """Pilatus detector(s) as used by 12-ID-E USAXS"""
 
-    cam = ADComponent(MyPilatusDetectorCam, "cam1:")
-    image = ADComponent(ImagePlugin, "image1:")
+    cam: ADComponent[MyPilatusDetectorCam] = ADComponent(MyPilatusDetectorCam, "cam1:")
+    image: ADComponent[ImagePlugin] = ADComponent(ImagePlugin, "image1:")
 
-    hdf1 = ADComponent(
+    hdf1: ADComponent[CustomHDF5Plugin] = ADComponent(
         CustomHDF5Plugin,
         "HDF1:",
         # root = DATABROKER_ROOT_PATH,
@@ -143,15 +164,15 @@ class MyPilatusDetector(SingleTrigger_V34, DetectorBase):
 class MyEigerDetector(SingleTrigger_V34, DetectorBase):
     """Eiger2 detector(s) as used by 12-ID-E USAXS"""
 
-    cam = ADComponent(MyPilatusDetectorCam, "cam1:")
-    image = ADComponent(ImagePlugin, "image1:")
-    bad_pixel = ADComponent(BadPixelPlugin, "BadPix1:")
+    cam: ADComponent[MyPilatusDetectorCam] = ADComponent(MyPilatusDetectorCam, "cam1:")
+    image: ADComponent[ImagePlugin] = ADComponent(ImagePlugin, "image1:")
+    bad_pixel: ADComponent[BadPixelPlugin] = ADComponent(BadPixelPlugin, "BadPix1:")
 
-    hdf1 = ADComponent(
+    hdf1: ADComponent[CustomHDF5Plugin] = ADComponent(
         CustomHDF5Plugin,
         "HDF1:",
         # root = DATABROKER_ROOT_PATH,
-        write_path_template=WRITE_PATH_TEMPLATE_WAXS,
+        write_path_template=WRITE_PATH_TEMPLATE,
         read_path_template=READ_PATH_TEMPLATE,
     )
 

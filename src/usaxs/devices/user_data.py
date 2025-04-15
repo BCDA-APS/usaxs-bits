@@ -5,6 +5,10 @@ EPICS data about the user
 # apsbss
 
 import logging
+from typing import Any
+from typing import Callable
+from typing import Generator
+from typing import Optional
 
 from apstools.utils import trim_string_for_EPICS
 from bluesky import plan_stubs as bps
@@ -40,16 +44,18 @@ class EpicsSampleNameDevice(EpicsSignal):
 
     """
 
-    _handler = None
+    _handler: Optional[Callable[[str], str]] = None
 
-    def set(self, value, **kwargs):
+    def set(self, value: str, **kwargs: Any) -> Any:
         """Modify value per user function before setting the PV"""
         logger.info("self._handler: %s", self._handler)
         if self._handler is not None:
             value = self._handler(value)
         return super().set(value, **kwargs)
 
-    def register_handler(self, handler_function=None):
+    def register_handler(
+        self, handler_function: Optional[Callable[[str], str]] = None
+    ) -> None:
         """
         Register the supplied function to be called
         when this signal is to be written.  The function
@@ -80,25 +86,52 @@ class EpicsSampleNameDevice(EpicsSignal):
 
 
 class UserDataDevice(Device):
-    GUP_number = Component(EpicsSignal, "usxLAX:GUPNumber")
-    macro_file = Component(EpicsSignal, "usxLAX:macroFile")
-    macro_file_time = Component(EpicsSignal, "usxLAX:macroFileTime")
-    run_cycle = Component(EpicsSignal, "usxLAX:RunCycle")
-    sample_thickness = Component(EpicsSignal, "usxLAX:sampleThickness")
-    sample_title = Component(EpicsSampleNameDevice, "usxLAX:sampleTitle", string=True)
-    scanning = Component(EpicsSignal, "usxLAX:USAXS:scanning")
-    scan_macro = Component(EpicsSignal, "usxLAX:scanMacro")
-    spec_file = Component(EpicsSignal, "usxLAX:specFile", string=True)
-    spec_scan = Component(EpicsSignal, "usxLAX:specScan", string=True)
-    state = Component(EpicsSignal, "usxLAX:state", string=True, write_timeout=0.1)
-    time_stamp = Component(EpicsSignal, "usxLAX:timeStamp")
-    user_dir = Component(EpicsSignal, "usxLAX:userDir", string=True)
-    user_name = Component(EpicsSignal, "usxLAX:userName", string=True)
+    """
+    Device for storing and retrieving user data during experiments.
+
+    This device provides access to various user-related parameters such as
+    sample information, user identification, and experiment state.
+    """
+
+    GUP_number: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:GUPNumber")
+    macro_file: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:macroFile")
+    macro_file_time: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:macroFileTime"
+    )
+    run_cycle: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:RunCycle")
+    sample_thickness: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:sampleThickness"
+    )
+    sample_title: Component[EpicsSampleNameDevice] = Component(
+        EpicsSampleNameDevice, "usxLAX:sampleTitle", string=True
+    )
+    scanning: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:USAXS:scanning")
+    scan_macro: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:scanMacro")
+    spec_file: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:specFile", string=True
+    )
+    spec_scan: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:specScan", string=True
+    )
+    state: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:state", string=True, write_timeout=0.1
+    )
+    time_stamp: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:timeStamp")
+    user_dir: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:userDir", string=True
+    )
+    user_name: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:userName", string=True
+    )
 
     # for GUI to know if user is collecting data: 0="On", 1="Off"
-    collection_in_progress = Component(EpicsSignal, "usxLAX:dataColInProgress")
+    collection_in_progress: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:dataColInProgress"
+    )
 
-    def set_state_plan(self, msg, confirm=True):
+    def set_state_plan(
+        self, msg: str, confirm: bool = True
+    ) -> Generator[Any, None, None]:
         """plan: tell EPICS about what we are doing"""
         msg = trim_string_for_EPICS(msg)
         try:
@@ -106,7 +139,7 @@ class UserDataDevice(Device):
         except Exception as exc:
             logger.warning("Exception while reporting instrument state: %s", exc)
 
-    def set_state_blocking(self, msg):
+    def set_state_blocking(self, msg: str) -> None:
         """ophyd: tell EPICS about what we are doing"""
         msg = trim_string_for_EPICS(msg)
         try:

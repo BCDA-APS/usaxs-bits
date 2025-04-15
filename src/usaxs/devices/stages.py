@@ -29,17 +29,31 @@ class TuneRanges(Device):
     """
 
     # in order of optical path
-    mr = Component(EpicsSignal, "usxLAX:USAXS:tune_mr_range")
-    msrp = Component(EpicsSignal, "usxLAX:USAXS:tune_msrp_range")
-    m2rp = Component(EpicsSignal, "usxLAX:USAXS:tune_m2rp_range")
-    ar = Component(EpicsSignal, "usxLAX:USAXS:tune_ar_range")
-    asrp = Component(EpicsSignal, "usxLAX:USAXS:tune_asrp_range")
-    a2rp = Component(EpicsSignal, "usxLAX:USAXS:tune_a2rp_range")
-    dx = Component(EpicsSignal, "usxLAX:USAXS:tune_dx_range")
-    dy = Component(EpicsSignal, "usxLAX:USAXS:tune_dy_range")
+    mr: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:USAXS:tune_mr_range")
+    msrp: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:USAXS:tune_msrp_range"
+    )
+    m2rp: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:USAXS:tune_m2rp_range"
+    )
+    ar: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:USAXS:tune_ar_range")
+    asrp: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:USAXS:tune_asrp_range"
+    )
+    a2rp: Component[EpicsSignal] = Component(
+        EpicsSignal, "usxLAX:USAXS:tune_a2rp_range"
+    )
+    dx: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:USAXS:tune_dx_range")
+    dy: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:USAXS:tune_dy_range")
 
     @property
-    def display(self):
+    def display(self) -> str:
+        """
+        Return a string representation of all tune ranges.
+
+        Returns:
+            str: A comma-separated string of all tune range values.
+        """
         return ", ".join(
             [f"{k}={getattr(self, k).get()}" for k in self.component_names]
         )
@@ -74,7 +88,7 @@ axis_tune_range = TuneRanges(name="axis_tune_range")
 class UsaxsCollimatorStageDevice(MotorBundle):
     """USAXS Collimator (Monochromator) stage"""
 
-    r = Component(
+    r: Component[TunableEpicsMotor2WTolerance] = Component(
         TunableEpicsMotor2WTolerance,
         "usxAERO:m12",
         labels=(
@@ -84,9 +98,13 @@ class UsaxsCollimatorStageDevice(MotorBundle):
         tune_range=axis_tune_range.mr,
         # defaults everything else
     )
-    x = Component(EpicsMotor, "usxAERO:m10", labels=("collimator",))
-    y = Component(EpicsMotor, "usxAERO:m11", labels=("collimator",))
-    r2p = Component(
+    x: Component[EpicsMotor] = Component(
+        EpicsMotor, "usxAERO:m10", labels=("collimator",)
+    )
+    y: Component[EpicsMotor] = Component(
+        EpicsMotor, "usxAERO:m11", labels=("collimator",)
+    )
+    r2p: Component[TunableEpicsMotor2] = Component(
         TunableEpicsMotor2,
         "usxLAX:pi:c0:m2",
         labels=(
@@ -96,7 +114,7 @@ class UsaxsCollimatorStageDevice(MotorBundle):
         tune_range=axis_tune_range.m2rp,
         # defaults everything else
     )
-    isChannelCut = True
+    isChannelCut: bool = True
 
 
 # ----- end of MR ------
@@ -198,7 +216,7 @@ class UsaxsCollimatorStageDevice(MotorBundle):
 class UsaxsDetectorStageDevice(MotorBundle):
     """USAXS detector stage"""
 
-    x = Component(
+    x: Component[TunableEpicsMotor2] = Component(
         TunableEpicsMotor2,
         "usxAERO:m1",
         labels=(
@@ -207,7 +225,7 @@ class UsaxsDetectorStageDevice(MotorBundle):
         ),
         tune_range=axis_tune_range.dx,
     )
-    y = Component(
+    y: Component[TunableEpicsMotor2] = Component(
         TunableEpicsMotor2,
         "usxAERO:m2",
         labels=(
@@ -221,8 +239,8 @@ class UsaxsDetectorStageDevice(MotorBundle):
 class UsaxsSampleStageDevice(MotorBundle):
     """USAXS sample stage"""
 
-    x = Component(EpicsMotor, "usxAERO:m8", labels=("sample",))
-    y = Component(EpicsMotor, "usxAERO:m9", labels=("sample",))
+    x: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m8", labels=("sample",))
+    y: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m9", labels=("sample",))
 
 
 # class UsaxsCollimatorSideReflectionStageDevice(MotorBundle):
@@ -231,7 +249,11 @@ class UsaxsSampleStageDevice(MotorBundle):
 #    #t = Component(EpicsMotor, 'usxLAX:xps:c0:m3', labels=("side_collimator",))
 #    x = Component(EpicsMotor, 'usxLAX:m58:c1:m1', labels=("side_collimator",))
 #    y = Component(EpicsMotor, 'usxLAX:m58:c1:m2')
-#    rp = Component(UsaxsMotorTunable, 'usxLAX:pi:c0:m3', labels=("side_collimator", "tunable",))
+#    rp = Component(
+#        UsaxsMotorTunable,
+#        'usxLAX:pi:c0:m3',
+#        labels=("side_collimator", "tunable",)
+#    )
 #  -------------------------------------------
 # def msrp_pretune_hook():
 #     stage = ms_stage.rp
@@ -252,7 +274,7 @@ class UsaxsSampleStageDevice(MotorBundle):
 #         yield from bps.mv(terms.USAXS.msr_val_center, ms_stage.rp.position)
 
 #     scaler0.select_channels(None)
-#
+
 # ms_stage.rp.pre_tune_method = msrp_pretune_hook
 # ms_stage.rp.post_tune_method = msrp_posttune_hook
 
@@ -336,16 +358,16 @@ class UsaxsSampleStageDevice(MotorBundle):
 class UsaxsAnalyzerStageDevice(MotorBundle):
     """USAXS Analyzer stage"""
 
-    r = Component(
+    r: Component[TunableEpicsMotor2WTolerance] = Component(
         TunableEpicsMotor2WTolerance,
         "usxAERO:m6",
         labels=("analyzer", "tunable"),
         tune_range=axis_tune_range.ar,
     )
-    x = Component(EpicsMotor, "usxAERO:m4", labels=("analyzer",))
-    y = Component(EpicsMotor, "usxAERO:m5", labels=("analyzer",))
+    x: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m4", labels=("analyzer",))
+    y: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m5", labels=("analyzer",))
     # z = Component(EpicsMotor, 'usxLAX:m58:c0:m7', labels=("analyzer",))
-    r2p = Component(
+    r2p: Component[TunableEpicsMotor2] = Component(
         TunableEpicsMotor2,
         "usxLAX:pi:c0:m1",
         labels=("analyzer", "tunable"),
@@ -362,19 +384,27 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
 #    #r = Component(EpicsMotor, 'usxLAX:xps:c0:m6', labels=("analyzer",))
 #    #t = Component(EpicsMotor, 'usxLAX:xps:c0:m4', labels=("analyzer",))
 #    y = Component(EpicsMotor, 'usxLAX:m58:c1:m4', labels=("analyzer",))
-#    rp = Component(TunableEpicsMotor2, 'usxLAX:pi:c0:m4', labels=("analyzer", "tunable"))
+#    rp = Component(
+#        TunableEpicsMotor2,
+#        'usxLAX:pi:c0:m4',
+#        labels=("analyzer", "tunable")
+#    )
 
 
 class SaxsDetectorStageDevice(MotorBundle):
     """SAXS detector stage"""
 
-    x = Component(EpicsMotor, "usxAERO:m13", labels=("saxs",))
-    y = Component(EpicsMotor, "usxAERO:m15", labels=("saxs",))
-    z = Component(EpicsMotor, "usxAERO:m14", labels=("saxs",))
+    x: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m13", labels=("saxs",))
+    y: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m15", labels=("saxs",))
+    z: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m14", labels=("saxs",))
 
 
 class GuardSlitsStageDevice(MotorBundle):
-    """Guqard Slits stage"""
+    """Guard Slits stage"""
 
-    x = Component(EpicsMotor, "usxLAX:m58:c0:m7", labels=("guard_slits",))
-    y = Component(EpicsMotor, "usxLAX:m58:c0:m6", labels=("guard_slits",))
+    x: Component[EpicsMotor] = Component(
+        EpicsMotor, "usxLAX:m58:c0:m7", labels=("guard_slits",)
+    )
+    y: Component[EpicsMotor] = Component(
+        EpicsMotor, "usxLAX:m58:c0:m6", labels=("guard_slits",)
+    )

@@ -7,10 +7,6 @@ __all__ = [
     "q2angle",
 ]
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 import numpy as np
 

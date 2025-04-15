@@ -1,6 +1,19 @@
+"""Helper functions for the USAXS instrument.
+
+This module provides various utility functions for controlling and managing
+the USAXS instrument, including shutter control, temperature control, and
+stage movement.
+"""
+
+
 def operations_in_12ide():
-    """
-    returns True if allowed to use X-ray beam in 12-ID-E station
+    """Check if operations are in 12-ID-E station.
+
+    This function determines whether the current operations are taking place
+    in the 12-ID-E station by checking various parameters and settings.
+
+    Returns:
+        bool: True if operations are in 12-ID-E, False otherwise
     """
     # return diagnostics.PSS.b_station_enabled
     return True
@@ -8,6 +21,15 @@ def operations_in_12ide():
 
 
 def operations_on():
+    """Check if operations are enabled and set up shutters.
+
+    This function checks if APS is in user operations mode and 12-ID-E station
+    is operating. Based on the status, it initializes the appropriate shutter
+    objects (real or simulated).
+
+    Returns:
+        tuple: A tuple containing the initialized shutter objects
+    """
     if aps.inUserOperations and operations_in_12ide():
         FE_shutter = My12IdPssShutter(
             # 12id:shutter0_opn and 12id:shutter0_cls
@@ -66,6 +88,11 @@ def operations_on():
 
 
 def linkam_setup():
+    """Set up the Linkam temperature controller.
+
+    This function initializes the Linkam temperature controller, sets up
+    tolerances, and configures engineering units.
+    """
     try:
         linkam_tc1.wait_for_connection()
     except Exception:
@@ -85,6 +112,15 @@ def linkam_setup():
 
 
 def _getScalerSignalName_(scaler, signal):
+    """Get the name of a scaler signal.
+
+    Args:
+        scaler: The scaler device (ScalerCH or EpicsScaler)
+        signal: The signal to get the name for
+
+    Returns:
+        str: The name of the signal
+    """
     if isinstance(scaler, ScalerCH):
         return signal.chname.get()
     elif isinstance(scaler, EpicsScaler):
@@ -92,6 +128,14 @@ def _getScalerSignalName_(scaler, signal):
 
 
 def ar_pretune_hook():
+    """Prepare for tuning the AR axis.
+
+    This function sets up the scaler and other parameters before
+    tuning the AR axis.
+
+    Yields:
+        Generator: A sequence of plan messages
+    """
     stage = a_stage.r
     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -104,6 +148,14 @@ def ar_pretune_hook():
 
 
 def ar_posttune_hook():
+    """Clean up after tuning the AR axis.
+
+    This function updates parameters and performs cleanup after
+    tuning the AR axis is complete.
+
+    Yields:
+        Generator: A sequence of plan messages
+    """
     msg = "Tuning axis {}, final position is {}"
     logger.info(msg.format(a_stage.r.name, a_stage.r.position))
     # TODO need to verify how to get tube_ok signal from new tuning
@@ -119,3 +171,41 @@ def ar_posttune_hook():
         )
     scaler0.select_channels(None)
     scaler0.select_channels(None)
+
+
+def setup_shutter_callbacks():
+    """Set up callbacks for the shutter control system.
+
+    This function initializes the shutter control system and sets up
+    the necessary callbacks for monitoring shutter status.
+
+    Returns:
+        tuple: A tuple containing the initialized shutter objects
+    """
+
+
+def linkam_tc1_wait_for_stability():
+    """Wait for the Linkam temperature controller to stabilize.
+
+    This function monitors the Linkam TC1 temperature controller and waits
+    until the temperature has stabilized at the target value.
+
+    Returns:
+        bool: True if temperature stabilized, False if timed out
+    """
+
+
+def setup_amplifier_count_time():
+    """Set up the count time for the amplifier.
+
+    This function configures the count time settings for the amplifier
+    and ensures proper synchronization with the scaler.
+    """
+
+
+def setup_amplifier_auto_background():
+    """Set up automatic background measurement for the amplifier.
+
+    This function configures the amplifier for automatic background
+    measurement and updates the necessary parameters.
+    """

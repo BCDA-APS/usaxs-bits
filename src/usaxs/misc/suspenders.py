@@ -6,9 +6,6 @@ __all__ = []
 
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import bluesky.suspenders
 from bluesky import plan_stubs as bps
 from ophyd import Signal
@@ -21,6 +18,9 @@ from .aps_source import aps
 from .monochromator import MONO_FEEDBACK_ON
 from .monochromator import monochromator
 from .permit import BeamInHutch
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 
 class FeedbackHandlingDuringSuspension:

@@ -6,10 +6,6 @@ __all__ = [
     "move_motors",
 ]
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 import ophyd
 from apstools.utils import pairwise

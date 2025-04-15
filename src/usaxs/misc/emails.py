@@ -15,11 +15,10 @@ __all__ = [
 
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from apstools.utils import EmailNotifications
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 # user will write code to check the corresponding symbol to send EmailNotifications
 NOTIFY_ON_RESET = False
 NOTIFY_ON_SCAN_DONE = False

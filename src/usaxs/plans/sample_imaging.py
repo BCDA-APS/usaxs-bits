@@ -7,11 +7,10 @@ __all__ = [
 ]
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import os
+from typing import Any
+from typing import Dict
+from typing import Generator
 
 from bluesky import plan_stubs as bps
 
@@ -21,8 +20,13 @@ from ..devices import terms
 from ..devices import waxs_det
 from ..utils.setup_new_user import techniqueSubdirectory
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
-def record_sample_image_on_demand(technique_name, filename_base, _md):
+
+def record_sample_image_on_demand(
+    technique_name: str, filename_base: str, _md: Dict[str, Any]
+) -> Generator[Any, None, None]:
     """
     take an image of the sample
 

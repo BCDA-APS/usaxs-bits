@@ -15,7 +15,7 @@ from ..misc.amplifiers import upd_controls
 
 
 class FlyScanParameters(Device):
-    """FlyScan values"""
+    """Parameters for fly scan operations."""
 
     number_points = Component(EpicsSignal, "usxLAX:USAXS:FS_NumberOfPoints")
     scan_time = Component(EpicsSignal, "usxLAX:USAXS:FS_ScanTime")
@@ -29,7 +29,7 @@ class FlyScanParameters(Device):
 
 
 class PreUsaxsTuneParameters(Device):
-    """preUSAXStune handling"""
+    """Parameters for pre-USAXS tuning operations."""
 
     num_scans_last_tune = Component(EpicsSignal, "usxLAX:NumScansFromLastTune")
     epoch_last_tune = Component(EpicsSignal, "usxLAX:EPOCHTimeOfLastTune")
@@ -42,16 +42,12 @@ class PreUsaxsTuneParameters(Device):
     use_specific_location = Component(EpicsSignal, "usxLAX:UseSpecificTuneLocation")
 
     @property
-    def needed(self):
+    def needed(self) -> bool:
         """
-        is a tune needed?
+        Check if a tune is needed based on various conditions.
 
-        EXAMPLE::
-
-            if terms.preUSAXStune.needed:
-                yield from preUSAXStune()
-                # TODO: and then reset terms as approriate
-
+        Returns:
+            bool: True if tuning is needed, False otherwise
         """
         result = self.run_tune_next.get()
         # TODO: next test if not in SAXS or WAXS mode
@@ -66,25 +62,28 @@ class PreUsaxsTuneParameters(Device):
 
 
 class Parameters_Al_Ti_Filters(Device):
+    """Parameters for Al and Ti filters."""
+
     Al = Component(EpicsSignal, "Al_Filter")
     Ti = Component(EpicsSignal, "Ti_Filter")
 
 
 class Parameters_Al_Ti_Filters_Imaging(Device):
-    # because there is one in every crowd!
+    """Parameters for Al and Ti filters used in imaging."""
+
     Al = Component(EpicsSignal, "Al_Filters")
     Ti = Component(EpicsSignal, "Ti_Filters")
 
 
 class GeneralParametersCCD(Device):
-    "part of GeneralParameters Device"
+    """General parameters for CCD operations."""
 
     dx = Component(EpicsSignal, "dx")
     dy = Component(EpicsSignal, "dy")
 
 
 class GeneralUsaxsParametersBlackfly(Device):
-    """part of GeneralParameters Device"""
+    """General parameters for Blackfly camera operations."""
 
     dx = Component(EpicsSignal, "dx")
     dy = Component(EpicsSignal, "dy")
@@ -92,7 +91,7 @@ class GeneralUsaxsParametersBlackfly(Device):
 
 
 class GeneralUsaxsParametersDiode(Device):
-    "part of GeneralParameters Device"
+    """General parameters for diode operations."""
 
     dx = Component(EpicsSignal, "Diode_dx")
     dy = Component(EpicsSignal, "Diode_dy")
@@ -100,7 +99,7 @@ class GeneralUsaxsParametersDiode(Device):
 
 
 class GeneralUsaxsParametersCenters(Device):
-    "part of GeneralParameters Device"
+    """General parameters for center positions."""
 
     AR = Component(EpicsSignal, "ARcenter")
     # ASR = Component(EpicsSignal, "ASRcenter")
@@ -109,10 +108,9 @@ class GeneralUsaxsParametersCenters(Device):
 
 
 class Parameters_transmission(Device):
-    # measure transmission in USAXS using pin diode
-    measure = Component(EpicsSignal, "usxLAX:USAXS:TR_MeasurePinTrans")
+    """Parameters for transmission measurements using pin diode."""
 
-    # Ay to hit pin diode
+    measure = Component(EpicsSignal, "usxLAX:USAXS:TR_MeasurePinTrans")
     ax = Component(EpicsSignal, "usxLAX:USAXS:TR_AxPosition")
     count_time = Component(EpicsSignal, "usxLAX:USAXS:TR_MeasurementTime")
     diode_counts = Component(EpicsSignal, "usxLAX:USAXS:TR_pinCounts")
@@ -122,7 +120,7 @@ class Parameters_transmission(Device):
 
 
 class Parameters_USAXS(Device):
-    """internal values shared with EPICS"""
+    """Internal values shared with EPICS for USAXS operations."""
 
     AX0 = Component(EpicsSignal, "usxLAX:ax_in")
     DX0 = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx")
@@ -130,15 +128,8 @@ class Parameters_USAXS(Device):
     SAD = Component(EpicsSignal, "usxLAX:USAXS:SAD")
     SDD = Component(EpicsSignal, "usxLAX:USAXS:SDD")
     ar_val_center = Component(EpicsSignal, "usxLAX:USAXS:ARcenter")
-    # asr_val_center = Component(EpicsSignal,           "usxLAX:USAXS:ASRcenter")
-
-    # ASRP_DEGREES_PER_VDC = 0.0059721     # measured by JI October 9, 2006 during setup at 32ID. Std Dev 4e-5
-    #  	ASRP_DEGREES_PER_VDC = 0.00059721     # changed by factor of 10 to accomodate new PIUU controller, where we drive directly in V of high voltage.
-    # Measured by JIL on 6/4/2016, average of two measured numbers
-    # asrp_degrees_per_VDC = Component(Signal,          value=(0.000570223 + 0.000585857)/2)
 
     blackfly = Component(GeneralUsaxsParametersBlackfly, "usxLAX:USAXS:BlackFly_")
-
     center = Component(GeneralUsaxsParametersCenters, "usxLAX:USAXS:")
     ccd = Component(GeneralParametersCCD, "usxLAX:USAXS:CCD_")
     diode = Component(GeneralUsaxsParametersDiode, "usxLAX:USAXS:")
@@ -147,7 +138,6 @@ class Parameters_USAXS(Device):
     is2DUSAXSscan = Component(EpicsSignal, "usxLAX:USAXS:is2DUSAXSscan")
     motor_prescaler_wait = Component(EpicsSignal, "usxLAX:USAXS:Prescaler_Wait")
     mr_val_center = Component(EpicsSignal, "usxLAX:USAXS:MRcenter")
-    # msr_val_center = Component(EpicsSignal,           "usxLAX:USAXS:MSRcenter")
     num_points = Component(EpicsSignal, "usxLAX:USAXS:NumPoints")
     sample_y_step = Component(EpicsSignal, "usxLAX:USAXS:Sample_Y_Step")
     scan_filters = Component(Parameters_Al_Ti_Filters, "usxLAX:USAXS:Scan_")
@@ -168,15 +158,25 @@ class Parameters_USAXS(Device):
 
     transmission = Component(Parameters_transmission)
 
-    def UPDRange(self):
+    def UPDRange(self) -> int:
+        """
+        Get the UPD range value.
+
+        Returns:
+            int: The UPD range value
+        """
         return upd_controls.auto.lurange.get()  # TODO: check return value is int
 
 
 class Parameters_SBUSAXS(Device):
+    """Parameters for SBUSAXS operations."""
+
     pass
 
 
 class Parameters_SAXS(Device):
+    """Parameters for SAXS operations."""
+
     z_in = Component(EpicsSignal, "usxLAX:SAXS_z_in")
     z_out = Component(EpicsSignal, "usxLAX:SAXS_z_out")
     z_limit_offset = Component(EpicsSignal, "usxLAX:SAXS_z_limit_offset")
@@ -224,9 +224,7 @@ class Parameters_SAXS(Device):
 
 
 class Parameters_SAXS_WAXS(Device):
-    """
-    terms used by both SAXS & WAXS
-    """
+    """Parameters shared between SAXS and WAXS operations."""
 
     start_exposure_time = Component(EpicsSignal, "usxLAX:SAXS:StartExposureTime")
     end_exposure_time = Component(EpicsSignal, "usxLAX:SAXS:EndExposureTime")
@@ -241,6 +239,8 @@ class Parameters_SAXS_WAXS(Device):
 
 
 class Parameters_WAXS(Device):
+    """Parameters for WAXS operations."""
+
     x_in = Component(EpicsSignal, "usxLAX:WAXS_x_in")
     x_out = Component(EpicsSignal, "usxLAX:WAXS_x_out")
     x_limit_offset = Component(EpicsSignal, "usxLAX:WAXS_x_limit_offset")
@@ -252,10 +252,14 @@ class Parameters_WAXS(Device):
 
 
 class Parameters_Radiography(Device):
+    """Parameters for radiography operations."""
+
     pass
 
 
 class Parameters_Imaging(Device):
+    """Parameters for imaging operations."""
+
     image_key = Component(EpicsSignal, "usxLAX:USAXS_Img:ImageKey")
     # 0=image, 1=flat field, 2=dark field
 
@@ -278,17 +282,18 @@ class Parameters_Imaging(Device):
     guard_v_size = Component(EpicsSignal, "usxLAX:USAXS_Img:ImgGuardVertApperture")
 
     filters = Component(Parameters_Al_Ti_Filters_Imaging, "usxLAX:USAXS_Img:Img_")
-    filter_transmission = Component(
-        EpicsSignal, "usxLAX:USAXS_Img:Img_FilterTransmission"
-    )
+    filter_transmission = Component(EpicsSignal, "usxLAX:USAXS_Img:Img_FilterTrans")
 
 
 class Parameters_OutOfBeam(Device):
+    """Parameters for out-of-beam operations."""
+
     pass
 
 
-# keep in sync with usaxs_support.heater_profile_process
 class Parameters_HeaterProcess(Device):
+    """Parameters for heater process control."""
+
     # tell heater process to exit
     linkam_exit = Component(EpicsSignal, "usxLAX:bit14")
 
@@ -303,9 +308,7 @@ class Parameters_HeaterProcess(Device):
 
 
 class GeneralParameters(Device):
-    """
-    cache of parameters to share with/from EPICS
-    """
+    """Cache of parameters to share with/from EPICS."""
 
     USAXS = Component(Parameters_USAXS)
     SBUSAXS = Component(Parameters_SBUSAXS)

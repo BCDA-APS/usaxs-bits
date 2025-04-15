@@ -7,18 +7,29 @@ __all__ = [
 ]
 
 import logging
+from typing import Any
+from typing import Generator
+from typing import List
+
+from bluesky import plan_stubs as bps
+from bluesky import plans as bp
+from ophyd import Device
+
+from ..framework.initialize import bec
 
 logger = logging.getLogger(__name__)
 
 logger.info(__file__)
 
-from bluesky import plan_stubs as bps
-from bluesky import plans as bp
 
-from ..framework.initialize import bec
-
-
-def lup(detectors, motor, start, finish, npts=5, key="cen"):
+def lup(
+    detectors: List[Device],
+    motor: Device,
+    start: float,
+    finish: float,
+    npts: int = 5,
+    key: str = "cen",
+) -> Generator[Any, None, None]:
     """
     Lineup a positioner.
 

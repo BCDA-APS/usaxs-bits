@@ -8,11 +8,6 @@ __all__ = """
     setSampleTitleFunction
 """.split()
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 
 _sample_title_function = None
 

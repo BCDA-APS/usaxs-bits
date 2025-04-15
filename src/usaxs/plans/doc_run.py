@@ -7,17 +7,23 @@ __all__ = [
 ]
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
+from typing import Any
+from typing import Dict
+from typing import Generator
+from typing import Optional
 
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
 from ..framework import bec
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
-def documentation_run(words, md=None, stream=None):
+
+def documentation_run(
+    words: str, md: Optional[Dict[str, Any]] = None, stream: Optional[str] = None
+) -> Generator[Any, None, str]:
     """
     Save text as a bluesky run.
     """

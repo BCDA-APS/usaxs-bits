@@ -7,10 +7,6 @@ __all__ = [
 ]
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import math
 from collections import OrderedDict
 
@@ -39,6 +35,8 @@ from ..devices import upd_controls
 from ..devices import user_data
 from ..usaxs_support.ustep import Ustep
 
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 ### notes for preliminary testing
 # uascan()
 # center: 8.746588

@@ -7,14 +7,22 @@ __all__ = [
 ]
 
 import logging
+from typing import Any
+from typing import Generator
+from typing import List
+from typing import Set
+from typing import Tuple
+from typing import Union
+
+from bluesky import plan_stubs as bps
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from bluesky import plan_stubs as bps
 
-
-def no_run_trigger_and_wait(objects):
+def no_run_trigger_and_wait(
+    objects: Union[Any, List[Any], Set[Any], Tuple[Any, ...]],
+) -> Generator[Any, None, None]:
     """
     count objects (presume detectors) but do not create a bluesky run
 
