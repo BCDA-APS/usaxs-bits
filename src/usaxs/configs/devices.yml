@@ -1,4 +1,4 @@
-# Guarneri-style device YAML configuration
+# # Guarneri-style device YAML configuration
 
 apsbits.utils.sim_creator.predefined_device:
 - {creator: ophyd.sim.motor, name: sim_motor}
@@ -8,8 +8,8 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 - name: shutter
   labels: ["shutters"]
 
-apstools.devices.ApsMachineParametersDevice:
-- name: aps
+# apstools.devices.ApsMachineParametersDevice:
+# - name: aps
 
 apstools.devices.PlanarUndulator:
 - name: undulator
@@ -53,9 +53,9 @@ apstools.synApps.swait.UserCalcsDevice:
 - name: userCalcs_lax
   prefix: "usxLAX:"
 
-ophyd.EpicsSignal: #TODO: Double check my work
-- name: ar_start
-  read_pv: usxLAX:USAXS:ARstart
+# ophyd.EpicsSignal: #TODO: Double check my work
+# - name: ar_start
+#   read_pv: usxLAX:USAXS:ARstart
 
 ophyd.EpicsSignalRO:
 - name: usaxs_CheckBeamStandard
@@ -105,19 +105,19 @@ usaxs.devices.sample_rotator.SampleRotator:
 - name: pi_c867
   prefix: usxPI:c867:c0:m1
 
-# usaxs.devices.shutters.My12IdPssShutter: # TODO: make sure this is correct
+# # usaxs.devices.shutters.My12IdPssShutter: # TODO: make sure this is correct
 
 apstools.devices.Struck3820:
 - name: struck
   prefix: "usxLAX:3820:"
 
-# usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
-# - name: guard_slit
-#   prefix: ""
+# # usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
+# # - name: guard_slit
+# #   prefix: ""
 
-usaxs.devices.slits.UsaxsSlitDevice:
-- name: usaxs_slit
-  prefix: ""
+# usaxs.devices.slits.UsaxsSlitDevice:
+# - name: usaxs_slit
+#   prefix: ""
 
 usaxs.devices.trajectories.Trajectories:
 - name: "flyscan_trajectories"
@@ -147,41 +147,19 @@ usaxs.devices.stages.UsaxsAnalyzerStageDevice:
 usaxs.devices.stages.SaxsDetectorStageDevice:
 - name: saxs_stage
 
-# ophyd.Signal:
-# - name: test
-#   value: 50.7
-# - name: t2
-#   value: 2
 
-# apstools.synApps.Optics2Slit2D_HV:
-# - name: slit1
-#   prefix: ioc:Slit1
-#   labels: ["slits"]
-
-# hkl.SimulatedE4CV:
-# - name: sim4c
-#   prefix: ""
-#   labels: ["diffractometer"]
-
-# ophyd.scaler.ScalerCH:
-# - name: scaler1
-#   prefix: vme:scaler1
-#   labels: ["scalers", "detectors"]
-
-
-
-# apstools.devices.ad_creator:
-#   - name: adsimdet
-#     prefix: "ad:"
-#     labels: ["area_detector", "detectors"]
-#     plugins:
-#       - cam:
-#           class: apstools.devices.SimDetectorCam_V34
-#       - image
-#       - pva
-#       - hdf1:
-#           class: apstools.devices.AD_EpicsFileNameHDF5Plugin
-#           read_path_template: "/path/to/bluesky/tmp/"
-#           write_path_template: "/path/to/ioc/tmp/"
-#       - roi1
-#       - stats1
+# # apstools.devices.ad_creator:
+# #   - name: adsimdet
+# #     prefix: "ad:"
+# #     labels: ["area_detector", "detectors"]
+# #     plugins:
+# #       - cam:
+# #           class: apstools.devices.SimDetectorCam_V34
+# #       - image
+# #       - pva
+# #       - hdf1:
+# #           class: apstools.devices.AD_EpicsFileNameHDF5Plugin
+# #           read_path_template: "/path/to/bluesky/tmp/"
+# #           write_path_template: "/path/to/ioc/tmp/"
+# #       - roi1
+# #       - stats1
