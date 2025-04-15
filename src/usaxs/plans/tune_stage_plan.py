@@ -1,3 +1,9 @@
+"""Stage tuning plans for the USAXS instrument.
+
+This module provides plans for tuning various stages of the USAXS instrument,
+including alignment and optimization procedures.
+"""
+
 from typing import Any
 from typing import Dict
 from typing import Generator
@@ -6,12 +12,6 @@ from typing import Optional
 from bluesky.plans import lineup2
 
 from ..devices.scalers import scaler0
-
-"""Stage tuning plans for the USAXS instrument.
-
-This module provides plans for tuning various stages of the USAXS instrument,
-including alignment and optimization procedures.
-"""
 
 
 def tune(self, md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, Any]:

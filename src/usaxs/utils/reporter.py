@@ -17,7 +17,20 @@ logger.info(__file__)
 
 
 @run_in_thread
-def remaining_time_reporter(title, duration_s, interval_s=5, poll_s=0.05):
+def report_remaining_time_thread(
+    title: str, duration_s: float, interval_s: float = 5, poll_s: float = 0.05
+) -> None:
+    """Report remaining time periodically in a separate thread.
+
+    This function runs in a separate thread and periodically reports the
+    remaining time for a long-running operation.
+
+    Args:
+        title (str): Title to display in the progress messages
+        duration_s (float): Total duration in seconds
+        interval_s (float): Interval between progress updates in seconds
+        poll_s (float): Sleep time between checks in seconds
+    """
     if duration_s < interval_s:
         return
     t = time.time()
@@ -33,7 +46,7 @@ def remaining_time_reporter(title, duration_s, interval_s=5, poll_s=0.05):
         t = time.time()
 
 
-def remaining_time_reporter(t0, n, total):
+def remaining_time_reporter(t0: float, n: int, total: int) -> str:
     """Report the estimated remaining time for a process.
 
     This function calculates and returns the estimated time remaining for a
