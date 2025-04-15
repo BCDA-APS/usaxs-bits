@@ -18,30 +18,13 @@ __all__ = """
 
 import datetime
 import logging
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 
-from ..devices import blackfly_det
-from ..devices.diagnostics import diagnostics
-from ..devices.general_terms import terms
-from ..devices.monochromator import MONO_FEEDBACK_ON
-from ..devices.monochromator import monochromator
-
-# from ..devices.protection_plc import plc_protect
-from ..devices.scalers import scaler0
-from ..devices.shutters import ccd_shutter
-from ..devices.shutters import mono_shutter
-from ..devices.shutters import ti_filter_shutter
-from ..devices.slits import guard_slit
-from ..devices.slits import usaxs_slit
-from ..devices.stages import a_stage
-from ..devices.stages import d_stage
-from ..devices.stages import gslit_stage
-from ..devices.stages import m_stage
-from ..devices.user_data import user_data
-
-# from ..devices.laser import laser
 from .filters import insertBlackflyFilters
 from .filters import insertRadiographyFilters
 from .filters import insertScanFilters
@@ -57,16 +40,50 @@ from .move_instrument import move_WAXSOut
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+# Get devices from oregistry
+from .. import oregistry
 
-def confirm_instrument_mode(mode_name):
+# Constants
+MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+
+# Device instances
+a_stage = oregistry["a_stage"]
+blackfly_det = oregistry["blackfly_det"]
+ccd_shutter = oregistry["ccd_shutter"]
+d_stage = oregistry["d_stage"]
+diagnostics = oregistry["diagnostics"]
+gslit_stage = oregistry["gslit_stage"]
+guard_slit = oregistry["guard_slit"]
+m_stage = oregistry["m_stage"]
+mono_shutter = oregistry["mono_shutter"]
+monochromator = oregistry["monochromator"]
+saxs_stage = oregistry["saxs_stage"]
+scaler0 = oregistry["scaler0"]
+terms = oregistry["terms"]
+ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_slit = oregistry["usaxs_slit"]
+user_data = oregistry["user_data"]
+
+
+def confirm_instrument_mode(mode_name, oregistry: Optional[Dict[str, Any]] = None):
     """
-    True if instrument is in the named mode
+    True if instrument is in the named mode.
 
-    Parameter
-
-    mode_name (str) :
+    Parameters
+    ----------
+    mode_name : str
         One of the strings defined in ``UsaxsSaxsModes``
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    bool
+        True if instrument is in the named mode
     """
+    # Get devices from oregistry
+    terms = oregistry["terms"]
+
     expected_mode = UsaxsSaxsModes[mode_name]
     return terms.SAXS.UsaxsSaxsMode.get() in (expected_mode, mode_name)
 
@@ -89,12 +106,27 @@ def confirm_instrument_mode(mode_name):
 #         )
 
 
-def mode_BlackFly(md=None):
+def mode_BlackFly(md=None, oregistry: Optional[Dict[str, Any]] = None):
     """
     Sets to imaging mode for direct beam, using BlackFly camera.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default None
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
     """
-    yield from mode_USAXS()
-    yield from DCMfeedbackON()
+    # Get devices from oregistry
+    user_data = oregistry["user_data"]
+
+    yield from mode_USAXS(oregistry=oregistry)
+    yield from DCMfeedbackON(oregistry=oregistry)
     yield from user_data.set_state_plan("Preparing for BlackFly imaging mode")
 
     yield from bps.mv(
@@ -133,7 +165,43 @@ def mode_BlackFly(md=None):
     )
 
 
-def mode_USAXS(md=None):
+def mode_USAXS(md=None, oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Sets to USAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default None
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+    """
+    if oregistry is None:
+        from .. import oregistry
+
+    # Get devices from oregistry
+    blackfly_det = oregistry["blackfly_det"]
+    diagnostics = oregistry["diagnostics"]
+    terms = oregistry["terms"]
+    MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+    monochromator = oregistry["monochromator"]
+    scaler0 = oregistry["scaler0"]
+    ccd_shutter = oregistry["ccd_shutter"]
+    mono_shutter = oregistry["mono_shutter"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    guard_slit = oregistry["guard_slit"]
+    usaxs_slit = oregistry["usaxs_slit"]
+    a_stage = oregistry["a_stage"]
+    d_stage = oregistry["d_stage"]
+    gslit_stage = oregistry["gslit_stage"]
+    m_stage = oregistry["m_stage"]
+    user_data = oregistry["user_data"]
+
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
     yield from bps.mv(
@@ -142,16 +210,16 @@ def mode_USAXS(md=None):
         "close",
         # laser.enable,  0,
     )
-    yield from DCMfeedbackON()
+    yield from DCMfeedbackON(oregistry=oregistry)
     retune_needed = False
 
-    if not confirm_instrument_mode("USAXS in beam"):
+    if not confirm_instrument_mode("USAXS in beam", oregistry=oregistry):
         mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
         logger.info(f"Found UsaxsSaxsMode = {mode_now}")
         logger.info("Moving to proper USAXS mode")
-        yield from move_WAXSOut()
-        yield from move_SAXSOut()
-        yield from move_USAXSIn()
+        yield from move_WAXSOut(oregistry=oregistry)
+        yield from move_SAXSOut(oregistry=oregistry)
+        yield from move_USAXSIn(oregistry=oregistry)
         retune_needed = True
 
     logger.info("Preparing for USAXS mode ... please wait ...")
@@ -216,7 +284,25 @@ def mode_USAXS(md=None):
 mode_SBUSAXS = mode_USAXS  # for now
 
 
-def mode_SAXS(md=None):
+def mode_SAXS(md=None, oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Sets to SAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default None
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+    """
+    # Get devices from oregistry
+    user_data = oregistry["user_data"]
+
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
     yield from bps.mv(
         # ccd_shutter,        "close",
@@ -251,7 +337,25 @@ def mode_SAXS(md=None):
     )
 
 
-def mode_WAXS(md=None):
+def mode_WAXS(md=None, oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Sets to WAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary, by default None
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+    """
+    # Get devices from oregistry
+    user_data = oregistry["user_data"]
+
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
     yield from bps.mv(
@@ -325,7 +429,7 @@ def mode_WAXS(md=None):
     )
 
 
-def mode_Radiography(md=None):
+def mode_Radiography(md=None, oregistry: Optional[Dict[str, Any]] = None):
     """
     put in USAXS Radiography mode
 
@@ -414,7 +518,7 @@ def mode_Radiography(md=None):
             logger.info("The mono shutter is closed now.  APS beam dump?")
 
 
-def mode_Imaging(md=None):
+def mode_Imaging(md=None, oregistry: Optional[Dict[str, Any]] = None):
     """
     prepare the instrument for USAXS imaging
     """
@@ -426,7 +530,7 @@ def mode_Imaging(md=None):
     yield from mode_USAXS()
 
 
-def mode_OpenBeamPath(md=None):
+def mode_OpenBeamPath(md=None, oregistry: Optional[Dict[str, Any]] = None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to OpenBeamPath mode")
     yield from bps.mv(

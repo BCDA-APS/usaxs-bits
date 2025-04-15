@@ -15,19 +15,11 @@ __all__ = """
 """.split()
 
 import logging
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from bluesky import plan_stubs as bps
-
-from ..devices import waxsx
-
-# from ..devices.protection_plc import plc_protect
-from ..devices.general_terms import terms
-from ..devices.shutters import ti_filter_shutter
-from ..devices.slits import guard_slit
-from ..devices.slits import usaxs_slit
-from ..devices.stages import a_stage
-from ..devices.stages import d_stage
-from ..devices.stages import saxs_stage
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -43,8 +35,16 @@ UsaxsSaxsModes = {
 }
 
 
-def confirmUsaxsSaxsOutOfBeam():
-    """raise ValueError if not"""
+def confirmUsaxsSaxsOutOfBeam(oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Raise ValueError if not out of beam.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+    """
+    terms = oregistry["terms"]
     actual = terms.SAXS.UsaxsSaxsMode.get(
         timeout=60, as_string=False, use_monitor=False
     )
@@ -60,10 +60,20 @@ def confirmUsaxsSaxsOutOfBeam():
         )
 
 
-def move_WAXSOut():
-    # yield from plc_protect.stop_if_tripped()
+def move_WAXSOut(oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Move WAXS out of beam.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+    """
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    waxsx = oregistry["waxsx"]
+
     yield from bps.mv(
-        # ccd_shutter,        "close",
         ti_filter_shutter,
         "close",
     )
@@ -79,18 +89,29 @@ def move_WAXSOut():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
-def move_WAXSIn():
-    # yield from plc_protect.stop_if_tripped()
+def move_WAXSIn(oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Move WAXS into beam.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+    """
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    guard_slit = oregistry["guard_slit"]
+    waxsx = oregistry["waxsx"]
+    usaxs_slit = oregistry["usaxs_slit"]
+
     yield from bps.mv(
-        # ccd_shutter,        "close",
         ti_filter_shutter,
         "close",
     )
 
     logger.info("Moving to WAXS mode")
 
-    confirmUsaxsSaxsOutOfBeam()
-    # yield from plc_protect.wait_for_interlock()
+    confirmUsaxsSaxsOutOfBeam(oregistry)
 
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
@@ -113,10 +134,20 @@ def move_WAXSIn():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["WAXS in beam"])
 
 
-def move_SAXSOut():
-    # yield from bps.null()
+def move_SAXSOut(oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Move SAXS out of beam.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+    """
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    saxs_stage = oregistry["saxs_stage"]
+
     yield from bps.mv(
-        # ccd_shutter,        "close",
         ti_filter_shutter,
         "close",
     )
@@ -135,19 +166,29 @@ def move_SAXSOut():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
-def move_SAXSIn():
-    # yield from bps.null()
+def move_SAXSIn(oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Move SAXS into beam.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+    """
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    guard_slit = oregistry["guard_slit"]
+    saxs_stage = oregistry["saxs_stage"]
+    usaxs_slit = oregistry["usaxs_slit"]
 
     yield from bps.mv(
-        # ccd_shutter,        "close",
         ti_filter_shutter,
         "close",
     )
 
     logger.info("Moving to Pinhole SAXS mode")
 
-    confirmUsaxsSaxsOutOfBeam()
-    # yield from plc_protect.wait_for_interlock()
+    confirmUsaxsSaxsOutOfBeam(oregistry)
 
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
@@ -172,10 +213,21 @@ def move_SAXSIn():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["SAXS in beam"])
 
 
-def move_USAXSOut():
-    # yield from plc_protect.stop_if_tripped()
+def move_USAXSOut(oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Move USAXS out of beam.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+    """
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    a_stage = oregistry["a_stage"]
+    d_stage = oregistry["d_stage"]
+
     yield from bps.mv(
-        # ccd_shutter,        "close",
         ti_filter_shutter,
         "close",
     )
@@ -195,18 +247,30 @@ def move_USAXSOut():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
-def move_USAXSIn():
-    # yield from plc_protect.stop_if_tripped()
+def move_USAXSIn(oregistry: Optional[Dict[str, Any]] = None):
+    """
+    Move USAXS into beam.
+
+    Parameters
+    ----------
+    oregistry : Dict[str, Any], optional
+        The ophyd registry containing device instances, by default None
+    """
+    terms = oregistry["terms"]
+    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    guard_slit = oregistry["guard_slit"]
+    usaxs_slit = oregistry["usaxs_slit"]
+    a_stage = oregistry["a_stage"]
+    d_stage = oregistry["d_stage"]
+
     yield from bps.mv(
-        # ccd_shutter,        "close",
         ti_filter_shutter,
         "close",
     )
 
     logger.info("Moving to USAXS mode")
 
-    confirmUsaxsSaxsOutOfBeam()
-    # yield from plc_protect.wait_for_interlock()
+    confirmUsaxsSaxsOutOfBeam(oregistry)
 
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
