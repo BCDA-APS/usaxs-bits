@@ -99,5 +99,3 @@ class SampleDataDevice(Device):
 
 sample_data = SampleDataDevice(name="sample_data")
 
-# TODO: Append why, when?
-# sd.baseline.append(sample_data)

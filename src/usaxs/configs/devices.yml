@@ -34,13 +34,10 @@ usaxs.devices.filters.FilterBank:
   prefix: "12idPyFilter:"
   bank: FL1
 
-usaxs.devices.ioc_stats.IocInfoDevice:
-- name: gp_stats
-  prefix: "gp:"
 
-# usaxs.devices.linkam.My_Linkam_T96_Device: #TODO: Double check my work
-# - name: linkam_tc1
-#   prefix: "usxLINKAM:tc1:"
+usaxs.devices.linkam.My_Linkam_T96_Device:
+- name: linkam_tc1
+  prefix: "usxLINKAM:tc1:"
 
 usaxs.devices.monochromator.MyMonochromator:
 - name: monochromator
@@ -53,9 +50,10 @@ apstools.synApps.swait.UserCalcsDevice:
 - name: userCalcs_lax
   prefix: "usxLAX:"
 
-# ophyd.EpicsSignal: #TODO: Double check my work
-# - name: ar_start
-#   read_pv: usxLAX:USAXS:ARstart
+ophyd.EpicsSignal: #TODO: Double check my work
+- name: ar_start
+  read_pv: usxLAX:USAXS:ARstart
+  write_pv: usxLAX:USAXS:ARstart
 
 ophyd.EpicsSignalRO:
 - name: usaxs_CheckBeamStandard
@@ -94,7 +92,7 @@ ophyd.EpicsMotor:
   prefix: usxAERO:m7
   labels: ["waxs2x", "motor"]
 
-usaxs.devices.ptc10_controller.USAXS_PTC10:
+usaxs.devices.ptc10_controller.USAXS_PTC10: #TODO: Go into source and fix
 - name: ptc10
   prefix: "usxTEMP:tc1:"
 
@@ -105,15 +103,13 @@ usaxs.devices.sample_rotator.SampleRotator:
 - name: pi_c867
   prefix: usxPI:c867:c0:m1
 
-# # usaxs.devices.shutters.My12IdPssShutter: # TODO: make sure this is correct
-
 apstools.devices.Struck3820:
 - name: struck
   prefix: "usxLAX:3820:"
 
-# # usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
-# # - name: guard_slit
-# #   prefix: ""
+# usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
+# - name: guard_slit
+#   prefix: ""
 
 # usaxs.devices.slits.UsaxsSlitDevice:
 # - name: usaxs_slit

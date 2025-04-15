@@ -106,13 +106,13 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     # rtdB = Component(PTC10RtdChannel, "3B:")  # unused now
 
     # PTC10 AIO module
-    pid: Component[PTC10AioChannel] = Component(PTC10AioChannel, "5A:")
+    # pid: Component[PTC10AioChannel] = Component(PTC10AioChannel, "5A:")
     # pidB = Component(PTC10AioChannel, "5B:")  # unused now
     # pidC = Component(PTC10AioChannel, "5C:")  # unused now
     # pidD = Component(PTC10AioChannel, "5D:")  # unused now
 
 
-# TODO: What is this?
+# TODO: Add the aliases back into the class
 # ptc10.report_dmov_changes.put(True)  # a diagnostic
 # ptc10.tolerance.put(1.0)  # done when |readback-setpoint|<=tolerance
 
