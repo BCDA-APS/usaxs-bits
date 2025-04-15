@@ -28,7 +28,6 @@ from apstools.plans import restorable_stage_sigs
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-
 # Constants
 MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
 MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]

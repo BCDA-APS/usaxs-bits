@@ -49,6 +49,19 @@ class TunableEpicsMotor2(EpicsMotor):
         signal_stats=None,
         **kwargs,
     ):
+        """Initialize the tunable motor with alignment parameters.
+
+        Args:
+            *args: Variable length argument list.
+            tune_range: Signal defining the tuning range.
+            points: Number of points for tuning scan.
+            peak_factor: Factor for peak detection.
+            width_factor: Factor for width calculation.
+            feature: Feature to use for tuning.
+            nscans: Number of scans to perform.
+            signal_stats: Signal statistics for tuning.
+            **kwargs: Arbitrary keyword arguments.
+        """
         super().__init__(*args, **kwargs)  # default EpicsaMotor setup
         self.points = points
         self.tune_range = tune_range
@@ -133,6 +146,13 @@ class DeadbandMixin(Device, PositionerBase):
 
 
 class TunableEpicsMotor2WTolerance(DeadbandMixin, TunableEpicsMotor2):
+    """Motor with tuning capabilities and deadband tolerance.
+
+    This class combines the tuning capabilities of TunableEpicsMotor2 with
+    the deadband tolerance functionality of DeadbandMixin. It is specifically
+    configured for AR and MR stages with appropriate tolerance values.
+    """
+
     tolerance = Component(Signal, value=0.000_006, kind="config")
     # AR guaranteed min step is 0.02 arc second, which is 0.000_0055 degress.
     # MR guarranteed min step is 0.03 arc second, which is 0.000_0083 dgrees

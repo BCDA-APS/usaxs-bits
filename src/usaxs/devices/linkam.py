@@ -41,6 +41,12 @@ for new linkam TC1 version
 
 # this makes temperature to automatically start heating when changed
 class T96Temperature(PVPositionerSoftDone):
+    """Temperature control component for Linkam T96 device.
+
+    This class extends PVPositionerSoftDone to provide temperature control functionality
+    with automatic heating activation when the temperature is changed.
+    """
+
     actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
     actuate_value = "On"
 
@@ -115,6 +121,12 @@ class Linkam_T96_Device(Device):
     )
 
     def __init__(self, *args, **kwargs):
+        """Initialize the Linkam T96 device.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        """
         super().__init__(*args, **kwargs)
 
         # temperature component is the main value
@@ -126,7 +138,9 @@ class Linkam_T96_Device(Device):
     # status_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
     # vacuum = Component(EpicsSignal, "VACUUM:SET", kind="omitted")
     # vacuum_at_limit = Component(EpicsSignalRO, "VACUUM", kind="omitted")
-    # # #vacuum_limit_readback = Component(EpicsSignalWithRBV, "vacuumLimit", kind="omitted")
+    # # #vacuum_limit_readback = Component(
+    #     EpicsSignalWithRBV, "vacuumLimit", kind="omitted"
+    # )
     # vacuum_status = Component(EpicsSignalRO, "STAT:VAC:CNTRL", kind="omitted")  # calc
     # controller_config = Component(EpicsSignalRO, "CONFIG", kind="omitted")
     # controller_status = Component(EpicsSignalRO, "STATUS", kind="omitted")

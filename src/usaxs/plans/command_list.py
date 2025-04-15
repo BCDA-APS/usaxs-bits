@@ -144,7 +144,6 @@ def before_command_list(
     if commands is not None:
         verify_commands(commands)
 
-
     yield from bps.mv(
         user_data.time_stamp,
         str(datetime.datetime.now()),
@@ -349,7 +348,6 @@ def after_plan(weight: int = 1, md: dict | None = None) -> Generator:
     Generator
         Bluesky plan for executing the cleanup actions
     """
-
 
     yield from bps.mv(  # increment it
         terms.preUSAXStune.num_scans_last_tune,

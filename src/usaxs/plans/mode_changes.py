@@ -311,8 +311,7 @@ def mode_SAXS(
         raise
 
 
-def mode_WAXS(
-) -> Generator[Any, None, None]:
+def mode_WAXS() -> Generator[Any, None, None]:
     """
     Set instrument to WAXS mode.
 
@@ -330,7 +329,6 @@ def mode_WAXS(
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-
 
     try:
         yield from user_data.set_state_plan("Preparing for WAXS mode")
@@ -365,8 +363,7 @@ def mode_WAXS(
         raise
 
 
-def mode_Radiography(
-) -> Generator[Any, None, None]:
+def mode_Radiography() -> Generator[Any, None, None]:
     """
     Set instrument to Radiography mode.
 
@@ -425,8 +422,7 @@ def mode_Radiography(
         raise
 
 
-def mode_Imaging(
-) -> Generator[Any, None, None]:
+def mode_Imaging() -> Generator[Any, None, None]:
     """
     Set instrument to Imaging mode.
 
@@ -484,8 +480,7 @@ def mode_Imaging(
         raise
 
 
-def mode_OpenBeamPath(
-) -> Generator[Any, None, None]:
+def mode_OpenBeamPath() -> Generator[Any, None, None]:
     """
     Set instrument to Open Beam Path mode.
 

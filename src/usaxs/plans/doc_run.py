@@ -12,13 +12,11 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
-from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
-
 
 
 def documentation_run(

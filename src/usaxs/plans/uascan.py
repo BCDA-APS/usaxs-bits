@@ -306,18 +306,21 @@ def uascan(
                 # adjust the ASRP piezo on the AS side-bounce stage
                 tanBragg = math.tan(reference * math.pi / 180)
                 cosScatAngle = math.cos((reference - target_ar) * math.pi / 180)
-                # Note on asrp adjustment: NOTE: seems wrong, but may need to be revisited???
+                # Note on asrp adjustment:
+                #  NOTE: seems wrong, but may need to be revisited?
                 # use "-" when reflecting inboard towards storage ring
                 # (single bounce setup)
                 # use "+" when reflecting outboard towards experimenters
                 # (channel-cut setup)
                 # on 2/06/2002 Andrew realized, that we are moving in wrong direction
                 # the sign change to - moves ASRP towards larger Bragg angles...
-                # verified experimentally - higher voltage on piezo = lower Bragg angle...
+                # verified experimentally - higher voltage on piezo = lower Bragg angle
                 # and we need to INCREASE the Bragg Angle with increasing Q,
                 # to correct for tilt down...
 
-                # asrp_vdc = asrp0 - diff/terms.usaxs.asrp_degrees_per_VDC.get()
+                # asrp_vdc = (
+                #     asrp0 - diff/terms.usaxs.asrp_degrees_per_VDC.get()
+                # )
                 # moves += [as_stage.rp, asrp_vdc]
 
             # added for fuel spray users as indication that we are counting...
