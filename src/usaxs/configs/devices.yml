@@ -34,9 +34,6 @@ usaxs.devices.filters.FilterBank:
   prefix: "12idPyFilter:"
   bank: FL1
 
-# usaxs.devices.ioc_stats.IocInfoDevice: #Device not used
-# - name: gp_stats
-#   prefix: "gp:"
 
 usaxs.devices.linkam.My_Linkam_T96_Device:
 - name: linkam_tc1
@@ -110,9 +107,9 @@ apstools.devices.Struck3820:
 - name: struck
   prefix: "usxLAX:3820:"
 
-usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
-- name: guard_slit
-  prefix: ""
+# usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
+# - name: guard_slit
+#   prefix: ""
 
 # usaxs.devices.slits.UsaxsSlitDevice:
 # - name: usaxs_slit
