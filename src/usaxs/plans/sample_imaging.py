@@ -26,11 +26,11 @@ saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 waxs_det = oregistry["waxs_det"]
 
+
 def record_sample_image_on_demand(
     technique_name: str,
     filename_base: str,
     _md: Dict[str, Any],
-    oregistry: Dict[str, Any] = None,
 ) -> Generator[Any, None, None]:
     """
     take an image of the sample
@@ -46,8 +46,6 @@ def record_sample_image_on_demand(
         Base part of image file name
     _md : Dict[str, Any]
         Metadata dictionary additions from the calling plan
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
 
     Returns
     -------

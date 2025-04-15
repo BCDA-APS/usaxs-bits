@@ -16,7 +16,7 @@ from typing import Optional
 
 from bluesky import plan_stubs as bps
 
-from .. import oregistry
+from apsbits.utils.controls_setup import oregistry
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -30,15 +30,12 @@ RE = oregistry["RE"]
 
 
 def IfRequestedStopBeforeNextScan(
-    oregistry: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, None]:
     """
     Plan: check if stop was requested before next scan.
 
     Parameters
     ----------
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
 
     Returns
     -------

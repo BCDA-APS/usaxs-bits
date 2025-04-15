@@ -30,7 +30,10 @@ __all__ = """
 
 import datetime
 import logging
-from typing import Any, Dict, Generator, Optional
+from typing import Any
+from typing import Dict
+from typing import Generator
+from typing import Optional
 
 from apsbits.utils.controls_setup import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
@@ -309,7 +312,6 @@ def mode_SAXS(
 
 
 def mode_WAXS(
-    md: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, None]:
     """
     Set instrument to WAXS mode.
@@ -328,8 +330,7 @@ def mode_WAXS(
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    if md is None:
-        md = {}
+
 
     try:
         yield from user_data.set_state_plan("Preparing for WAXS mode")
@@ -365,7 +366,6 @@ def mode_WAXS(
 
 
 def mode_Radiography(
-    md: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, None]:
     """
     Set instrument to Radiography mode.
@@ -384,9 +384,6 @@ def mode_Radiography(
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    if md is None:
-        md = {}
-
     try:
         yield from user_data.set_state_plan("Preparing for Radiography mode")
         yield from IfRequestedStopBeforeNextScan()
@@ -429,7 +426,6 @@ def mode_Radiography(
 
 
 def mode_Imaging(
-    md: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, None]:
     """
     Set instrument to Imaging mode.
@@ -440,16 +436,12 @@ def mode_Imaging(
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
 
     Yields
     ------
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    if md is None:
-        md = {}
 
     try:
         yield from user_data.set_state_plan("Preparing for Imaging mode")
@@ -493,7 +485,6 @@ def mode_Imaging(
 
 
 def mode_OpenBeamPath(
-    md: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, None]:
     """
     Set instrument to Open Beam Path mode.
@@ -511,8 +502,6 @@ def mode_OpenBeamPath(
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    if md is None:
-        md = {}
 
     try:
         yield from user_data.set_state_plan("Preparing for Open Beam Path mode")

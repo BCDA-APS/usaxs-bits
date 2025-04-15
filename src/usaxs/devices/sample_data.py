@@ -98,4 +98,3 @@ class SampleDataDevice(Device):
 
 
 sample_data = SampleDataDevice(name="sample_data")
-

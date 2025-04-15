@@ -16,24 +16,18 @@ import logging
 import os
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Generator, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from apsbits.utils.controls_setup import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from apstools.plans import restorable_stage_sigs
-from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
-from bluesky.utils import Msg
-from ophyd import Device, Signal
 
 # Import RE, bec, and specwriter
-from bluesky import RunEngine
-from bluesky.callbacks.best_effort import BestEffortCallback
-from bluesky.callbacks.streaming import LiveSpecFile
+from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 
-RE = RunEngine()
-bec = BestEffortCallback()
-specwriter = LiveSpecFile()
 
 # Constants
 MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]

@@ -2,7 +2,6 @@
 PTC10 Programmable Temperature Controller
 """
 
-from apstools.devices import PTC10AioChannel
 from apstools.devices import PTC10PositionerMixin
 from ophyd import Component
 from ophyd import EpicsSignalRO

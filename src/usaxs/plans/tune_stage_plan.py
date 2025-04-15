@@ -12,9 +12,9 @@ from typing import Optional
 from apsbits.utils.controls_setup import oregistry
 from bluesky.plans import lineup2
 
-
 # Device instances
 scaler0 = oregistry["scaler0"]
+
 
 def tune(
     self,

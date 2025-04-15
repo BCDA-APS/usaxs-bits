@@ -144,8 +144,6 @@ def before_command_list(
     if commands is not None:
         verify_commands(commands)
 
-    if md is None:
-        md = {}
 
     yield from bps.mv(
         user_data.time_stamp,
@@ -319,8 +317,6 @@ def before_plan(md: dict | None = None) -> Generator:
     Generator
         Bluesky plan for executing the preparatory actions
     """
-    if md is None:
-        md = {}
     from .scans import preSWAXStune
     from .scans import preUSAXStune
 
@@ -354,8 +350,6 @@ def after_plan(weight: int = 1, md: dict | None = None) -> Generator:
         Bluesky plan for executing the cleanup actions
     """
 
-    # if md is None:
-    #     md = {}
 
     yield from bps.mv(  # increment it
         terms.preUSAXStune.num_scans_last_tune,

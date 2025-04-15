@@ -16,7 +16,7 @@ from typing import Optional
 
 from bluesky import plan_stubs as bps
 
-from .. import oregistry
+from apsbits.utils.controls_setup import oregistry
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -27,8 +27,6 @@ pi_c867 = oregistry["pi_c867"]
 
 def PI_Off(
     timeout: float = 1,
-    md: Optional[Dict[str, Any]] = None,
-    oregistry: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, None]:
     """
     Plan: stop rotating sample in either direction.
@@ -43,10 +41,6 @@ def PI_Off(
     ----------
     timeout : float, optional
         Timeout in seconds, by default 1
-    md : Dict[str, Any], optional
-        Metadata dictionary, by default None
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
 
     Returns
     -------
@@ -64,8 +58,6 @@ def PI_Off(
 
 def PI_onF(
     timeout: float = 20,
-    md: Optional[Dict[str, Any]] = None,
-    oregistry: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, None]:
     """
     Plan: start rotating sample in forward direction.
@@ -74,10 +66,6 @@ def PI_onF(
     ----------
     timeout : float, optional
         Timeout in seconds, by default 20
-    md : Dict[str, Any], optional
-        Metadata dictionary, by default None
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
 
     Returns
     -------
@@ -90,8 +78,6 @@ def PI_onF(
 
 def PI_onR(
     timeout: float = 20,
-    md: Optional[Dict[str, Any]] = None,
-    oregistry: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, None]:
     """
     Plan: start rotating sample in reverse direction.
@@ -100,10 +86,6 @@ def PI_onR(
     ----------
     timeout : float, optional
         Timeout in seconds, by default 20
-    md : Dict[str, Any], optional
-        Metadata dictionary, by default None
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
 
     Returns
     -------

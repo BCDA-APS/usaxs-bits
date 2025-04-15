@@ -2,29 +2,22 @@
 Linkam temperature controllers: T96 (tc1)
 """
 
-import datetime
-import pathlib
 import time
 
+# from apstools.devices import PVPositionerSoftDoneWithStop
+from apstools.devices import PVPositionerSoftDone
 from bluesky import plan_stubs as bps
-from ophyd import EpicsSignalRO
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
-from ophyd import EpicsSignalWithRBV
 from ophyd import Signal
-
-#from apstools.devices import PVPositionerSoftDoneWithStop
-from apstools.devices import PVPositionerSoftDone
 
 SECOND = 1
 MINUTE = 60 * SECOND
 HOUR = 60 * MINUTE
 DAY = 24 * HOUR
 WEEK = 7 * DAY
-
-
 
 
 # first we need to redefine Linkam_T96_Device to add some methods we really want to use.
@@ -46,13 +39,10 @@ for new linkam TC1 version
 """
 
 
-
-
-#this makes temperature to automatically start heating when changed
+# this makes temperature to automatically start heating when changed
 class T96Temperature(PVPositionerSoftDone):
     actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
     actuate_value = "On"
-
 
 
 class Linkam_T96_Device(Device):
@@ -63,12 +53,13 @@ class Linkam_T96_Device(Device):
     EXAMPLE::
 
         tc1 = Linkam_T96("IOC:tc1:", name="tc1")
-    
+
     to get temperature, ramprate etc:
     linkam_tc1.temperature.position which returns the current T in C
 
     """
-    #use linkam.temperature.position to get the value, this is positoner... 
+
+    # use linkam.temperature.position to get the value, this is positoner...
     controller_name = "Linkam T96"
     temperature = Component(
         T96Temperature,
@@ -94,7 +85,7 @@ class Linkam_T96_Device(Device):
         "",
         readback_pv="LNP_MODE",
         setpoint_pv="LNP_MODE:SET",
-        #tolerance=1.0,
+        # tolerance=1.0,
         kind="omitted",
     )
     lnp_speed = Component(
@@ -102,7 +93,7 @@ class Linkam_T96_Device(Device):
         "",
         readback_pv="LNP_SPEED",
         setpoint_pv="LNP_SPEED:SET",
-        #tolerance=1.0,
+        # tolerance=1.0,
         kind="omitted",
     )
     pressure = Component(EpicsSignalRO, "PRESSURE", kind="omitted")
@@ -111,7 +102,7 @@ class Linkam_T96_Device(Device):
         "",
         readback_pv="VACUUM",
         setpoint_pv="VACUUM:SET",
-        #tolerance=1.0,
+        # tolerance=1.0,
         kind="omitted",
     )
     humidity = Component(
@@ -119,7 +110,7 @@ class Linkam_T96_Device(Device):
         "",
         readback_pv="HUMIDITY",
         setpoint_pv="HUMIDITY:SET",
-        #tolerance=1.0,
+        # tolerance=1.0,
         kind="omitted",
     )
 
@@ -139,26 +130,26 @@ class Linkam_T96_Device(Device):
     # vacuum_status = Component(EpicsSignalRO, "STAT:VAC:CNTRL", kind="omitted")  # calc
     # controller_config = Component(EpicsSignalRO, "CONFIG", kind="omitted")
     # controller_status = Component(EpicsSignalRO, "STATUS", kind="omitted")
-    #humidity = Component(EpicsSignalRO, "HUMIDITY", kind="omitted")
+    # humidity = Component(EpicsSignalRO, "HUMIDITY", kind="omitted")
     # lnp_mode = Component(EpicsSignal, "LNP_MODE:SET", kind="omitted")
     # lnp_speed = Component(EpicsSignalWithRBV, "LNP_SPEED:SET", kind="omitted")
     # lnp_status = Component(EpicsSignalRO, "STAT:LNP:PUMPING", kind="omitted")
-    #vacuum = Component(EpicsSignalRO, "VACUUM", kind="omitted")
+    # vacuum = Component(EpicsSignalRO, "VACUUM", kind="omitted")
 
-        # alias("$(P):CTRLLR:ERR", "$(PA)$(TA):controllerError_RBV")
-        # alias("$(P):CONFIG", "$(PA)$(TA):controllerConfig_RBV")
-        # alias("$(P):STATUS", "$(PA)$(TA):controllerStatus_RBV")
-        # alias("$(P):STAGE:CONFIG", "$(PA)$(TA):stageConfig_RBV")
-        # alias("$(P):TEMP", "$(PA)$(TA):temperature_RBV")
-        # alias("$(P):STARTHEAT", "$(PA)$(TA):heating")
-        # alias("$(P):RAMPRATE:SET", "$(PA)$(TA):rampRate")
-        # alias("$(P):RAMPRATE", "$(PA)$(TA):rampRate_RBV")
-        # alias("$(P):SETPOINT:SET", "$(PA)$(TA):rampLimit")
-        # alias("$(P):SETPOINT", "$(PA)$(TA):rampLimit_RBV")
-        # alias("$(P):POWER", "$(PA)$(TA):heaterPower_RBV")
-        # alias("$(P):LNP_SPEED", "$(PA)$(TA):lnpSpeed_RBV")
-        # alias("$(P):LNP_MODE:SET", "$(PA)$(TA):lnpMode")
-        # alias("$(P):LNP_SPEED:SET", "$(PA)$(TA):lnpSpeed")
+    # alias("$(P):CTRLLR:ERR", "$(PA)$(TA):controllerError_RBV")
+    # alias("$(P):CONFIG", "$(PA)$(TA):controllerConfig_RBV")
+    # alias("$(P):STATUS", "$(PA)$(TA):controllerStatus_RBV")
+    # alias("$(P):STAGE:CONFIG", "$(PA)$(TA):stageConfig_RBV")
+    # alias("$(P):TEMP", "$(PA)$(TA):temperature_RBV")
+    # alias("$(P):STARTHEAT", "$(PA)$(TA):heating")
+    # alias("$(P):RAMPRATE:SET", "$(PA)$(TA):rampRate")
+    # alias("$(P):RAMPRATE", "$(PA)$(TA):rampRate_RBV")
+    # alias("$(P):SETPOINT:SET", "$(PA)$(TA):rampLimit")
+    # alias("$(P):SETPOINT", "$(PA)$(TA):rampLimit_RBV")
+    # alias("$(P):POWER", "$(PA)$(TA):heaterPower_RBV")
+    # alias("$(P):LNP_SPEED", "$(PA)$(TA):lnpSpeed_RBV")
+    # alias("$(P):LNP_MODE:SET", "$(PA)$(TA):lnpMode")
+    # alias("$(P):LNP_SPEED:SET", "$(PA)$(TA):lnpSpeed")
 
 
 class My_Linkam_T96_Device(Linkam_T96_Device):
@@ -269,5 +260,3 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         while time.time() < time_expires:
             yield from bps.sleep(0.5)
         self.linkam_report()
-
-

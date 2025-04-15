@@ -74,4 +74,3 @@ class FilterBank(Device):
         """
         self._bank = bank
         super().__init__(prefix, **kwargs)
-

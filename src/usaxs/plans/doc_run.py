@@ -19,14 +19,13 @@ from ophyd import Signal
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-# Device instances
-bec = oregistry["bec"]
+
 
 def documentation_run(
     words: str,
+    bec: Any,
     md: Optional[Dict[str, Any]] = None,
     stream: Optional[str] = None,
-    oregistry: Optional[Dict[str, Any]] = None,
 ) -> Generator[Any, None, str]:
     """
     Save text as a bluesky run.
@@ -39,8 +38,7 @@ def documentation_run(
         Metadata dictionary, by default None
     stream : str, optional
         The stream to save to, by default None
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
+
 
     Returns
     -------

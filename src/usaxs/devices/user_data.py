@@ -149,4 +149,3 @@ class UserDataDevice(Device):
             self.state.put(msg)
         except Exception as exc:
             logger.error("Could not put message (%s) to USAXS state PV: %s", msg, exc)
-
