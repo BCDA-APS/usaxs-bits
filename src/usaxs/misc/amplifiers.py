@@ -69,6 +69,10 @@ __all__ = """
 
 import logging
 from collections import OrderedDict
+from typing import Any
+from typing import Generator
+from typing import List
+from typing import Optional
 
 import epics
 import numpy as np
@@ -394,7 +398,10 @@ def group_controls_by_scaler(controls):
 
 
 def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8):
-    """plan: internal: measure amplifier backgrounds for signals sharing a common scaler"""
+    """
+    plan: internal: measure amplifier backgrounds for signals
+    sharing a common scaler
+    """
     scaler = control_list[0].scaler
     signals = [c.signal for c in control_list]
 
@@ -555,7 +562,10 @@ def _scaler_autoscale_(controls, count_time=0.05, max_iterations=9):
             else:
                 raise ValueError(f"unexpected control.signal: {control.signal}")
             converged.append(actual_rate <= max_rate)
-            # logger.debug(f"gain={gain_now}  rate: {actual_rate}  max: {max_rate}  converged={converged}")
+            # logger.debug(
+            #     "gain={gain_now}  rate: {actual_rate}  "
+            #     "max: {max_rate}  converged={converged}"
+            # )
 
         if False not in converged:  # all True?
             complete = True
@@ -577,17 +587,34 @@ def _scaler_autoscale_(controls, count_time=0.05, max_iterations=9):
 
     if not complete and aps.inUserOperations:  # bailed out early from loop
         logger.warning(f"converged={converged}")
-        msg = f"FAILED TO FIND CORRECT GAIN IN {max_iterations} AUTOSCALE ITERATIONS"
+        msg = "FAILED TO FIND CORRECT GAIN IN " f"{max_iterations} AUTOSCALE ITERATIONS"
         if RE.state != "idle":  # don't raise if in summarize_plan()
             raise AutoscaleError(msg)
 
 
-def autoscale_amplifiers(controls, shutter=None, count_time=0.05, max_iterations=9):
-    """
-    bluesky plan: autoscale detector amplifiers simultaneously
+def autoscale_amplifiers(
+    controls: List[DetectorAmplifierAutorangeDevice],
+    shutter: Optional[Any] = None,
+    count_time: float = 0.05,
+    max_iterations: int = 9,
+) -> Generator[Any, None, Any]:
+    """Bluesky plan: autoscale detector amplifiers simultaneously.
 
-    controls [obj]
-        list (or tuple) of ``DetectorAmplifierAutorangeDevice``
+    Parameters
+    ----------
+    controls : List[DetectorAmplifierAutorangeDevice]
+        List (or tuple) of ``DetectorAmplifierAutorangeDevice``
+    shutter : Optional[Any], optional
+        Shutter device to control, by default None
+    count_time : float, optional
+        Time to count for each measurement, by default 0.05
+    max_iterations : int, optional
+        Maximum number of iterations to try, by default 9
+
+    Returns
+    -------
+    Generator[Any, None, Any]
+        Bluesky plan
     """
     assert isinstance(controls, (tuple, list)), "controls must be a list"
     scaler_dict = group_controls_by_scaler(controls)
@@ -604,7 +631,9 @@ def autoscale_amplifiers(controls, shutter=None, count_time=0.05, max_iterations
             # )
             try:
                 yield from _scaler_autoscale_(
-                    control_list, count_time=count_time, max_iterations=max_iterations
+                    control_list,
+                    count_time=count_time,
+                    max_iterations=max_iterations,
                 )
             except AutoscaleError as exc:
                 logger.warning(

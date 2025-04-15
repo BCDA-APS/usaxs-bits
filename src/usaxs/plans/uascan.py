@@ -246,13 +246,14 @@ def uascan(
                 cosScatAngle = math.cos((reference - target_ar) * math.pi / 180)
                 diff = math.atan(tanBragg / cosScatAngle) * 180 / math.pi - reference
 
-                # Note on asrp adjustment:  NOTE: seems wrong, but may need to be revisited???
-                #   use "-" when reflecting  inboard towards storage ring (single bounce setup)
+                # Note on asrp adjustment: NOTE: seems wrong, but may need to be revisited???
+                #   use "-" when reflecting inboard towards storage ring (single bounce setup)
                 #   use "+" when reflecting outboard towards experimenters (channel-cut setup)
                 ### on 2/06/2002 Andrew realized, that we are moving in wrong direction
                 ## the sign change to - moves ASRP towards larger Bragg angles...
                 ## verified experimentally - higher voltage on piezo = lower Bragg angle...
-                ## and we need to INCREASE the Bragg Angle with increasing Q, to correct for tilt down...
+                ## and we need to INCREASE the Bragg Angle with increasing Q,
+                ## to correct for tilt down...
 
                 # asrp_vdc = asrp0 - diff/terms.usaxs.asrp_degrees_per_VDC.get()
                 # moves += [as_stage.rp, asrp_vdc]

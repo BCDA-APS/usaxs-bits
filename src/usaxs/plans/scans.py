@@ -171,7 +171,8 @@ def preUSAXStune(md={}):
         # tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
         pass
     if terms.USAXS.useSBUSAXS.get():
-        # tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage and set ASRP0 value
+        # tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage
+        #                                     # and set ASRP0 value
         pass
     tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
     tuners[a_stage.r] = tune_ar  # tune A stage to M stage
@@ -471,8 +472,9 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # Update Sample name.  getSampleTitle is used to create proper sample name. It may add time and temperature
-    #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
+    # Update Sample name. getSampleTitle is used to create proper sample name.
+    # It may add time and temperature therefore it needs to be done close to real
+    # data collection, after mode change and optional tuning.
     scan_title = getSampleTitle(scan_title)
     # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
@@ -728,8 +730,9 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
-    #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
+    # Update Sample name. getSampleTitle is used to create proper sample name.
+    # It may add time and temperature therefore it needs to be done close to real
+    # data collection, after mode change and optional tuning.
     scan_title = getSampleTitle(scan_title)
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
@@ -1030,8 +1033,9 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
-    #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
+    # Update Sample name. getSampleTitle is used to create proper sample name.
+    # It may add time and temperature therefore it needs to be done close to real
+    # data collection, after mode change and optional tuning.
     scan_title = getSampleTitle(scan_title)
     # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
@@ -1155,7 +1159,8 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             scaler1.count_mode,
             "OneShot",
             # update as fast as hardware will allow
-            # this is needed to make sure we get as up to date I0 number as possible for AD software.
+            # this is needed to make sure we get as up to date I0 number
+            # as possible for AD software.
             scaler0.update_rate,
             60,
             scaler1.update_rate,
@@ -1182,7 +1187,8 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     yield from _image_acquisition_steps()
 
     ts = str(datetime.datetime.now())
-    # below stopping the scalers shoudl be done in userTrans2, but no harm stopping it twice
+    # below stopping the scalers should be done in userTrans2,
+    # but no harm stopping it twice
     yield from bps.mv(
         scaler0.count,
         0,
@@ -1258,8 +1264,9 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # Update Sample name.  getSampleTitle is used to create proper sample name. It may add time and temperature
-    #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
+    # Update Sample name. getSampleTitle is used to create proper sample name.
+    # It may add time and temperature therefore it needs to be done close to real
+    # data collection, after mode change and optional tuning.
     scan_title = getSampleTitle(scan_title)
     # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
@@ -1379,6 +1386,8 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             scaler1.count_mode,
             "OneShot",
             # update as fast as hardware will allow
+            # this is needed to make sure we get as up to date I0 number
+            # as possible for AD software.
             # this is needed to make sure we get as up to date I0 number as possible for AD software.
             scaler0.update_rate,
             60,
@@ -1417,7 +1426,8 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         0,
         scaler1.count,
         0,
-        # WAXS uses same PVs for normalization and transmission as SAXS, should we aliased it same to terms.WAXS???
+        # WAXS uses same PVs for normalization and transmission as SAXS,
+        # should we alias it same to terms.WAXS???
         terms.SAXS_WAXS.I0,
         scaler1.channels.chan02.s.get(),
         terms.SAXS_WAXS.diode_transmission,

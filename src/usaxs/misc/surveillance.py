@@ -4,6 +4,10 @@ This module provides functionality for monitoring various aspects of the USAXS
 instrument, including detector counts, temperature, and other critical parameters.
 """
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def monitor_detector_counts(detector, threshold=1000):
     """Monitor detector counts and log warnings if they exceed a threshold.

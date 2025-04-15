@@ -99,9 +99,12 @@ class NeXus_Structure(object):
         self.config_filename = config_file
         self.configured = False
 
-        self.field_registry = {}  # key: node/@label,        value: Field_Specification object
-        self.group_registry = {}  # key: HDF5 absolute path, value: Group_Specification object
-        self.link_registry = {}  # key: node/@label,        value: Link_Specification object
+        # key: node/@label, value: Field_Specification object
+        self.field_registry = {}
+        # key: HDF5 absolute path, value: Group_Specification object
+        self.group_registry = {}
+        # key: node/@label, value: Link_Specification object
+        self.link_registry = {}
         self.pv_registry = {}  # key: node/@label,        value: PV_Specification object
 
     def _read_configuration(self):
@@ -481,9 +484,11 @@ def _developer():
         assert mgr.connected
 
     conn = [pv for pv in mgr.pv_registry.values() if pv.ophyd_signal.connected]
-    logger.debug(
-        f"connected {len(conn)} of {len(mgr.pv_registry)} PVs in {time.time()-t0:.04f} s"
+    msg = (
+        f"connected {len(conn)} of {len(mgr.pv_registry)} PVs "
+        f"in {time.time()-t0:.04f} s"
     )
+    logger.debug(msg)
 
 
 # if __name__ == "__main__":

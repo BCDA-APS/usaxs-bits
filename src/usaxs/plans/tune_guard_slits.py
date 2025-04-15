@@ -141,7 +141,10 @@ def tune_GslitsCenter():
                 yield from cleanup_then_GuardSlitTuneError(msg)
             if max(tuner.peaks.y_data) <= guard_slit.tuning_intensity_threshold:
                 msg = f"{motor.name}: Peak intensity not strong enough to tune."
-                msg += f" {max(tuner.peaks.y_data)} < {guard_slit.tuning_intensity_threshold}"
+                msg += (
+                    f" {max(tuner.peaks.y_data)} < "
+                    f"{guard_slit.tuning_intensity_threshold}"
+                )
                 yield from cleanup_then_GuardSlitTuneError(msg)
 
             logger.info(f"{motor.name}: move to {center} (center of mass)")

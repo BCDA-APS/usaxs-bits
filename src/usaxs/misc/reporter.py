@@ -4,6 +4,8 @@ This module provides functionality for generating various types of reports
 about the USAXS instrument's status, data collection, and analysis results.
 """
 
+import datetime
+
 
 def generate_status_report(instrument):
     """Generate a comprehensive status report for the instrument.
