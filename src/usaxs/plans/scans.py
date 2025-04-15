@@ -174,8 +174,8 @@ def preUSAXStune(md={}):
         # tuners[as_stage.rp] = tune_asrp    # align ASR stage with MSR stage
         #                                     # and set ASRP0 value
         pass
-    tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
     tuners[a_stage.r] = tune_ar  # tune A stage to M stage
+    tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
     # moving this up improves overall stability at 20IDB
     # tuners[a_stage.r2p] = tune_a2rp        # make A stage crystals parallel
 
@@ -990,7 +990,8 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @bpp.suspend_decorator(suspend_FE_shutter)
-# @bpp.suspend_decorator(suspend_BeamInHutch) #this is how to do proper suspender for one function, not for the whole module
+# @bpp.suspend_decorator(suspend_BeamInHutch) 
+# this is how to do proper suspender for one function, not for the whole module
 def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     """
     collect SAXS data
@@ -1388,7 +1389,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             # update as fast as hardware will allow
             # this is needed to make sure we get as up to date I0 number
             # as possible for AD software.
-            # this is needed to make sure we get as up to date I0 number as possible for AD software.
             scaler0.update_rate,
             60,
             scaler1.update_rate,
