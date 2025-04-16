@@ -9,8 +9,6 @@ from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import Signal
 
-from ..misc.amplifiers import upd_controls
-
 # TODO :  resolve issues with LAX PV database
 
 
@@ -157,15 +155,6 @@ class Parameters_USAXS(Device):
     setpoint_down = Component(Signal, value=650000)  # increase range
 
     transmission = Component(Parameters_transmission)
-
-    def UPDRange(self) -> int:
-        """
-        Get the UPD range value.
-
-        Returns:
-            int: The UPD range value
-        """
-        return upd_controls.auto.lurange.get()  # TODO: check return value is int
 
 
 class Parameters_SBUSAXS(Device):

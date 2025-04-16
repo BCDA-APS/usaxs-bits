@@ -16,14 +16,12 @@ from .filters import insertRadiographyFilters
 from .filters import insertSaxsFilters
 from .filters import insertScanFilters
 from .filters import insertWaxsFilters
-from .lup_plan import lup
 from .mode_changes import mode_BlackFly
 from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
 from .move_instrument import move_instrument
-from .peak_finder_example import peak_finder_example
 from .resets import resets
 from .sample_imaging import sample_imaging
 from .sample_transmission import sample_transmission

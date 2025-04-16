@@ -8,9 +8,6 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 - name: shutter
   labels: ["shutters"]
 
-# apstools.devices.ApsMachineParametersDevice:
-# - name: aps
-
 apstools.devices.PlanarUndulator:
 - name: undulator
   prefix: "S12ID:USID:"
@@ -22,8 +19,8 @@ usaxs.devices.autocollect.AutoCollectDataDevice:
 usaxs.devices.diagnostics.DiagnosticsParameters:
 - name: diagnostics
 
-# usaxs.devices.general_terms.GeneralParameters: #TODO: look at this again
-# - name: terms
+usaxs.devices.general_terms.GeneralParameters: #TODO: look at this again
+- name: terms
 
 usaxs.devices.autosave.Autosave:
 - name: lax_autosave

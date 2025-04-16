@@ -10,6 +10,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def UPDRange(self) -> int:
+    """
+    Get the UPD range value.
+
+    Returns:
+        int: The UPD range value
+    """
+    return upd_controls.auto.lurange.get()  # TODO: check return value is int
+
+
 def operations_in_12ide():
     """Check if operations are in 12-ID-E station.
 
