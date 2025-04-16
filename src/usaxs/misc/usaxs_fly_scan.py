@@ -24,16 +24,16 @@ from ophyd.status import Status
 
 from ....old_instrument.framework import RE
 from ....old_instrument.framework import specwriter
+from ..devices.amplifiers import AutorangeSettings
+from ..devices.amplifiers import upd_controls
 from ..devices.general_terms import terms
 from ..devices.shutters import ti_filter_shutter
 from ..devices.stages import a_stage
 from ..devices.stages import d_stage
+from ..devices.struck3820 import struck
 from ..devices.user_data import user_data
 from ..usaxs_support.saveFlyData import XML_CONFIGURATION_FILE
 from ..usaxs_support.saveFlyData import SaveFlyScan
-from .amplifiers import AutorangeSettings
-from .amplifiers import upd_controls
-from .struck3820 import struck
 
 logger = logging.getLogger(__name__)
 

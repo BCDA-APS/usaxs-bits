@@ -17,44 +17,40 @@ __all__ = """
 
 import logging
 
-from ophyd import EpicsSignalRO
-from ophyd.scaler import ScalerCH
-
 logger = logging.getLogger(__name__)
 
 
-scaler0 = ScalerCH("usxLAX:vsc:c0", name="scaler0")
-scaler0.stage_sigs["count_mode"] = "OneShot"
-scaler1 = ScalerCH(
-    "usxLAX:vsc:c1", name="scaler1"
-)  # used by softGlue for SAXS transmission
-# scaler2 = ScalerCH('usxLAX:vsc:c2', name='scaler2')     # used by upstream feedback
-scaler2_I000_counts = EpicsSignalRO("usxLAX:vsc:c2.S2", name="scaler2_I000_counts")
-scaler2_I000_cps = EpicsSignalRO("usxLAX:vsc:c2_cts1.B", name="scaler2_I000_counts")
+# scaler0 = ScalerCH("usxLAX:vsc:c0", name="scaler0")
+# scaler0.stage_sigs["count_mode"] = "OneShot"
+# scaler1 = ScalerCH(
+#     "usxLAX:vsc:c1", name="scaler1"
+# )  # used by softGlue for SAXS transmission
+# # scaler2 = ScalerCH('usxLAX:vsc:c2', name='scaler2')     # used by upstream feedback
+# scaler2_I000_counts = EpicsSignalRO("usxLAX:vsc:c2.S2", name="scaler2_I000_counts")
+# scaler2_I000_cps = EpicsSignalRO("usxLAX:vsc:c2_cts1.B", name="scaler2_I000_counts")
 
-scaler0.select_channels()
-scaler1.select_channels()
+# scaler0.select_channels()
+# scaler1.select_channels()
 # These names are related to amplifier.py
-I0_SIGNAL = scaler0.channels.chan02
-I00_SIGNAL = scaler0.channels.chan03
-UPD_SIGNAL = scaler0.channels.chan04
-TRD_SIGNAL = scaler0.channels.chan05
+# I0_SIGNAL = scaler0.channels.chan02
+# I00_SIGNAL = scaler0.channels.chan03
+# UPD_SIGNAL = scaler0.channels.chan04
+# TRD_SIGNAL = scaler0.channels.chan05
 
-clock = scaler0.channels.chan01.s
-I0 = scaler0.channels.chan02.s
-I00 = scaler0.channels.chan03.s
-upd2 = scaler0.channels.chan04.s
-trd = scaler0.channels.chan05.s
-I000 = scaler0.channels.chan06.s
+# I0 = scaler0.channels.chan02.s
+# I00 = scaler0.channels.chan03.s
+# upd2 = scaler0.channels.chan04.s
+# trd = scaler0.channels.chan05.s
+# I000 = scaler0.channels.chan06.s
 
-for item in (clock, I0, I00, upd2, trd, I000):
-    item._ophyd_labels_ = set(
-        [
-            "channel",
-            "counter",
-        ]
-    )
-    item._auto_monitor = False
+# for item in (clock, I0, I00, upd2, trd, I000):
+#     item._ophyd_labels_ = set(
+#         [
+#             "channel",
+#             "counter",
+#         ]
+#     )
+#     item._auto_monitor = False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -56,6 +56,16 @@ ophyd.EpicsSignalRO:
 - name: usaxs_CheckBeamStandard
   read_pv: usxLAX:blCalc:userCalc1
   auto_monitor: false
+- name: scaler2_I000_counts
+  read_pv: usxLAX:vsc:c2.S2
+- name: scaler2_I000_cps
+  read_pv: usxLAX:vsc:c2_cts1.B
+
+# ophyd.scaler.ScalerCH:
+# - name: scaler0
+#   prefix: usxLAX:vsc:c0
+# - name: scaler1
+#   prefix: usxLAX:vsc:c1
 
 ophyd.EpicsMotor:
 - name: LAXm1

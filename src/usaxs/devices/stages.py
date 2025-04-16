@@ -19,9 +19,6 @@ from .usaxs_motor_devices import TunableEpicsMotor2WTolerance
 # use center-of-mass, and not peak value: "com"
 TUNE_METHOD_PEAK_CHOICE = "centroid"
 
-USING_MS_STAGE = False
-# TUNING_DET_SIGNAL = {True: I00_SIGNAL, False: I0_SIGNAL}[USING_MS_STAGE]
-
 
 class TuneRanges(Device):
     """

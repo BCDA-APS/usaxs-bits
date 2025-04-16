@@ -22,7 +22,7 @@ from bluesky import plan_stubs as bps
 from IPython import get_ipython
 from ophyd import Signal
 
-from ..misc.amplifiers import measure_background
+from ..devices.amplifiers import measure_background
 from ..usaxs_support.nexus import reset_manager
 from ..usaxs_support.surveillance import instrument_archive
 from ..utils.quoted_line import split_quoted_line

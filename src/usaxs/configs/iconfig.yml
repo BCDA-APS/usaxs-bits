@@ -77,6 +77,10 @@ CONSTANTS:
     MEASURE_DARK_CURRENTS: true  # MEASURE dark currents on start of data collection
     SYNC_ORDER_NUMBERS: true  # sync order numbers among devices on start of collect data sequence
 
+SCALER_PV_NAMES:
+    SCALER0_NAME: usxLAX:vsc:c0
+    SCALER1_NAME: usxLAX:vsc:c1
+
 # ----------------------------------
 
 OPHYD:
