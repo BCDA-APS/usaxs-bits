@@ -10,21 +10,21 @@ Note: Don't use blocking calls here
 """
 
 __all__ = """
-    empty_plan
-    instrument_default_tune_ranges
+    empty_plan #NO need
+    instrument_default_tune_ranges #maybe
     tune_a2rp
-    tune_after_imaging
+    tune_after_imaging #no need
     tune_ar
-    tune_asrp
+    tune_asrp #NO need
     tune_diode
     tune_dx
     tune_dy
-    tune_m2rp
+    tune_m2rp #NO need
     tune_mr
-    tune_msrp
+    tune_msrp #NO need
     tune_saxs_optics
     tune_usaxs_optics
-    update_EPICS_tuning_widths
+    update_EPICS_tuning_widths #important
     """.split()
 
 import logging

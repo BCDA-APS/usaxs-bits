@@ -88,8 +88,3 @@ class GSlitDevice(MotorBundle):
     h_step_into: float = 1.1  # 1.1mm step into the beam (blocks the beam)
     v_step_into: float = 0.4  # 0.4mm step into the beam (blocks the beam)
     tuning_intensity_threshold: int = 500
-
-
-
-# guard_slit = GSlitDevice("", name="guard_slit")
-# usaxs_slit = UsaxsSlitDevice("", name="usaxs_slit")

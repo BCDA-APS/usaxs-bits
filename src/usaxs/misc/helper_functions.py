@@ -73,6 +73,7 @@ def plan_slit_ok():
         yield from bps.mv(self.inb.process_record, 1)
         yield from bps.sleep(0.05)
 
+
 def UPDRange(self) -> int:
     """
     Get the UPD range value.
