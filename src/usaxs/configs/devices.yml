@@ -19,7 +19,7 @@ usaxs.devices.autocollect.AutoCollectDataDevice:
 usaxs.devices.diagnostics.DiagnosticsParameters:
 - name: diagnostics
 
-usaxs.devices.general_terms.GeneralParameters: #TODO: look at this again
+usaxs.devices.general_terms.GeneralParameters:
 - name: terms
 
 usaxs.devices.autosave.Autosave:
@@ -104,13 +104,13 @@ apstools.devices.Struck3820:
 - name: struck
   prefix: "usxLAX:3820:"
 
-# usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
-# - name: guard_slit
-#   prefix: ""
+usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
+- name: guard_slit
+  prefix: ""
 
-# usaxs.devices.slits.UsaxsSlitDevice:
-# - name: usaxs_slit
-#   prefix: ""
+usaxs.devices.slits.UsaxsSlitDevice:
+- name: usaxs_slit
+  prefix: ""
 
 usaxs.devices.trajectories.Trajectories:
 - name: "flyscan_trajectories"
