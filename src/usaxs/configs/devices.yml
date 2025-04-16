@@ -31,7 +31,6 @@ usaxs.devices.filters.FilterBank:
   prefix: "12idPyFilter:"
   bank: FL1
 
-
 usaxs.devices.linkam.My_Linkam_T96_Device:
 - name: linkam_tc1
   prefix: "usxLINKAM:tc1:"
@@ -60,12 +59,6 @@ ophyd.EpicsSignalRO:
   read_pv: usxLAX:vsc:c2.S2
 - name: scaler2_I000_cps
   read_pv: usxLAX:vsc:c2_cts1.B
-
-# ophyd.scaler.ScalerCH:
-# - name: scaler0
-#   prefix: usxLAX:vsc:c0
-# - name: scaler1
-#   prefix: usxLAX:vsc:c1
 
 ophyd.EpicsMotor:
 - name: LAXm1
@@ -150,6 +143,8 @@ usaxs.devices.stages.UsaxsAnalyzerStageDevice:
 usaxs.devices.stages.SaxsDetectorStageDevice:
 - name: saxs_stage
 
+usaxs.devices.usaxs_fly_scan.UsaxsFlyScanDevice:
+- name: usaxs_flyscan
 
 # # apstools.devices.ad_creator:
 # #   - name: adsimdet

@@ -81,6 +81,11 @@ SCALER_PV_NAMES:
     SCALER0_NAME: usxLAX:vsc:c0
     SCALER1_NAME: usxLAX:vsc:c1
 
+USAXS_FLY_SCAN_SETTINGS:
+    FALLBACK_DIR: "/share1/USAXS_data"
+    # SAVE_FLY_DATA_HDF5_DIR: "/tmp"
+    SAVE_FLY_DATA_HDF5_DIR: "/share1/USAXS_data/test" #USE THIS ONE FOR DEVELOPMENT
+    SAVE_FLY_DATA_HDF5_FILE: "sfs.h5"
 # ----------------------------------
 
 OPHYD:

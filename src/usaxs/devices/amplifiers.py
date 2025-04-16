@@ -107,7 +107,6 @@ TRD_SIGNAL = scaler0.channels.chan05
 I0_SIGNAL = scaler0.channels.chan02
 
 
-
 class ModifiedSwaitRecord(SwaitRecord):
     enable = None  # remove this Component
 
