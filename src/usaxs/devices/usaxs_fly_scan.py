@@ -27,6 +27,10 @@ hdf5_dir = fly_scan_settings.get("FALLBACK_DIR")
 
 
 class UsaxsFlyScanDevice(Device):
+    """
+    USAXS Fly Scan Device
+    """
+
     busy = Component(
         EpicsSignal, "usxLAX:USAXSfly:Start", string=True, put_complete=True
     )
@@ -36,6 +40,13 @@ class UsaxsFlyScanDevice(Device):
     timeout_s = 120
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialize the USAXS Fly Scan Device.
+        Parameters
+        ----------
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+        """
         super().__init__(*args, **kwargs)
         self.t0 = None
         self.update_time = None
@@ -51,4 +62,3 @@ class UsaxsFlyScanDevice(Device):
         self._output_HDF5_file_ = None
         self.flying._status = Status()  # issue #501
         self.flying._status.set_finished()
-

@@ -1,6 +1,4 @@
-
 import datetime
-import logging
 import os
 import time
 import uuid
@@ -18,7 +16,6 @@ from ..devices.stages import a_stage
 from ..devices.stages import d_stage
 from ..devices.struck3820 import struck
 from ..devices.user_data import user_data
-from ..usaxs_support.saveFlyData import XML_CONFIGURATION_FILE
 from ..usaxs_support.saveFlyData import SaveFlyScan
 
 
@@ -178,9 +175,7 @@ def plan(self, md=None):
 
     if self.flying._status is not None and not self.flying._status.done:
         # per https://github.com/APS-USAXS/ipython-usaxs/issues/499
-        logger.warning(
-            "Clearing unfinished status object on 'usaxs_flyscan/flying'"
-        )
+        logger.warning("Clearing unfinished status object on 'usaxs_flyscan/flying'")
         self.flying._status.set_finished()
     if not self.flying.get():
         yield from bps.abs_set(self.flying, True)
