@@ -38,6 +38,7 @@ from typing import Optional
 from apsbits.utils.controls_setup import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 
 from .filters import insertBlackflyFilters
 from .filters import insertRadiographyFilters
@@ -46,7 +47,6 @@ from .mono_feedback import DCMfeedbackON
 from .move_instrument import UsaxsSaxsModes
 from .move_instrument import move_SAXSIn
 from .move_instrument import move_SAXSOut
-from .move_instrument import move_USAXSIn
 from .move_instrument import move_USAXSOut
 from .move_instrument import move_WAXSIn
 from .move_instrument import move_WAXSOut
@@ -197,58 +197,53 @@ def mode_BlackFly(
 
 def mode_USAXS(
     md: Optional[Dict[str, Any]] = None,
-) -> Generator[Any, None, None]:
-    """
-    Set instrument to USAXS mode.
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, Any]:
+    """Change instrument to USAXS mode.
 
-    This mode configures the instrument for Ultra Small Angle X-ray Scattering
-    measurements. It includes setting up the correct stage positions, inserting
-    appropriate filters, and configuring the scaler for autocount mode.
+    This function changes the instrument configuration to USAXS mode
+    and sets up the appropriate devices and detectors.
 
     Parameters
     ----------
     md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
 
-    Yields
-    ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Returns
+    -------
+    Generator[Any, None, Any]
+        A sequence of plan messages
+
+    USAGE:  ``RE(mode_USAXS())``
     """
     if md is None:
         md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
 
-    try:
-        yield from user_data.set_state_plan("Preparing for USAXS mode")
-        yield from IfRequestedStopBeforeNextScan()
+    _md = {}
+    _md.update(md or {})
 
-        # Move stages to USAXS positions
-        yield from move_USAXSIn()
-        yield from insertScanFilters()
+    @bpp.run_decorator(md=_md)
+    def _inner() -> Generator[Any, None, Any]:
+        yield from user_data.set_state_plan("changing to USAXS mode")
+        yield from bps.mv(scaler0.count_mode, "OneShot")
+        yield from bps.trigger(scaler0, group="mode_change")
+        yield from bps.wait(group="mode_change")
 
-        # Configure scaler for autocount mode
-        yield from bps.mv(
-            scaler0.count_mode,
-            SCALER_AUTOCOUNT_MODE,
-            scaler0.preset_time,
-            0.1,
-        )
-
-        # Update mode in EPICS
-        yield from bps.mv(
-            terms.SAXS.UsaxsSaxsMode,
-            UsaxsSaxsModes["USAXS"],
-            user_data.scanning,
-            0,
-            user_data.collection_in_progress,
-            0,
-        )
-
-        yield from user_data.set_state_plan("Ready for USAXS mode")
-
-    except Exception as e:
-        logger.error(f"Error in mode_USAXS: {str(e)}")
-        raise
+    return (yield from _inner())
 
 
 # def mode_SBUSAXS():  # TODO:

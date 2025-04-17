@@ -15,9 +15,14 @@ __all__ = """
 """.split()
 
 import logging
+from typing import Any
+from typing import Dict
+from typing import Generator
+from typing import Optional
 
 from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -32,6 +37,8 @@ guard_slit = oregistry["guard_slit"]
 usaxs_slit = oregistry["usaxs_slit"]
 waxsx = oregistry["waxsx"]
 saxs_stage = oregistry["saxs_stage"]
+scaler0 = oregistry["scaler0"]
+user_data = oregistry["user_data"]
 
 UsaxsSaxsModes = {
     "dirty": -1,  # moving or prior move did not finish correctly
@@ -228,3 +235,59 @@ def move_USAXSIn():
 
     logger.info("USAXS is in position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["USAXS in beam"])
+
+
+def move_instrument(
+    target_position: float,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, Any]:
+    """Move instrument to a target position.
+
+    This function moves the instrument to a specified position and
+    optionally measures the intensity at that position.
+
+    Parameters
+    ----------
+    target_position : float
+        Target position in mm
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, Any]
+        A sequence of plan messages
+
+    USAGE:  ``RE(move_instrument(target_position=10.0))``
+    """
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
+    _md = {}
+    _md.update(md or {})
+
+    @bpp.run_decorator(md=_md)
+    def _inner() -> Generator[Any, None, Any]:
+        yield from user_data.set_state_plan(
+            f"moving instrument to {target_position} mm"
+        )
+        yield from bps.mv(scaler0.count_mode, "OneShot")
+        yield from bps.trigger(scaler0, group="movement")
+        yield from bps.wait(group="movement")
+
+    return (yield from _inner())

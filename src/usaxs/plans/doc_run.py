@@ -1,9 +1,11 @@
-"""
-Save text as a bluesky run.
+"""Documentation run plans for the USAXS instrument.
+
+This module provides plans for documenting runs in the USAXS instrument,
+including metadata collection and run documentation.
 """
 
 __all__ = [
-    "documentation_run",
+    "doc_run",
 ]
 
 import logging
@@ -12,52 +14,62 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
+from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
-from ophyd import Signal
+from bluesky import preprocessors as bpp
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+# Device instances
+user_data = oregistry["user_data"]
 
-def documentation_run(
-    words: str,
-    bec: Any,
+
+def doc_run(
     md: Optional[Dict[str, Any]] = None,
-    stream: Optional[str] = None,
-) -> Generator[Any, None, str]:
-    """
-    Save text as a bluesky run.
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, Any]:
+    """Document a run with metadata.
+
+    This function collects and documents metadata for a run,
+    including user information, sample details, and instrument settings.
 
     Parameters
     ----------
-    words : str
-        The text to save as a bluesky run
-    md : Dict[str, Any], optional
+    md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    stream : str, optional
-        The stream to save to, by default None
-
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
 
     Returns
     -------
-    Generator[Any, None, str]
-        A generator that yields plan steps and returns the run UID
+    Generator[Any, None, Any]
+        A sequence of plan messages
+
+    USAGE:  ``RE(doc_run())``
     """
-    text = Signal(value=words, name="text")
-    stream = stream or "primary"
-    _md = dict(
-        purpose="save text as bluesky run",
-        plan_name="documentation_run",
-    )
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
+    _md = {}
     _md.update(md or {})
 
-    bec.disable_plots()
-    bec.disable_table()
-    uid = yield from bps.open_run(md=_md)
-    yield from bps.create(stream)
-    yield from bps.read(text)
-    yield from bps.save()
-    yield from bps.close_run()
-    bec.enable_table()
-    bec.enable_plots()
-    return uid
+    @bpp.run_decorator(md=_md)
+    def _inner() -> Generator[Any, None, Any]:
+        yield from user_data.set_state_plan("documenting run")
+        yield from bps.trigger(user_data, group="doc_run")
+        yield from bps.wait(group="doc_run")
+
+    return (yield from _inner())

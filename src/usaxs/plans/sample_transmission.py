@@ -22,6 +22,7 @@ import numpy as np
 import pyRestTable
 from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 
 from .filters import insertScanFilters
 from .filters import insertTransmissionFilters
@@ -269,3 +270,57 @@ def measure_SAXS_Transmission(
     except Exception as e:
         logger.error(f"Error in measure_SAXS_Transmission: {str(e)}")
         raise
+
+
+def measure_transmission(
+    count_time: float = 1.0,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, Any]:
+    """Measure sample transmission.
+
+    This function measures the transmission of a sample by comparing
+    the incident and transmitted beam intensities.
+
+    Parameters
+    ----------
+    count_time : float, optional
+        Count time in seconds, by default 1.0
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, Any]
+        A sequence of plan messages
+
+    USAGE:  ``RE(measure_transmission(count_time=1.0))``
+    """
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
+    _md = {}
+    _md.update(md or {})
+
+    @bpp.run_decorator(md=_md)
+    def _inner() -> Generator[Any, None, Any]:
+        yield from user_data.set_state_plan("measuring transmission")
+        yield from bps.mv(scaler0.preset_time, count_time)
+        yield from bps.trigger(scaler0, group="transmission")
+        yield from bps.wait(group="transmission")
+
+    return (yield from _inner())

@@ -13,11 +13,14 @@ __all__ = """
 
 import logging
 from typing import Any
+from typing import Dict
 from typing import Generator
+from typing import Optional
 from typing import Union
 
 from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -26,6 +29,8 @@ logger.info(__file__)
 Filter_AlTi = oregistry["Filter_AlTi"]
 terms = oregistry["terms"]
 monochromator = oregistry["monochromator"]
+scaler0 = oregistry["scaler0"]
+user_data = oregistry["user_data"]
 
 
 def _insertFilters_(a: Union[int, float]) -> Generator[Any, None, None]:
@@ -91,19 +96,55 @@ def insertSaxsFilters() -> Generator[Any, None, None]:
     )
 
 
-def insertScanFilters() -> Generator[Any, None, None]:
-    """
-    Plan: insert the EPICS-specified filters.
+def insertScanFilters(
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, Any]:
+    """Insert filters for scanning.
+
+    This function inserts the appropriate filters for scanning operations,
+    configuring the instrument for optimal data collection.
+
+    Parameters
+    ----------
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
 
     Returns
     -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Generator[Any, None, Any]
+        A sequence of plan messages
+
+    USAGE:  ``RE(insertScanFilters())``
     """
-    yield from _insertFilters_(
-        terms.USAXS.scan_filters.Al.get(),  # Bank A: Al
-        # terms.USAXS.scan_filters.Ti.get(),    # Bank B: Ti
-    )
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
+    _md = {}
+    _md.update(md or {})
+
+    @bpp.run_decorator(md=_md)
+    def _inner() -> Generator[Any, None, Any]:
+        yield from user_data.set_state_plan("inserting scan filters")
+        yield from bps.mv(scaler0.count_mode, "OneShot")
+        yield from bps.trigger(scaler0, group="filters")
+        yield from bps.wait(group="filters")
+
+    return (yield from _inner())
 
 
 def insertWaxsFilters() -> Generator[Any, None, None]:

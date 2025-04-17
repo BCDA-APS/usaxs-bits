@@ -1,9 +1,23 @@
+"""USAXS Fly Scan Plan Module.
+
+This module implements the fly scan functionality for USAXS measurements.
+It handles the coordination of stage movements, data acquisition, and
+data saving during fly scans.
+"""
+
 import datetime
+import logging
 import os
 import time
 import uuid
 from collections import OrderedDict
+from typing import Any
+from typing import Dict
+from typing import Generator
+from typing import Optional
 
+# Get devices from oregistry
+from apsbits.utils.controls_setup import oregistry
 from apstools.plans import write_stream
 from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
@@ -18,13 +32,55 @@ from ..devices.struck3820 import struck
 from ..devices.user_data import user_data
 from ..usaxs_support.saveFlyData import SaveFlyScan
 
+logger = logging.getLogger(__name__)
 
-def plan(self, md=None):
-    """
-    run the USAXS fly scan
+# Device instances
+upd_controls = oregistry["upd_controls"]
+terms = oregistry["terms"]
+ti_filter_shutter = oregistry["ti_filter_shutter"]
+a_stage = oregistry["a_stage"]
+d_stage = oregistry["d_stage"]
+struck = oregistry["struck"]
+user_data = oregistry["user_data"]
+
+
+def plan(
+    self,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, None]:
+    """Execute a USAXS fly scan.
+
+    This function coordinates the execution of a USAXS fly scan, including:
+    - Setting up the HDF5 file for data storage
+    - Managing the fly scan state
+    - Reporting progress
+    - Handling data acquisition
+
+    Args:
+        md (dict, optional): Metadata to be associated with the scan.
+            Defaults to None.
+        RE (Any, optional): The RunEngine instance to use for the scan.
+            Defaults to None.
+        bec (Any, optional): The Bluesky Live Callbacks instance.
+            Defaults to None.
+        specwriter (Any, optional): The SPEC file writer instance.
+            Defaults to None.
+
+    Yields:
+        Generator: Control flow for the fly scan execution
     """
     if md is None:
         md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
     bluesky_runengine_running = RE.state != "idle"
 
     def _report_(t):
@@ -132,7 +188,6 @@ def plan(self, md=None):
 
     ######################################################################
     # plan starts here
-    global specwriter
 
     # remember our starting conditions
     self.ar0 = a_stage.r.position

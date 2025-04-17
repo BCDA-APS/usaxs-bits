@@ -72,7 +72,6 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
     upd_controls = oregistry["upd_controls"]
     usaxs_slit = oregistry["usaxs_slit"]
     user_data = oregistry["user_data"]
-    RE = oregistry["RE"]
 
     yield from IfRequestedStopBeforeNextScan(oregistry)
     title = "tuning USAXS Gslit center"
@@ -503,7 +502,6 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
     upd_controls = oregistry["upd_controls"]
     usaxs_slit = oregistry["usaxs_slit"]
     user_data = oregistry["user_data"]
-    RE = oregistry["RE"]
 
     yield from tune_GslitsCenter(oregistry)
     yield from mode_USAXS(oregistry)

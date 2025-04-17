@@ -40,6 +40,7 @@ from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from bluesky.preprocessors import IfRequestedStopBeforeNextScan
 
 # Device instances
 I0_controls = oregistry["I0_controls"]
@@ -107,40 +108,33 @@ if m_stage.isChannelCut:
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
 def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
-    """
-    Tune the MR stage.
-
-    This function tunes the monochromator rotation stage by finding the optimal
-    position for maximum signal intensity. It includes setting up the scaler,
-    configuring the detector controls, and performing a lineup scan.
-
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
-
-    Yields
-    ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
+    """Tune the monochromator rotation."""
     if md is None:
         md = {}
-
+    
+    yield from bps.mv(m_stage.r, m_stage.r.position)
+    yield from bps.trigger_and_read([m_stage.r])
+    yield from IfRequestedStopBeforeNextScan()
+    
     try:
         yield from bps.mv(ti_filter_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_mr"
-        yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {m_stage.r.name}")
-        axis_start = m_stage.r.position
-        yield from bps.mv(
-            mono_shutter,
-            "open",
-            ti_filter_shutter,
-            "open",
-        )
+        
+        yield from bps.mv(m_stage.r, m_stage.r.position - 0.1)
+        yield from bps.trigger_and_read([m_stage.r])
+        yield from IfRequestedStopBeforeNextScan()
+        
+        yield from bps.mv(m_stage.r, m_stage.r.position + 0.1)
+        yield from bps.trigger_and_read([m_stage.r])
+        yield from IfRequestedStopBeforeNextScan()
+        
+        yield from bps.mv(m_stage.r, m_stage.r.position)
+        yield from bps.trigger_and_read([m_stage.r])
+        yield from IfRequestedStopBeforeNextScan()
+        
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         scaler0.select_channels(["I0_USAXS"])
         trim_plot_by_name(5)
@@ -172,8 +166,10 @@ def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
             print(f"tune_mr failed for {stats.analysis.reasons}")
 
     except Exception as e:
-        logger.error(f"Error in tune_mr: {str(e)}")
+        logger.error(f"Error in tune_mr: {e}")
         raise
+    finally:
+        yield from bps.mv(ti_filter_shutter, "close")
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)

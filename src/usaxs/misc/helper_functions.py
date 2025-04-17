@@ -6,15 +6,117 @@ stage movement.
 """
 
 import logging
+import time
+import warnings
+from collections import OrderedDict
+from typing import Any
+from typing import Generator
+from typing import List
+from typing import Optional
+
+import numpy as np
+
+# Get devices from oregistry
+from apsbits.utils.controls_setup import oregistry
+from bluesky import plan_stubs as bps
+from bluesky.run_engine import RunEngine
+from ophyd import EpicsSignal
+from ophyd import Signal
+from ophyd.device import Kind
+from ophyd.scaler import EpicsScaler
+from ophyd.signal import EpicsSignalRO
+
+from ..devices.amplifiers import AMPLIFIER_MINIMUM_SETTLING_TIME
+from ..devices.amplifiers import NUM_AUTORANGE_GAINS
+from ..devices.amplifiers import AutorangeSettings
+from ..devices.amplifiers import AutoscaleError
+from ..devices.amplifiers import DetectorAmplifierAutorangeDevice
+from ..devices.general_terms import terms
+from ..devices.shutters import ApsPssShutter
+from ..devices.shutters import ApsPssShutterWithStatus
+from ..devices.shutters import My12IdPssShutter
+from ..devices.shutters import SimulatedApsPssShutterWithStatus
+from ..devices.stages import a_stage
+from ..devices.struck3820 import ScalerCH
+from ..devices.struck3820 import ScalerChannel
+from ..devices.upd_controls import upd_controls
+from ..misc.usaxs_q_calc import usaxs_q_calc
 
 logger = logging.getLogger(__name__)
 
+# Device instances
+aps = oregistry["aps"]
+linkam_tc1 = oregistry["linkam_tc1"]
+scaler0 = oregistry["scaler0"]
+UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+
+
+class OrderedDefaultDict(OrderedDict):
+    """A defaultdict that maintains insertion order."""
+
+    def __init__(self, default_factory=None, *args, **kwargs):
+        """Initialize the OrderedDefaultDict.
+
+        Args:
+            default_factory: Factory function to create default values
+            *args: Additional positional arguments for OrderedDict
+            **kwargs: Additional keyword arguments for OrderedDict
+        """
+        super().__init__(*args, **kwargs)
+        self.default_factory = default_factory
+
+    def __missing__(self, key):
+        """Handle missing keys by creating a default value.
+
+        Args:
+            key: The missing key
+
+        Returns:
+            The default value for the key
+        """
+        if self.default_factory is None:
+            raise KeyError(key)
+        self[key] = value = self.default_factory()
+        return value
+
+
+def _gain_to_str_(gain: int) -> str:
+    """Convert a gain value to a string representation.
+
+    Args:
+        gain: The gain value to convert
+
+    Returns:
+        str: String representation of the gain
+    """
+    return f"10^{gain}"
+
 
 def plan_slit_ok():
+    """Create a plan to check and adjust slit positions.
+
+    This function returns a class with methods to check and adjust
+    slit positions, ensuring they are within specified tolerances.
+
+    Returns:
+        class: A class containing methods for slit position management
+    """
+
     def set_size(
         self, *args: Any, h: Optional[float] = None, v: Optional[float] = None
     ) -> Generator[Any, None, None]:
-        """move the slits to the specified size"""
+        """Move the slits to the specified size.
+
+        Args:
+            h: Horizontal size to set
+            v: Vertical size to set
+
+        Yields:
+            Generator: Control flow for motor movement
+
+        Raises:
+            ValueError: If horizontal size is not specified
+        """
         if h is None:
             raise ValueError("must define horizontal size")
         if v is None:
@@ -108,6 +210,7 @@ def operations_on():
     Returns:
         tuple: A tuple containing the initialized shutter objects
     """
+    aps = oregistry["aps"]
     if aps.inUserOperations and operations_in_12ide():
         FE_shutter = My12IdPssShutter(
             # 12id:shutter0_opn and 12id:shutter0_cls
@@ -171,6 +274,7 @@ def linkam_setup():
     This function initializes the Linkam temperature controller, sets up
     tolerances, and configures engineering units.
     """
+    linkam_tc1 = oregistry["linkam_tc1"]
     try:
         linkam_tc1.wait_for_connection()
     except Exception:
@@ -214,6 +318,8 @@ def ar_pretune_hook():
     Yields:
         Generator: A sequence of plan messages
     """
+    scaler0 = oregistry["scaler0"]
+    UPD_SIGNAL = oregistry["UPD_SIGNAL"]
     stage = a_stage.r
     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -234,6 +340,7 @@ def ar_posttune_hook():
     Yields:
         Generator: A sequence of plan messages
     """
+    scaler0 = oregistry["scaler0"]
     msg = "Tuning axis {}, final position is {}"
     logger.info(msg.format(a_stage.r.name, a_stage.r.position))
     # TODO need to verify how to get tube_ok signal from new tuning
@@ -294,6 +401,7 @@ def autoscale_amplifiers(
     shutter: Optional[Any] = None,
     count_time: float = 0.05,
     max_iterations: int = 9,
+    RE: Optional[RunEngine] = None,
 ) -> Generator[Any, None, Any]:
     """Bluesky plan: autoscale detector amplifiers simultaneously.
 
@@ -307,12 +415,17 @@ def autoscale_amplifiers(
         Time to count for each measurement, by default 0.05
     max_iterations : int, optional
         Maximum number of iterations to try, by default 9
+    RE : Optional[RunEngine], optional
+        RunEngine instance to use, by default None
 
     Returns
     -------
     Generator[Any, None, Any]
         Bluesky plan
     """
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+
     assert isinstance(controls, (tuple, list)), "controls must be a list"
     scaler_dict = group_controls_by_scaler(controls)
 
@@ -322,15 +435,12 @@ def autoscale_amplifiers(
     for control_list in scaler_dict.values():
         # do amplifiers in sequence, in case same hardware used multiple times
         if len(control_list) > 0:
-            # logger.info(
-            #    "Autoscaling amplifier for: %s",
-            #    control_list[0].nickname
-            # )
             try:
                 yield from _scaler_autoscale_(
                     control_list,
                     count_time=count_time,
                     max_iterations=max_iterations,
+                    RE=RE,
                 )
             except AutoscaleError as exc:
                 logger.warning(
@@ -346,8 +456,27 @@ def autoscale_amplifiers(
                 )
 
 
-def _scaler_autoscale_(controls, count_time=0.05, max_iterations=9):
-    """plan: internal: autoscale amplifiers for signals sharing a common scaler"""
+def _scaler_autoscale_(
+    controls: List[DetectorAmplifierAutorangeDevice],
+    count_time: float = 0.05,
+    max_iterations: int = 9,
+    RE: Optional[RunEngine] = None,
+) -> Generator[Any, None, None]:
+    """Plan: internal: autoscale amplifiers for signals sharing a common scaler.
+
+    Args:
+        controls: List of DetectorAmplifierAutorangeDevice instances
+        count_time: Time to count for each measurement
+        max_iterations: Maximum number of iterations to try
+        RE: RunEngine instance to use
+
+    Yields:
+        Generator: Control flow for the autoscale operation
+    """
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+
+    aps = oregistry["aps"]
     global _last_autorange_gain_
 
     scaler = controls[0].scaler

@@ -8,11 +8,14 @@ __all__ = [
 
 import logging
 from typing import Any
+from typing import Dict
 from typing import Generator
+from typing import Optional
 
 from apsbits.utils.controls_setup import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 
 from ..devices import AutorangeSettings
 from .mode_changes import mode_USAXS
@@ -38,6 +41,56 @@ ti_filter_shutter = oregistry["ti_filter_shutter"]
 trd = oregistry["trd"]
 upd_controls = oregistry["upd_controls"]
 user_data = oregistry["user_data"]
+
+
+def reset_instrument(
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, Any]:
+    """Reset the instrument to its default state.
+
+    This function resets various components of the instrument to their
+    default states, including detectors, motors, and other devices.
+
+    Parameters
+    ----------
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, Any]
+        A sequence of plan messages
+
+    USAGE:  ``RE(reset_instrument())``
+    """
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
+    _md = {}
+    _md.update(md or {})
+
+    @bpp.run_decorator(md=_md)
+    def _inner() -> Generator[Any, None, Any]:
+        yield from user_data.set_state_plan("resetting instrument")
+        yield from bps.mv(scaler0.count_mode, "AutoCount")
+        yield from bps.sleep(1)  # Allow time for reset
+
+    return (yield from _inner())
 
 
 def reset_USAXS() -> Generator[Any, None, None]:

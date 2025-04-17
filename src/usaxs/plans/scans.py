@@ -23,8 +23,6 @@ from typing import Optional
 from apsbits.utils.controls_setup import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from apstools.plans import restorable_stage_sigs
-
-# Import RE, bec, and specwriter
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
@@ -112,18 +110,21 @@ def preUSAXStune(
     md: Optional[Dict[str, Any]] = None,
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
 ):
     """
-    Tune the USAXS optics *only* if in USAXS mode.
+    Tune the USAXS optics in any mode, is safe.
 
     Parameters
     ----------
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
     RE : Optional[Any], optional
-        RunEngine instance, by default None
+        Bluesky RunEngine instance, by default None
     bec : Optional[Any], optional
-        BestEffortCallback instance, by default None
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -134,6 +135,12 @@ def preUSAXStune(
     """
     if md is None:
         md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
 
     yield from bps.mv(
         monochromator.feedback.on,
@@ -253,6 +260,9 @@ def preUSAXStune(
 @bpp.suspend_decorator(suspend_BeamInHutch)
 def allUSAXStune(
     md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
 ):
     """
     Tune mr, ar, a2rp, ar, a2rp USAXS optics.
@@ -261,8 +271,12 @@ def allUSAXStune(
     ----------
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    oregistry : Optional[Dict[str, Any]], optional
-        The ophyd registry containing device instances, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -273,6 +287,12 @@ def allUSAXStune(
     """
     if md is None:
         md = {}
+    if RE is None:
+        RE = oregistry["RE"]
+    if bec is None:
+        bec = oregistry["bec"]
+    if specwriter is None:
+        specwriter = oregistry["specwriter"]
 
     # Get devices from oregistry
     monochromator = oregistry["monochromator"]
@@ -402,16 +422,23 @@ def allUSAXStune(
 
 def preSWAXStune(
     md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
 ):
     """
-    Tune the SAXS & WAXS optics in any mode, is safe.
+    Tune the SAXS/WAXS optics in any mode, is safe.
 
     Parameters
     ----------
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    oregistry : Optional[Dict[str, Any]], optional
-        The ophyd registry containing device instances, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -422,6 +449,12 @@ def preSWAXStune(
     """
     if md is None:
         md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
 
     # Get devices from oregistry
     monochromator = oregistry["monochromator"]
@@ -519,11 +552,54 @@ def preSWAXStune(
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def USAXSscan(x, y, thickness_mm, title, md=None):
+def USAXSscan(
+    x: float,
+    y: float,
+    thickness_mm: float,
+    title: str,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+):
     """
-    general scan macro for fly or step USAXS with 1D or 2D collimation
+    Execute a USAXS scan at the specified position.
+
+    Parameters
+    ----------
+    x : float
+        X position for the scan
+    y : float
+        Y position for the scan
+    thickness_mm : float
+        Sample thickness in mm
+    title : str
+        Title for the scan
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+
+    USAGE:  ``RE(USAXSscan(x, y, thickness_mm, title))``
     """
-    # _md = apsbss.update_MD(md or {})
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness_mm
     _md["title"] = title
@@ -535,12 +611,53 @@ def USAXSscan(x, y, thickness_mm, title, md=None):
     yield from bps.mv(monochromator.feedback.on, MONO_FEEDBACK_ON)
 
 
-def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
+def USAXSscanStep(
+    pos_X: float,
+    pos_Y: float,
+    thickness: float,
+    scan_title: str,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+):
     """
-    general scan macro for step USAXS for both 1D & 2D collimation
-    """
+    Execute a step USAXS scan at the specified position.
 
-    # bluesky_runengine_running = RE.state != "idle"
+    Parameters
+    ----------
+    pos_X : float
+        X position for the scan
+    pos_Y : float
+        Y position for the scan
+    thickness : float
+        Sample thickness in mm
+    scan_title : str
+        Title for the scan
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+
+    USAGE:  ``RE(USAXSscanStep(pos_X, pos_Y, thickness, scan_title))``
+    """
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -571,7 +688,6 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     # It may add time and temperature therefore it needs to be done close to real
     # data collection, after mode change and optional tuning.
     scan_title = getSampleTitle(scan_title)
-    # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
@@ -589,12 +705,10 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         thickness,
         user_data.spec_scan,
         str(SCAN_N),
-        # or terms.FlyScan.order_number.get()
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
         "uascan",
-        # user_data.collection_in_progress, 1,
         timeout=MASTER_TIMEOUT,
     )
     yield from user_data.set_state_plan("starting USAXS step scan")
@@ -605,15 +719,9 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # offset the calc from exact zero so can plot log(|Q|)
-    # q_offset = terms.USAXS.start_offset.get()
-    # angle_offset = q2angle(q_offset, monochromator.dcm.wavelength.position)
-    # ar0_calc_offset = terms.USAXS.ar_val_center.get() + angle_offset
-
     yield from bps.mv(
         a_stage.r,
         terms.USAXS.ar_val_center.get(),
-        # these two were moved by mode_USAXS(), belt & suspenders here
         d_stage.x,
         terms.USAXS.DX0.get(),
         a_stage.x,
@@ -627,14 +735,6 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # TODO: what to do with USAXSScanUp?
-    # 2019-01-25, prj+jil: this is probably not used now, only known to SPEC
-    # it's used to cal Finish_in_Angle and START
-    # both of which get passed to EPICS
-    # That happens outside of this code.  completely.
-
-    # measure transmission values using pin diode if desired
-    # yield from bps.install_suspender(suspend_BeamInHutch)
     yield from measure_USAXS_Transmission(md=_md)
 
     yield from bps.mv(
@@ -643,7 +743,6 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # enable asrp link to ar for 2D USAXS
     if terms.USAXS.is2DUSAXSscan.get():
         RECORD_SCAN_INDEX_10x_per_second = 9
         yield from bps.mv(
@@ -652,7 +751,6 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
             timeout=MASTER_TIMEOUT,
         )
 
-    # we'll reset these after the scan is done
     old_femto_change_gain_up = upd_controls.auto.gainU.get()
     old_femto_change_gain_down = upd_controls.auto.gainD.get()
 
@@ -672,7 +770,7 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     SCAN_N = RE.md["scan_id"] + 1  # update with next number
     yield from bps.mv(
         user_data.scanning,
-        "scanning",  # we are scanning now (or will be very soon)
+        "scanning",
         user_data.spec_scan,
         str(SCAN_N),
         timeout=MASTER_TIMEOUT,
@@ -688,16 +786,13 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
 
     uascan_path = techniqueSubdirectory("usaxs")
     uascan_file_name = (
-        f"{scan_title_clean}"
-        # f"_{plan_name}"
-        f"_{terms.FlyScan.order_number.get():04d}"
-        ".h5"
+        f"{scan_title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
     )
     _md["hdf5_path"] = uascan_path
     _md["hdf5_file"] = uascan_file_name
     logger.info("USAXSscan HDF5 data path: %s", _md["hdf5_path"])
     logger.info("USAXSscan HDF5 data file: %s", _md["hdf5_file"])
-    logger.info("*" * 10)  # this line gets clobbered on the console
+    logger.info("*" * 10)
 
     startAngle = terms.USAXS.ar_val_center.get() - q2angle(
         terms.USAXS.start_offset.get(), monochromator.dcm.wavelength.position
@@ -731,20 +826,18 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
 
     yield from bps.mv(
         user_data.scanning,
-        "no",  # for sure, we are not scanning now
+        "no",
         timeout=MASTER_TIMEOUT,
     )
-    # yield from bps.remove_suspender(suspend_BeamInHutch)
 
     yield from user_data.set_state_plan("USAXS step scan finished")
 
-    yield from bps.mvr(terms.FlyScan.order_number, 1)  # increment it
+    yield from bps.mvr(terms.FlyScan.order_number, 1)
     yield from bps.mv(
         ti_filter_shutter,
         "close",
         monochromator.feedback.on,
         MONO_FEEDBACK_ON,
-        # user_data.collection_in_progress, 0,
         scaler0.update_rate,
         5,
         scaler0.auto_count_delay,
@@ -763,7 +856,6 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     )
 
     yield from user_data.set_state_plan("Moving USAXS back and saving data")
-    # file writing is handled by the nxwriter callback, by a RE subscription
     yield from bps.mv(
         a_stage.r,
         terms.USAXS.ar_val_center.get(),
@@ -774,24 +866,56 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # TODO: make this link for side-bounce
-    # disable asrp link to ar for 2D USAXS
-    # FS_disableASRP
-
-    # measure_USAXS_PD_dark_currents    # used to be here, not now
     yield from after_plan(weight=3)
 
 
-def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
+def Flyscan(
+    pos_X: float,
+    pos_Y: float,
+    thickness: float,
+    scan_title: str,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+):
     """
-    do one USAXS Fly Scan
+    Execute a fly scan at the specified position.
+
+    Parameters
+    ----------
+    pos_X : float
+        X position for the scan
+    pos_Y : float
+        Y position for the scan
+    thickness : float
+        Sample thickness in mm
+    scan_title : str
+        Title for the scan
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+
+    USAGE:  ``RE(Flyscan(pos_X, pos_Y, thickness, scan_title))``
     """
-    plan_name = "Flyscan"
-
-    from .command_list import after_plan
-    from .command_list import before_plan
-
-    bluesky_runengine_running = RE.state != "idle"
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -809,10 +933,9 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # woraround epics bug for trajectories not uploaded.
     oldUA = terms.USAXS.uaterm.get()
     yield from bps.mv(terms.USAXS.uaterm, oldUA + 0.1)
-    yield from bps.sleep(0.05)  # time fo epics to recalculate
+    yield from bps.sleep(0.05)
     yield from bps.mv(terms.USAXS.uaterm, oldUA)
 
     yield from before_plan()
@@ -825,9 +948,6 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # Update Sample name. getSampleTitle is used to create proper sample name.
-    # It may add time and temperature therefore it needs to be done close to real
-    # data collection, after mode change and optional tuning.
     scan_title = getSampleTitle(scan_title)
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
@@ -835,18 +955,13 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
 
     scan_title_clean = cleanupText(scan_title)
 
-    # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = RE.md["scan_id"] + 1
 
     flyscan_path = techniqueSubdirectory("usaxs")
-    if not os.path.exists(flyscan_path) and bluesky_runengine_running:
-        # must create this directory if not exists
+    if not os.path.exists(flyscan_path) and RE.state != "idle":
         os.mkdir(flyscan_path)
     flyscan_file_name = (
-        f"{scan_title_clean}"
-        # f"_{plan_name}"
-        f"_{terms.FlyScan.order_number.get():04d}"
-        ".h5"
+        f"{scan_title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
     )
 
     usaxs_flyscan.saveFlyData_HDF5_dir = flyscan_path
@@ -860,12 +975,10 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         thickness,
         user_data.spec_scan,
         str(SCAN_N),
-        # or terms.FlyScan.order_number.get()
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
-        "FlyScan",  # note camel-case
-        # user_data.collection_in_progress, 1,
+        "FlyScan",
         timeout=MASTER_TIMEOUT,
     )
     yield from user_data.set_state_plan("starting USAXS Flyscan")
@@ -876,15 +989,9 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # offset the calc from exact zero so can plot log(|Q|)
-    # q_offset = terms.USAXS.start_offset.get()
-    # angle_offset = q2angle(q_offset, monochromator.dcm.wavelength.position)
-    # ar0_calc_offset = terms.USAXS.ar_val_center.get() + angle_offset
-
     yield from bps.mv(
         a_stage.r,
         terms.USAXS.ar_val_center.get(),
-        # these two were moved by mode_USAXS(), belt & suspenders here
         d_stage.x,
         terms.USAXS.DX0.get(),
         a_stage.x,
@@ -898,16 +1005,8 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # TODO: what to do with USAXSScanUp?
-    # 2019-01-25, prj+jil: this is probably not used now, only known to SPEC
-    # it's used to cal Finish_in_Angle and START
-    # both of which get passed to EPICS
-    # That happens outside of this code.  completely.
-
-    # measure transmission values using pin diode if desired
     usaxs_flyscan.saveFlyData_HDF5_dir = flyscan_path
     usaxs_flyscan.saveFlyData_HDF5_file = flyscan_file_name
-    # yield from bps.install_suspender(suspend_BeamInHutch)
     yield from measure_USAXS_Transmission(md=_md)
 
     yield from bps.mv(
@@ -916,7 +1015,6 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # enable asrp link to ar for 2D USAXS
     if terms.USAXS.is2DUSAXSscan.get():
         RECORD_SCAN_INDEX_10x_per_second = 9
         yield from bps.mv(
@@ -925,7 +1023,6 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
             timeout=MASTER_TIMEOUT,
         )
 
-    # we'll reset these after the scan is done
     old_femto_change_gain_up = upd_controls.auto.gainU.get()
     old_femto_change_gain_down = upd_controls.auto.gainD.get()
 
@@ -961,11 +1058,9 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # Pause autosave on LAX to prevent delays in PVs processing.
     yield from bps.mv(
         lax_autosave.disable,
         1,
-        # autosave will restart after this interval (s)
         lax_autosave.max_time,
         usaxs_flyscan.scan_time.get() + 9,
         timeout=MASTER_TIMEOUT,
@@ -973,7 +1068,6 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
 
     yield from user_data.set_state_plan("Running Flyscan")
 
-    ### move the stages to flyscan starting values from EPICS PVs
     yield from bps.mv(
         a_stage.r,
         flyscan_trajectories.ar.get()[0],
@@ -983,15 +1077,13 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         flyscan_trajectories.dx.get()[0],
         ar_start,
         flyscan_trajectories.ar.get()[0],
-        # ay_start, flyscan_trajectories.ay.get()[0],
-        # dy_start, flyscan_trajectories.dy.get()[0],
         timeout=MASTER_TIMEOUT,
     )
 
-    SCAN_N = RE.md["scan_id"] + 1  # update with next number
+    SCAN_N = RE.md["scan_id"] + 1
     yield from bps.mv(
         user_data.scanning,
-        "scanning",  # we are scanning now (or will be very soon)
+        "scanning",
         user_data.spec_scan,
         str(SCAN_N),
         timeout=MASTER_TIMEOUT,
@@ -999,7 +1091,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
 
     _md = md or OrderedDict()
     _md.update(md or {})
-    _md["plan_name"] = plan_name
+    _md["plan_name"] = "Flyscan"
     _md["plan_args"] = dict(
         pos_X=pos_X,
         pos_Y=pos_Y,
@@ -1007,27 +1099,21 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         scan_title=scan_title,
     )
     _md["fly_scan_time"] = usaxs_flyscan.scan_time.get()
-    #'detectors': [det.name for det in detectors],
-    #'num_points': num,
-    #'num_intervals': num_intervals,
-    #'hints': {}
 
     yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
-    yield from usaxs_flyscan.plan(md=_md)  # DO THE FLY SCAN
+    yield from usaxs_flyscan.plan(md=_md)
 
     yield from bps.mv(
         user_data.scanning,
-        "no",  # for sure, we are not scanning now
+        "no",
         terms.FlyScan.elapsed_time,
-        0,  # show the users there is no more time
+        0,
         timeout=MASTER_TIMEOUT,
     )
-    # yield from bps.remove_suspender(suspend_BeamInHutch)
 
-    # Check if we had bad number of PSO pulses
     diff = flyscan_trajectories.num_pulse_positions.get() - struck.current_channel.get()
-    if diff > 5 and bluesky_runengine_running:
+    if diff > 5 and RE.state != "idle":
         msg = "WARNING: Flyscan finished with %g less points" % diff
         logger.warning(msg)
         if NOTIFY_ON_BAD_FLY_SCAN:
@@ -1036,17 +1122,16 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
 
     yield from user_data.set_state_plan("Flyscan finished")
 
-    yield from bps.mvr(terms.FlyScan.order_number, 1)  # increment it
+    yield from bps.mvr(terms.FlyScan.order_number, 1)
     yield from bps.mv(
         lax_autosave.disable,
-        0,  # enable
+        0,
         lax_autosave.max_time,
-        0,  # start right away
+        0,
         ti_filter_shutter,
         "close",
         monochromator.feedback.on,
         MONO_FEEDBACK_ON,
-        # user_data.collection_in_progress, 0,
         scaler0.update_rate,
         5,
         scaler0.auto_count_delay,
@@ -1075,29 +1160,60 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # TODO: make this link for side-bounce
-    # disable asrp link to ar for 2D USAXS
-    # FS_disableASRP
-
-    # measure_USAXS_PD_dark_currents    # used to be here, not now
     yield from after_plan(weight=3)
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# @bpp.suspend_decorator(suspend_FE_shutter)
-# @bpp.suspend_decorator(suspend_BeamInHutch)
-# this is how to do proper suspender for one function, not for the whole module
-def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
+def SAXS(
+    pos_X: float,
+    pos_Y: float,
+    thickness: float,
+    scan_title: str,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+):
     """
-    collect SAXS data
+    Execute a SAXS scan at the specified position.
+
+    Parameters
+    ----------
+    pos_X : float
+        X position for the scan
+    pos_Y : float
+        Y position for the scan
+    thickness : float
+        Sample thickness in mm
+    scan_title : str
+        Title for the scan
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+
+    USAGE:  ``RE(SAXS(pos_X, pos_Y, thickness, scan_title))``
     """
-    # yield from bps.null()       #so something happens here if all commented out
-    from .command_list import after_plan
-    from .command_list import before_plan
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
 
     yield from IfRequestedStopBeforeNextScan()
 
-    yield from before_plan()  # MUST come before mode_SAXS since it might tune
+    yield from before_plan()
 
     yield from mode_SAXS()
 
@@ -1112,12 +1228,11 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         guard_slit.h_size,
         terms.SAXS.guard_h_size.get(),
         saxs_stage.z,
-        pinz_target,  # MUST move before sample stage moves!
+        pinz_target,
         user_data.sample_thickness,
         thickness,
         terms.SAXS.collecting,
         1,
-        # user_data.collection_in_progress, 1,
         timeout=MASTER_TIMEOUT,
     )
 
@@ -1129,11 +1244,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # Update Sample name. getSampleTitle is used to create proper sample name.
-    # It may add time and temperature therefore it needs to be done close to real
-    # data collection, after mode change and optional tuning.
     scan_title = getSampleTitle(scan_title)
-    # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
     _md.update(md or {})
     _md["plan_name"] = "SAXS"
@@ -1142,14 +1253,11 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
     scan_title_clean = cleanupText(scan_title)
 
-    # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = RE.md["scan_id"] + 1
 
-    # these two templates match each other, sort of
     ad_file_template = AD_FILE_TEMPLATE
     local_file_template = LOCAL_FILE_TEMPLATE
 
-    # path on local file system
     SAXSscan_path = techniqueSubdirectory("saxs")
     SAXS_file_name = local_file_template % (
         scan_title_clean,
@@ -1158,13 +1266,11 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     _md["hdf5_path"] = str(SAXSscan_path)
     _md["hdf5_file"] = str(SAXS_file_name)
 
-    # NFS-mounted path as the Pilatus detector sees it
     pilatus_path = os.path.join(
         "/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:]
     )
-    # area detector will create this path if needed ("Create dir. depth" setting)
     if not pilatus_path.endswith("/"):
-        pilatus_path += "/"  # area detector needs this
+        pilatus_path += "/"
     local_name = os.path.join(SAXSscan_path, SAXS_file_name)
     logger.info(f"Area Detector HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
@@ -1180,7 +1286,6 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         saxs_det.hdf1.file_template,
         ad_file_template,
         timeout=MASTER_TIMEOUT,
-        # auto_monitor=False,
     )
     saxs_det.hdf1.file_path._auto_monitor = True
     saxs_det.hdf1.file_template._auto_monitor = True
@@ -1196,7 +1301,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
-        "SAXS",  # match the value in the scan logs
+        "SAXS",
         timeout=MASTER_TIMEOUT,
     )
     yield from user_data.set_state_plan("starting SAXS collection")
@@ -1229,7 +1334,6 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         )
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in saxs_det.cam.stage_sigs:
-                # print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
                 saxs_det.cam.stage_sigs.pop(k)
         saxs_det.hdf1.stage_sigs["file_template"] = ad_file_template
         saxs_det.hdf1.stage_sigs["file_write_mode"] = "Single"
@@ -1244,7 +1348,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             timeout=MASTER_TIMEOUT,
         )
 
-        SCAN_N = RE.md["scan_id"] + 1  # update with next number
+        SCAN_N = RE.md["scan_id"] + 1
         yield from bps.mv(
             scaler1.preset_time,
             terms.SAXS.acquire_time.get() + 1,
@@ -1254,9 +1358,6 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             "OneShot",
             scaler1.count_mode,
             "OneShot",
-            # update as fast as hardware will allow
-            # this is needed to make sure we get as up to date I0 number
-            # as possible for AD software.
             scaler0.update_rate,
             60,
             scaler1.update_rate,
@@ -1281,8 +1382,6 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     yield from _image_acquisition_steps()
 
     ts = str(datetime.datetime.now())
-    # below stopping the scalers should be done in userTrans2,
-    # but no harm stopping it twice
     yield from bps.mv(
         scaler0.count,
         0,
@@ -1304,7 +1403,6 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         0,
         user_data.time_stamp,
         ts,
-        # user_data.collection_in_progress, 0,
         timeout=MASTER_TIMEOUT,
     )
     yield from user_data.set_state_plan("Done SAXS")
@@ -1312,22 +1410,59 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     yield from after_plan()
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
+def WAXS(
+    pos_X: float,
+    pos_Y: float,
+    thickness: float,
+    scan_title: str,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+):
     """
-    collect WAXS data
-    """
+    Execute a WAXS scan at the specified position.
 
-    from .command_list import after_plan
-    from .command_list import before_plan
+    Parameters
+    ----------
+    pos_X : float
+        X position for the scan
+    pos_Y : float
+        Y position for the scan
+    thickness : float
+        Sample thickness in mm
+    scan_title : str
+        Title for the scan
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+
+    USAGE:  ``RE(WAXS(pos_X, pos_Y, thickness, scan_title))``
+    """
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
 
     yield from IfRequestedStopBeforeNextScan()
 
-    yield from before_plan()  # MUST come before mode_WAXS since it might tune
+    yield from before_plan()
 
     yield from mode_WAXS()
 
@@ -1344,7 +1479,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         thickness,
         terms.WAXS.collecting,
         1,
-        # user_data.collection_in_progress, 1,
         timeout=MASTER_TIMEOUT,
     )
 
@@ -1356,11 +1490,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         timeout=MASTER_TIMEOUT,
     )
 
-    # Update Sample name. getSampleTitle is used to create proper sample name.
-    # It may add time and temperature therefore it needs to be done close to real
-    # data collection, after mode change and optional tuning.
     scan_title = getSampleTitle(scan_title)
-    # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
@@ -1368,14 +1498,11 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
     scan_title_clean = cleanupText(scan_title)
 
-    # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = RE.md["scan_id"] + 1
 
-    # these two templates match each other, sort of
     ad_file_template = AD_FILE_TEMPLATE
     local_file_template = LOCAL_FILE_TEMPLATE
 
-    # path on local file system
     WAXSscan_path = techniqueSubdirectory("waxs")
     WAXS_file_name = local_file_template % (
         scan_title_clean,
@@ -1384,11 +1511,9 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
     _md["hdf5_path"] = str(WAXSscan_path)
     _md["hdf5_file"] = str(WAXS_file_name)
 
-    # NFS-mounted path as the Pilatus detector sees it
     pilatus_path = os.path.join("/mnt/share1", *WAXSscan_path.split(os.path.sep)[2:])
-    # area detector will create this path if needed ("Create dir. depth" setting)
     if not pilatus_path.endswith("/"):
-        pilatus_path += "/"  # area detector needs this
+        pilatus_path += "/"
     local_name = os.path.join(WAXSscan_path, WAXS_file_name)
     logger.info(f"Area Detector HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, WAXS_file_name)
@@ -1404,7 +1529,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         waxs_det.hdf1.file_template,
         ad_file_template,
         timeout=MASTER_TIMEOUT,
-        # auto_monitor=False,
     )
     waxs_det.hdf1.file_path._auto_monitor = True
     waxs_det.hdf1.file_template._auto_monitor = True
@@ -1420,7 +1544,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
-        "WAXS",  # match the value in the scan logs
+        "WAXS",
         timeout=MASTER_TIMEOUT,
     )
     yield from user_data.set_state_plan("starting WAXS collection")
@@ -1433,7 +1557,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
 
     @restorable_stage_sigs([waxs_det.cam, waxs_det.hdf1])
     def _image_acquisition_steps():
-        # yield from measure_SAXS_Transmission()
         yield from insertWaxsFilters()
 
         yield from bps.mv(
@@ -1453,7 +1576,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         )
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in waxs_det.cam.stage_sigs:
-                # print(f"Removing {waxs_det.cam.name}.stage_sigs[{k}].")
                 waxs_det.cam.stage_sigs.pop(k)
         waxs_det.hdf1.stage_sigs["file_template"] = ad_file_template
         waxs_det.hdf1.stage_sigs["file_write_mode"] = "Single"
@@ -1477,9 +1599,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             "OneShot",
             scaler1.count_mode,
             "OneShot",
-            # update as fast as hardware will allow
-            # this is needed to make sure we get as up to date I0 number
-            # as possible for AD software.
             scaler0.update_rate,
             60,
             scaler1.update_rate,
@@ -1496,13 +1615,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             f"WAXS collection for {terms.WAXS.acquire_time.get()} s"
         )
 
-        # replaced by  usxLAX:userTran1
-        # yield from bps.mv(
-        #     scaler0.count, 1,
-        #     scaler1.count, 1,
-        #     timeout=MASTER_TIMEOUT,
-        # )
-
         yield from record_sample_image_on_demand("waxs", scan_title_clean, _md)
 
         yield from areaDetectorAcquire(waxs_det, create_directory=-5, md=_md)
@@ -1515,8 +1627,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         0,
         scaler1.count,
         0,
-        # WAXS uses same PVs for normalization and transmission as SAXS,
-        # should we alias it same to terms.WAXS???
         terms.SAXS_WAXS.I0,
         scaler1.channels.chan02.s.get(),
         terms.SAXS_WAXS.diode_transmission,
@@ -1541,7 +1651,6 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         0,
         user_data.time_stamp,
         ts,
-        # user_data.collection_in_progress, 0,
         timeout=MASTER_TIMEOUT,
     )
     yield from user_data.set_state_plan("Done WAXS")

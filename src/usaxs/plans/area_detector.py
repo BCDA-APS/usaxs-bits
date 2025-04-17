@@ -1,5 +1,7 @@
-"""
-support area detector
+"""Area detector plans for the USAXS instrument.
+
+This module provides plans for controlling area detectors in the USAXS instrument,
+including configuration, acquisition, and data collection.
 """
 
 __all__ = [
@@ -8,6 +10,10 @@ __all__ = [
 
 import logging
 import time
+from typing import Any
+from typing import Dict
+from typing import Generator
+from typing import Optional
 
 from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
@@ -22,24 +28,53 @@ logger.info(__file__)
 user_data = oregistry["user_data"]
 
 
-def areaDetectorAcquire(det, create_directory=None, RE=None, bec=None, md=None):
-    """
-    acquire image(s) from the named area detector
+def areaDetectorAcquire(
+    det: Any,
+    create_directory: Optional[str] = None,
+    md: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, Any]:
+    """Acquire image(s) from the named area detector.
+
+    This function configures and acquires images from a specified area detector,
+    including setting up the acquisition parameters, creating output directories,
+    and handling the data collection process.
 
     Parameters
     ----------
-    det : Device
+    det : Any
         The area detector to acquire from
-    create_directory : str, optional
+    create_directory : Optional[str], optional
         Directory to create for the data, by default None
-    RE : RunEngine, optional
-        The RunEngine instance, by default None
-    beck : BestEffortCallback, optional
-        The BestEffortCallback instance, by default None
-    md : dict, optional
-        Metadata for the scan, by default None
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, Any]
+        A sequence of plan messages
+
+    USAGE:  ``RE(areaDetectorAcquire(det))``
     """
-    _md = md or {}
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
+    _md = {}
+    _md.update(md or {})
     acquire_time = det.cam.acquire_time.get()
     # Note: AD's HDF File Writer can use up to 5 seconds to finish writing the file
 

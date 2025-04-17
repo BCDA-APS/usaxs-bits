@@ -19,7 +19,9 @@ scaler0 = oregistry["scaler0"]
 def tune(
     self,
     md: Optional[Dict[str, Any]] = None,
-    oregistry: Optional[Dict[str, Any]] = None,
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
 ) -> Generator[Any, None, Any]:
     """Execute a tuning plan.
 
@@ -28,16 +30,33 @@ def tune(
 
     Parameters
     ----------
-    md : Dict[str, Any], optional
+    self : Any
+        The stage motor to tune
+    md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
 
     Returns
     -------
     Generator[Any, None, Any]
         A sequence of plan messages
+
+    USAGE:  ``RE(tune(stage_motor))``
     """
+    if md is None:
+        md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
+
     _md = {}
     _md.update(md or {})
 

@@ -1,5 +1,8 @@
 """
 USAXS step scan
+
+This module provides plans for performing USAXS (Ultra Small Angle X-ray Scattering) scans,
+including both standard USAXS and side-bounce USAXS (SBUSAXS) configurations.
 """
 
 __all__ = [
@@ -11,6 +14,7 @@ import math
 from collections import OrderedDict
 from typing import Any
 from typing import Dict
+from typing import Generator
 from typing import Optional
 
 # Get devices from oregistry
@@ -43,97 +47,85 @@ trd_controls = oregistry["trd_controls"]
 trd = oregistry["trd"]
 user_data = oregistry["user_data"]
 
-# from ..devices import I00
-# from ..devices import I000
-# from ..devices import MONO_FEEDBACK_ON
-# from ..devices import I0_controls
-# from ..devices import I00_controls
-# from ..devices import a_stage  # , as_stage
-# from ..devices import d_stage  # , as_stage
-
-# # from ..devices import fuel_spray_bit
-# from ..devices import m_stage  # , as_stage
-# from ..devices import monochromator
-# from ..devices import s_stage  # , as_stage
-# from ..devices import scaler0
-# from ..devices import terms
-# from ..devices import ti_filter_shutter
-# from ..devices import trd
-# from ..devices import trd_controls
-# from ..devices import upd_controls
-# from ..devices import user_data
-# from ..usaxs_support.ustep import Ustep
-
-
 logger = logging.getLogger(__name__)
 logger.info(__file__)
-### notes for preliminary testing
-# uascan()
-# center: 8.746588
-# start: -0.0003 1/A (Q) --> -0.0008 degrees = 8.7474
-# finish: 0.3 1/A (Q) --> 0.8 degrees = 7.9
-# minstep = 0.000025 degrees
-# exponent = 1.0
-# intervals = 200
-# count time = 1 s
-# DX0 = 12.83
-# SDD = 910
-# ax0 = 0
-# SAD = 215
-
-# Ustep(8.7474, 8.746588, 7.9, 200, 1, 0.000025)
-# uascan(8.7474, 8.746588, 7.9, 0.000025, 1, 200, 1, 12.83, 910, 0, 215)
 
 
 def uascan(
-    start,
-    reference,
-    finish,
-    minStep,
-    exponent,
-    intervals,
-    count_time,
-    dx0,
-    SDD_mm,
-    ax0,
-    SAD_mm,
-    useDynamicTime=True,
+    start: float,
+    reference: float,
+    finish: float,
+    minStep: float,
+    exponent: float,
+    intervals: int,
+    count_time: float,
+    dx0: float,
+    SDD_mm: float,
+    ax0: float,
+    SAD_mm: float,
+    useDynamicTime: bool = True,
     md: Optional[Dict[str, Any]] = None,
-):
-    """
-    USAXS ascan (step size varies with distance from a reference point)
+    RE: Optional[Any] = None,
+    bec: Optional[Any] = None,
+    specwriter: Optional[Any] = None,
+) -> Generator[Any, None, Any]:
+    """Execute a USAXS scan with variable step size.
+
+    This function performs a USAXS scan with step size that varies with distance
+    from a reference point. It supports both standard USAXS and side-bounce USAXS
+    (SBUSAXS) configurations.
 
     Parameters
     ----------
     start : float
-        Starting position
+        Starting position in degrees
     reference : float
-        Reference position
+        Reference position in degrees
     finish : float
-        Finishing position
+        Finishing position in degrees
     minStep : float
-        Minimum step size
+        Minimum step size in degrees
     exponent : float
         Exponent for step size calculation
     intervals : int
-        Number of intervals
+        Number of intervals for the scan
     count_time : float
-        Count time per point
+        Count time per point in seconds
     dx0 : float
-        Initial dx position
+        Initial dx position in mm
     SDD_mm : float
         Sample to detector distance in mm
     ax0 : float
-        Initial ax position
+        Initial ax position in mm
     SAD_mm : float
         Sample to analyzer distance in mm
     useDynamicTime : bool, optional
-        Whether to use dynamic time, by default True
+        Whether to use dynamic time adjustment, by default True
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
+    RE : Optional[Any], optional
+        Bluesky RunEngine instance, by default None
+    bec : Optional[Any], optional
+        Bluesky Live Callbacks instance, by default None
+    specwriter : Optional[Any], optional
+        SPEC file writer instance, by default None
+
+    Returns
+    -------
+    Generator[Any, None, Any]
+        A sequence of plan messages
+
+    USAGE:  ``RE(uascan(start, reference, finish, minStep, exponent, intervals, 
+    count_time, dx0, SDD_mm, ax0, SAD_mm))``
     """
     if md is None:
         md = {}
+    if RE is None:
+        raise ValueError("RunEngine instance must be provided")
+    if bec is None:
+        raise ValueError("Bluesky Live Callbacks instance must be provided")
+    if specwriter is None:
+        raise ValueError("SPEC file writer instance must be provided")
 
     if intervals <= 0:
         raise ValueError(f"intervals must be >0, given: {intervals}")
@@ -181,13 +173,11 @@ def uascan(
     )
 
     # original values before scan
-    # asrp0 = as_stage.rp.position
     prescan_positions = {
         "sy": s_stage.y.position,
         "dx": d_stage.x.position,
         "ax": a_stage.x.position,
         "ar": a_stage.r.position,
-        #'asrp' : asrp0,
     }
 
     # devices which are recorded in the "primary" stream
@@ -210,22 +200,17 @@ def uascan(
 
     # do not report the "quiet" detectors/stages during a uascan
     quiet_detectors = [
-        # I0,
         I00,
         I000,
-        # upd2,
         trd,
     ]
     quiet_stages = [
         m_stage.r,
         m_stage.x,
         m_stage.y,
-        # a_stage.r,
-        # a_stage.x,
         a_stage.y,
         s_stage.x,
         s_stage.y,
-        # d_stage.x,
         d_stage.y,
     ]
     for obj in quiet_detectors:
@@ -236,12 +221,9 @@ def uascan(
         obj.user_readback.kind = "omitted"
 
     if terms.USAXS.useSBUSAXS.get():
-        # read_devices.append(as_stage.rp)
         scan_cmd = "sb" + scan_cmd
-        # TODO: anything else?
 
     ar_series = Ustep(start, reference, finish, intervals, exponent, minStep)
-    # print(f"factor={ar_series.factor} for {len(ar_series.series())} points")
 
     _md = OrderedDict()
     _md.update(md or {})
@@ -263,12 +245,25 @@ def uascan(
     _md["SAD_mm"] = SAD_mm
     _md["useDynamicTime"] = str(useDynamicTime)
 
-    def _triangulate_(angle, dist):
-        """triangulate offset, given angle of rotation"""
+    def _triangulate_(angle: float, dist: float) -> float:
+        """Calculate triangulated offset given angle of rotation.
+
+        Parameters
+        ----------
+        angle : float
+            Angle of rotation in degrees
+        dist : float
+            Distance in mm
+
+        Returns
+        -------
+        float
+            Triangulated offset in mm
+        """
         return dist * math.tan(angle * math.pi / 180)
 
     @bpp.run_decorator(md=_md)
-    def _scan_():
+    def _scan_() -> Generator[Any, None, Any]:
         count_time = count_time_base
 
         ar0 = terms.USAXS.center.AR.get()
@@ -306,25 +301,6 @@ def uascan(
                 # adjust the ASRP piezo on the AS side-bounce stage
                 tanBragg = math.tan(reference * math.pi / 180)
                 cosScatAngle = math.cos((reference - target_ar) * math.pi / 180)
-                # Note on asrp adjustment:
-                #  NOTE: seems wrong, but may need to be revisited?
-                # use "-" when reflecting inboard towards storage ring
-                # (single bounce setup)
-                # use "+" when reflecting outboard towards experimenters
-                # (channel-cut setup)
-                # on 2/06/2002 Andrew realized, that we are moving in wrong direction
-                # the sign change to - moves ASRP towards larger Bragg angles...
-                # verified experimentally - higher voltage on piezo = lower Bragg angle
-                # and we need to INCREASE the Bragg Angle with increasing Q,
-                # to correct for tilt down...
-
-                # asrp_vdc = (
-                #     asrp0 - diff/terms.usaxs.asrp_degrees_per_VDC.get()
-                # )
-                # moves += [as_stage.rp, asrp_vdc]
-
-            # added for fuel spray users as indication that we are counting...
-            # moves += [fuel_spray_bit, 1]
 
             yield from user_data.set_state_plan(f"moving motors {i+1}/{intervals}")
             yield from bps.mv(*moves)
@@ -345,7 +321,7 @@ def uascan(
                 else:
                     count_time = 2 * count_time_base
 
-    def _after_scan_():
+    def _after_scan_() -> Generator[Any, None, Any]:
         yield from bps.mv(
             # indicate USAXS scan is not running
             terms.USAXS.scanning,
@@ -378,8 +354,6 @@ def uascan(
             a_stage.r,
             prescan_positions["ar"],
         ]
-        # if terms.USAXS.useSBUSAXS.get():
-        # motor_resets += [as_stage.rp, prescan_positions["asrp"]]
         yield from bps.mv(*motor_resets)  # all at once
 
         for obj in quiet_detectors:
@@ -389,9 +363,6 @@ def uascan(
             obj.user_setpoint.kind = "normal"
             obj.user_readback.kind = "hinted"
 
-        # TODO: #588 reduce 1-D data in NX file
-
     # run the scan
-    # TODO: implement try..except..else..finally stanza for error handling
     yield from _scan_()
     yield from _after_scan_()
