@@ -22,8 +22,8 @@ iconfig = get_config()
 fly_scan_settings = iconfig.get("USAXS_FLY_SCAN_SETTINGS", {})
 
 fallback_dir = fly_scan_settings.get("FALLBACK_DIR")
-hdf5_file = fly_scan_settings.get("FALLBACK_DIR")
-hdf5_dir = fly_scan_settings.get("FALLBACK_DIR")
+hdf5_file = fly_scan_settings.get("SAVE_FLY_DATA_HDF5_FILE")
+hdf5_dir = fly_scan_settings.get("SAVE_FLY_DATA_HDF5_DIR")
 
 
 class UsaxsFlyScanDevice(Device):
