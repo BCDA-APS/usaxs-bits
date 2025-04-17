@@ -58,29 +58,6 @@ class TuneRanges(Device):
 
 axis_tune_range = TuneRanges(name="axis_tune_range")
 
-# --------------MR stage-----------------------------
-
-# def mr_pretune_hook():
-#     stage = m_stage.r
-#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-#     yield from bps.mv(scaler0.preset_time, 0.1,)
-#     scaler0.select_channels(["I0_USAXS"])
-#     #TODO: this shoudl move to plans for plot handling.
-#     #y_name = TUNING_DET_SIGNAL.chname.get()
-#     #scaler0.select_channels([y_name])
-#     #scaler0.channels.chan01.kind = Kind.config
-#     # trim_plot_by_name(n=5)
-# #this may be needed if we make plotting again, but lineup2 does not plot by default.
-#     # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
-
-
-# def mr_posttune_hook():
-#     #msg = "Tuning axis {}, final position is {}"
-#     #logger.info(msg.format(m_stage.r.name, m_stage.r.position))
-#     # need to plot data in plans
-#     scaler0.select_channels(None)
-#     yield from bps.null()
-
 
 class UsaxsCollimatorStageDevice(MotorBundle):
     """USAXS Collimator (Monochromator) stage"""
@@ -101,21 +78,18 @@ class UsaxsCollimatorStageDevice(MotorBundle):
     y: Component[EpicsMotor] = Component(
         EpicsMotor, "usxAERO:m11", labels=("collimator",)
     )
-    r2p: Component[TunableEpicsMotor2] = Component(
-        TunableEpicsMotor2,
+    r2p: Component[EpicsMotor] = Component(
+        EpicsMotor,
         "usxLAX:pi:c0:m2",
         labels=(
             "collimator",
             "tunable",
         ),
-        tune_range=axis_tune_range.m2rp,
-        # defaults everything else
     )
     isChannelCut: bool = True
 
 
 # ----- end of MR ------
-# -------M2RP - not needed for single crystal channelcut M stage--------------------
 
 
 class UsaxsDetectorStageDevice(MotorBundle):
@@ -148,116 +122,7 @@ class UsaxsSampleStageDevice(MotorBundle):
     y: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m9", labels=("sample",))
 
 
-# class UsaxsCollimatorSideReflectionStageDevice(MotorBundle):
-#    """USAXS Collimator (Monochromator) side-reflection stage  (unused)"""
-#    #r = Component(EpicsMotor, 'usxLAX:xps:c0:m5', labels=("side_collimator",))
-#    #t = Component(EpicsMotor, 'usxLAX:xps:c0:m3', labels=("side_collimator",))
-#    x = Component(EpicsMotor, 'usxLAX:m58:c1:m1', labels=("side_collimator",))
-#    y = Component(EpicsMotor, 'usxLAX:m58:c1:m2')
-#    rp = Component(
-#        UsaxsMotorTunable,
-#        'usxLAX:pi:c0:m3',
-#        labels=("side_collimator", "tunable",)
-#    )
-#  -------------------------------------------
-# def msrp_pretune_hook():
-#     stage = ms_stage.rp
-#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-#     yield from bps.mv(scaler0.preset_time, 0.1)
-#     y_name = TUNING_DET_SIGNAL.chname.get()
-#     scaler0.select_channels([y_name])
-#     scaler0.channels.chan01.kind = Kind.config
-#     trim_plot_by_name(n=5)
-#     # trim_plot_lines(bec, 5, stage, TUNING_DET_SIGNAL)
-
-
-# def msrp_posttune_hook():
-#     msg = "Tuning axis {}, final position is {}"
-#     logger.info(msg.format(ms_stage.rp.name, ms_stage.rp.position))
-
-#     if ms_stage.rp.tuner.tune_ok:
-#         yield from bps.mv(terms.USAXS.msr_val_center, ms_stage.rp.position)
-
-#     scaler0.select_channels(None)
-
-# ms_stage.rp.pre_tune_method = msrp_pretune_hook
-# ms_stage.rp.post_tune_method = msrp_posttune_hook
-
-# -------------------------------------------
-
-# ----A stage ---------------------------------------
-
-
-# a_stage.r.tuner = TuneAxis(
-#         [scaler0],
-#         a_stage.r,
-#         signal_name=_getScalerSignalName_(scaler0, UPD_SIGNAL),
-#         width_signal=axis_tune_range.ar,
-# )
-# a_stage.r.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
-# a_stage.r.tuner.num = 35
-# a_stage.r.tuner.width = axis_tune_range.ar.get()     # -0.004
-
-# --ASRP-----------------------------------------
-
-# def asrp_pretune_hook():
-#     stage = as_stage.rp
-#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-#     yield from bps.mv(scaler0.preset_time, 0.1)
-#     y_name = UPD_SIGNAL.chname.get()
-#     scaler0.select_channels([y_name])
-#     scaler0.channels.chan01.kind = Kind.config
-#     trim_plot_by_name(n=5)
-#     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
-
-# def asrp_posttune_hook():
-#     msg = "Tuning axis {}, final position is {}"
-#     logger.info(msg.format(as_stage.rp.name, as_stage.rp.position))
-#     yield from bps.mv(terms.USAXS.asr_val_center, as_stage.rp.position)
-
-#     if as_stage.rp.tuner.tune_ok:
-#         pass    # #165: update center when/if we get a PV for that
-
-#     scaler0.select_channels(None)
-
-# # use I00 (if MS stage is used, use I0)
-# as_stage.rp.tuner = TuneAxis(
-#     [scaler0],
-#     as_stage.rp,
-#     signal_name=_getScalerSignalName_(scaler0, UPD_SIGNAL),
-#     width_signal=axis_tune_range.asrp,
-# )
-# as_stage.rp.tuner.peak_choice = TUNE_METHOD_PEAK_CHOICE
-# as_stage.rp.tuner.num = 21
-# as_stage.rp.tuner.width = axis_tune_range.asrp.get()     # 6
-
-# as_stage.rp.pre_tune_method = asrp_pretune_hook
-# as_stage.rp.post_tune_method = asrp_posttune_hook
-
-# # --A2RP-----------------------------------------
-
-# def a2rp_pretune_hook():
-#     stage = a_stage.r2p
-#     logger.info(f"Tuning axis {stage.name}, current position is {stage.position}")
-#     yield from bps.mv(scaler0.preset_time, 0.1)
-#     yield from bps.mv(scaler0.delay, 0.02)
-#     #scaler0.select_channels(["PD_USAXS"])
-#     y_name = UPD_SIGNAL.chname.get()
-#     scaler0.select_channels([y_name])
-#     scaler0.channels.chan01.kind = Kind.config
-#     #trim_plot_by_name(n=5)
-#     # trim_plot_lines(bec, 5, stage, UPD_SIGNAL)
-
-# def a2rp_posttune_hook():
-#     #
-#     # TODO: first, re-position piezo considering hysteresis?
-#     #
-#     msg = "Tuning axis {}, final position is {}"
-#     logger.info(msg.format(a_stage.r2p.name, a_stage.r2p.position))
-#     yield from bps.mv(scaler0.delay, 0.05)
-
-#     # if a_stage.r2p.tuner.tune_ok:
-#     #    pass    # #165: update center when/if we get a PV for that
+## ----A stage ---------------------------------------
 
 
 class UsaxsAnalyzerStageDevice(MotorBundle):
@@ -281,19 +146,6 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
     # rt = Component(EpicsMotor, 'usxLAX:m58:c1:m3', labels=("analyzer",))
 
 
-# ------end of A stage-------------------------------------
-
-
-# class UsaxsAnalyzerSideReflectionStageDevice(MotorBundle):
-#    """USAXS Analyzer side-reflection stage (unused)"""
-#    #r = Component(EpicsMotor, 'usxLAX:xps:c0:m6', labels=("analyzer",))
-#    #t = Component(EpicsMotor, 'usxLAX:xps:c0:m4', labels=("analyzer",))
-#    y = Component(EpicsMotor, 'usxLAX:m58:c1:m4', labels=("analyzer",))
-#    rp = Component(
-#        TunableEpicsMotor2,
-#        'usxLAX:pi:c0:m4',
-#        labels=("analyzer", "tunable")
-#    )
 
 
 class SaxsDetectorStageDevice(MotorBundle):
