@@ -10,18 +10,13 @@ Note: Don't use blocking calls here
 """
 
 __all__ = """
-    empty_plan #NO need
     instrument_default_tune_ranges #maybe
     tune_a2rp
-    tune_after_imaging #no need
     tune_ar
-    tune_asrp #NO need
     tune_diode
     tune_dx
     tune_dy
-    tune_m2rp #NO need
     tune_mr
-    tune_msrp #NO need
     tune_saxs_optics
     tune_usaxs_optics
     update_EPICS_tuning_widths #important
@@ -73,35 +68,13 @@ logger.info(__file__)
 user_override.register("usaxs_minstep")
 
 
-def empty_plan(*args: Any, **kwargs: Any) -> Generator[Any, None, None]:
-    """
-    A placeholder plan that yields nothing and logs its arguments.
-
-    This function is used as a no-op plan that can be assigned to tuning methods
-    when tuning is not needed or not applicable (e.g., for channel-cut crystals).
-
-    Parameters
-    ----------
-    *args : Any
-        Variable length argument list that will be logged
-    **kwargs : Any
-        Arbitrary keyword arguments that will be logged
-
-    Yields
-    ------
-    Generator[Any, None, None]
-        A generator that yields nothing
-    """
-    logger.info(f"Doing nothing: args={args}, kwargs={kwargs}")
-    yield from bps.null()
-
 
 # Set empty plan for channel-cut crystals
-if m_stage.isChannelCut:
-    m_stage.r2p.tuner = empty_plan
-    m_stage.r2p.pre_tune_method = empty_plan
-    m_stage.r2p.post_tune_method = empty_plan
-    tune_m2rp = empty_plan
+# if m_stage.isChannelCut:
+#     m_stage.r2p.tuner = empty_plan
+#     m_stage.r2p.pre_tune_method = empty_plan
+#     m_stage.r2p.post_tune_method = empty_plan
+#     tune_m2rp = empty_plan
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
@@ -170,144 +143,6 @@ def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
     finally:
         yield from bps.mv(ti_filter_shutter, "close")
 
-
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
-def tune_m2rp(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
-    """
-    Tune the M2RP stage.
-
-    This function tunes the monochromator second rotation piezo stage by finding
-    the optimal position for maximum signal intensity. It includes setting up the
-    scaler, configuring the detector controls, and performing a lineup scan.
-
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
-
-    Yields
-    ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    if md is None:
-        md = {}
-
-    try:
-        yield from bps.sleep(0.2)  # piezo is fast, give the system time to react
-        yield from bps.mv(scaler0.preset_time, 0.1)
-        md["plan_name"] = "tune_m2rp"
-        yield from IfRequestedStopBeforeNextScan()
-        logger.info(f"tuning axis: {m_stage.r2p.name}")
-        axis_start = m_stage.r2p.position
-        yield from bps.mv(
-            mono_shutter,
-            "open",
-            ti_filter_shutter,
-            "open",
-        )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        scaler0.select_channels(["PD_USAXS"])
-        trim_plot_by_name(5)
-        stats = SignalStatsCallback()
-        yield from lineup2(
-            [scaler0],
-            m_stage.r2p,
-            -m_stage.r2p.tune_range.get(),
-            m_stage.r2p.tune_range.get(),
-            31,
-            nscans=1,
-            signal_stats=stats,
-            md=md,
-        )
-        print(stats.report())
-        yield from bps.mv(
-            ti_filter_shutter,
-            "close",
-            scaler0.count_mode,
-            "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
-        scaler0.select_channels(None)
-        if stats.analysis.success:
-            logger.info(f"final position: {m_stage.r2p.position}")
-        else:
-            print(f"tune_m2rp failed for {stats.analysis.reasons}")
-
-    except Exception as e:
-        logger.error(f"Error in tune_m2rp: {str(e)}")
-        raise
-
-
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
-def tune_msrp(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
-    """
-    Tune the MSRP stage.
-
-    This function tunes the monochromator second rotation piezo stage by finding
-    the optimal position for maximum signal intensity. It includes setting up the
-    scaler, configuring the detector controls, and performing a lineup scan.
-
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
-
-    Yields
-    ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    if md is None:
-        md = {}
-
-    try:
-        yield from bps.mv(scaler0.preset_time, 0.1)
-        md["plan_name"] = "tune_msrp"
-        yield from IfRequestedStopBeforeNextScan()
-        logger.info(f"tuning axis: {m_stage.rp.name}")
-        axis_start = m_stage.rp.position
-        yield from bps.mv(
-            mono_shutter,
-            "open",
-            ti_filter_shutter,
-            "open",
-        )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        scaler0.select_channels(["PD_USAXS"])
-        trim_plot_by_name(5)
-        stats = SignalStatsCallback()
-        yield from lineup2(
-            [scaler0],
-            m_stage.rp,
-            -m_stage.rp.tune_range.get(),
-            m_stage.rp.tune_range.get(),
-            31,
-            nscans=1,
-            signal_stats=stats,
-            md=md,
-        )
-        print(stats.report())
-        yield from bps.mv(
-            ti_filter_shutter,
-            "close",
-            scaler0.count_mode,
-            "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
-        scaler0.select_channels(None)
-        if stats.analysis.success:
-            logger.info(f"final position: {m_stage.rp.position}")
-        else:
-            print(f"tune_msrp failed for {stats.analysis.reasons}")
-
-    except Exception as e:
-        logger.error(f"Error in tune_msrp: {str(e)}")
-        raise
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
@@ -386,76 +221,6 @@ def tune_ar(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         logger.error(f"Error in tune_ar: {str(e)}")
         raise
 
-
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
-def tune_asrp(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
-    """
-    Tune the ASRP stage.
-
-    This function tunes the analyzer second rotation piezo stage by finding the
-    optimal position for maximum signal intensity. It includes setting up the
-    scaler, configuring the detector controls, and performing a lineup scan.
-
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
-
-    Yields
-    ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    if md is None:
-        md = {}
-
-    try:
-        yield from bps.mv(ti_filter_shutter, "open")
-        yield from bps.mv(scaler0.preset_time, 0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
-        md["plan_name"] = "tune_asrp"
-        yield from IfRequestedStopBeforeNextScan()
-        logger.info(f"tuning axis: {a_stage.rp.name}")
-        axis_start = a_stage.rp.position
-        yield from bps.mv(
-            mono_shutter,
-            "open",
-            ti_filter_shutter,
-            "open",
-        )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        trim_plot_by_name(5)
-        scaler0.select_channels(["PD_USAXS"])
-        stats = SignalStatsCallback()
-        yield from lineup2(
-            [scaler0],
-            a_stage.rp,
-            -a_stage.rp.tune_range.get(),
-            a_stage.rp.tune_range.get(),
-            31,
-            nscans=1,
-            signal_stats=stats,
-            md=md,
-        )
-        print(stats.report())
-        yield from bps.mv(
-            ti_filter_shutter,
-            "close",
-            scaler0.count_mode,
-            "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
-        scaler0.select_channels(None)
-        if stats.analysis.success:
-            logger.info(f"final position: {a_stage.rp.position}")
-        else:
-            print(f"tune_asrp failed for {stats.analysis.reasons}")
-
-    except Exception as e:
-        logger.error(f"Error in tune_asrp: {str(e)}")
-        raise
 
 
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -737,10 +502,10 @@ def tune_usaxs_optics(
         yield from mode_USAXS()
 
         yield from tune_mr(md=md)
-        yield from tune_m2rp(md=md)
-        if side:
-            yield from tune_msrp(md=md)
-            yield from tune_asrp(md=md)
+        # yield from tune_m2rp(md=md)
+        # if side:
+        #     yield from tune_msrp(md=md)
+        #     yield from tune_asrp(md=md)
         yield from tune_ar(md=md)
         yield from tune_a2rp(md=md)
 
@@ -778,7 +543,7 @@ def tune_saxs_optics(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None
 
     try:
         yield from tune_mr(md=md)
-        yield from tune_m2rp(md=md)
+        # yield from tune_m2rp(md=md)
         yield from bps.mv(
             terms.preUSAXStune.epoch_last_tune,
             time.time(),
@@ -788,46 +553,6 @@ def tune_saxs_optics(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None
         logger.error(f"Error in tune_saxs_optics: {str(e)}")
         raise
 
-
-def tune_after_imaging(
-    md: Optional[Dict[str, Any]] = None,
-) -> Generator[Any, None, None]:
-    """
-    Tune optics after imaging.
-
-    This function tunes the optics after imaging measurements, with special
-    consideration for the AR stage tuning range.
-
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
-
-    Yields
-    ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    if md is None:
-        md = {}
-
-    try:
-        epics_ar_tune_range = axis_tune_range.ar.get()  # remember
-
-        # tune_ar with custom tune range if that is larger
-        custom_range = 0.005
-        if epics_ar_tune_range > custom_range:
-            yield from bps.mv(axis_tune_range.ar, custom_range)
-            yield from tune_ar(md=md)
-
-        # finally, tune_ar with standard tune range
-        yield from bps.mv(axis_tune_range.ar, epics_ar_tune_range)
-        yield from tune_ar(md=md)
-        yield from tune_a2rp(md=md)
-
-    except Exception as e:
-        logger.error(f"Error in tune_after_imaging: {str(e)}")
-        raise
 
 
 def instrument_default_tune_ranges() -> Generator[Any, None, None]:
