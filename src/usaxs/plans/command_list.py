@@ -29,7 +29,6 @@ from ..utils.quoted_line import split_quoted_line
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
 from .axis_tuning import user_defined_settings
-from .doc_run import documentation_run
 from .mode_changes import mode_BlackFly
 from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
