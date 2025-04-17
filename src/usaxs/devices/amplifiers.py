@@ -84,8 +84,6 @@ from ophyd import Signal
 from ophyd.scaler import ScalerCH
 from ophyd.scaler import ScalerChannel
 
-# # from .override_ScalerCH import ScalerCH, ScalerChannel
-
 iconfig = get_config()
 scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
 
