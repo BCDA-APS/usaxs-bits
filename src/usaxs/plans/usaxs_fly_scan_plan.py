@@ -30,7 +30,7 @@ from ..devices.stages import a_stage
 from ..devices.stages import d_stage
 from ..devices.struck3820 import struck
 from ..devices.user_data import user_data
-from ..usaxs_support.saveFlyData import SaveFlyScan
+from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
 logger = logging.getLogger(__name__)
 

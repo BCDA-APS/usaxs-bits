@@ -82,5 +82,8 @@ RE(make_devices(clear=False)) #from main file
 # RE(make_devices(file = 'devices_in_operation.py',clear=False))
 if in_operation:
 #    RE(make_devices(file = 'devices_in_operation.py',clear=False))
+    pass
 if not in_operation:
 #    RE(make_devices(file = 'devices_no_operation.py', clear=False))
+#    RE(make_devices(clear=False))  # from main file
+    pass

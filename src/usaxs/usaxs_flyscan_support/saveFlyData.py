@@ -31,9 +31,9 @@ os.environ["HDF5_DISABLE_VERSION_CHECK"] = "2"
 # matches IOC for big arrays
 os.environ["EPICS_CA_MAX_ARRAY_BYTES"] = "1280000"  # was 200000000
 try:
-    import nexus  # when run standalone
+    import usaxs.usaxs_flyscan_support.nexus_flyscan as nexus_flyscan  # when run standalone
 except ImportError:
-    from . import nexus  # when imported in a package
+    from . import nexus_flyscan  # when imported in a package
 
 
 COMMON_AD_CONFIG_DIR = "/share1/AreaDetectorConfig/FlyScan_config/"
@@ -85,7 +85,7 @@ class SaveFlyScan(object):
         path = self._get_support_code_dir()
         self.config_file = config_file or os.path.join(path, XML_CONFIGURATION_FILE)
 
-        self.mgr = nexus.get_manager(self.config_file)
+        self.mgr = nexus_flyscan.get_manager(self.config_file)
         self._prepare_to_acquire()
 
     def waitForData(self) -> None:

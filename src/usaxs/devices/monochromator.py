@@ -13,7 +13,7 @@ from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 
-from ..misc.emails import email_notices
+from ..utils.emails import email_notices
 
 logger = logging.getLogger(__name__)
 

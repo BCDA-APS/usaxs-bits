@@ -23,8 +23,8 @@ from IPython import get_ipython
 from ophyd import Signal
 
 from ..devices.amplifiers import measure_background
-from ..usaxs_support.nexus import reset_manager
-from ..usaxs_support.surveillance import instrument_archive
+from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
+from ..usaxs_flyscan_support.surveillance import instrument_archive
 from ..utils.quoted_line import split_quoted_line
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths

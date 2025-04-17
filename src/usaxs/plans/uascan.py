@@ -24,7 +24,7 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
 # Add these imports at the top of the file
-from ..usaxs_support.ustep import Ustep
+from ..utils.ustep import Ustep
 
 # Constants
 MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]

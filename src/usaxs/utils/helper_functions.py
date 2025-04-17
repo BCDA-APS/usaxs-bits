@@ -26,21 +26,21 @@ from ophyd.device import Kind
 from ophyd.scaler import EpicsScaler
 from ophyd.signal import EpicsSignalRO
 
-from ..devices.amplifiers import AMPLIFIER_MINIMUM_SETTLING_TIME
-from ..devices.amplifiers import NUM_AUTORANGE_GAINS
-from ..devices.amplifiers import AutorangeSettings
-from ..devices.amplifiers import AutoscaleError
-from ..devices.amplifiers import DetectorAmplifierAutorangeDevice
+from ..devices import AMPLIFIER_MINIMUM_SETTLING_TIME
+from ..devices import NUM_AUTORANGE_GAINS
+from ..devices import AutorangeSettings
+from ..devices import AutoscaleError
+from ..devices import DetectorAmplifierAutorangeDevice
 from ..devices.general_terms import terms
 from ..devices.shutters import ApsPssShutter
 from ..devices.shutters import ApsPssShutterWithStatus
 from ..devices.shutters import My12IdPssShutter
 from ..devices.shutters import SimulatedApsPssShutterWithStatus
 from ..devices.stages import a_stage
-from ..devices.struck3820 import ScalerCH
-from ..devices.struck3820 import ScalerChannel
-from ..devices.upd_controls import upd_controls
-from ..misc.usaxs_q_calc import usaxs_q_calc
+from ..devices import ScalerCH
+from ..devices import ScalerChannel
+from ..devices import upd_controls
+from ..suspenders import usaxs_q_calc
 
 logger = logging.getLogger(__name__)
 
