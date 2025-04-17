@@ -73,4 +73,14 @@ else:
     from bluesky import plans as bp  # noqa: F401
 
 
-RE(make_devices(clear=False))
+##operation variables
+in_operation = False #should be a caget?
+
+
+##load devices
+RE(make_devices(clear=False)) #from main file
+# RE(make_devices(file = 'devices_in_operation.py',clear=False))
+if in_operation:
+#    RE(make_devices(file = 'devices_in_operation.py',clear=False))
+if not in_operation:
+#    RE(make_devices(file = 'devices_no_operation.py', clear=False))

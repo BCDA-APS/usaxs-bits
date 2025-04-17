@@ -40,7 +40,6 @@ from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
-from bluesky.preprocessors import IfRequestedStopBeforeNextScan
 
 # Device instances
 I0_controls = oregistry["I0_controls"]

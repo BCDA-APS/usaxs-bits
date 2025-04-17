@@ -37,9 +37,6 @@ from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
 from .requested_stop import RequestAbort
 
-# Add missing imports
-from ..devices.pilatus import PI_Off, PI_onF, PI_onR
-
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
