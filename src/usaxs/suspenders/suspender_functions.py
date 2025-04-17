@@ -26,9 +26,10 @@ def suspender_in_operations():
 
 
     logger.info(f"mono shutter connected = {mono_shutter.pss_state.connected}")
-    # remove comment if likely to use this suspender (issue #170)
-    # suspend_mono_shutter = bluesky.suspenders.SuspendFloor(mono_shutter.pss_state, 1)
-
+    # DO NOT INSTALL THIS for always!!!! It prevents all operations when APS dumps
+    # and A shutter closes. 2-24-2025 JIL, hard lesson learned. Really annoying.
+    # use following construct now:
+    # @bpp.suspend_decorator(suspend_FE_shutter)
     logger.info(
         "Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired."
     )

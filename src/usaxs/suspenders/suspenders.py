@@ -6,18 +6,11 @@ __all__ = []
 
 import logging
 
-import bluesky.suspenders
 from bluesky import plan_stubs as bps
-from ophyd import Signal
 
-from ..devices.shutters import FE_shutter
-from ..devices.shutters import mono_shutter
-from ..devices.white_beam_ready_calc import white_beam_ready
-from ..framework import sd
-from .aps_source import aps
+
 from .monochromator import MONO_FEEDBACK_ON
 from .monochromator import monochromator
-from .permit import BeamInHutch
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -52,63 +45,3 @@ class FeedbackHandlingDuringSuspension:
         #     )
         #     self.previous = None
         yield from self.turn_feedback_on()
-
-
-if aps.inUserOperations:
-    sd.monitors.append(aps.current)
-    # # suspend when current < 2 mA
-    # # resume 100s after current > 10 mA
-    # logger.info("Installing suspender for low APS current.")
-    # suspend_APS_current = bluesky.suspenders.SuspendFloor(
-    #     aps.current, 2, resume_thresh=10, sleep=100)
-    # RE.install_suspender(suspend_APS_current)
-
-    # suspend if we do not believe white beam is ready
-    # considers:
-    #   - APS storage ring current
-    #   - 9ID undulator
-    #   - white beam shutter
-    # Signal provided by 9idcLAX:userCalc9 PV (swait record)
-    fb = FeedbackHandlingDuringSuspension()
-    suspender_white_beam_ready = bluesky.suspenders.SuspendBoolLow(
-        white_beam_ready.available,
-        pre_plan=fb.mono_beam_lost_plan,
-        sleep=100,  # RE sleeps _before_ calling post_plan
-        post_plan=fb.mono_beam_just_came_back_but_after_sleep_plan,
-    )
-    # DO NOT INSTALL THIS for always!!!! It prevents all operations when APS dumps
-    # and A shutter closes. 2-24-2025 JIL, hard lesson learned. Really annoying.
-    # need to figure out better way to do this,
-    # can we combinee with BeamInHutch suspender?
-    # RE.install_suspender(suspender_white_beam_ready)
-
-    # remove comment if likely to use this suspender (issue #170)
-    suspend_FE_shutter = bluesky.suspenders.SuspendFloor(FE_shutter.pss_state, 1)
-    # RE.install_suspender(suspend_FE_shutter)
-    # use following construct now:
-    # @bpp.suspend_decorator(suspend_FE_shutter)
-
-    logger.info(f"mono shutter connected = {mono_shutter.pss_state.connected}")
-    # remove comment if likely to use this suspender (issue #170)
-    # suspend_mono_shutter = bluesky.suspenders.SuspendFloor(mono_shutter.pss_state, 1)
-
-    logger.info(
-        "Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired."
-    )
-    suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)
-# be more judicious when to use this suspender (only within scan plans) -- see #180
-# old method:
-# RE.install_suspender(suspend_BeamInHutch)
-# RE.remove_suspender(suspend_BeamInHutch)
-# logger.info("BeamInHutch suspender installed")
-# use following construct now:
-# @bpp.suspend_decorator(suspend_BeamInHutch)
-# #this is how to do proper suspender for one function, not for the whole module
-
-
-else:
-    # simulators
-    _simulated_beam_in_hutch = Signal(name="_simulated_beam_in_hutch")
-    suspend_BeamInHutch = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)
-    # RE.install_suspender(suspend_BeamInHutch)
-    suspend_FE_shutter = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)
