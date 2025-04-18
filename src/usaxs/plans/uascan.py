@@ -25,6 +25,9 @@ from bluesky import preprocessors as bpp
 
 # Add these imports at the top of the file
 from ..utils.ustep import Ustep
+from ..utils.emails import send_notification
+from .mode_changes import mode_USAXS
+from .mono_feedback import DCMfeedbackON
 
 # Constants
 MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
@@ -46,6 +49,7 @@ ti_filter_shutter = oregistry["ti_filter_shutter"]
 trd_controls = oregistry["trd_controls"]
 trd = oregistry["trd"]
 user_data = oregistry["user_data"]
+NOTIFY_ON_SCAN_DONE = oregistry["NOTIFY_ON_SCAN_DONE"]
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -366,3 +370,17 @@ def uascan(
     # run the scan
     yield from _scan_()
     yield from _after_scan_()
+
+    yield from user_data.set_state_plan("USAXS scan complete")
+    
+    # Use the improved send_notification function
+    send_notification(
+        "USAXS scan complete", 
+        f"USAXS scan from {start} to {finish} with {intervals} points is complete.",
+        notify_flag=NOTIFY_ON_SCAN_DONE
+    )
+
+    yield from bps.mv(
+        user_data.collection_in_progress,
+        0,  # despite the label, 0 means not collecting
+    )

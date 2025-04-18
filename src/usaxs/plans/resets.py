@@ -18,6 +18,7 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
 from ..devices import AutorangeSettings
+from ..utils.emails import send_notification
 from .mode_changes import mode_USAXS
 from .mono_feedback import DCMfeedbackON
 
@@ -139,10 +140,13 @@ def reset_USAXS() -> Generator[Any, None, None]:
         obj.user_readback.kind = "hinted"  # TODO: correct value?
 
     yield from user_data.set_state_plan("USAXS reset complete")
-    if NOTIFY_ON_RESET:
-        email_notices.send(
-            "USAXS has reset", "spec has encountered a problem and reset the USAXS."
-        )
+    
+    # Use the improved send_notification function
+    send_notification(
+        "USAXS has reset", 
+        "spec has encountered a problem and reset the USAXS.",
+        notify_flag=NOTIFY_ON_RESET
+    )
 
     yield from bps.mv(
         user_data.collection_in_progress,
