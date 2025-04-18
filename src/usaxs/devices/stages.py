@@ -138,7 +138,7 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
         EpicsMotor,
         "usxLAX:pi:c0:m1",
         labels=("analyzer", "tunable"),
-                )
+    )
     # rt = Component(EpicsMotor, 'usxLAX:m58:c1:m3', labels=("analyzer",))
 
 

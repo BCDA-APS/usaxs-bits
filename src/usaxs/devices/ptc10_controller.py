@@ -86,6 +86,23 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
         EpicsSignalWithRBV, "outputEnable", kind="config", string=True
     )
 
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the PTC10 controller.
+
+        Args:
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments
+        """
+        super().__init__(*args, **kwargs)
+        # TODO: If this class is broken, this is why
+        self.report_dmov_changes.put(True)  # a diagnostic
+        self.tolerance.put(1.0)  # done when |readback-setpoint|<=tolerance
+
+        # aliases to make PTC10 have same terms as Linkam controllers
+        self.temperature = self
+        self.ramp = self.pid.ramprate
+
     # PTC10 thermocouple module : reads as NaN
     # temperatureB = Component(
     #     EpicsSignalRO, "2B:temperature", kind="config"
@@ -109,12 +126,3 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     # pidB = Component(PTC10AioChannel, "5B:")  # unused now
     # pidC = Component(PTC10AioChannel, "5C:")  # unused now
     # pidD = Component(PTC10AioChannel, "5D:")  # unused now
-
-
-# TODO: Add the aliases back into the class
-# ptc10.report_dmov_changes.put(True)  # a diagnostic
-# ptc10.tolerance.put(1.0)  # done when |readback-setpoint|<=tolerance
-
-# # aliases to make PTC10 have same terms as Linkam controllers
-# ptc10.temperature = ptc10
-# ptc10.ramp = ptc10.pid.ramprate
