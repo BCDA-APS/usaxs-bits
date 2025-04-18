@@ -100,13 +100,16 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
         self.tolerance.put(1.0)  # done when |readback-setpoint|<=tolerance
 
         # aliases to make PTC10 have same terms as Linkam controllers
-        @property
-        def temperature(self):
-            return self
 
-        @property
-        def ramp(self):
-            return self.pid.ramprate
+    @property
+    def temperature(self):
+        """Get the current temperature reading."""
+        return self
+
+    @property
+    def ramp(self):
+        """Get the current ramp rate."""
+        return self.pid.ramprate
 
     # PTC10 thermocouple module : reads as NaN
     # temperatureB = Component(

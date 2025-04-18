@@ -2,17 +2,10 @@
 suspenders : conditions that will interrupt the RunEngine execution
 """
 
-__all__ = []
-
-import logging
-
+from apsbits.utils import oregistry
 from bluesky import plan_stubs as bps
 
-from .monochromator import MONO_FEEDBACK_ON
-from .monochromator import monochromator
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
+monochromator = oregistry["monochromator"]
 
 
 class FeedbackHandlingDuringSuspension:
@@ -26,17 +19,26 @@ class FeedbackHandlingDuringSuspension:
     timeout = 100  # used for setting feedback ON or previous value
 
     def turn_feedback_on(self):
+        """
+        Turn feedback on.
+        """
         yield from bps.mv(
             monochromator.feedback.on,
-            MONO_FEEDBACK_ON,
+            1,  # MONO_FEEDBACK_ON
             timeout=self.timeout,
         )
 
     def mono_beam_lost_plan(self):
+        """
+        Turn feedback on after beam loss.
+        """
         # self.previous  = monochromator.feedback.on.get()
         yield from self.turn_feedback_on()
 
     def mono_beam_just_came_back_but_after_sleep_plan(self):
+        """
+        Turn feedback on after beam is back.
+        """
         # if self.previous is not None:
         #     yield from bps.mv(
         #         monochromator.feedback.on, self.previous,
