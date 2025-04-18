@@ -1,23 +1,18 @@
-'''
+"""
 Amplifier support
-'''
+"""
 
 import logging
-import math
 from collections import OrderedDict
 from typing import Any
-from typing import Dict
 from typing import Generator
 from typing import Optional
 
 # Get devices from oregistry
 from apsbits.utils.controls_setup import oregistry
-from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 
 # Add these imports at the top of the file
-from ..utils.ustep import Ustep
 
 # Constants
 MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
@@ -361,6 +356,7 @@ def UPDRange(self) -> int:
     """
     return upd_controls.auto.lurange.get()  # TODO: check return value is int
 
+
 def _gain_to_str_(gain: int) -> str:
     """Convert a gain value to a string representation.
 
@@ -400,5 +396,6 @@ class OrderedDefaultDict(OrderedDict):
             raise KeyError(key)
         self[key] = value = self.default_factory()
         return value
-    
+
+
 _last_autorange_gain_ = OrderedDefaultDict(dict)

@@ -6,10 +6,10 @@ def operations_in_12ide():
         "usxLAX:blCalc:userCalc2",
         name="BlueSkyEnable",
         auto_monitor=False,
-        )   
-    #return diagnostics.PSS.b_station_enabled
-    return BlueSkyEnabled 
-    #return False
+    )
+    # return diagnostics.PSS.b_station_enabled
+    return BlueSkyEnabled
+    # return False
 
 
 def operations_on():

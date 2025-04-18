@@ -5,7 +5,6 @@ note: this is one of the easiest area detector setups in Ophyd
 """
 # TODO: THis is an ad
 
-import logging
 import os
 import warnings
 from typing import Any
@@ -28,16 +27,6 @@ from .area_detector_common import EpicsDefinesJpegFileNames
 from .area_detector_common import EpicsDefinesTiffFileNames
 from .area_detector_common import Override_AD_plugin_primed
 from .area_detector_common import _validate_AD_FileWriter_path_
-from .area_detector_common import area_detector_EPICS_PV_prefix
-
-logger = logging.getLogger(__name__)
-
-# from ophyd.areadetector.plugins import ProcessPlugin
-
-
-RADIOGRAPHY_CAMERA = "PointGrey BlackFly"  # usxFLY1:
-OPTICAL_CAMERA = "PointGrey BlackFly Optical"  # usxFLY2:
-
 
 # path for image files (as seen by EPICS area detector writer plugin)
 # path seen by detector IOC
@@ -80,6 +69,24 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
     trans1: ADComponent[TransformPlugin] = ADComponent(TransformPlugin, "Trans1:")
     cc1: ADComponent[ColorConvPlugin] = ADComponent(ColorConvPlugin, "CC1:")
     proc1: ADComponent[ProcessPlugin] = ADComponent(ProcessPlugin, "Proc1:")
+
+    def __init__(self, *args, **kwargs):
+        '''
+        Initialize the detector with specific settings.
+        '''
+        super().__init__(*args, **kwargs)
+        # Add jpeg1 to read_attrs
+        self.read_attrs.append("jpeg1")
+        # Configure jpeg1 stage_sigs
+        self.jpeg1.stage_sigs["file_write_mode"] = "Capture"
+
+        if not Override_AD_plugin_primed(self.jpeg1):
+            warnings.warn(
+                "NOTE: blackfly_optical.jpeg1 has not been primed yet."
+                "  BEFORE using this detector in bluesky, call: "
+                "  AD_prime_plugin2(blackfly_optical.jpeg1)",
+                stacklevel=2,
+            )
 
     @property
     def image_file_name(self) -> str:
@@ -211,43 +218,8 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         yield from bps.unstage(self)
 
 
-try:
-    nm = RADIOGRAPHY_CAMERA
-    prefix = area_detector_EPICS_PV_prefix[nm]
-    blackfly_det = MyPointGreyDetector(
-        prefix, name="blackfly_det", labels=["camera", "area_detector"]
-    )
-except TimeoutError:
-    msg = f"Timeout connecting with {nm} ({prefix})"
-    logger.warning(msg)
-    blackfly_det = None
-
-
 _flag_save_sample_image_ = EpicsSignal(
     "usxLAX:saveFLY2Image",
     string=True,
     name="_flag_save_sample_image_",
 )
-
-
-try:
-    nm = OPTICAL_CAMERA
-    prefix = area_detector_EPICS_PV_prefix[nm]
-    # blackfly_optical = MyPointGreyDetectorTIFF(
-    blackfly_optical = MyPointGreyDetectorJPEG(
-        prefix, name="blackfly_optical", labels=["camera", "area_detector"]
-    )
-    # blackfly_optical.read_attrs.append("tiff1")
-    blackfly_optical.read_attrs.append("jpeg1")
-    # blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Single"
-    blackfly_optical.jpeg1.stage_sigs["file_write_mode"] = "Capture"
-    if not Override_AD_plugin_primed(blackfly_optical.jpeg1):
-        warnings.warn(
-            "NOTE: blackfly_optical.jpeg1 has not been primed yet."
-            "  BEFORE using this detector in bluesky, call: "
-            "  AD_prime_plugin2(blackfly_optical.jpeg1)",
-            stacklevel=2,
-        )
-except TimeoutError as exc_obj:
-    logger.warning("Timeout connecting with %s (%s): %s", nm, prefix, exc_obj)
-    blackfly_optical = None

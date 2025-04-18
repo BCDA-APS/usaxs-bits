@@ -1,18 +1,19 @@
+import logging
+
+import bluesky.suspenders
+from ophyd import Signal
+
 from ..devices.shutters import FE_shutter
 from ..devices.shutters import mono_shutter
 from ..devices.white_beam_ready_calc import white_beam_ready
-from .suspenders import FeedbackHandlingDuringSuspension
-from ophyd import Signal
-import bluesky.suspenders
 from .permit import BeamInHutch
-import logging
+from .suspenders import FeedbackHandlingDuringSuspension
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
 def suspender_in_operations():
-
     fb = FeedbackHandlingDuringSuspension()
     suspender_white_beam_ready = bluesky.suspenders.SuspendBoolLow(
         white_beam_ready.available,
@@ -21,9 +22,7 @@ def suspender_in_operations():
         post_plan=fb.mono_beam_just_came_back_but_after_sleep_plan,
     )
 
-
     suspend_FE_shutter = bluesky.suspenders.SuspendFloor(FE_shutter.pss_state, 1)
-
 
     logger.info(f"mono shutter connected = {mono_shutter.pss_state.connected}")
     # DO NOT INSTALL THIS for always!!!! It prevents all operations when APS dumps
@@ -35,8 +34,9 @@ def suspender_in_operations():
     )
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)
 
+
 def suspender_in_sim():
-        # simulators
+    # simulators
     _simulated_beam_in_hutch = Signal(name="_simulated_beam_in_hutch")
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)
     suspend_FE_shutter = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)

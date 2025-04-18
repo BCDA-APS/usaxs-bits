@@ -1,4 +1,3 @@
-
 def plan_slit_ok():
     """Create a plan to check and adjust slit positions.
 

@@ -68,7 +68,6 @@ logger.info(__file__)
 user_override.register("usaxs_minstep")
 
 
-
 # Set empty plan for channel-cut crystals
 # if m_stage.isChannelCut:
 #     m_stage.r2p.tuner = empty_plan
@@ -83,30 +82,30 @@ def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
     """Tune the monochromator rotation."""
     if md is None:
         md = {}
-    
+
     yield from bps.mv(m_stage.r, m_stage.r.position)
     yield from bps.trigger_and_read([m_stage.r])
     yield from IfRequestedStopBeforeNextScan()
-    
+
     try:
         yield from bps.mv(ti_filter_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_mr"
         logger.info(f"tuning axis: {m_stage.r.name}")
-        
+
         yield from bps.mv(m_stage.r, m_stage.r.position - 0.1)
         yield from bps.trigger_and_read([m_stage.r])
         yield from IfRequestedStopBeforeNextScan()
-        
+
         yield from bps.mv(m_stage.r, m_stage.r.position + 0.1)
         yield from bps.trigger_and_read([m_stage.r])
         yield from IfRequestedStopBeforeNextScan()
-        
+
         yield from bps.mv(m_stage.r, m_stage.r.position)
         yield from bps.trigger_and_read([m_stage.r])
         yield from IfRequestedStopBeforeNextScan()
-        
+
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         scaler0.select_channels(["I0_USAXS"])
         trim_plot_by_name(5)
@@ -142,7 +141,6 @@ def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         raise
     finally:
         yield from bps.mv(ti_filter_shutter, "close")
-
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
@@ -220,7 +218,6 @@ def tune_ar(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
     except Exception as e:
         logger.error(f"Error in tune_ar: {str(e)}")
         raise
-
 
 
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -552,7 +549,6 @@ def tune_saxs_optics(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None
     except Exception as e:
         logger.error(f"Error in tune_saxs_optics: {str(e)}")
         raise
-
 
 
 def instrument_default_tune_ranges() -> Generator[Any, None, None]:

@@ -8,7 +8,6 @@ import logging
 
 from bluesky import plan_stubs as bps
 
-
 from .monochromator import MONO_FEEDBACK_ON
 from .monochromator import monochromator
 

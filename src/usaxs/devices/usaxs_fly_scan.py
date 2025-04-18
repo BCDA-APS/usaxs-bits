@@ -9,7 +9,7 @@ from ophyd import EpicsSignal
 from ophyd import Signal
 from ophyd.status import Status
 
-from ..usaxs_support.saveFlyData import XML_CONFIGURATION_FILE
+from ..usaxs_flyscan_support.saveFlyData import XML_CONFIGURATION_FILE
 
 # NOTES for testing SaveFlyScan() command
 """

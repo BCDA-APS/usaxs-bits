@@ -13,7 +13,7 @@ from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 
-from ..utils.emails import email_notices
+# from ..utils.emails import email_notices
 
 logger = logging.getLogger(__name__)
 
@@ -89,32 +89,32 @@ class DCM_Feedback(Device):
         """
         return self.on.get() == 1
 
-    @run_in_thread
-    def _send_emails(self, subject: str, message: str) -> None:
-        """
-        Send email notifications.
+    # @run_in_thread
+    # def _send_emails(self, subject: str, message: str) -> None:
+    #     """
+    #     Send email notifications.
 
-        Args:
-            subject: Email subject
-            message: Email message
-        """
-        email_notices.send(subject, message)
+    #     Args:
+    #         subject: Email subject
+    #         message: Email message
+    #     """
+    #     email_notices.send(subject, message)
 
-    def check_position(self) -> None:
-        """
-        Check if the feedback position is within limits and send notifications if not.
-        """
-        diff_hi = self.drvh.get() - self.oval.get()
-        diff_lo = self.oval.get() - self.drvl.get()
-        if min(diff_hi, diff_lo) < 0.2:
-            subject = "USAXS Feedback problem"
-            message = "Feedback is very close to its limits."
-            if email_notices.notify_on_feedback:
-                self._send_emails(subject, message)
-            logger.warning("!" * 15)
-            logger.warning(subject)
-            logger.warning(message)
-            logger.warning("!" * 15)
+    # def check_position(self) -> None:
+    #     """
+    #     Check if the feedback position is within limits and send notifications if not.
+    #     """
+    #     diff_hi = self.drvh.get() - self.oval.get()
+    #     diff_lo = self.oval.get() - self.drvl.get()
+    #     if min(diff_hi, diff_lo) < 0.2:
+    #         subject = "USAXS Feedback problem"
+    #         message = "Feedback is very close to its limits."
+    #         if email_notices.notify_on_feedback:
+    #             self._send_emails(subject, message)
+    #         logger.warning("!" * 15)
+    #         logger.warning(subject)
+    #         logger.warning(message)
+    #         logger.warning("!" * 15)
 
 
 class MyMonochromator(Device):

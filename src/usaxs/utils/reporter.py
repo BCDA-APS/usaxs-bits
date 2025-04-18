@@ -7,9 +7,9 @@ __all__ = [
 ]
 
 
+import datetime
 import logging
 import time
-import datetime
 
 from apstools.utils import run_in_thread
 

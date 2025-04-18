@@ -119,7 +119,7 @@ def uascan(
     Generator[Any, None, Any]
         A sequence of plan messages
 
-    USAGE:  ``RE(uascan(start, reference, finish, minStep, exponent, intervals, 
+    USAGE:  ``RE(uascan(start, reference, finish, minStep, exponent, intervals,
     count_time, dx0, SDD_mm, ax0, SAD_mm))``
     """
     if md is None:

@@ -146,8 +146,6 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
     # rt = Component(EpicsMotor, 'usxLAX:m58:c1:m3', labels=("analyzer",))
 
 
-
-
 class SaxsDetectorStageDevice(MotorBundle):
     """SAXS detector stage"""
 
