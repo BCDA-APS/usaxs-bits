@@ -19,7 +19,8 @@ __all__ = [
 ]
 
 import logging
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 from apstools.utils import EmailNotifications
 
@@ -43,17 +44,18 @@ email_notices.add_addresses(
     "jemian@anl.gov",
 )
 
+
 def send_notification(
-    subject: str, 
-    message: str, 
+    subject: str,
+    message: str,
     addresses: Optional[List[str]] = None,
-    notify_flag: bool = True
+    notify_flag: bool = True,
 ) -> None:
     """Send an email notification.
-    
+
     This is a wrapper around apstools.utils.EmailNotifications.send() that
     adds support for additional addresses and notification flags.
-    
+
     Args:
         subject: Email subject line
         message: Email message body
@@ -63,10 +65,10 @@ def send_notification(
     if not notify_flag:
         logger.debug(f"Notification suppressed: {subject}")
         return
-        
+
     if addresses:
         email_notices.add_addresses(*addresses)
-    
+
     try:
         email_notices.send(subject, message)
         logger.info(f"Email notification sent: {subject}")

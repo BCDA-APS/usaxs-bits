@@ -27,7 +27,6 @@ from ophyd.areadetector.plugins import ImagePlugin_V34 as ImagePlugin
 from .area_detector_common import DATABROKER_ROOT_PATH
 from .area_detector_common import BadPixelPlugin
 from .area_detector_common import _validate_AD_FileWriter_path_
-from .area_detector_common import area_detector_EPICS_PV_prefix
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +148,14 @@ class CustomHDF5Plugin(
 class MyPilatusDetector(SingleTrigger_V34, DetectorBase):
     """Pilatus detector(s) as used by 12-ID-E USAXS"""
 
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the detector with specific settings.
+        """
+        super().__init__(*args, **kwargs)
+        self.read_attrs.append("hdf1")
+        self.image.stage_sigs["blocking_callbacks"] = "No"
+
     cam: ADComponent[MyPilatusDetectorCam] = ADComponent(MyPilatusDetectorCam, "cam1:")
     image: ADComponent[ImagePlugin] = ADComponent(ImagePlugin, "image1:")
 
@@ -164,6 +171,13 @@ class MyPilatusDetector(SingleTrigger_V34, DetectorBase):
 class MyEigerDetector(SingleTrigger_V34, DetectorBase):
     """Eiger2 detector(s) as used by 12-ID-E USAXS"""
 
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the detector with specific settings.
+        """
+        super().__init__(*args, **kwargs)
+        self.read_attrs.append("hdf1")
+
     cam: ADComponent[MyPilatusDetectorCam] = ADComponent(MyPilatusDetectorCam, "cam1:")
     image: ADComponent[ImagePlugin] = ADComponent(ImagePlugin, "image1:")
     bad_pixel: ADComponent[BadPixelPlugin] = ADComponent(BadPixelPlugin, "BadPix1:")
@@ -175,39 +189,3 @@ class MyEigerDetector(SingleTrigger_V34, DetectorBase):
         write_path_template=WRITE_PATH_TEMPLATE,
         read_path_template=READ_PATH_TEMPLATE,
     )
-
-
-try:
-    nm = "Pilatus 100k"
-    prefix = area_detector_EPICS_PV_prefix[nm]
-    saxs_det = MyPilatusDetector(
-        prefix, name="saxs_det", labels=["camera", "area_detector"]
-    )
-    saxs_det.read_attrs.append("hdf1")
-    saxs_det.image.stage_sigs["blocking_callbacks"] = "No"
-except TimeoutError:
-    msg = f"Timeout connecting with {nm} ({prefix})"
-    logger.warning(msg)
-    saxs_det = None
-
-# try:
-#     nm = "Pilatus 200kw"
-#     prefix = area_detector_EPICS_PV_prefix[nm]
-#     waxs_det = MyPilatusDetector(
-#         prefix, name="waxs_det", labels=["camera", "area_detector"])
-#     waxs_det.read_attrs.append("hdf1")
-# except TimeoutError as exc_obj:
-#     msg = f"Timeout connecting with {nm} ({prefix})"
-#     logger.warning(msg)
-#     waxs_det = None
-try:
-    nm = "Eiger 2X"
-    prefix = area_detector_EPICS_PV_prefix[nm]
-    waxs_det = MyEigerDetector(
-        prefix, name="waxs_det", labels=["camera", "area_detector"]
-    )
-    waxs_det.read_attrs.append("hdf1")
-except TimeoutError:
-    msg = f"Timeout connecting with {nm} ({prefix})"
-    logger.warning(msg)
-    waxs_det = None

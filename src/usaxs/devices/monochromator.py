@@ -6,7 +6,6 @@ import logging
 
 # from apstools.devices import KohzuSeqCtl_Monochromator
 from apstools.devices import PVPositionerSoftDoneWithStop
-from apstools.utils import run_in_thread
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsMotor

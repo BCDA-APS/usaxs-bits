@@ -23,11 +23,10 @@ from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
+from ..utils.emails import send_notification
+
 # Add these imports at the top of the file
 from ..utils.ustep import Ustep
-from ..utils.emails import send_notification
-from .mode_changes import mode_USAXS
-from .mono_feedback import DCMfeedbackON
 
 # Constants
 MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
@@ -372,12 +371,12 @@ def uascan(
     yield from _after_scan_()
 
     yield from user_data.set_state_plan("USAXS scan complete")
-    
+
     # Use the improved send_notification function
     send_notification(
-        "USAXS scan complete", 
+        "USAXS scan complete",
         f"USAXS scan from {start} to {finish} with {intervals} points is complete.",
-        notify_flag=NOTIFY_ON_SCAN_DONE
+        notify_flag=NOTIFY_ON_SCAN_DONE,
     )
 
     yield from bps.mv(

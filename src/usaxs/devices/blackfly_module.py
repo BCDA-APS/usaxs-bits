@@ -71,9 +71,9 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
     proc1: ADComponent[ProcessPlugin] = ADComponent(ProcessPlugin, "Proc1:")
 
     def __init__(self, *args, **kwargs):
-        '''
+        """
         Initialize the detector with specific settings.
-        '''
+        """
         super().__init__(*args, **kwargs)
         # Add jpeg1 to read_attrs
         self.read_attrs.append("jpeg1")

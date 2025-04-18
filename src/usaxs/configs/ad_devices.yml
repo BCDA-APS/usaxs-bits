@@ -1,13 +1,3 @@
-# apstools.devices.ad_creator:
-#   - name: blackfly_det
-#     prefix: "usxFLY1:"
-#     labels: ["camera", "area_detector"]
-#     plugins:
-#       - cam:
-#           class: ophyd.PointGreyDetectorCam
-#       - image:
-#           class: ophyd.ImagePlugin
-
 usaxs.devices.blackfly_module.MyPointGreyDetector:
 - name: blackfly_det
   prefix: "usxFLY1:"
@@ -16,4 +6,14 @@ usaxs.devices.blackfly_module.MyPointGreyDetector:
 usaxs.devices.blackfly_module.MyPointGreyDetector:
 - name: blackfly_optical
   prefix: "usxFLY2:"
+  labels: ["camera", "area_detector"]
+
+usaxs.devices.pilatus_module.MyPilatusDetector:
+- name: saxs_det
+  prefix: "usaxs_pilatus3:"
+  labels: ["camera", "area_detector"]
+
+usaxs.devices.pilatus_module.MyEigerDetector:
+- name: waxs_det
+  prefix: "usaxs_eiger1:"
   labels: ["camera", "area_detector"]
