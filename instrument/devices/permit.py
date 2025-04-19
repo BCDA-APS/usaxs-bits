@@ -21,10 +21,15 @@ from ophyd import EpicsSignalRO
 
 def operations_in_12ide():
     """
-    returns True if allowed to use X-ray beam in 12-ID-E station
+    returns True if allowed to use BlueSky in 12ide
     """
+    BlueSkyEnabled = EpicsSignalRO(
+        "usxLAX:blCalc:userCalc2",
+        name="BlueSkyEnable",
+        auto_monitor=False,
+        )   
     #return diagnostics.PSS.b_station_enabled
-    return True 
+    return BlueSkyEnabled 
     #return False
 
 """

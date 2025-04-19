@@ -105,7 +105,7 @@ else:
     if operations_in_12ide():
         logger.warning("Session started when APS not operating.")
     else:
-        logger.warning("Session started when 12ID-E is not operating.")
+        logger.warning("Session started when BlueSky is not enabled.")
     logger.warning("Using simulators for all shutters.")
     logger.warning("!"*30)
     FE_shutter = SimulatedApsPssShutterWithStatus(name="FE_shutter")
@@ -115,7 +115,7 @@ else:
 
 
 ti_filter_shutter = usaxs_shutter       # alias
-ti_filter_shutter.delay_s = 0.2         # shutter needs some recovery time
+ti_filter_shutter.delay_s = 0.1         # shutter needs some recovery time
 
 #ccd_shutter = EpicsOnOffShutter("usxRIO:Galil2Bo0_CMD", name="ccd_shutter")
 ccd_shutter = usaxs_shutter       # alias
