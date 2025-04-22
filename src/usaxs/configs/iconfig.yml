@@ -60,7 +60,8 @@ DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
 ### Local OPHYD Device Control Yaml
 DEVICES_FILES:
 - devices.yml
-# - ad_devices.yml
+- ad_devices.yml
+- shutters_sim.yml
 APS_DEVICES_FILES:
 - devices_aps_only.yml
 

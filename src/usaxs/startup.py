@@ -74,16 +74,17 @@ else:
 
 
 ##operation variables
-in_operation = False  # should be a caget?
+in_operation = False #should be a caget?
 
 
 ##load devices
-RE(make_devices(clear=False))  # from main file
+RE(make_devices(clear=False)) #from main file
 # RE(make_devices(file = 'devices_in_operation.py',clear=False))
 # if in_operation:
-#     #    RE(make_devices(file = 'devices_in_operation.py',clear=False))
-#     pass
+#    RE(make_devices(file = 'configs/shutter_op.yml',clear=False))
 # if not in_operation:
-#     #    RE(make_devices(file = 'devices_no_operation.py', clear=False))
-#     #    RE(make_devices(clear=False))  # from main file
-#     pass
+#    RE(make_devices(file = 'configs/shutter_sim.yml', clear=False))
+# RE(make_devices(file = 'configs/devices.yml', clear=False))
+# RE(make_devices(file = 'configs/ad_devices.yml', clear=False))
+
+#    RE(make_devices(clear=False))  # from main file

@@ -3,7 +3,7 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
   labels: ["shutters"]
 - name: mono_shutter
   labels: ["shutters"]
--name: usaxs_shutter
+- name: usaxs_shutter
   labels: ["shutters"]
 
 ophyd.Signal:
