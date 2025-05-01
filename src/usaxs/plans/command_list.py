@@ -42,13 +42,14 @@ logger.info(__file__)
 # Device instances
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 constants = oregistry["constants"]
-email_notices = oregistry["email_notices"]
+# email_notices = oregistry["email_notices"]
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 ti_filter_shutter = oregistry["ti_filter_shutter"]
 user_data = oregistry["user_data"]
 waxs_det = oregistry["waxs_det"]
 s_stage = oregistry["s_stage"]
+
 I0_controls = oregistry["I0_controls"]
 I00_controls = oregistry["I00_controls"]
 trd_controls = oregistry["trd_controls"]

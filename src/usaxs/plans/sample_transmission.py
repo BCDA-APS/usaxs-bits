@@ -24,8 +24,8 @@ from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from .filters import insertScanFilters
-from .filters import insertTransmissionFilters
+from .filter_plans import insertScanFilters
+from .filter_plans import insertTransmissionFilters
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .no_run import no_run_trigger_and_wait

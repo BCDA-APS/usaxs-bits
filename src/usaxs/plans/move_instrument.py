@@ -20,25 +20,30 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
+from apsbits.utils.config_loaders import get_config
 from apsbits.utils.controls_setup import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from ophyd.scaler import ScalerCH
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-# Device instances
+# # Device instances
 terms = oregistry["terms"]
-saxs_det = oregistry["saxs_det"]
-waxs_det = oregistry["waxs_det"]
-usaxs_det = oregistry["usaxs_det"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+ti_filter_shutter = oregistry["usaxs_shutter"]
 guard_slit = oregistry["guard_slit"]
 usaxs_slit = oregistry["usaxs_slit"]
 waxsx = oregistry["waxsx"]
 saxs_stage = oregistry["saxs_stage"]
-scaler0 = oregistry["scaler0"]
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
+
+iconfig = get_config()
+scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
+
+scaler0 = ScalerCH(scaler0_name, name="scaler0")
+scaler0.stage_sigs["count_mode"] = "OneShot"
+scaler0.select_channels()
 
 UsaxsSaxsModes = {
     "dirty": -1,  # moving or prior move did not finish correctly

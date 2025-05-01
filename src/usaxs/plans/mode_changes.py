@@ -28,22 +28,21 @@ __all__ = """
     mode_WAXS
 """.split()
 
-import datetime
 import logging
 from typing import Any
 from typing import Dict
 from typing import Generator
 from typing import Optional
 
+from apsbits.utils.config_loaders import get_config
 from apsbits.utils.controls_setup import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from ophyd.scaler import ScalerCH
 
-from .filters import insertBlackflyFilters
-from .filters import insertRadiographyFilters
-from .filters import insertScanFilters
-from .mono_feedback import DCMfeedbackON
+from .filter_plans import insertRadiographyFilters
+from .filter_plans import insertScanFilters
 from .move_instrument import UsaxsSaxsModes
 from .move_instrument import move_SAXSIn
 from .move_instrument import move_SAXSOut
@@ -54,39 +53,24 @@ from .move_instrument import move_WAXSOut
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-# Constants
-MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+iconfig = get_config()
+scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
+
+scaler0 = ScalerCH(scaler0_name, name="scaler0")
+scaler0.stage_sigs["count_mode"] = "OneShot"
+scaler0.select_channels()
+
 
 # Device instances
 a_stage = oregistry["a_stage"]
-blackfly_det = oregistry["blackfly_det"]
-ccd_shutter = oregistry["ccd_shutter"]
-constants = oregistry["constants"]
 d_stage = oregistry["d_stage"]
-email_notices = oregistry["email_notices"]
 guard_slit = oregistry["guard_slit"]
-lax_autosave = oregistry["lax_autosave"]
 m_stage = oregistry["m_stage"]
 mono_shutter = oregistry["mono_shutter"]
-monochromator = oregistry["monochromator"]
-s_stage = oregistry["s_stage"]
-saxs_det = oregistry["saxs_det"]
-saxs_stage = oregistry["saxs_stage"]
-scaler0 = oregistry["scaler0"]
-scaler1 = oregistry["scaler1"]
 terms = oregistry["terms"]
 ti_filter_shutter = oregistry["ti_filter_shutter"]
-trd_controls = oregistry["trd_controls"]
-upd_controls = oregistry["upd_controls"]
-usaxs_flyscan = oregistry["usaxs_flyscan"]
-usaxs_q_calc = oregistry["usaxs_q_calc"]
 usaxs_slit = oregistry["usaxs_slit"]
-user_data = oregistry["user_data"]
-user_override = oregistry["user_override"]
-waxs_det = oregistry["waxs_det"]
-suspend_BeamInHutch = oregistry["suspend_BeamInHutch"]
-suspend_FE_shutter = oregistry["suspend_FE_shutter"]
-IfRequestedStopBeforeNextScan = oregistry["IfRequestedStopBeforeNextScan"]
+user_data = oregistry["user_device"]
 
 
 def confirm_instrument_mode(mode_name: str) -> bool:
@@ -129,70 +113,70 @@ def confirm_instrument_mode(mode_name: str) -> bool:
 #         )
 
 
-def mode_BlackFly(
-    md: Optional[Dict[str, Any]] = None,
-) -> Generator[Any, None, None]:
-    """
-    Set instrument to imaging mode for direct beam using BlackFly camera.
+# def mode_BlackFly(
+#     md: Optional[Dict[str, Any]] = None,
+# ) -> Generator[Any, None, None]:
+#     """
+#     Set instrument to imaging mode for direct beam using BlackFly camera.
 
-    This mode configures the instrument for direct beam imaging using the BlackFly
-    camera. It includes setting up the correct stage positions, inserting appropriate
-    filters, and configuring the camera for acquisition.
+#     This mode configures the instrument for direct beam imaging using the BlackFly
+#     camera. It includes setting up the correct stage positions, inserting appropriate
+#     filters, and configuring the camera for acquisition.
 
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+#     Parameters
+#     ----------
+#     md : Optional[Dict[str, Any]], optional
+#         Metadata dictionary to be added to the scan, by default None
 
-    Yields
-    ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    if md is None:
-        md = {}
+#     Yields
+#     ------
+#     Generator[Any, None, None]
+#         A generator that yields plan steps
+#     """
+#     if md is None:
+#         md = {}
 
-    try:
-        yield from mode_USAXS()
-        yield from DCMfeedbackON()
-        yield from user_data.set_state_plan("Preparing for BlackFly imaging mode")
+#     try:
+#         yield from mode_USAXS()
+#         yield from DCMfeedbackON()
+#         yield from user_data.set_state_plan("Preparing for BlackFly imaging mode")
 
-        yield from bps.mv(
-            d_stage.x,
-            terms.USAXS.blackfly.dx.get(),
-            d_stage.y,
-            terms.USAXS.blackfly.dy.get(),
-            m_stage.x,
-            -200,
-            a_stage.x,
-            -200,
-            guard_slit.x,
-            0,
-        )
+#         yield from bps.mv(
+#             d_stage.x,
+#             terms.USAXS.blackfly.dx.get(),
+#             d_stage.y,
+#             terms.USAXS.blackfly.dy.get(),
+#             m_stage.x,
+#             -200,
+#             a_stage.x,
+#             -200,
+#             guard_slit.x,
+#             0,
+#         )
 
-        yield from insertBlackflyFilters()
-        yield from bps.mv(
-            ti_filter_shutter,
-            "open",
-        )
+#         yield from insertBlackflyFilters()
+#         yield from bps.mv(
+#             ti_filter_shutter,
+#             "open",
+#         )
 
-        yield from user_data.set_state_plan("Ready for BlackFly imaging mode")
-        ts = str(datetime.datetime.now())
-        yield from bps.mv(
-            user_data.time_stamp,
-            ts,
-            user_data.macro_file_time,
-            ts,
-            user_data.scanning,
-            0,
-            user_data.collection_in_progress,
-            0,
-            blackfly_det.cam.acquire,
-            1,  # Start BlackFly acquisition
-        )
-    except Exception as e:
-        logger.error(f"Error in mode_BlackFly: {str(e)}")
-        raise
+#         yield from user_data.set_state_plan("Ready for BlackFly imaging mode")
+#         ts = str(datetime.datetime.now())
+#         yield from bps.mv(
+#             user_data.time_stamp,
+#             ts,
+#             user_data.macro_file_time,
+#             ts,
+#             user_data.scanning,
+#             0,
+#             user_data.collection_in_progress,
+#             0,
+#             blackfly_det.cam.acquire,
+#             1,  # Start BlackFly acquisition
+#         )
+#     except Exception as e:
+#         logger.error(f"Error in mode_BlackFly: {str(e)}")
+#         raise
 
 
 def mode_USAXS(
@@ -275,7 +259,7 @@ def mode_SAXS(
 
     try:
         yield from user_data.set_state_plan("Preparing for SAXS mode")
-        yield from IfRequestedStopBeforeNextScan()
+        # yield from IfRequestedStopBeforeNextScan() #this function does not exist
 
         # Move stages to SAXS positions
         yield from move_SAXSIn()
@@ -327,7 +311,7 @@ def mode_WAXS() -> Generator[Any, None, None]:
 
     try:
         yield from user_data.set_state_plan("Preparing for WAXS mode")
-        yield from IfRequestedStopBeforeNextScan()
+        # yield from IfRequestedStopBeforeNextScan() #function needs to be discussed
 
         # Move stages to WAXS positions
         yield from move_WAXSIn()
@@ -378,7 +362,7 @@ def mode_Radiography() -> Generator[Any, None, None]:
     """
     try:
         yield from user_data.set_state_plan("Preparing for Radiography mode")
-        yield from IfRequestedStopBeforeNextScan()
+        # yield from IfRequestedStopBeforeNextScan() #function needs to be discussed
 
         # Move stages to radiography positions
         yield from bps.mv(
@@ -436,7 +420,7 @@ def mode_Imaging() -> Generator[Any, None, None]:
 
     try:
         yield from user_data.set_state_plan("Preparing for Imaging mode")
-        yield from IfRequestedStopBeforeNextScan()
+        # yield from IfRequestedStopBeforeNextScan()
 
         # Move stages to imaging positions
         yield from bps.mv(
@@ -495,7 +479,7 @@ def mode_OpenBeamPath() -> Generator[Any, None, None]:
 
     try:
         yield from user_data.set_state_plan("Preparing for Open Beam Path mode")
-        yield from IfRequestedStopBeforeNextScan()
+        # yield from IfRequestedStopBeforeNextScan()
 
         # Move stages out of beam path
         yield from move_USAXSOut()

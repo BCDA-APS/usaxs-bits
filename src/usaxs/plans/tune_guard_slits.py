@@ -24,9 +24,10 @@ from ophyd import Kind
 
 from ..utils.derivative import numerical_derivative
 from ..utils.peak_centers import peak_center
-from .filters import insertTransmissionFilters
+from .filter_plans import insertTransmissionFilters
 from .mode_changes import mode_USAXS
-from .requested_stop import IfRequestedStopBeforeNextScan
+
+# from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)

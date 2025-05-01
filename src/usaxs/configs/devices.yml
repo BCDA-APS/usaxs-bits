@@ -103,7 +103,7 @@ apstools.devices.Struck3820:
 - name: struck
   prefix: "usxLAX:3820:"
 
-usaxs.devices.slits.GSlitDevice: #TODO: Rethink how this device works
+usaxs.devices.slits.GSlitDevice:
 - name: guard_slit
   prefix: ""
 

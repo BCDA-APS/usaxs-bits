@@ -25,34 +25,32 @@ logger.info(__file__)
 mono_shutter = oregistry["mono_shutter"]
 terms = oregistry["terms"]
 ti_filter_shutter = oregistry["ti_filter_shutter"]
-user_data = oregistry["user_data"]
-RE = oregistry["RE"]
-scaler0 = oregistry["scaler0"]
+user_data = oregistry["user_device"]
 
 
-def IfRequestedStopBeforeNextScan() -> Generator[Any, None, None]:
-    """
-    Plan: check if stop was requested before next scan.
+# def IfRequestedStopBeforeNextScan() -> Generator[Any, None, None]:
+#     """
+#     Plan: check if stop was requested before next scan.
 
-    Parameters
-    ----------
+#     Parameters
+#     ----------
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    if terms.USAXS.stop_requested.get():
-        yield from bps.mv(
-            mono_shutter,
-            "close",
-            ti_filter_shutter,
-            "close",
-        )
-        yield from user_data.set_state_plan("Stop requested")
-        RE.stop()
-        return True
-    return False
+#     Returns
+#     -------
+#     Generator[Any, None, None]
+#         A generator that yields plan steps
+#     """
+#     if terms.USAXS.stop_requested.get():
+#         yield from bps.mv(
+#             mono_shutter,
+#             "close",
+#             ti_filter_shutter,
+#             "close",
+#         )
+#         yield from user_data.set_state_plan("Stop requested")
+#         RE.stop()
+#         return True
+#     return False
 
 
 def handle_stop_request(
