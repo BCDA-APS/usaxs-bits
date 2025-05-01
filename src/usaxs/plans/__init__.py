@@ -22,7 +22,12 @@ from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
-from .move_instrument import move_instrument
+from .move_instrument import move_SAXSIn
+from .move_instrument import move_SAXSOut
+from .move_instrument import move_USAXSIn
+from .move_instrument import move_USAXSOut
+from .move_instrument import move_WAXSIn
+from .move_instrument import move_WAXSOut
 
 # from .resets import resets
 # from .sample_imaging import sample_imaging
