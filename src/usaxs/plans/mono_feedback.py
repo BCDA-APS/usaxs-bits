@@ -27,7 +27,7 @@ logger.info(__file__)
 
 # Device instances
 monochromator = oregistry["monochromator"]
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 
 iconfig = get_config()
 scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")

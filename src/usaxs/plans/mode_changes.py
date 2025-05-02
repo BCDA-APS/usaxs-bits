@@ -152,7 +152,7 @@ def mode_USAXS(md=None):
         retune_needed = True
 
     logger.info("Preparing for USAXS mode ... please wait ...")
-    # why not use move_USAXSIn() here??? 
+    # why not use move_USAXSIn() here???
     yield from bps.mv(
         # set scalar to autocount mode for USAXS
         scaler0.count_mode, SCALER_AUTOCOUNT_MODE,
