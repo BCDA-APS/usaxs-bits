@@ -96,6 +96,6 @@ if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
 
 # Import sim plans
-from .plans import sim_count_plan  # noqa: E402, F401
-from .plans import sim_print_plan  # noqa: E402, F401
-from .plans import sim_rel_scan_plan  # noqa: E402, F401
+#from .plans import sim_count_plan  # noqa: E402, F401
+#from .plans import sim_print_plan  # noqa: E402, F401
+#from .plans import sim_rel_scan_plan  # noqa: E402, F401
