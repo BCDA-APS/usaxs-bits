@@ -59,11 +59,11 @@ monochromator = oregistry["monochromator"]
 iconfig = get_config()
 scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
 
-NUM_AUTORANGE_GAINS = 5  # common to all autorange sequence programs
-AMPLIFIER_MINIMUM_SETTLING_TIME = 0.01  # reasonable?
-
 scaler0 = ScalerCH(scaler0_name, name="scaler0")
 scaler0.stage_sigs["count_mode"] = "OneShot"
+
+NUM_AUTORANGE_GAINS = 5  # common to all autorange sequence programs
+AMPLIFIER_MINIMUM_SETTLING_TIME = 0.01  # reasonable?
 
 def confirm_instrument_mode(mode_name):
     """
