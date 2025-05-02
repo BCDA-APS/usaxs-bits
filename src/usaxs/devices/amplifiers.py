@@ -84,11 +84,11 @@ from ophyd import Signal
 from ophyd.scaler import ScalerCH
 from ophyd.scaler import ScalerChannel
 
-iconfig = get_config()
-scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
-
 logger = logging.getLogger(__name__)
 logger.info(__file__)
+
+iconfig = get_config()
+scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
 
 NUM_AUTORANGE_GAINS = 5  # common to all autorange sequence programs
 AMPLIFIER_MINIMUM_SETTLING_TIME = 0.01  # reasonable?
