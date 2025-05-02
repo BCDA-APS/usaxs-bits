@@ -44,7 +44,7 @@ s_stage = oregistry["s_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 upd_controls = oregistry["upd_controls"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 trd_controls = oregistry["trd_controls"]
 trd = oregistry["trd"]
 user_data = oregistry["user_data"]
@@ -171,7 +171,7 @@ def uascan(
         "manual",
         I00_controls.auto.mode,
         "manual",
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
 
@@ -340,7 +340,7 @@ def uascan(
             I00_controls.auto.mode,
             "manual",
             # close the shutter after each scan to preserve the detector
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
         )
 

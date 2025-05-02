@@ -97,7 +97,7 @@ def test_plan(md=None, thickness=0.0):
         yield from bps.mv(
             # mono_shutter, "open",
             # monochromator.feedback.on, MONO_FEEDBACK_OFF,
-            # ti_filter_shutter, "open",
+            # usaxs_shutter, "open",
             saxs_det.cam.num_images,1,
             saxs_det.cam.acquire_time, 5,
             saxs_det.cam.acquire_period, 5 + 0.004,
@@ -115,7 +115,7 @@ def test_plan(md=None, thickness=0.0):
         # yield from autoscale_amplifiers([I0_controls])
 
         # yield from bps.mv(
-        #     ti_filter_shutter, "close",
+        #     usaxs_shutter, "close",
         #     timeout=MASTER_TIMEOUT,
         # )
 

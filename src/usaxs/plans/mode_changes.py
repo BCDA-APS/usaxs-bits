@@ -68,7 +68,7 @@ guard_slit = oregistry["guard_slit"]
 m_stage = oregistry["m_stage"]
 mono_shutter = oregistry["mono_shutter"]
 terms = oregistry["terms"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_device"]
 
@@ -156,7 +156,7 @@ def confirm_instrument_mode(mode_name: str) -> bool:
 
 #         yield from insertBlackflyFilters()
 #         yield from bps.mv(
-#             ti_filter_shutter,
+#             usaxs_shutter,
 #             "open",
 #         )
 
@@ -380,7 +380,7 @@ def mode_Radiography() -> Generator[Any, None, None]:
 
         yield from insertRadiographyFilters()
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
         )
 
@@ -438,7 +438,7 @@ def mode_Imaging() -> Generator[Any, None, None]:
 
         yield from insertScanFilters()
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
         )
 
@@ -488,7 +488,7 @@ def mode_OpenBeamPath() -> Generator[Any, None, None]:
 
         # Open shutters
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
             mono_shutter,
             "open",

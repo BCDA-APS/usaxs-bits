@@ -92,7 +92,7 @@ class PSS_Parameters(Device):
 
         #:Plug in place:
         ##  Cannot use beam in 20-ID-B.
-        #  Should not use FE or mono shutters, monochromator, ti_filter_shutter...
+        #  Should not use FE or mono shutters, monochromator, usaxs_shutter...
         #:Plug removed:
           Operations in 12-ID-C are always allowed
 

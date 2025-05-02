@@ -31,7 +31,7 @@ logger.info(__file__)
 
 # # Device instances
 terms = oregistry["terms"]
-ti_filter_shutter = oregistry["usaxs_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 guard_slit = oregistry["guard_slit"]
 usaxs_slit = oregistry["usaxs_slit"]
 waxsx = oregistry["waxsx"]
@@ -80,7 +80,7 @@ def move_WAXSOut():
     Move WAXS out of beam.
     """
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -100,7 +100,7 @@ def move_WAXSIn():
     Move WAXS into beam.
     """
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -134,7 +134,7 @@ def move_SAXSOut():
     Move SAXS out of beam.
     """
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -157,7 +157,7 @@ def move_SAXSIn():
     Move SAXS into beam.
     """
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -193,7 +193,7 @@ def move_USAXSOut():
     Move USAXS out of beam.
     """
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -213,7 +213,7 @@ def move_USAXSIn():
     Move USAXS into beam.
     """
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 

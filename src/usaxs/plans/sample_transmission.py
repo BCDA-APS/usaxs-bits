@@ -41,7 +41,7 @@ constants = oregistry["constants"]
 saxs_stage = oregistry["saxs_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 trd_controls = oregistry["trd_controls"]
 user_data = oregistry["user_data"]
 
@@ -87,7 +87,7 @@ def measure_USAXS_Transmission(
                 ax_target,
                 a_stage.x,
                 ax_target,
-                ti_filter_shutter,
+                usaxs_shutter,
                 "open",
             )
             yield from insertTransmissionFilters()
@@ -119,7 +119,7 @@ def measure_USAXS_Transmission(
             yield from bps.mv(
                 a_stage.x,
                 terms.USAXS.AX0.get(),
-                ti_filter_shutter,
+                usaxs_shutter,
                 "close",
             )
             yield from insertScanFilters()
@@ -205,7 +205,7 @@ def measure_SAXS_Transmission(
         yield from bps.mv(
             saxs_stage.x,
             pinx_target,
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
         )
 
@@ -240,7 +240,7 @@ def measure_SAXS_Transmission(
         yield from bps.mv(
             saxs_stage.x,
             terms.SAXS.x_in.get(),
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
         )
         # z can move.

@@ -74,8 +74,8 @@ def operations_in_12ide():
 #         usaxs_shutter = SimulatedApsPssShutterWithStatus(name="usaxs_shutter")
 #         a_shutter_autoopen = Signal(name="a_shutter_autoopen", value=0)
 
-#     ti_filter_shutter = usaxs_shutter  # alias
-#     ti_filter_shutter.delay_s = 0.2  # shutter needs some recovery time
+#     usaxs_shutter = usaxs_shutter  # alias
+#     usaxs_shutter.delay_s = 0.2  # shutter needs some recovery time
 
 #     # ccd_shutter = EpicsOnOffShutter("usxRIO:Galil2Bo0_CMD", name="ccd_shutter")
 #     ccd_shutter = usaxs_shutter  # alias

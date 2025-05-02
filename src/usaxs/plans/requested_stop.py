@@ -24,7 +24,7 @@ logger.info(__file__)
 # Device instances
 mono_shutter = oregistry["mono_shutter"]
 terms = oregistry["terms"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 
 
@@ -44,7 +44,7 @@ user_data = oregistry["user_device"]
 #         yield from bps.mv(
 #             mono_shutter,
 #             "close",
-#             ti_filter_shutter,
+#             usaxs_shutter,
 #             "close",
 #         )
 #         yield from user_data.set_state_plan("Stop requested")

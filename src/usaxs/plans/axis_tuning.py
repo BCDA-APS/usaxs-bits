@@ -46,7 +46,7 @@ terms = oregistry["terms"]
 usaxs_q_calc = oregistry["usaxs_q_calc"]
 scaler0 = oregistry["scaler0"]
 mono_shutter = oregistry["mono_shutter"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 a_stage = oregistry["a_stage"]
 axis_tune_range = oregistry["axis_tune_range"]
 d_stage = oregistry["d_stage"]
@@ -88,7 +88,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
     yield from IfRequestedStopBeforeNextScan()
 
     try:
-        yield from bps.mv(ti_filter_shutter, "open")
+        yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_mr"
@@ -122,7 +122,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         )
         print(stats.report())
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
             scaler0.count_mode,
             "AutoCount",
@@ -140,7 +140,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         logger.error(f"Error in tune_mr: {e}")
         raise
     finally:
-        yield from bps.mv(ti_filter_shutter, "close")
+        yield from bps.mv(usaxs_shutter, "close")
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
@@ -167,7 +167,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         md = {}
 
     try:
-        yield from bps.mv(ti_filter_shutter, "open")
+        yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_ar"
@@ -177,7 +177,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         yield from bps.mv(
             mono_shutter,
             "open",
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -196,7 +196,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         )
         print(stats.report())
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
             scaler0.count_mode,
             "AutoCount",
@@ -243,7 +243,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]
         md = {}
 
     try:
-        yield from bps.mv(ti_filter_shutter, "open")
+        yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -254,7 +254,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]
         yield from bps.mv(
             mono_shutter,
             "open",
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -273,7 +273,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]
         )
         print(stats.report())
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
             scaler0.count_mode,
             "AutoCount",
@@ -315,7 +315,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         md = {}
 
     try:
-        yield from bps.mv(ti_filter_shutter, "open")
+        yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -326,7 +326,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         yield from bps.mv(
             mono_shutter,
             "open",
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -345,7 +345,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         )
         print(stats.report())
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
             scaler0.count_mode,
             "AutoCount",
@@ -391,7 +391,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         md = {}
 
     try:
-        yield from bps.mv(ti_filter_shutter, "open")
+        yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -402,7 +402,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         yield from bps.mv(
             mono_shutter,
             "open",
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -421,7 +421,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         )
         print(stats.report())
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
             scaler0.count_mode,
             "AutoCount",

@@ -38,7 +38,7 @@ m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 trd = oregistry["trd"]
 upd_controls = oregistry["upd_controls"]
 user_data = oregistry["user_data"]
@@ -111,7 +111,7 @@ def reset_USAXS() -> Generator[Any, None, None]:
         AutorangeSettings.manual,
         I00_controls.auto.mode,
         AutorangeSettings.manual,
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         user_data.scanning,
         "no",

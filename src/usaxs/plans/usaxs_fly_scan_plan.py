@@ -25,7 +25,7 @@ from bluesky import plan_stubs as bps
 from ..devices.amplifiers import AutorangeSettings
 from ..devices.amplifiers import upd_controls
 from ..devices.general_terms import terms
-from ..devices.shutters import ti_filter_shutter
+from ..devices.shutters import usaxs_shutter
 from ..devices.stages import a_stage
 from ..devices.stages import d_stage
 from ..devices.struck3820 import struck
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # Device instances
 upd_controls = oregistry["upd_controls"]
 terms = oregistry["terms"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
 struck = oregistry["struck"]
@@ -268,7 +268,7 @@ def plan(
         self.dx0,
         upd_controls.auto.mode,
         AutorangeSettings.auto_background,
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 

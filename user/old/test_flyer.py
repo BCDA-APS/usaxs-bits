@@ -24,7 +24,7 @@ a2rp = EpicsMotor("usxLAX:pi:c0:m1", name="a2rp")
 ar = EpicsMotor("usxAERO:m6", name="ar")
 mr = EpicsMotor("usxAERO:m12", name="mr")
 scaler1 = ScalerCH("usxLAX:vsc:c0", name="scaler1")
-shutter = EpicsOnOffShutter("usxLAX:userTran3.A", name="shutter")  # ti_filter_shutter
+shutter = EpicsOnOffShutter("usxLAX:userTran3.A", name="shutter")  # usaxs_shutter
 
 for o in (mr, ar, a2rp, scaler1, shutter):
     o.wait_for_connection()

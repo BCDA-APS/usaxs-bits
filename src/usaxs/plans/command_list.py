@@ -45,7 +45,7 @@ constants = oregistry["constants"]
 # email_notices = oregistry["email_notices"]
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_data"]
 waxs_det = oregistry["waxs_det"]
 s_stage = oregistry["s_stage"]
@@ -154,7 +154,7 @@ def before_command_list(
     yield from user_data.set_state_plan("Starting data collection")
 
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         terms.SAXS.collecting,
         0,
@@ -293,7 +293,7 @@ def after_command_list(md: dict | None = None) -> Generator:
         str(datetime.datetime.now()),
         user_data.collection_in_progress,
         0,
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
     yield from user_data.set_state_plan("USAXS macro file done")

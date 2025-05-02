@@ -69,7 +69,7 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
     monochromator = oregistry["monochromator"]
     scaler0 = oregistry["scaler0"]
     terms = oregistry["terms"]
-    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    usaxs_shutter = oregistry["usaxs_shutter"]
     upd_controls = oregistry["upd_controls"]
     usaxs_slit = oregistry["usaxs_slit"]
     user_data = oregistry["user_data"]
@@ -96,7 +96,7 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
         usaxs_slit.h_size,
         terms.SAXS.usaxs_h_size.get(),
     )
-    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(usaxs_shutter, "open")
     yield from insertTransmissionFilters(oregistry)
     yield from bps.sleep(0.1)
     yield from user_data.set_state_plan("autoranging the PD")
@@ -146,7 +146,7 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
                     x_c,
                     scaler0.preset_time,
                     old_preset_time,
-                    ti_filter_shutter,
+                    usaxs_shutter,
                     "close",
                 )
                 raise GuardSlitTuneError(msg)
@@ -178,7 +178,7 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
 
     yield from bps.mv(scaler0.preset_time, old_preset_time)
 
-    yield from bps.mv(ti_filter_shutter, "close")
+    yield from bps.mv(usaxs_shutter, "close")
 
 
 def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
@@ -499,7 +499,7 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
     monochromator = oregistry["monochromator"]
     scaler0 = oregistry["scaler0"]
     terms = oregistry["terms"]
-    ti_filter_shutter = oregistry["ti_filter_shutter"]
+    usaxs_shutter = oregistry["usaxs_shutter"]
     upd_controls = oregistry["upd_controls"]
     usaxs_slit = oregistry["usaxs_slit"]
     user_data = oregistry["user_data"]
@@ -519,7 +519,7 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
         terms.FlyScan.setpoint_up.get(),
         upd_controls.auto.gainD,
         terms.FlyScan.setpoint_down.get(),
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
     # insertCCDfilters
@@ -527,7 +527,7 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     yield from _USAXS_tune_guardSlits(oregistry)
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         terms.SAXS.guard_h_size,
         guard_slit.h_size.get(),
