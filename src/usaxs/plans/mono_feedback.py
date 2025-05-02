@@ -15,22 +15,25 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
-from apsbits.utils.controls_setup import oregistry
+from apsbits.core.instrument_init import oregistry
+from apsbits.utils.config_loaders import get_config
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from ophyd.scaler import ScalerCH
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-# Constants
-MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
-MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
 
 # Device instances
 monochromator = oregistry["monochromator"]
-scaler0 = oregistry["scaler0"]
 user_data = oregistry["user_data"]
 
+iconfig = get_config()
+scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
+
+scaler0 = ScalerCH(scaler0_name, name="scaler0")
+scaler0.stage_sigs["count_mode"] = "OneShot"
 
 def DCMfeedbackOFF() -> Generator[Any, None, None]:
     """
@@ -41,7 +44,7 @@ def DCMfeedbackOFF() -> Generator[Any, None, None]:
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    yield from bps.mv(monochromator.feedback.on, MONO_FEEDBACK_OFF)
+    yield from bps.mv(monochromator.feedback.on, 0)
 
 
 def DCMfeedbackON(
