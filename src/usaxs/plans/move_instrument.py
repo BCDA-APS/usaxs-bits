@@ -39,6 +39,7 @@ saxs_stage = oregistry["saxs_stage"]
 user_data = oregistry["user_device"]
 a_stage =  oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
+gslit_stage = oregistry["gslit_stage"]
 
 iconfig = get_config()
 scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
@@ -239,6 +240,7 @@ def move_USAXSIn():
         a_stage.x,          terms.USAXS.AX0.get(),
         d_stage.y,          terms.USAXS.dy_in.get(),
         d_stage.x,          terms.USAXS.DX0.get(), #same as: terms.USAXS:Diode_dx.get(),
+        gslit_stage.x,      terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
     )
 
 

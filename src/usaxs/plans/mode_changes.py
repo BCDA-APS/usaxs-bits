@@ -139,7 +139,7 @@ def mode_USAXS(md=None):
         usaxs_shutter,  "close",
         #laser.enable,  0,
     )
-    yield from DCMfeedbackON()
+    #yield from DCMfeedbackON()
     retune_needed = False
 
     if not confirm_instrument_mode("USAXS in beam"):
@@ -162,24 +162,16 @@ def mode_USAXS(md=None):
         m_stage.x, 0,
         gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
         d_stage.x, terms.USAXS.DX0.get(),
-        d_stage.y, terms.SAXS.dy_in.get(),
-        guard_slit.h_size,  terms.SAXS.usaxs_guard_h_size.get(),
-        guard_slit.v_size,  terms.SAXS.usaxs_guard_v_size.get(),
-        usaxs_slit.h_size,  terms.SAXS.usaxs_h_size.get(),
-        usaxs_slit.v_size,  terms.SAXS.usaxs_v_size.get(),
-        blackfly_det.cam.acquire, 0,    #stop Blackfly if it is running... 
+        d_stage.y, terms.USAXS.dy_in.get(),
+        guard_slit.h_size,  terms.USAXS.guard_h_size.get(),
+        guard_slit.v_size,  terms.USAXS.guard_v_size.get(),
+        usaxs_slit.h_size,  terms.USAXS.usaxs_h_size.get(),
+        usaxs_slit.v_size,  terms.USAXS.usaxs_v_size.get(),
+        #blackfly_det.cam.acquire, 0,    #stop Blackfly if it is running... 
     )
-
-    #if not ccd_shutter.isClosed:
-    #    logger.info("!!!CCD shutter failed to close!!!")
-    #else:
-        # mono_shutter.open()
-
-        # print("Change TV input selector to show image in hutch")
-        # print("Turn off BLUE switch on CCD controller")
+ 
     yield from insertScanFilters()
-    # yield from bps.mv(ccd_shutter, "close")
-
+ 
     logger.info("Prepared for USAXS mode")
     yield from user_data.set_state_plan("USAXS Mode")
     ts = str(datetime.datetime.now())
