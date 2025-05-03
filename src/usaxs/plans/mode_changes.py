@@ -7,7 +7,7 @@ Support the different instrument modes
 # see: https://subversion.xray.aps.anl.gov/spec/beamlines/USAXS/trunk/macros/local/usaxs_commands.mac
 
 __all__ = """
-    mode_BlackFly
+    #mode_BlackFly
     mode_Imaging
     mode_OpenBeamPath
     mode_Radiography
@@ -48,7 +48,7 @@ m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
 gslit_stage = oregistry["gslit_stage"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-blackfly_det = oregistry["blackfly_det"]
+#blackfly_det = oregistry["blackfly_det"]
 guard_slit = oregistry["guard_slit"]
 usaxs_slit = oregistry["usaxs_slit"]
 diagnostics = oregistry["diagnostics"]
@@ -96,39 +96,39 @@ def confirm_instrument_mode(mode_name):
 #         )
 
 
-def mode_BlackFly(md=None):
-    """
-    Sets to imaging mode for direct beam, using BlackFly camera.
-    """
-    yield from mode_USAXS()
-    yield from DCMfeedbackON()
-    yield from user_data.set_state_plan(
-        "Preparing for BlackFly imaging mode"
-        )
+# def mode_BlackFly(md=None):
+#     """
+#     Sets to imaging mode for direct beam, using BlackFly camera.
+#     """
+#     yield from mode_USAXS()
+#     yield from DCMfeedbackON()
+#     yield from user_data.set_state_plan(
+#         "Preparing for BlackFly imaging mode"
+#         )
 
-    yield from bps.mv(
-        #laser.enable,  0,
-        d_stage.x, terms.USAXS.blackfly.dx.get(),
-        d_stage.y, terms.USAXS.blackfly.dy.get(),
-        m_stage.x, -200,
-        a_stage.x, -200,
-        gslit_stage.x, 0,
-    )
+#     yield from bps.mv(
+#         #laser.enable,  0,
+#         d_stage.x, terms.USAXS.blackfly.dx.get(),
+#         d_stage.y, terms.USAXS.blackfly.dy.get(),
+#         m_stage.x, -200,
+#         a_stage.x, -200,
+#         gslit_stage.x, 0,
+#     )
 
-    yield from insertBlackflyFilters()
-    yield from bps.mv(
-        usaxs_shutter,  "open",
-    )
+#     yield from insertBlackflyFilters()
+#     yield from bps.mv(
+#         usaxs_shutter,  "open",
+#     )
 
-    yield from user_data.set_state_plan("Ready for BlackFly imaging mode")
-    ts = str(datetime.datetime.now())
-    yield from bps.mv(
-        user_data.time_stamp, ts,
-        user_data.macro_file_time, ts,
-        user_data.scanning, 0,
-        user_data.collection_in_progress, 0,
-        blackfly_det.cam.acquire, 1,                 #we are using Blackfly now, let's start it... 
-    )
+#     yield from user_data.set_state_plan("Ready for BlackFly imaging mode")
+#     ts = str(datetime.datetime.now())
+#     yield from bps.mv(
+#         user_data.time_stamp, ts,
+#         user_data.macro_file_time, ts,
+#         user_data.scanning, 0,
+#         user_data.collection_in_progress, 0,
+#         blackfly_det.cam.acquire, 1,                 #we are using Blackfly now, let's start it... 
+#     )
 
 
 def mode_USAXS(md=None):
