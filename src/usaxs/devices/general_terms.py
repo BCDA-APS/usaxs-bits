@@ -129,6 +129,10 @@ class Parameters_USAXS(Device):
 
     ay_in = Component(EpicsSignal, "usxLAX:ay_in")
     dy_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dy")
+    ax_in = Component(EpicsSignal, "usxLAX:ax_in")
+    ax_out = Component(EpicsSignal, "usxLAX:ax_out")
+    dx_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx")  
+    dx_out = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx_out")
 
     blackfly = Component(GeneralUsaxsParametersBlackfly, "usxLAX:USAXS:BlackFly_")
     center = Component(GeneralUsaxsParametersCenters, "usxLAX:USAXS:")

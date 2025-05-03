@@ -204,7 +204,10 @@ def move_USAXSOut():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
     # move the USAXS X away from sample
-    yield from bps.mv(usaxs_slit.x, terms.USAXS.x_out.get())
+    yield from bps.mv(
+        a_stage.x, terms.SAXS.ax_out.get(),
+        d_stage.x, terms.SAXS.dx_out.get(),
+    )
 
     logger.info("Removed USAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
