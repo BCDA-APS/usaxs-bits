@@ -22,6 +22,8 @@ from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
+from .move_changes import mode_OpenBeamPath
+
 from .move_instrument import move_SAXSIn
 from .move_instrument import move_SAXSOut
 from .move_instrument import move_USAXSIn

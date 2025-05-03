@@ -170,7 +170,7 @@ def mode_USAXS(md=None):
         #blackfly_det.cam.acquire, 0,    #stop Blackfly if it is running... 
     )
  
-    yield from insertScanFilters()
+    #yield from insertScanFilters()
  
     logger.info("Prepared for USAXS mode")
     yield from user_data.set_state_plan("USAXS Mode")
@@ -242,6 +242,7 @@ def mode_WAXS(md=None):
         yield from move_USAXSOut()
         yield from move_WAXSIn()
 
+    # TODO remove all of this about slits here and eithr fix ro move to separate plan. 
     # move SAXS slits in, used for WAXS mode also
     v_diff = abs(guard_slit.v_size.get() - terms.SAXS.guard_v_size.get())
     h_diff = abs(guard_slit.h_size.get() - terms.SAXS.guard_h_size.get())
@@ -367,10 +368,8 @@ def mode_Imaging(md=None):
 
 
 def mode_OpenBeamPath(md=None):
-    # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to OpenBeamPath mode")
     yield from bps.mv(
-        #ccd_shutter,        "close",
         usaxs_shutter,  "close",
         #laser.enable,  0,
     )
