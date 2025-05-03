@@ -127,6 +127,9 @@ class Parameters_USAXS(Device):
     SDD = Component(EpicsSignal, "usxLAX:USAXS:SDD")
     ar_val_center = Component(EpicsSignal, "usxLAX:USAXS:ARcenter")
 
+    ay_in = Component(EpicsSignal, "usxLAX:ay_in")
+    dy_in = Component(EpicsSignal, "usxLAX:dy_in")
+    
     blackfly = Component(GeneralUsaxsParametersBlackfly, "usxLAX:USAXS:BlackFly_")
     center = Component(GeneralUsaxsParametersCenters, "usxLAX:USAXS:")
     ccd = Component(GeneralParametersCCD, "usxLAX:USAXS:CCD_")

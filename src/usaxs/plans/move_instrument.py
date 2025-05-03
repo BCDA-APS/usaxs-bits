@@ -37,6 +37,8 @@ usaxs_slit = oregistry["usaxs_slit"]
 waxsx = oregistry["waxsx"]
 saxs_stage = oregistry["saxs_stage"]
 user_data = oregistry["user_device"]
+a_stage =  oregistry["a_stage"]
+d_stage = oregistry["d_stage"]
 
 iconfig = get_config()
 scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
@@ -224,19 +226,18 @@ def move_USAXSIn():
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
-    # first move SAXS and WAXS out of way
+    # move to USAXS size
     yield from bps.mv(
-        guard_slit.v_size,
-        terms.USAXS.guard_v_size.get(),
-        guard_slit.h_size,
-        terms.USAXS.guard_h_size.get(),
-        usaxs_slit.x,
-        terms.USAXS.x_in.get(),
-        usaxs_slit.v_size,
-        terms.USAXS.v_size.get(),
-        usaxs_slit.h_size,
-        terms.USAXS.h_size.get(),
+        guard_slit.h_size,  terms.USAXS.guard_h_size.get(),
+        guard_slit.v_size,  terms.USAXS.guard_v_size.get(),
+        usaxs_slit.h_size,  terms.USAXS.usaxs_h_size.get(),
+        usaxs_slit.v_size,  terms.USAXS.usaxs_v_size.get(),
+        a_stage.y,          terms.USAXS.ay_in.get(),
+        a_stage.x,          terms.USAXS.AX0.get(),
+        d_stage.y,          terms.USAXS.dy_in.get(),
+        d_stage.x,          terms.USAXS.DX0.get(), #same as: terms.USAXS:Diode_dx.get(),
     )
+
 
     logger.info("USAXS is in position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["USAXS in beam"])
