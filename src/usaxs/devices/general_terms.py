@@ -147,7 +147,11 @@ class Parameters_USAXS(Device):
     useDynamicTime = Component(Signal, value=True)
     useMSstage = Component(Signal, value=False)
     useSBUSAXS = Component(Signal, value=False)
-
+    guard_h_size = Component(EpicsSignal, "usxLAX:USAXS_hgslit_ap")
+    guard_v_size = Component(EpicsSignal, "usxLAX:USAXS_vgslit_ap")
+    usaxs_h_size = Component(EpicsSignal, "usxLAX:USAXS_hslit_ap")
+    usaxs_v_size = Component(EpicsSignal, "usxLAX:USAXS_vslit_ap")    
+    
     retune_needed = Component(Signal, value=False)  # does not *need* an EPICS PV
 
     # TODO: these are particular to the amplifier
