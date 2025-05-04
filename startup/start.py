@@ -1,1 +1,0 @@
-from usaxs.startup import *
