@@ -8,9 +8,6 @@
 # from .command_list import run_command_file
 # from .command_list import run_python_file
 # from .command_list import sync_order_numbers
-# from .dm_plans import dm_kickoff_workflow
-# from .dm_plans import dm_list_processing_jobs
-# from .dm_plans import dm_submit_workflow_job
 from .filter_plans import insertBlackflyFilters
 from .filter_plans import insertRadiographyFilters
 from .filter_plans import insertSaxsFilters

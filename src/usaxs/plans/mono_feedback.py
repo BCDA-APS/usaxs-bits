@@ -3,8 +3,6 @@
 control the monochromator feedback
 """
 
-# __all__ = ["DCMfeedbackOFF", "DCMfeedbackON",]
-
 import logging
 
 from apsbits.core.instrument_init import oregistry
