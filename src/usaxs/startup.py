@@ -100,6 +100,6 @@ from .plans import sim_count_plan  # noqa: E402, F401
 from .plans import sim_print_plan  # noqa: E402, F401
 from .plans import sim_rel_scan_plan  # noqa: E402, F401
  
-from usaxs.startup import *
+# from usaxs.startup import * #You are attempting to import the file we are in, no bueno
 from usaxs.plans import *
  
