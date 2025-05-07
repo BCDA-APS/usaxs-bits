@@ -4,7 +4,7 @@
 # purpose: Start USAXS bluesky controls in an IPython session
 
 export BLUESKY_ENVIRONMENT=bluesky_2025_1  # TODO
-export INSTRUMENT_PACKAGE_NAME=instrument
+export INSTRUMENT_PACKAGE_NAME=usaxs
 export CONDA_ROOT=$(conda info --base)
 
 if [ "${CONDA_PREFIX}" == "" ]; then
