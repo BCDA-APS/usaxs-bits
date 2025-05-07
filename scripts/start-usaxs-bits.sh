@@ -3,7 +3,7 @@
 # file: start-usaxs-bits.sh
 # purpose: Start USAXS bluesky controls in an IPython session
 
-export BLUESKY_ENVIRONMENT=bluesky_2025_1  # TODO
+export BLUESKY_ENVIRONMENT=bits_usaxs  
 export INSTRUMENT_PACKAGE_NAME=usaxs
 export CONDA_ROOT=$(conda info --base)
 
