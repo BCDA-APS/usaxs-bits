@@ -3,6 +3,12 @@
 control the monochromator feedback
 """
 
+__all__ = """
+    MONO_FEEDBACK_OFF
+    MONO_FEEDBACK_ON
+""".split()
+
+
 import logging
 
 from apsbits.core.instrument_init import oregistry
@@ -14,12 +20,12 @@ logger.bsdev(__file__)
 
 monochromator = oregistry["monochromator"]
 
-def DCMfeedbackOFF():
+def MONO_FEEDBACK_OFF():
     """plan: could send email"""
     yield from bps.mv(monochromator.feedback.on, 0)
 
 
-def DCMfeedbackON():
+def MONO_FEEDBACK_ON():
     """plan: could send email"""
     yield from bps.mv(monochromator.feedback.on, 1)
     monochromator.feedback.check_position()
