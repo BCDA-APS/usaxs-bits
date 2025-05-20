@@ -11,7 +11,7 @@ __all__ = """
 
 import logging
 
-from apsbits.core.instrument_init import oregistry
+from ..startup import oregistry
 from bluesky import plan_stubs as bps
 
 logger = logging.getLogger(__name__)
