@@ -13,25 +13,12 @@ from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
-# from ..devices import a_shutter_autoopen
 from ..devices import constants
-
-# from ..devices import saxs_det
-# from ..devices import terms
-# from ..devices import ti_filter_shutter
-# from ..devices import user_data
-# from ..devices import waxs_det
-# from ..devices.amplifiers import I0_controls
-# from ..devices.amplifiers import I00_controls
 from ..devices.amplifiers import measure_background
 from ..usaxs_flyscan_support import instrument_archive
 from ..usaxs_flyscan_support import reset_manager
 from ..utils.email_notices import email_notices
 from ..utils.quoted_line import split_quoted_line
-
-# from ..devices.amplifiers import trd_controls
-# from ..devices.amplifiers import upd_controls
-# from ..devices.stages import s_stage
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
 from .axis_tuning import user_defined_settings
@@ -44,6 +31,12 @@ from .requested_stop import RequestAbort
 from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
 from .sample_rotator_plans import PI_onR
+from .scans import SAXS
+from .scans import WAXS
+from .scans import USAXSscan
+from .scans import allUSAXStune
+from .scans import preSWAXStune
+from .scans import preUSAXStune
 from .utils.doc_run import documentation_run
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
@@ -61,9 +54,30 @@ s_stage = oregistry["s_stage"]
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
+##User facing functions
 
 
+def run_command_file(filename, md=None):
+    """
+    Plan: execute a list of commands from a text or Excel file.
+
+    * Parse the file into a command list
+    * yield the command list to the RunEngine (or other)
+    """
+    if md is None:
+        md = {}
+    commands = get_command_list(filename)
+    yield from execute_command_list(filename, commands, md=md)
+
+
+def summarize_command_file(filename):
+    """Print the command list from a text or Excel file."""
+    commands = get_command_list(filename)
+    logger.info("Command file: %s\n%s", command_list_as_table(commands), filename)
+
+
+##Internal functions
 def beforeScanComputeOtherStuff():
     """Actions before each data collection starts."""
     yield from bps.null()  # TODO: remove this once you add the "other stuff"
@@ -102,7 +116,6 @@ def postCommandsListfile2WWW(commands):
 
 def before_command_list(md=None, commands=None):
     """Actions before a command list is run."""
-    from ..original_plans.scans import preUSAXStune
 
     if commands is not None:
         verify_commands(commands)
@@ -182,20 +195,24 @@ def verify_commands(commands):
             # check sx against travel limits
             if sx < s_stage.x.low_limit:
                 list_of_errors.append(
-                    f"line {i}: SX low limit: value {sx} < low limit {s_stage.x.low_limit},  command: {raw_command.strip()}"
+                    f"line {i}: SX low limit: value {sx} < low limit {s_stage.x.low_limit}, "
+                    f"command: {raw_command.strip()}"
                 )
             if sx > s_stage.x.high_limit:
                 list_of_errors.append(
-                    f"line {i}: SX high limit: value {sx} > high limit {s_stage.x.high_limit},  command: {raw_command.strip()}"
+                    f"line {i}: SX high limit: value {sx} > high limit {s_stage.x.high_limit}, "
+                    f"command: {raw_command.strip()}"
                 )
             # check sy against travel limits
             if sy < s_stage.y.low_limit:
                 list_of_errors.append(
-                    f"line {i}: SY low limit: value {sy} < low limit {s_stage.y.low_limit},  command: {raw_command.strip()}"
+                    f"line {i}: SY low limit: value {sy} < low limit {s_stage.y.low_limit}, "
+                    f"command: {raw_command.strip()}"
                 )
             if sy > s_stage.y.high_limit:
                 list_of_errors.append(
-                    f"line {i}: SY high limit: value {sy} > high limit {s_stage.y.high_limit},  command: {raw_command.strip()}"
+                    f"line {i}: SY high limit: value {sy} > high limit {s_stage.y.high_limit}, "
+                    f"command: {raw_command.strip()}"
                 )
             # check sth for reasonable sample thickness value
             if sth < 0:
@@ -234,8 +251,6 @@ def before_plan(md=None):
     """Actions before every data collection plan."""
     if md is None:
         md = {}
-    from ..original_plans.scans import preSWAXStune
-    from ..original_plans.scans import preUSAXStune
 
     if terms.preUSAXStune.needed:
         # tune at previous sample position
@@ -401,25 +416,6 @@ def get_command_list(filename):
     return commands
 
 
-def summarize_command_file(filename):
-    """Print the command list from a text or Excel file."""
-    commands = get_command_list(filename)
-    logger.info("Command file: %s\n%s", command_list_as_table(commands), filename)
-
-
-def run_command_file(filename, md=None):
-    """
-    Plan: execute a list of commands from a text or Excel file.
-
-    * Parse the file into a command list
-    * yield the command list to the RunEngine (or other)
-    """
-    if md is None:
-        md = {}
-    commands = get_command_list(filename)
-    yield from execute_command_list(filename, commands, md=md)
-
-
 def execute_command_list(filename, commands, md=None):
     """
     Plan: execute the command list.
@@ -453,11 +449,6 @@ def execute_command_list(filename, commands, md=None):
         contents from input file, such as:
         ``SAXS 0 0 0 blank``
     """
-    from ..original_plans.scans import SAXS
-    from ..original_plans.scans import WAXS
-    from ..original_plans.scans import USAXSscan
-    from ..original_plans.scans import allUSAXStune
-    from ..original_plans.scans import preUSAXStune
 
     if md is None:
         md = {}
@@ -512,32 +503,35 @@ def execute_command_list(filename, commands, md=None):
             allusaxstune=allUSAXStune,
         )
 
-        def _handle_actions_():
+        def _handle_actions_(
+            action=action,
+            args=args,
+            i=i,
+            raw_command=raw_command,
+            _md=_md,
+            simple_actions=simple_actions,
+        ):
             """Inner function to make try..except clause more clear."""
             if action in ("flyscan", "usaxsscan"):
-                # handles either step or fly scan
                 sx = float(args[0])
                 sy = float(args[1])
                 sth = float(args[2])
-                snm = args[3]
-                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
-                yield from USAXSscan(sx, sy, sth, snm, md=_md)
+                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=args[3]))
+                yield from USAXSscan(sx, sy, sth, args[3], md=_md)
 
             elif action in ("saxs", "saxsexp"):
                 sx = float(args[0])
                 sy = float(args[1])
                 sth = float(args[2])
-                snm = args[3]
-                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
-                yield from SAXS(sx, sy, sth, snm, md=_md)
+                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=args[3]))
+                yield from SAXS(sx, sy, sth, args[3], md=_md)
 
             elif action in ("waxs", "waxsexp"):
                 sx = float(args[0])
                 sy = float(args[1])
                 sth = float(args[2])
-                snm = args[3]
-                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
-                yield from WAXS(sx, sy, sth, snm, md=_md)
+                _md.update(dict(sx=sx, sy=sy, thickness=sth, title=args[3]))
+                yield from WAXS(sx, sy, sth, args[3], md=_md)
 
             # elif action in ("run_python", "run"):
             #     filename = args[0]
