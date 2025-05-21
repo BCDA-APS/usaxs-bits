@@ -80,7 +80,7 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
-RE(make_devices(file="scaler.yml", clear=False))
+RE(make_devices(file="scalers.yml", clear=False))
 scaler0 = oregistry["scaler0"]
 scaler0.stage_sigs["count_mode"] = "OneShot"
 

@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 
 
 # Register user override for USAXS minimum step
-user_override.register("usaxs_minstep")
+user_override.register("usaxs_minstep") #what is this for?
 
 
 # Set empty plan for channel-cut crystals
