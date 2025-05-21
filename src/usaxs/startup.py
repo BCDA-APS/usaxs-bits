@@ -95,13 +95,7 @@ if in_operation:
 if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
 
-# Import sim plans
-from .plans.sim_plans import sim_count_plan  # noqa: E402, F401
-from .plans.sim_plans import sim_print_plan  # noqa: E402, F401
-from .plans.sim_plans import sim_rel_scan_plan  # noqa: E402, F401
  
 from .plans.mono_feedback import MONO_FEEDBACK_OFF
 from .plans.mono_feedback import MONO_FEEDBACK_ON
 
-print(MONO_FEEDBACK_OFF)
-print(MONO_FEEDBACK_ON)
