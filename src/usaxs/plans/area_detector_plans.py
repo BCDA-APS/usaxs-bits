@@ -4,10 +4,9 @@ import time
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
-from ..devices import user_data
+
 from ..startup import RE
 from ..startup import bec
-
 from ..utils.reporter import remaining_time_reporter
 
 """
