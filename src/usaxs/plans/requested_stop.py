@@ -35,7 +35,9 @@ def IfRequestedStopBeforeNextScan():
     pv_txt = "Pausing for user for %g s"
     while terms.PauseBeforeNextScan.get():
         msg = pv_txt % (time.time() - t0)
-        logger.info(msg)
+        logger.info(
+            msg
+        )
         yield from user_data.set_state_plan(msg)
         yield from bps.sleep(1)
         open_the_shutter = True

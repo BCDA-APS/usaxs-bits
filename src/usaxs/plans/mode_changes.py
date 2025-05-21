@@ -268,7 +268,11 @@ def mode_WAXS(md=None):
         logger.debug("WAXS is in beam")
     else:
         mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
-        logger.info(f"Found UsaxsSaxsMode = {mode_now}")
+        logger.info(
+            "Mode change: %s -> %s (reason: opening beam path)",
+            mode_now,
+            terms.SAXS.UsaxsSaxsMode.get(as_string=True)
+        )
         logger.info("Moving to proper WAXS mode")
         yield from move_SAXSOut()
         yield from move_USAXSOut()

@@ -24,7 +24,6 @@ from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 
 logger = logging.getLogger(__name__)
-logger.bsdev(__file__)
 
 # Get the path to the instrument package
 instrument_path = Path(__file__).parent
@@ -59,7 +58,7 @@ if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
     nxwriter = nxwriter_init(RE)
 
 if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.spec_data_file_writer import init_specwriter_with_RE
+    from .callbacks.spec_data_file_writer import init_specwriter_with_RE  # noqa: F401
     from .callbacks.spec_data_file_writer import newSpecFile  # noqa: F401
     from .callbacks.spec_data_file_writer import spec_comment  # noqa: F401
     from .callbacks.spec_data_file_writer import specwriter  # noqa: F401
@@ -113,6 +112,3 @@ if in_operation:
     RE(make_devices(file="shutters_op.yml", clear=False))
 if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
-
-
-from .plans import *

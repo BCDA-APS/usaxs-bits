@@ -22,6 +22,8 @@ from apstools.plans import write_stream
 from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 
+from src.usaxs.devices.amplifier_device import AutorangeSettings
+
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
 logger = logging.getLogger(__name__)

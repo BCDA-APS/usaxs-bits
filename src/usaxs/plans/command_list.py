@@ -557,6 +557,10 @@ def execute_command_list(filename, commands, md=None):
             try:
                 # call the inner function (above)
                 yield from _handle_actions_()
+                logger.info(
+                    "Command %s executed successfully.",
+                    command
+                )
                 break  # leave the while loop
             # TODO: need to handle some Exceptions, fail on others
             except Exception as exc:

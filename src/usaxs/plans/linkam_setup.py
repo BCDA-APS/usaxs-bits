@@ -30,7 +30,7 @@ def linkam_setup():
     try:
         linkam_tc1.wait_for_connection()
     except Exception:
-        warnings.warn(f"Linkam controller {linkam_tc1.name} not connected.")
+        warnings.warn("Linkam temperature controller not found.", stacklevel=2)
 
     if linkam_tc1.connected:
         # set tolerance for "in position" (Python term, not an EPICS PV)

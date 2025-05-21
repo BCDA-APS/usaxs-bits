@@ -38,6 +38,17 @@ user_data = oregistry["user_data"]
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+# Add missing imports at the top
+from bluesky import RunEngine
+from ophyd.signal import EpicsSignalRO
+
+from src.usaxs.devices.amplifier_device import AMPLIFIER_MINIMUM_SETTLING_TIME
+from src.usaxs.devices.amplifier_device import NUM_AUTORANGE_GAINS
+from src.usaxs.devices.amplifier_device import AutorangeSettings
+from src.usaxs.devices.amplifier_device import AutoscaleError
+from src.usaxs.devices.amplifier_device import DetectorAmplifierAutorangeDevice
+from src.usaxs.devices.scaler_device import ScalerChannel
+
 
 def setup_amplifier_count_time():
     """Set up the count time for the amplifier.

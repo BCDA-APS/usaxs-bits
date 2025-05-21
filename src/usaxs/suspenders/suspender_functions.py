@@ -1,3 +1,5 @@
+"""Suspender functions for USAXS beamline operations."""
+
 import logging
 
 import bluesky.suspenders
