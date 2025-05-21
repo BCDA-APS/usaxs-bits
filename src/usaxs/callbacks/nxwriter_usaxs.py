@@ -9,9 +9,9 @@ import datetime
 import logging
 import os
 
+import apstools
 import numpy as np
 from apstools.callbacks import NXWriterAPS
-import apstools
 
 from ..devices import terms  # noqa: F401
 from ..devices.user_data import user_data  # noqa: F401
