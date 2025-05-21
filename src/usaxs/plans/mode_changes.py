@@ -14,10 +14,7 @@ from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 from ophyd.scaler import ScalerCH
 
-from .filter_plans import insertBlackflyFilters
 from .filter_plans import insertRadiographyFilters
-from .filter_plans import insertScanFilters
-from .mono_feedback import MONO_FEEDBACK_ON
 from .move_instrument import UsaxsSaxsModes
 from .move_instrument import move_SAXSIn
 from .move_instrument import move_SAXSOut
@@ -52,6 +49,7 @@ scaler0.stage_sigs["count_mode"] = "OneShot"
 
 NUM_AUTORANGE_GAINS = 5  # common to all autorange sequence programs
 AMPLIFIER_MINIMUM_SETTLING_TIME = 0.01  # reasonable?
+
 
 def confirm_instrument_mode(mode_name):
     """
@@ -115,7 +113,7 @@ def confirm_instrument_mode(mode_name):
 #         user_data.macro_file_time, ts,
 #         user_data.scanning, 0,
 #         user_data.collection_in_progress, 0,
-#         blackfly_det.cam.acquire, 1,                 #we are using Blackfly now, let's start it... 
+#         blackfly_det.cam.acquire, 1,                 #we are using Blackfly now, let's start it...
 #     )
 
 
@@ -123,11 +121,12 @@ def mode_USAXS(md=None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        usaxs_shutter,  "close",
-        #laser.enable,  0,
+        # ccd_shutter,        "close",
+        usaxs_shutter,
+        "close",
+        # laser.enable,  0,
     )
-    #yield from MONO_FEEDBACK_ON()
+    # yield from MONO_FEEDBACK_ON()
     retune_needed = False
 
     if not confirm_instrument_mode("USAXS in beam"):
@@ -143,30 +142,43 @@ def mode_USAXS(md=None):
     # why not use move_USAXSIn() here???
     yield from bps.mv(
         # set scalar to autocount mode for USAXS
-        scaler0.count_mode, SCALER_AUTOCOUNT_MODE,
-        #d_stage.x, terms.USAXS.diode.dx.get(),
-        #d_stage.y, terms.USAXS.diode.dy.get(),
-        a_stage.x,terms.USAXS.AX0.get(), 
-        m_stage.x, 0,
-        gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
-        d_stage.x, terms.USAXS.DX0.get(),
-        d_stage.y, terms.USAXS.dy_in.get(),
-        guard_slit.h_size,  terms.USAXS.guard_h_size.get(),
-        guard_slit.v_size,  terms.USAXS.guard_v_size.get(),
-        usaxs_slit.h_size,  terms.USAXS.usaxs_h_size.get(),
-        usaxs_slit.v_size,  terms.USAXS.usaxs_v_size.get(),
-        #blackfly_det.cam.acquire, 0,    #stop Blackfly if it is running... 
+        scaler0.count_mode,
+        SCALER_AUTOCOUNT_MODE,
+        # d_stage.x, terms.USAXS.diode.dx.get(),
+        # d_stage.y, terms.USAXS.diode.dy.get(),
+        a_stage.x,
+        terms.USAXS.AX0.get(),
+        m_stage.x,
+        0,
+        gslit_stage.x,
+        terms.USAXS.AX0.get(),  # this requires AX0 and Gslits.X be the same.
+        d_stage.x,
+        terms.USAXS.DX0.get(),
+        d_stage.y,
+        terms.USAXS.dy_in.get(),
+        guard_slit.h_size,
+        terms.USAXS.guard_h_size.get(),
+        guard_slit.v_size,
+        terms.USAXS.guard_v_size.get(),
+        usaxs_slit.h_size,
+        terms.USAXS.usaxs_h_size.get(),
+        usaxs_slit.v_size,
+        terms.USAXS.usaxs_v_size.get(),
+        # blackfly_det.cam.acquire, 0,    #stop Blackfly if it is running...
     )
- 
-    #yield from insertScanFilters()
- 
+
+    # yield from insertScanFilters()
+
     logger.info("Prepared for USAXS mode")
     yield from user_data.set_state_plan("USAXS Mode")
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-            user_data.time_stamp, ts,
-            user_data.macro_file_time, ts,
-            user_data.scanning, 0,
+        user_data.time_stamp,
+        ts,
+        user_data.macro_file_time,
+        ts,
+        user_data.scanning,
+        0,
     )
 
     if retune_needed:
@@ -176,19 +188,21 @@ def mode_USAXS(md=None):
 
 
 # def mode_SBUSAXS():  # TODO:
-mode_SBUSAXS = mode_USAXS       # for now
+mode_SBUSAXS = mode_USAXS  # for now
 
 
 def mode_SAXS(md=None):
-
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        usaxs_shutter,  "close",
-        #laser.enable,  0,
-        m_stage.x, 0,
-        gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
-   )
+        # ccd_shutter,        "close",
+        usaxs_shutter,
+        "close",
+        # laser.enable,  0,
+        m_stage.x,
+        0,
+        gslit_stage.x,
+        terms.USAXS.AX0.get(),  # this requires AX0 and Gslits.X be the same.
+    )
 
     if not confirm_instrument_mode("SAXS in beam"):
         mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
@@ -199,13 +213,16 @@ def mode_SAXS(md=None):
         yield from move_SAXSIn()
 
     logger.info("Prepared for SAXS mode")
-    #insertScanFilters
+    # insertScanFilters
     yield from user_data.set_state_plan("SAXS Mode")
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        user_data.time_stamp, ts,
-        user_data.macro_file_time, ts,
-        user_data.scanning, 0,
+        user_data.time_stamp,
+        ts,
+        user_data.macro_file_time,
+        ts,
+        user_data.scanning,
+        0,
     )
 
 
@@ -213,11 +230,14 @@ def mode_WAXS(md=None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        usaxs_shutter,  "close",
-        m_stage.x, 0,
-        gslit_stage.x,terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
-        #laser.enable,  0,
+        # ccd_shutter,        "close",
+        usaxs_shutter,
+        "close",
+        m_stage.x,
+        0,
+        gslit_stage.x,
+        terms.USAXS.AX0.get(),  # this requires AX0 and Gslits.X be the same.
+        # laser.enable,  0,
     )
 
     if confirm_instrument_mode("WAXS in beam"):
@@ -230,45 +250,54 @@ def mode_WAXS(md=None):
         yield from move_USAXSOut()
         yield from move_WAXSIn()
 
-    # TODO remove all of this about slits here and eithr fix ro move to separate plan. 
+    # TODO remove all of this about slits here and eithr fix ro move to separate plan.
     # move SAXS slits in, used for WAXS mode also
     v_diff = abs(guard_slit.v_size.get() - terms.SAXS.guard_v_size.get())
     h_diff = abs(guard_slit.h_size.get() - terms.SAXS.guard_h_size.get())
-    #logger.debug("guard slits horizontal difference = %g" % h_diff)
-    #logger.debug("guard slits vertical difference = %g" % v_diff)
+    # logger.debug("guard slits horizontal difference = %g" % h_diff)
+    # logger.debug("guard slits vertical difference = %g" % v_diff)
 
     if max(v_diff, h_diff) > 0.03:
         logger.info("changing Guard slits")
         yield from bps.mv(
-            guard_slit.h_size, terms.SAXS.guard_h_size.get(),
-            guard_slit.v_size, terms.SAXS.guard_v_size.get(),
+            guard_slit.h_size,
+            terms.SAXS.guard_h_size.get(),
+            guard_slit.v_size,
+            terms.SAXS.guard_v_size.get(),
         )
         # TODO: need completion indication
         #  guard_slit is calculated by a database
         #  support needs a handler that does this wait for us.
-        yield from bps.sleep(0.5)           # TODO: needed now?
+        yield from bps.sleep(0.5)  # TODO: needed now?
 
     v_diff = abs(usaxs_slit.v_size.position - terms.SAXS.v_size.get())
     h_diff = abs(usaxs_slit.h_size.position - terms.SAXS.h_size.get())
-    #logger.debug("USAXS slits horizontal difference = %g" % h_diff)
-    #logger.debug("USAXS slits vertical difference = %g" % v_diff)
+    # logger.debug("USAXS slits horizontal difference = %g" % h_diff)
+    # logger.debug("USAXS slits vertical difference = %g" % v_diff)
 
     if max(v_diff, h_diff) > 0.02:
-       logger.info("Moving Beam defining slits")
-       yield from bps.mv(
-           usaxs_slit.h_size, terms.SAXS.h_size.get(),
-           usaxs_slit.v_size, terms.SAXS.v_size.get(),
-       )
-       yield from bps.sleep(2)     # wait for backlash, seems these motors are slow and spec gets ahead of them?
+        logger.info("Moving Beam defining slits")
+        yield from bps.mv(
+            usaxs_slit.h_size,
+            terms.SAXS.h_size.get(),
+            usaxs_slit.v_size,
+            terms.SAXS.v_size.get(),
+        )
+        yield from bps.sleep(
+            2
+        )  # wait for backlash, seems these motors are slow and spec gets ahead of them?
 
     logger.info("Prepared for WAXS mode")
-    #insertScanFilters
+    # insertScanFilters
     yield from user_data.set_state_plan("WAXS Mode")
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        user_data.time_stamp, ts,
-        user_data.macro_file_time, ts,
-        user_data.scanning, 0,
+        user_data.time_stamp,
+        ts,
+        user_data.macro_file_time,
+        ts,
+        user_data.scanning,
+        0,
     )
 
 
@@ -282,21 +311,29 @@ def mode_Radiography(md=None):
     yield from mode_USAXS()
 
     yield from bps.mv(
-        monochromator.feedback.on, 1,
+        monochromator.feedback.on,
+        1,
         # ccd_shutter, "close",
-        #laser.enable,  0,
-        user_data.collection_in_progress, 1,
+        # laser.enable,  0,
+        user_data.collection_in_progress,
+        1,
     )
 
     yield from bps.mv(
         # move to ccd position
-        d_stage.x, terms.USAXS.ccd.dx.get(),
-        d_stage.y, terms.USAXS.ccd.dy.get(),
+        d_stage.x,
+        terms.USAXS.ccd.dx.get(),
+        d_stage.y,
+        terms.USAXS.ccd.dy.get(),
         # make sure slits are in place
-        usaxs_slit.v_size,  terms.SAXS.usaxs_v_size.get(),
-        usaxs_slit.h_size,  terms.SAXS.usaxs_h_size.get(),
-        guard_slit.v_size,  terms.SAXS.usaxs_guard_v_size.get(),
-        guard_slit.h_size,  terms.SAXS.usaxs_guard_h_size.get(),
+        usaxs_slit.v_size,
+        terms.SAXS.usaxs_v_size.get(),
+        usaxs_slit.h_size,
+        terms.SAXS.usaxs_h_size.get(),
+        guard_slit.v_size,
+        terms.SAXS.usaxs_guard_v_size.get(),
+        guard_slit.h_size,
+        terms.SAXS.usaxs_guard_h_size.get(),
     )
 
     yield from insertRadiographyFilters()
@@ -304,18 +341,24 @@ def mode_Radiography(md=None):
     # when all that is complete, then ...
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        usaxs_shutter, "open",
-        #ccd_shutter, "open",
-        user_data.time_stamp, ts,
-        user_data.macro_file_time, ts,
-        user_data.scanning, 0,
-        user_data.collection_in_progress, 0,
-        blackfly_det.cam.acquire, 1,                 #we are using Blackfly now, let's start it... 
-        )
+        usaxs_shutter,
+        "open",
+        # ccd_shutter, "open",
+        user_data.time_stamp,
+        ts,
+        user_data.macro_file_time,
+        ts,
+        user_data.scanning,
+        0,
+        user_data.collection_in_progress,
+        0,
+        blackfly_det.cam.acquire,
+        1,  # we are using Blackfly now, let's start it...
+    )
 
     yield from user_data.set_state_plan("Radiography Mode")
     logger.info("Instrument is configured for Radiography now.")
-    #TODO: IT Needs to fix access to beam ready
+    # TODO: IT Needs to fix access to beam ready
     # if diagnostics.PSS.e_beam_ready.get() not in (1, 'ON'):
     #     logger.warning("Not permitted to open mono shutter now.")
     #     logger.info("Open the mono shutter manually when permitted.")
@@ -351,15 +394,18 @@ def mode_Imaging(md=None):
     """
     # see: /share1/USAXS_data/2019-02/USAXS_user_macros.mac
     # there it calls useModeUSAXS so that's what we'll do here
-    yield from user_data.set_state_plan("Moving USAXS to Imaging mode (same as USAXS mode now)")
+    yield from user_data.set_state_plan(
+        "Moving USAXS to Imaging mode (same as USAXS mode now)"
+    )
     yield from mode_USAXS()
 
 
 def mode_OpenBeamPath(md=None):
     yield from user_data.set_state_plan("Moving USAXS to OpenBeamPath mode")
     yield from bps.mv(
-        usaxs_shutter,  "close",
-        #laser.enable,  0,
+        usaxs_shutter,
+        "close",
+        # laser.enable,  0,
     )
 
     if not confirm_instrument_mode("out of beam"):

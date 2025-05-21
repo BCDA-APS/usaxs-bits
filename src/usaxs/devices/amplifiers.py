@@ -30,7 +30,6 @@ We only need to get this once, get it via one-time call with PyEpics
 and then use it with inline dictionaries to pick the right PVs.
 """
 
-
 import logging
 from collections import OrderedDict
 

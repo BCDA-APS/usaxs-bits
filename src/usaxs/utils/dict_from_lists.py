@@ -2,7 +2,6 @@
 derivative of two vectors: y(x), returns y'(x)
 """
 
-
 from collections import OrderedDict
 
 

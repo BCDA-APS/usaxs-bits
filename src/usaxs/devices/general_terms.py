@@ -131,7 +131,7 @@ class Parameters_USAXS(Device):
     dy_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dy")
     ax_in = Component(EpicsSignal, "usxLAX:ax_in")
     ax_out = Component(EpicsSignal, "usxLAX:ax_out")
-    dx_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx")  
+    dx_in = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx")
     dx_out = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx_out")
 
     blackfly = Component(GeneralUsaxsParametersBlackfly, "usxLAX:USAXS:BlackFly_")
@@ -157,8 +157,8 @@ class Parameters_USAXS(Device):
     guard_h_size = Component(EpicsSignal, "usxLAX:USAXS_hgslit_ap")
     guard_v_size = Component(EpicsSignal, "usxLAX:USAXS_vgslit_ap")
     usaxs_h_size = Component(EpicsSignal, "usxLAX:USAXS_hslit_ap")
-    usaxs_v_size = Component(EpicsSignal, "usxLAX:USAXS_vslit_ap")    
-    
+    usaxs_v_size = Component(EpicsSignal, "usxLAX:USAXS_vslit_ap")
+
     retune_needed = Component(Signal, value=False)  # does not *need* an EPICS PV
 
     # TODO: these are particular to the amplifier
