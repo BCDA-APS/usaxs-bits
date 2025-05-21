@@ -29,7 +29,7 @@ from ophyd.scaler import ScalerCH
 from .filter_plans import insertBlackflyFilters
 from .filter_plans import insertRadiographyFilters
 from .filter_plans import insertScanFilters
-from .mono_feedback import DCMfeedbackON
+from .mono_feedback import MONO_FEEDBACK_ON
 from .move_instrument import UsaxsSaxsModes
 from .move_instrument import move_SAXSIn
 from .move_instrument import move_SAXSOut
@@ -48,7 +48,7 @@ m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
 gslit_stage = oregistry["gslit_stage"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-#blackfly_det = oregistry["blackfly_det"]
+blackfly_det = oregistry["blackfly_det"]
 guard_slit = oregistry["guard_slit"]
 usaxs_slit = oregistry["usaxs_slit"]
 diagnostics = oregistry["diagnostics"]
@@ -101,7 +101,7 @@ def confirm_instrument_mode(mode_name):
 #     Sets to imaging mode for direct beam, using BlackFly camera.
 #     """
 #     yield from mode_USAXS()
-#     yield from DCMfeedbackON()
+#     yield from MONO_FEEDBACK_ON()
 #     yield from user_data.set_state_plan(
 #         "Preparing for BlackFly imaging mode"
 #         )
@@ -139,7 +139,7 @@ def mode_USAXS(md=None):
         usaxs_shutter,  "close",
         #laser.enable,  0,
     )
-    #yield from DCMfeedbackON()
+    #yield from MONO_FEEDBACK_ON()
     retune_needed = False
 
     if not confirm_instrument_mode("USAXS in beam"):
@@ -327,34 +327,34 @@ def mode_Radiography(md=None):
 
     yield from user_data.set_state_plan("Radiography Mode")
     logger.info("Instrument is configured for Radiography now.")
-
-    if diagnostics.PSS.e_beam_ready.get() not in (1, 'ON'):
-        logger.warning("Not permitted to open mono shutter now.")
-        logger.info("Open the mono shutter manually when permitted.")
-    else:
-        yield from bps.mv(
-            mono_shutter, "open",
-        )
-        if mono_shutter.state == "open":
-            logger.info("TV should now show Radiography CCD image.")
-            print(
-                "But before calling if you do not see an image:"
-                "\n - are you CERTAIN the sample is not blocking the beam?"
-                "\nMove sample out and try RE(tune_usaxs_optics()) again."
-                "\n"
-                "\nIf still no image on the CCD, check:"
-                "\n"
-                "\n* Beam on? APS up and running?"
-                "\n* Shutters opened?"
-                "\n* Sample/holder out of beam?"
-                "\n"
-                "\nIf all is OK, try running RE(tune_usaxs_optics())."
-                "\nIf USAXStune worked? Run RE(mode_Radiography())."
-                "\n"
-                "\nStill not working? Call Jan."
-            )
-        else:
-            logger.info("The mono shutter is closed now.  APS beam dump?")
+    #TODO: IT Needs to fix access to beam ready
+    # if diagnostics.PSS.e_beam_ready.get() not in (1, 'ON'):
+    #     logger.warning("Not permitted to open mono shutter now.")
+    #     logger.info("Open the mono shutter manually when permitted.")
+    # else:
+    #     yield from bps.mv(
+    #         mono_shutter, "open",
+    #     )
+    #     if mono_shutter.state == "open":
+    #         logger.info("TV should now show Radiography CCD image.")
+    #         print(
+    #             "But before calling if you do not see an image:"
+    #             "\n - are you CERTAIN the sample is not blocking the beam?"
+    #             "\nMove sample out and try RE(tune_usaxs_optics()) again."
+    #             "\n"
+    #             "\nIf still no image on the CCD, check:"
+    #             "\n"
+    #             "\n* Beam on? APS up and running?"
+    #             "\n* Shutters opened?"
+    #             "\n* Sample/holder out of beam?"
+    #             "\n"
+    #             "\nIf all is OK, try running RE(tune_usaxs_optics())."
+    #             "\nIf USAXStune worked? Run RE(mode_Radiography())."
+    #             "\n"
+    #             "\nStill not working? Call Jan."
+    #         )
+    #     else:
+    #         logger.info("The mono shutter is closed now.  APS beam dump?")
 
 
 def mode_Imaging(md=None):
