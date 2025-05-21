@@ -25,7 +25,7 @@ from .mode_changes import mode_Radiography
 from .scans import preUSAXStune
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Device instances
 user_data = oregistry["user_data"]

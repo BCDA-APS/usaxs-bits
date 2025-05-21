@@ -19,7 +19,7 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Device instances
 pi_c867 = oregistry["pi_c867"]

@@ -12,7 +12,7 @@ from ..utils.reporter import remaining_time_reporter
 """Plans for area detector operations in the USAXS beamline."""
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 user_data = oregistry["user_device"]
 

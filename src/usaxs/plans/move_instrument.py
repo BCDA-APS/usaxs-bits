@@ -15,7 +15,7 @@ from bluesky import preprocessors as bpp
 from ophyd.scaler import ScalerCH
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # # Device instances
 terms = oregistry["terms"]

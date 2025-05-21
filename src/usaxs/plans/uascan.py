@@ -48,7 +48,7 @@ user_data = oregistry["user_data"]
 NOTIFY_ON_SCAN_DONE = oregistry["NOTIFY_ON_SCAN_DONE"]
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 
 def uascan(

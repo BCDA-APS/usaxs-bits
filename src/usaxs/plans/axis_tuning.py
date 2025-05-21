@@ -51,7 +51,7 @@ monochromator = oregistry["monochromator"]
 ccd_shutter = oregistry["ccd_shutter"]
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Register user override for USAXS minimum step
 user_override.register("usaxs_minstep")

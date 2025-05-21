@@ -36,7 +36,7 @@ trd = oregistry["trd"]
 user_data = oregistry["user_data"]
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Add missing imports at the top
 from bluesky import RunEngine
