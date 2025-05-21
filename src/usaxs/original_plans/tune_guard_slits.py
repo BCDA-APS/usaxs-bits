@@ -1,14 +1,6 @@
-
 """
 tune the guard slits
 """
-
-__all__ = """
-    GuardSlitTuneError
-    tune_Gslits
-    tune_GslitsCenter
-    tune_GslitsSize
-""".split()
 
 import logging
 

@@ -3,10 +3,6 @@
 support area detector
 """
 
-__all__ = [
-    'areaDetectorAcquire',
-]
-
 import logging
 
 logger = logging.getLogger(__name__)

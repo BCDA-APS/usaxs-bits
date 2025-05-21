@@ -7,11 +7,6 @@ configuration, inserting appropriate filters, and collecting transmission data
 using various detectors.
 """
 
-__all__ = """
-    measure_SAXS_Transmission
-    measure_USAXS_Transmission
-""".split()
-
 import logging
 from typing import Any
 from typing import Dict

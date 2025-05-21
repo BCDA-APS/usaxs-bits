@@ -1,13 +1,6 @@
-
 """
 control the monochromator feedback
 """
-
-__all__ = """
-    MONO_FEEDBACK_OFF
-    MONO_FEEDBACK_ON
-""".split()
-
 
 import logging
 
