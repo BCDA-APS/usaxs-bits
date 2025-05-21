@@ -10,6 +10,7 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 
+from .mono_feedback import MONO_FEEDBACK_ON
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
@@ -41,10 +42,6 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
 
-
-# # these two templates match each other, sort of
-# AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"
-# LOCAL_FILE_TEMPLATE = "%s_%04d.hdf"
 MASTER_TIMEOUT = 60
 # user_override.register("useDynamicTime")
 
@@ -124,6 +121,19 @@ def preUSAXStune(md={}):
     USAGE:  ``RE(preUSAXStune())``
     """
 
+    mono_shutter = oregistry["mono_shutter"]
+    usaxs_shutter = oregistry["usaxs_shutter"]
+    usaxs_slit = oregistry["usaxs_slit"]
+    user_data = oregistry["user_device"]
+    scaler0 = oregistry["scaler0"]
+    m_stage = oregistry["m_stage"]
+    a_stage = oregistry["a_stage"]
+    d_stage = oregistry["d_stage"]
+    monochromator = oregistry["monochromator"]
+    terms = oregistry["terms"]
+    s_stage = oregistry["s_stage"]
+    guard_slit = oregistry["guard_slit"]
+
     yield from bps.mv(
         monochromator.feedback.on,
         MONO_FEEDBACK_ON,
@@ -176,7 +186,8 @@ def preUSAXStune(md={}):
     # 20IDB does not need tuning M stage too often. Leave to manual staff action
     # tuners[m_stage.r] = tune_mr            # tune M stage to monochromator
     if not m_stage.isChannelCut:
-        tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
+        # tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
+        pass
     if terms.USAXS.useMSstage.get():
         # tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
         pass
@@ -185,6 +196,8 @@ def preUSAXStune(md={}):
         #     align ASR stage with MSR stage
         #     and set ASRP0 value
         pass
+    # tuners[a_stage.r] = tune_ar  # tune A stage to M stage
+    #tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
     tuners[a_stage.r] = tune_ar  # tune A stage to M stage
     # tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
     tuners[a_stage.r] = tune_ar  # tune A stage to M stage
