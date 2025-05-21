@@ -3,23 +3,18 @@
 support area detector
 """
 
-__all__ = [
-    'areaDetectorAcquire',
-]
 
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 from bluesky import plans as bp
 from bluesky import plan_stubs as bps
 import time
+from ..startup import bec, RE
+from apsbits.core.instrument_init import oregistry
+from usaxs.utils.reporter import remaining_time_reporter
 
-from ..devices import user_data
-from ..framework import RE, bec
-from ..utils.reporter import remaining_time_reporter
+logger = logging.getLogger(__name__)
 
+user_data = oregistry["user_device"]
 
 def areaDetectorAcquire(det, create_directory=None, md=None):
     """

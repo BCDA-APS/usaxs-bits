@@ -1,6 +1,7 @@
 # # flake8: noqa: F401
 """Bluesky plans."""
 
+from .area_detector_plans import areaDetectorAcquire
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
 # from .axis_tuning import instrument_default_tune_ranges

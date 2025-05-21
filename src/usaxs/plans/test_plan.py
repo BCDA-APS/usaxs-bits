@@ -7,16 +7,16 @@ from apsbits.utils.config_loaders import get_config
 from collections import OrderedDict
 from bluesky import plan_stubs as bps
 from apstools.plans import restorable_stage_sigs
-from ..plans.area_detector import areaDetectorAcquire
+from .area_detector_plans import areaDetectorAcquire
 from ophyd.scaler import ScalerCH
 
 saxs_det = oregistry["saxs_det"]
 monochromator = oregistry["monochromator"]
-
+terms = oregistry["terms"]
 
 iconfig = get_config()
-scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME"
-scaler1_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER1_NAME"
+scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
+scaler1_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER1_NAME")
 
 scaler0 = ScalerCH(scaler0_name, name="scaler0")
 scaler1 = ScalerCH(scaler1_name, name="scaler1")
