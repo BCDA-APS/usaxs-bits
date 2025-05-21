@@ -1,14 +1,16 @@
 # these two templates match each other, sort of
 
-from ..utils.setup_new_user import techniqueSubdirectory
 import os
+from collections import OrderedDict
+
 from apsbits.core.instrument_init import oregistry
 from apsbits.utils.config_loaders import get_config
-from collections import OrderedDict
-from bluesky import plan_stubs as bps
 from apstools.plans import restorable_stage_sigs
-from .area_detector_plans import areaDetectorAcquire
+from bluesky import plan_stubs as bps
 from ophyd.scaler import ScalerCH
+
+from ..utils.setup_new_user import techniqueSubdirectory
+from .area_detector_plans import areaDetectorAcquire
 
 saxs_det = oregistry["saxs_det"]
 monochromator = oregistry["monochromator"]
@@ -40,14 +42,15 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
     acquire_time acquire_period num_images num_exposures
 """.split()
 
+
 def test_plan(md=None, thickness=0.0):
     # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
     #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
     scan_title = "test"
-    #_md = apsbss.update_MD(md or {})
+    # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
     _md.update(md or {})
-    _md['plan_name'] = "SAXS"
+    _md["plan_name"] = "SAXS"
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
 
@@ -61,15 +64,20 @@ def test_plan(md=None, thickness=0.0):
 
     # path on local file system
     SAXSscan_path = techniqueSubdirectory("saxs")
-    SAXS_file_name = local_file_template % (scan_title_clean, saxs_det.hdf1.file_number.get())
+    SAXS_file_name = local_file_template % (
+        scan_title_clean,
+        saxs_det.hdf1.file_number.get(),
+    )
     _md["hdf5_path"] = str(SAXSscan_path)
     _md["hdf5_file"] = str(SAXS_file_name)
 
     # NFS-mounted path as the Pilatus detector sees it
-    pilatus_path = os.path.join("/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:])
+    pilatus_path = os.path.join(
+        "/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:]
+    )
     # area detector will create this path if needed ("Create dir. depth" setting)
     if not pilatus_path.endswith("/"):
-        pilatus_path += "/"        # area detector needs this
+        pilatus_path += "/"  # area detector needs this
     local_name = os.path.join(SAXSscan_path, SAXS_file_name)
     # logger.info(f"Area Detector HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
@@ -78,16 +86,17 @@ def test_plan(md=None, thickness=0.0):
     saxs_det.hdf1.file_path._auto_monitor = False
     saxs_det.hdf1.file_template._auto_monitor = False
     yield from bps.mv(
-        saxs_det.hdf1.file_name, scan_title_clean,
-        saxs_det.hdf1.file_path, pilatus_path,
-        saxs_det.hdf1.file_template, ad_file_template,
+        saxs_det.hdf1.file_name,
+        scan_title_clean,
+        saxs_det.hdf1.file_path,
+        pilatus_path,
+        saxs_det.hdf1.file_template,
+        ad_file_template,
         timeout=60,
         # auto_monitor=False,
     )
     saxs_det.hdf1.file_path._auto_monitor = True
     saxs_det.hdf1.file_template._auto_monitor = True
-
-
 
     @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
     def _image_acquisition_steps():
@@ -98,14 +107,17 @@ def test_plan(md=None, thickness=0.0):
             # mono_shutter, "open",
             # monochromator.feedback.on, MONO_FEEDBACK_OFF,
             # usaxs_shutter, "open",
-            saxs_det.cam.num_images,1,
-            saxs_det.cam.acquire_time, 5,
-            saxs_det.cam.acquire_period, 5 + 0.004,
+            saxs_det.cam.num_images,
+            1,
+            saxs_det.cam.acquire_time,
+            5,
+            saxs_det.cam.acquire_period,
+            5 + 0.004,
             timeout=60,
         )
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in saxs_det.cam.stage_sigs:
-                #print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
+                # print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
                 saxs_det.cam.stage_sigs.pop(k)
         saxs_det.hdf1.stage_sigs["file_template"] = ad_file_template
         saxs_det.hdf1.stage_sigs["file_write_mode"] = "Single"
@@ -120,19 +132,26 @@ def test_plan(md=None, thickness=0.0):
         # )
 
         yield from bps.mv(
-            scaler1.preset_time, terms.SAXS.acquire_time.get() + 1,
-            scaler0.preset_time, 1.2*terms.SAXS.acquire_time.get() + 1,
-            scaler0.count_mode, "OneShot",
-            scaler1.count_mode, "OneShot",
-
+            scaler1.preset_time,
+            terms.SAXS.acquire_time.get() + 1,
+            scaler0.preset_time,
+            1.2 * terms.SAXS.acquire_time.get() + 1,
+            scaler0.count_mode,
+            "OneShot",
+            scaler1.count_mode,
+            "OneShot",
             # update as fast as hardware will allow
             # this is needed to make sure we get as up to date I0 number as possible for AD software.
-            scaler0.update_rate, 60,
-            scaler1.update_rate, 60,
-            scaler0.count, 0,
-            scaler1.count, 0,
-
-            scaler0.delay, 0,
+            scaler0.update_rate,
+            60,
+            scaler1.update_rate,
+            60,
+            scaler0.count,
+            0,
+            scaler1.count,
+            0,
+            scaler0.delay,
+            0,
             # terms.SAXS_WAXS.start_exposure_time, ts,
             timeout=60,
         )

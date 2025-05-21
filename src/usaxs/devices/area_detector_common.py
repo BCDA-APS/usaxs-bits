@@ -52,10 +52,7 @@ area_detector_EPICS_PV_prefix = {
 def _validate_AD_FileWriter_path_(path, root_path):
     if not str(path).startswith(root_path):
         raise ValueError(
-            (
-                f"error in file {__file__}:\n"
-                f"  path '{path}' must start with '{root_path}"
-            )
+            f"error in file {__file__}: path '{path}' must start with '{root_path}'"
         )
 
 
@@ -69,8 +66,9 @@ class BadPixelPlugin(PluginBase):
 
 class Override_AD_EpicsHdf5FileName(AD_EpicsHdf5FileName):
     """Override for AD_EpicsHdf5FileName to customize staging behavior for area detectors."""
+
     # TODO: for apstools, but not yet as of 6-12-2024
-    
+
     def stage(self):
         """
         overrides default behavior

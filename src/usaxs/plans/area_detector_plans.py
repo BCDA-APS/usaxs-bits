@@ -19,6 +19,7 @@ from ..utils.reporter import remaining_time_reporter
 
 user_data = oregistry["user_device"]
 
+
 def areaDetectorAcquire(det, create_directory=None, md=None):
     """
     acquire image(s) from the named area detector

@@ -92,7 +92,20 @@ class DeadbandMixin(Device, PositionerBase):
     move_latch = Component(Signal, value=0, kind="omitted")
 
     def _done_moving(self, success=True, timestamp=None, value=None, **kwargs):
-        """Call when motion has completed.  Runs ``SUB_DONE`` subscription."""
+        """
+        Call when motion has completed. Runs ``SUB_DONE`` subscription.
+
+        Parameters
+        ----------
+        success : bool, optional
+            Whether the move was successful, by default True.
+        timestamp : float or None, optional
+            The timestamp of completion, by default None.
+        value : Any, optional
+            The value at completion, by default None.
+        **kwargs : dict
+            Additional keyword arguments.
+        """
         if self.move_latch.get():
             # print(f"{timestamp}: {self.name} marked done")
             if success:
@@ -105,6 +118,23 @@ class DeadbandMixin(Device, PositionerBase):
             self.move_latch.put(0)
 
     def move(self, position, wait=True, **kwargs):
+        """
+        Move the motor to a specified position, using deadband tolerance if set.
+
+        Parameters
+        ----------
+        position : float
+            Target position to move to.
+        wait : bool, optional
+            Whether to wait for the move to complete, by default True.
+        **kwargs : dict
+            Additional keyword arguments.
+
+        Returns
+        -------
+        Status
+            The status object for the move.
+        """
         tolerance = self.tolerance.get()
 
         if tolerance < 0:

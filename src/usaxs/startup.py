@@ -94,6 +94,5 @@ if in_operation:
 if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
 
- 
-from .plans import *
 
+from .plans import *

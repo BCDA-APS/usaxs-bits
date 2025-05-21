@@ -69,6 +69,8 @@ I0_SIGNAL = scaler0.channels.chan02
 
 
 class ModifiedSwaitRecord(SwaitRecord):
+    """Modified SwaitRecord with enable component removed."""
+
     enable = None  # remove this Component
 
 
@@ -311,6 +313,14 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
 
     @property
     def isUpdating(self):
+        """
+        Return True if the autorange device is updating.
+
+        Returns
+        -------
+        bool
+            True if updating, False otherwise.
+        """
         v = self.mode.get() in (1, AutorangeSettings.auto_background)
         if v:
             v = self.updating.get() in (1, "Updating")
@@ -343,7 +353,7 @@ class DetectorAmplifierAutorangeDevice(Device):
 
     def __init__(self, nickname, scaler, signal, amplifier, auto, **kwargs):
         """
-        Initialize the DetectorAmplifierAutorangeDevice.
+        Initialize DetectorAmplifierAutorangeDevice.
 
         Parameters
         ----------
