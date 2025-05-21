@@ -23,6 +23,9 @@ from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
+from ..suspenders.suspender_functions import suspend_BeamInHutch
+from ..suspenders.suspender_functions import suspend_FE_shutter
+
 # Device instances
 I0_controls = oregistry["I0_controls"]
 I00_controls = oregistry["I00_controls"]
@@ -41,8 +44,7 @@ m_stage = oregistry["m_stage"]
 ms_stage = oregistry["ms_stage"]
 as_stage = oregistry["as_stage"]
 s_stage = oregistry["s_stage"]
-suspend_BeamInHutch = oregistry["suspend_BeamInHutch"]
-suspend_FE_shutter = oregistry["suspend_FE_shutter"]
+
 user_data = oregistry["user_data"]
 monochromator = oregistry["monochromator"]
 ccd_shutter = oregistry["ccd_shutter"]
