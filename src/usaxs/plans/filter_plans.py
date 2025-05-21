@@ -5,7 +5,6 @@ plans to control the beam filters
 import logging
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import Optional
 from typing import Union
 
@@ -32,7 +31,7 @@ scaler0.stage_sigs["count_mode"] = "OneShot"
 scaler0.select_channels()
 
 
-def _insertFilters_(a: Union[int, float]) -> Generator[Any, None, None]:
+def _insertFilters_(a: Union[int, float]):
     """
     Plan: insert the EPICS-specified filters.
 
@@ -50,7 +49,7 @@ def _insertFilters_(a: Union[int, float]) -> Generator[Any, None, None]:
     yield from bps.sleep(0.5)  # allow all blades to re-position
 
 
-def insertBlackflyFilters() -> Generator[Any, None, None]:
+def insertBlackflyFilters():
     """
     Plan: insert the EPICS-specified filters.
 
@@ -65,7 +64,7 @@ def insertBlackflyFilters() -> Generator[Any, None, None]:
     )
 
 
-def insertRadiographyFilters() -> Generator[Any, None, None]:
+def insertRadiographyFilters():
     """
     Plan: insert the EPICS-specified filters.
 
@@ -80,7 +79,7 @@ def insertRadiographyFilters() -> Generator[Any, None, None]:
     )
 
 
-def insertSaxsFilters() -> Generator[Any, None, None]:
+def insertSaxsFilters():
     """
     Plan: insert the EPICS-specified filters.
 
@@ -146,7 +145,7 @@ def insertScanFilters(
     return (yield from _inner())
 
 
-def insertWaxsFilters() -> Generator[Any, None, None]:
+def insertWaxsFilters():
     """
     Plan: insert the EPICS-specified filters.
 
@@ -161,7 +160,7 @@ def insertWaxsFilters() -> Generator[Any, None, None]:
     )
 
 
-def insertTransmissionFilters() -> Generator[Any, None, None]:
+def insertTransmissionFilters():
     """
     Set filters to reduce diode damage when measuring tranmission on guard slits etc.
 

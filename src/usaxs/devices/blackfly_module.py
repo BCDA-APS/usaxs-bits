@@ -7,8 +7,6 @@ note: this is one of the easiest area detector setups in Ophyd
 
 import os
 import warnings
-from typing import Any
-from typing import Generator
 
 # from apstools.devices import AD_prime_plugin2
 from bluesky import plan_stubs as bps
@@ -97,9 +95,7 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
         """
         return self.jpeg1.full_file_name.get()
 
-    def image_prep(
-        self, path: str, filename_base: str, order_number: int
-    ) -> Generator[Any, None, None]:
+    def image_prep(self, path: str, filename_base: str, order_number: int):
         """Prepare image file path and name settings.
 
         Args:
@@ -130,7 +126,7 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
         """
         return _flag_save_sample_image_.get() in (1, "Yes")
 
-    def take_image(self) -> Generator[Any, None, None]:
+    def take_image(self):
         """Take an image using the detector.
 
         Yields:
@@ -174,9 +170,7 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         """
         return self.tiff1.full_file_name.get()
 
-    def image_prep(
-        self, path: str, filename_base: str, order_number: int
-    ) -> Generator[Any, None, None]:
+    def image_prep(self, path: str, filename_base: str, order_number: int):
         """Prepare image file path and name settings.
 
         Args:
@@ -207,7 +201,7 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         """
         return _flag_save_sample_image_.get() in (1, "Yes")
 
-    def take_image(self) -> Generator[Any, None, None]:
+    def take_image(self):
         """Take an image using the detector.
 
         Yields:

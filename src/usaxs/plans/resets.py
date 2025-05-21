@@ -5,7 +5,6 @@ Reset the instrument.
 import logging
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
@@ -88,7 +87,7 @@ def reset_instrument(
     return (yield from _inner())
 
 
-def reset_USAXS() -> Generator[Any, None, None]:
+def reset_USAXS():
     """
     bluesky plan to set USAXS instrument in safe configuration
     """

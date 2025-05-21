@@ -13,7 +13,6 @@ import uuid
 from collections import OrderedDict
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import Optional
 
 # Get devices from oregistry
@@ -45,7 +44,7 @@ def plan(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, None]:
+):
     """Execute a USAXS fly scan.
 
     This function coordinates the execution of a USAXS fly scan, including:

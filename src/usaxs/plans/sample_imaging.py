@@ -6,7 +6,6 @@ import logging
 import os
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
@@ -31,7 +30,7 @@ def record_sample_image_on_demand(
     technique_name: str,
     filename_base: str,
     _md: Dict[str, Any],
-) -> Generator[Any, None, None]:
+):
     """
     take an image of the sample
 

@@ -7,7 +7,6 @@ such as simple device movements or status checks.
 import logging
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import List
 from typing import Optional
 from typing import Set
@@ -28,7 +27,7 @@ user_data = oregistry["user_data"]
 
 def no_run_trigger_and_wait(
     objects: Union[Any, List[Any], Set[Any], Tuple[Any, ...]],
-) -> Generator[Any, None, None]:
+):
     """
     count objects (presume detectors) but do not create a bluesky run
 

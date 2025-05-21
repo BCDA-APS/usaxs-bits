@@ -5,7 +5,6 @@ rotate the sample with PI C867 motor
 import logging
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
@@ -23,7 +22,7 @@ user_data = oregistry["user_data"]
 
 def PI_Off(
     timeout: float = 1,
-) -> Generator[Any, None, None]:
+):
     """
     Plan: stop rotating sample in either direction.
 
@@ -54,7 +53,7 @@ def PI_Off(
 
 def PI_onF(
     timeout: float = 20,
-) -> Generator[Any, None, None]:
+):
     """
     Plan: start rotating sample in forward direction.
 
@@ -74,7 +73,7 @@ def PI_onF(
 
 def PI_onR(
     timeout: float = 20,
-) -> Generator[Any, None, None]:
+):
     """
     Plan: start rotating sample in reverse direction.
 

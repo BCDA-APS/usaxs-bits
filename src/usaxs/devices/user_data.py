@@ -7,7 +7,6 @@ EPICS data about the user
 import logging
 from typing import Any
 from typing import Callable
-from typing import Generator
 from typing import Optional
 
 from apstools.utils import trim_string_for_EPICS
@@ -129,9 +128,7 @@ class UserDataDevice(Device):
         EpicsSignal, "usxLAX:dataColInProgress"
     )
 
-    def set_state_plan(
-        self, msg: str, confirm: bool = True
-    ) -> Generator[Any, None, None]:
+    def set_state_plan(self, msg: str, confirm: bool = True):
         """plan: tell EPICS about what we are doing"""
         msg = trim_string_for_EPICS(msg)
         try:

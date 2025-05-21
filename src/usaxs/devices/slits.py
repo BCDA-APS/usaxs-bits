@@ -3,7 +3,6 @@ slits
 """
 
 from typing import Any
-from typing import Generator
 from typing import Optional
 
 from bluesky import plan_stubs as bps
@@ -33,7 +32,7 @@ class UsaxsSlitDevice(MotorBundle):
 
     def set_size(
         self, *args: Any, h: Optional[float] = None, v: Optional[float] = None
-    ) -> Generator[Any, None, None]:
+    ):
         """move the slits to the specified size"""
         if h is None:
             raise ValueError("must define horizontal size")

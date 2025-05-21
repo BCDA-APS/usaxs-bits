@@ -3,7 +3,6 @@ Plans for slits alignment and control in USAXS experiments.
 """
 
 from typing import Any
-from typing import Generator
 from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
@@ -24,7 +23,7 @@ def plan_slit_ok():
 
     def set_size(
         self, *args: Any, h: Optional[float] = None, v: Optional[float] = None
-    ) -> Generator[Any, None, None]:
+    ):
         """Move the slits to the specified size.
 
         Args:
@@ -81,7 +80,7 @@ def plan_slit_ok():
         """
         return self.h_gap_ok and self.v_h_gap_ok
 
-    def process_motor_records(self) -> Generator[Any, None, None]:
+    def process_motor_records(self):
         """
         Process motor records to update their status.
 
