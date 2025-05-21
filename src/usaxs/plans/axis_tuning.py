@@ -82,14 +82,6 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_mr"
         logger.info(f"tuning axis: {m_stage.r.name}")
 
-        yield from bps.mv(m_stage.r, m_stage.r.position - 0.1)
-        yield from bps.trigger_and_read([m_stage.r])
-        yield from IfRequestedStopBeforeNextScan()
-
-        yield from bps.mv(m_stage.r, m_stage.r.position + 0.1)
-        yield from bps.trigger_and_read([m_stage.r])
-        yield from IfRequestedStopBeforeNextScan()
-
         yield from bps.mv(m_stage.r, m_stage.r.position)
         yield from bps.trigger_and_read([m_stage.r])
         yield from IfRequestedStopBeforeNextScan()
