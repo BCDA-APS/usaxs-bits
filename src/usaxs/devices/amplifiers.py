@@ -30,42 +30,6 @@ We only need to get this once, get it via one-time call with PyEpics
 and then use it with inline dictionaries to pick the right PVs.
 """
 
-__all__ = """
-    AutorangeSettings
-
-    upd_femto_amplifier
-    trd_femto_amplifier
-    I0_femto_amplifier
-    I00_femto_amplifier
-    I000_femto_amplifier
-
-    upd_autorange_controls
-    trd_autorange_controls
-    I0_autorange_controls
-    I00_autorange_controls
-
-    upd_controls
-    upd_photocurrent
-
-    trd_controls
-    trd_photocurrent
-
-    I0_controls
-    I0_photocurrent
-
-    I00_controls
-    I00_photocurrent
-
-    I000_photocurrent_calc
-    I000_photocurrent
-
-    controls_list_I0_I00_TRD
-    controls_list_UPD_I0_I00_TRD
-
-    autoscale_amplifiers
-    measure_background
-    """.split()
-
 
 import logging
 from collections import OrderedDict

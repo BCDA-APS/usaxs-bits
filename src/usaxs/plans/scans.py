@@ -2,15 +2,6 @@
 user-facing scans
 """
 
-__all__ = """
-    preSWAXStune
-    preUSAXStune
-    allUSAXStune
-    SAXS
-    USAXSscan
-    WAXS
-""".split()
-
 import datetime
 import logging
 import os

@@ -3,7 +3,6 @@
 support area detector
 """
 
-
 import logging
 from bluesky import plans as bp
 from bluesky import plan_stubs as bps

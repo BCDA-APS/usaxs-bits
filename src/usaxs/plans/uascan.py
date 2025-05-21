@@ -5,10 +5,6 @@ This module provides plans for performing USAXS (Ultra Small Angle X-ray Scatter
 including both standard USAXS and side-bounce USAXS (SBUSAXS) configurations.
 """
 
-__all__ = [
-    "uascan",
-]
-
 import logging
 import math
 from collections import OrderedDict

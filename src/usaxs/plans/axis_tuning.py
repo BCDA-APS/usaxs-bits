@@ -9,19 +9,6 @@ for maximum signal intensity.
 Note: Don't use blocking calls here
 """
 
-__all__ = """
-    instrument_default_tune_ranges #maybe
-    tune_a2rp
-    tune_ar
-    tune_diode
-    tune_dx
-    tune_dy
-    tune_mr
-    tune_saxs_optics
-    tune_usaxs_optics
-    update_EPICS_tuning_widths #important
-    """.split()
-
 import logging
 import time
 from typing import Any

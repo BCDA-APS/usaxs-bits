@@ -55,25 +55,6 @@ I00_controls = oregistry["I00_controls"]
 trd_controls = oregistry["trd_controls"]
 upd_controls = oregistry["upd_controls"]
 
-__all__ = """
-    after_command_list
-    after_plan
-    before_command_list
-    before_plan
-    beforeScanComputeOtherStuff
-    command_list_as_table
-    execute_command_list
-    get_command_list
-    parse_Excel_command_file
-    parse_text_command_file
-    postCommandsListfile2WWW
-    run_command_file
-    run_python_file
-    run_set_command
-    summarize_command_file
-    sync_order_numbers
-""".split()
-
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
 

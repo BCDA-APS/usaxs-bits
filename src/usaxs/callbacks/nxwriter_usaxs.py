@@ -20,10 +20,6 @@ from ..utils.setup_new_user import techniqueSubdirectory
 from ..devices import terms # noqa: F401    
 from ..devices.user_data import user_data # noqa: F401
 
-__all__ = [
-    "NXWriterUascan",
-]
-
 logger = logging.getLogger(__name__)
 
 

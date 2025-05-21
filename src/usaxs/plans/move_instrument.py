@@ -2,18 +2,6 @@
 move the parts of the instrument in and out
 """
 
-__all__ = """
-    move_SAXSIn
-    move_USAXSIn
-    move_WAXSIn
-
-    move_SAXSOut
-    move_USAXSOut
-    move_WAXSOut
-
-    UsaxsSaxsModes
-""".split()
-
 import logging
 from typing import Any
 from typing import Dict

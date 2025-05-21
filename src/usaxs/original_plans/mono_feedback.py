@@ -1,9 +1,6 @@
-
 """
 control the monochromator feedback
 """
-
-__all__ = ["DCMfeedbackOFF", "DCMfeedbackON",]
 
 import logging
 

@@ -1,21 +1,9 @@
-
 """
 Support the different instrument modes
 """
 
 ### This file is work-in-progress
 # see: https://subversion.xray.aps.anl.gov/spec/beamlines/USAXS/trunk/macros/local/usaxs_commands.mac
-
-__all__ = """
-    mode_BlackFly
-    mode_Imaging
-    mode_OpenBeamPath
-    mode_Radiography
-    mode_SAXS
-    mode_SBUSAXS
-    mode_USAXS
-    mode_WAXS
-""".split()
 
 import logging
 

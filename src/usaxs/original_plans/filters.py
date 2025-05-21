@@ -1,16 +1,6 @@
-
 """
 plans to control the beam filters
 """
-
-__all__ = """
-    insertBlackflyFilters
-    insertRadiographyFilters
-    insertSaxsFilters
-    insertScanFilters
-    insertTransmissionFilters
-    insertWaxsFilters
-""".split()
 
 import logging
 
