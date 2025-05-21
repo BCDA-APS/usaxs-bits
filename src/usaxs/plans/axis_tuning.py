@@ -22,30 +22,30 @@ from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from ..suspenders.suspender_functions import suspend_BeamInHutch
-from ..suspenders.suspender_functions import suspend_FE_shutter
+from ..startup import suspend_BeamInHutch
+from ..startup import suspend_FE_shutter
 from .requested_stop import IfRequestedStopBeforeNextScan
 
 # Device instances
-I0_controls = oregistry["I0_controls"]
-I00_controls = oregistry["I00_controls"]
-autoscale_amplifiers = oregistry["autoscale_amplifiers"]
-upd_controls = oregistry["upd_controls"]
-user_override = oregistry["user_override"]
-terms = oregistry["terms"]
-usaxs_q_calc = oregistry["usaxs_q_calc"]
-scaler0 = oregistry["scaler0"]
-mono_shutter = oregistry["mono_shutter"]
-usaxs_shutter = oregistry["usaxs_shutter"]
-a_stage = oregistry["a_stage"]
-axis_tune_range = oregistry["axis_tune_range"]
-d_stage = oregistry["d_stage"]
-m_stage = oregistry["m_stage"]
-ms_stage = oregistry["ms_stage"]
-as_stage = oregistry["as_stage"]
-s_stage = oregistry["s_stage"]
+# I0_controls = oregistry["I0_controls"]
+# I00_controls = oregistry["I00_controls"]
+# autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+# upd_controls = oregistry["upd_controls"]
+# user_override = oregistry["user_override"]
+# terms = oregistry["terms"]
+# usaxs_q_calc = oregistry["usaxs_q_calc"]
+# scaler0 = oregistry["scaler0"]
+# mono_shutter = oregistry["mono_shutter"]
+# usaxs_shutter = oregistry["usaxs_shutter"]
+# a_stage = oregistry["a_stage"]
+# axis_tune_range = oregistry["axis_tune_range"]
+# d_stage = oregistry["d_stage"]
+# m_stage = oregistry["m_stage"]
+# ms_stage = oregistry["ms_stage"]
+# as_stage = oregistry["as_stage"]
+# s_stage = oregistry["s_stage"]
 
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 monochromator = oregistry["monochromator"]
 ccd_shutter = oregistry["ccd_shutter"]
 

@@ -80,9 +80,9 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
-RE(make_devices(file="scalers.yml", clear=False))
+RE(make_devices(file="scalers.yml", clear=False))# move this to registry?
+
 scaler0 = oregistry["scaler0"]
-scaler0.stage_sigs["count_mode"] = "OneShot"
 
 scaler0.channels.chan03.name = "I00_SIGNAL"
 scaler0.channels.chan03.s.name = "I00"
@@ -102,15 +102,24 @@ oregistry.register(scaler0.channels.chan05)  # TRD signal
 
 
 ##operation variables
-in_operation = False  # should be a caget?
+# in_operation = caget("usxLAX:blCalc:userCalc2.VAL")  # should be a caget?
+in_operation = False
 
-##load devices
 RE(make_devices(file="devices.yml", clear=False))
 RE(make_devices(file="ad_devices.yml", clear=False))
 
 if in_operation:
     RE(make_devices(file="shutters_op.yml", clear=False))
+    from usaxs.suspenders.suspender_functions import suspender_in_operations
+
+    suspend_FE_shutter, suspend_BeamInHutch = suspender_in_operations()
+
 if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
+    from usaxs.suspenders.suspender_functions import suspender_in_sim
+
+    suspend_FE_shutter, suspend_BeamInHutch = suspender_in_sim()
+
+##load devices
 
 from .plans import *  # noqa: F401
