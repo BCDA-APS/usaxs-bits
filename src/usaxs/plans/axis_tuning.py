@@ -25,6 +25,7 @@ from bluesky import preprocessors as bpp
 
 from ..suspenders.suspender_functions import suspend_BeamInHutch
 from ..suspenders.suspender_functions import suspend_FE_shutter
+from .requested_stop import IfRequestedStopBeforeNextScan
 
 # Device instances
 I0_controls = oregistry["I0_controls"]

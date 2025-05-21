@@ -17,8 +17,8 @@ from ..devices import constants
 from ..devices.amplifiers import measure_background
 from ..usaxs_flyscan_support import instrument_archive
 from ..usaxs_flyscan_support import reset_manager
-from ..utils.email_notices import email_notices
-from ..utils.quoted_line import split_quoted_line
+from ..utils.email import email_notices
+from ..utils.utils import split_quoted_line
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
 from .axis_tuning import user_defined_settings
