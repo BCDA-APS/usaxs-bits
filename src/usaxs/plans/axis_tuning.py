@@ -29,7 +29,7 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
-from ..startup import oregistry
+from apsbits.core.instrument_init import oregistry
 from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name

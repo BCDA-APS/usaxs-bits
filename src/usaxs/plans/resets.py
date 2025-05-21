@@ -8,7 +8,7 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
-from ..startup import oregistry
+from apsbits.core.instrument_init import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp

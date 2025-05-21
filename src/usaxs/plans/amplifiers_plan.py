@@ -9,7 +9,7 @@ from typing import Generator
 from typing import Optional
 
 # Get devices from oregistry
-from ..startup import oregistry
+from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 
 # Add these imports at the top of the file

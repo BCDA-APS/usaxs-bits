@@ -9,7 +9,7 @@ import logging
 import warnings
 
 # Get devices from oregistry
-from ..startup import oregistry
+from apsbits.core.instrument_init import oregistry
 
 logger = logging.getLogger(__name__)
 

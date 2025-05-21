@@ -21,7 +21,7 @@ from typing import Generator
 from typing import Optional
 
 from apsbits.utils.config_loaders import get_config
-from ..startup import oregistry
+from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from ophyd.scaler import ScalerCH
