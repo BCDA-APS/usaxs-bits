@@ -25,6 +25,7 @@ from bluesky import preprocessors as bpp
 
 from ..startup import suspend_BeamInHutch
 from ..startup import suspend_FE_shutter
+from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
 
 # Device instances
@@ -42,9 +43,11 @@ scaler0 = oregistry["scaler0"]
 # axis_tune_range = oregistry["axis_tune_range"]
 d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
+d_stage = oregistry["d_stage"]
+m_stage = oregistry["m_stage"]
 # ms_stage = oregistry["ms_stage"]
 # as_stage = oregistry["as_stage"]
-# s_stage = oregistry["s_stage"]
+s_stage = oregistry["s_stage"]
 
 user_data = oregistry["user_device"]
 monochromator = oregistry["monochromator"]
