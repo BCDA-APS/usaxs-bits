@@ -8,6 +8,8 @@ from typing import Any
 from typing import Generator
 from typing import Optional
 
+import numpy as np
+
 # Get devices from oregistry
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
@@ -54,7 +56,7 @@ def setup_amplifier_auto_background():
 
 
 def autoscale_amplifiers(
-    controls: List[DetectorAmplifierAutorangeDevice],
+    controls: list[DetectorAmplifierAutorangeDevice],
     shutter: Optional[Any] = None,
     count_time: float = 0.05,
     max_iterations: int = 9,
@@ -64,8 +66,8 @@ def autoscale_amplifiers(
 
     Parameters
     ----------
-    controls : List[DetectorAmplifierAutorangeDevice]
-        List (or tuple) of ``DetectorAmplifierAutorangeDevice``
+    controls : list[DetectorAmplifierAutorangeDevice]
+        list (or tuple) of ``DetectorAmplifierAutorangeDevice``
     shutter : Optional[Any], optional
         Shutter device to control, by default None
     count_time : float, optional
@@ -114,7 +116,7 @@ def autoscale_amplifiers(
 
 
 def _scaler_autoscale_(
-    controls: List[DetectorAmplifierAutorangeDevice],
+    controls: list[DetectorAmplifierAutorangeDevice],
     count_time: float = 0.05,
     max_iterations: int = 9,
     RE: Optional[RunEngine] = None,
@@ -122,7 +124,7 @@ def _scaler_autoscale_(
     """Plan: internal: autoscale amplifiers for signals sharing a common scaler.
 
     Args:
-        controls: List of DetectorAmplifierAutorangeDevice instances
+        controls: list of DetectorAmplifierAutorangeDevice instances
         count_time: Time to count for each measurement
         max_iterations: Maximum number of iterations to try
         RE: RunEngine instance to use

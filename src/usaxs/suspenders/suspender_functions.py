@@ -10,7 +10,6 @@ from .permit import BeamInHutch
 from .suspenders import FeedbackHandlingDuringSuspension
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 
 def suspender_in_operations():

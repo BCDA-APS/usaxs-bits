@@ -21,6 +21,7 @@ from bluesky import preprocessors as bpp
 
 from ..suspenders.suspender_functions import suspend_BeamInHutch
 from ..suspenders.suspender_functions import suspend_FE_shutter
+from ..utils.emails import email_notices
 from ..utils.override_parameters import user_override
 from ..utils.setup_new_user import cleanupText
 from ..utils.setup_new_user import techniqueSubdirectory
@@ -32,7 +33,7 @@ tune_m2rp = oregistry["tune_m2rp"]
 tune_ar = oregistry["tune_ar"]
 tune_a2rp = oregistry["tune_a2rp"]
 NOTIFY_ON_BADTUNE = oregistry["NOTIFY_ON_BADTUNE"]
-email_notices = oregistry["email_notices"]
+
 tune_mr = oregistry["tune_mr"]
 uascan = oregistry["uascan"]
 NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
@@ -273,14 +274,6 @@ def allUSAXStune(
 
     USAGE:  ``RE(allUSAXStune())``
     """
-    if md is None:
-        md = {}
-    if RE is None:
-        RE = oregistry["RE"]
-    if bec is None:
-        bec = oregistry["bec"]
-    if specwriter is None:
-        specwriter = oregistry["specwriter"]
 
     # Get devices from oregistry
     monochromator = oregistry["monochromator"]
@@ -296,7 +289,6 @@ def allUSAXStune(
     usaxs_shutter = oregistry["usaxs_shutter"]
     m_stage = oregistry["m_stage"]
     a_stage = oregistry["a_stage"]
-    email_notices = oregistry["email_notices"]
 
     yield from bps.mv(
         monochromator.feedback.on,
