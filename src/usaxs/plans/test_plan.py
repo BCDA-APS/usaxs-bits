@@ -7,7 +7,7 @@ from apsbits.utils.config_loaders import get_config
 from collections import OrderedDict
 from bluesky import plan_stubs as bps
 from apstools.plans import restorable_stage_sigs
-from ..rafa_plans.area_detector import areaDetectorAcquire
+from ..plans.area_detector import areaDetectorAcquire
 from ophyd.scaler import ScalerCH
 
 saxs_det = oregistry["saxs_det"]

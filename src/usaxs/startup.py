@@ -96,6 +96,6 @@ if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
 
  
-from .rafa_plans.mono_feedback import MONO_FEEDBACK_OFF
-from .rafa_plans.mono_feedback import MONO_FEEDBACK_ON
+from .plans.mono_feedback import MONO_FEEDBACK_OFF
+from .plans.mono_feedback import MONO_FEEDBACK_ON
 
