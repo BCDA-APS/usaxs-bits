@@ -60,7 +60,8 @@ class OurCustomNXWriterBase(NXWriterAPS):
     config_version = "1.0"
 
     def write_entry(self):
-        """Write the NeXus entry group and set additional attributes specific to this instrument."""
+        """Write the NeXus entry group and set additional attributes
+          specific to this instrument."""
 
         nxentry = super().write_entry()  # default technique
         logger.debug("write_entry of file: %s", self.root.attrs["file_name"])

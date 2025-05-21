@@ -1,3 +1,7 @@
+"""
+Plans for area detector operations in USAXS.
+"""
+
 import logging
 import time
 
@@ -8,10 +12,6 @@ from bluesky import plans as bp
 from ..startup import RE
 from ..startup import bec
 from ..utils.reporter import remaining_time_reporter
-
-"""
-Plans for area detector operations in USAXS.
-"""
 
 logger = logging.getLogger(__name__)
 

@@ -31,7 +31,8 @@ os.environ["HDF5_DISABLE_VERSION_CHECK"] = "2"
 # matches IOC for big arrays
 os.environ["EPICS_CA_MAX_ARRAY_BYTES"] = "1280000"  # was 200000000
 try:
-    import usaxs.usaxs_flyscan_support.nexus_flyscan as nexus_flyscan  # when run standalone
+    import usaxs.usaxs_flyscan_support.nexus_flyscan as nexus_flyscan
+    # when run standalone
 except ImportError:
     from . import nexus_flyscan  # when imported in a package
 
