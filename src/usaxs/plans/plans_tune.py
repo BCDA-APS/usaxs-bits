@@ -30,6 +30,58 @@ logger = logging.getLogger(__name__)
 MASTER_TIMEOUT = 60
 
 
+# # Device and plan instances from oregistry (allowed list)
+mono_shutter = oregistry["mono_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+guard_slit = oregistry["guard_slit"]
+monochromator = oregistry["monochromator"]
+terms = oregistry["terms"]
+s_stage = oregistry["s_stage"]
+usaxs_slit = oregistry["usaxs_slit"]
+user_data = oregistry["user_device"]
+scaler0 = oregistry["scaler0"]
+m_stage = oregistry["m_stage"]
+a_stage = oregistry["a_stage"]
+d_stage = oregistry["d_stage"]
+mono_shutter = oregistry["mono_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+usaxs_slit = oregistry["usaxs_slit"]
+user_data = oregistry["user_device"]
+scaler0 = oregistry["scaler0"]
+m_stage = oregistry["m_stage"]
+a_stage = oregistry["a_stage"]
+d_stage = oregistry["d_stage"]
+monochromator = oregistry["monochromator"]
+terms = oregistry["terms"]
+s_stage = oregistry["s_stage"]
+guard_slit = oregistry["guard_slit"]
+monochromator = oregistry["monochromator"]
+mono_shutter = oregistry["mono_shutter"]
+ccd_shutter = oregistry["ccd_shutter"]
+terms = oregistry["terms"]
+s_stage = oregistry["s_stage"]
+user_data = oregistry["user_data"]
+scaler0 = oregistry["scaler0"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+m_stage = oregistry["m_stage"]
+ms_stage = oregistry["ms_stage"]
+tune_msrp = oregistry["tune_msrp"]
+tune_m2rp = oregistry["tune_m2rp"]
+monochromator = oregistry["monochromator"]
+mono_shutter = oregistry["mono_shutter"]
+ccd_shutter = oregistry["ccd_shutter"]
+terms = oregistry["terms"]
+s_stage = oregistry["s_stage"]
+d_stage = oregistry["d_stage"]
+user_data = oregistry["user_device"]
+usaxs_slit = oregistry["usaxs_slit"]
+guard_slit = oregistry["guard_slit"]
+scaler0 = oregistry["scaler0"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+m_stage = oregistry["m_stage"]
+a_stage = oregistry["a_stage"]
+NOTIFY_ON_BADTUNE = oregistry["NOTIFY_ON_BADTUNE"]
+
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
 def preUSAXStune(md={}
@@ -56,18 +108,6 @@ def preUSAXStune(md={}
     USAGE:  ``RE(preUSAXStune())``
     """
 
-    mono_shutter = oregistry["mono_shutter"]
-    usaxs_shutter = oregistry["usaxs_shutter"]
-    usaxs_slit = oregistry["usaxs_slit"]
-    user_data = oregistry["user_device"]
-    scaler0 = oregistry["scaler0"]
-    m_stage = oregistry["m_stage"]
-    a_stage = oregistry["a_stage"]
-    d_stage = oregistry["d_stage"]
-    monochromator = oregistry["monochromator"]
-    terms = oregistry["terms"]
-    s_stage = oregistry["s_stage"]
-    guard_slit = oregistry["guard_slit"]
 
     yield from bps.mv(
         monochromator.feedback.on,
@@ -209,20 +249,7 @@ def allUSAXStune(
     USAGE:  ``RE(allUSAXStune())``
     """
 
-    # Get devices from oregistry
-    monochromator = oregistry["monochromator"]
-    mono_shutter = oregistry["mono_shutter"]
-    ccd_shutter = oregistry["ccd_shutter"]
-    terms = oregistry["terms"]
-    s_stage = oregistry["s_stage"]
-    d_stage = oregistry["d_stage"]
-    user_data = oregistry["user_device"]
-    usaxs_slit = oregistry["usaxs_slit"]
-    guard_slit = oregistry["guard_slit"]
-    scaler0 = oregistry["scaler0"]
-    usaxs_shutter = oregistry["usaxs_shutter"]
-    m_stage = oregistry["m_stage"]
-    a_stage = oregistry["a_stage"]
+
 
     yield from bps.mv(
         monochromator.feedback.on,
@@ -365,20 +392,7 @@ def preSWAXStune(
     if specwriter is None:
         raise ValueError("SPEC file writer instance must be provided")
 
-    # Get devices from oregistry
-    monochromator = oregistry["monochromator"]
-    mono_shutter = oregistry["mono_shutter"]
-    ccd_shutter = oregistry["ccd_shutter"]
-    terms = oregistry["terms"]
-    s_stage = oregistry["s_stage"]
-    user_data = oregistry["user_data"]
-    scaler0 = oregistry["scaler0"]
-    usaxs_shutter = oregistry["usaxs_shutter"]
-    m_stage = oregistry["m_stage"]
-    ms_stage = oregistry["ms_stage"]
-    tune_msrp = oregistry["tune_msrp"]
-    tune_mr = oregistry["tune_mr"]
-    tune_m2rp = oregistry["tune_m2rp"]
+
 
     yield from bps.mv(
         monochromator.feedback.on,
