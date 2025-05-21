@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @run_in_thread
-def report_remaining_time_thread(
+def remaining_time_reporter(
     title: str, duration_s: float, interval_s: float = 5, poll_s: float = 0.05
 ) -> None:
     """Report remaining time periodically in a separate thread.
@@ -44,29 +44,6 @@ def report_remaining_time_thread(
             logger.info(f"{title}: {remaining:.1f}s remaining")
         time.sleep(poll_s)
         t = time.time()
-
-
-def remaining_time_reporter(t0: float, n: int, total: int) -> str:
-    """Report the estimated remaining time for a process.
-
-    This function calculates and returns the estimated time remaining for a
-    process based on the elapsed time and progress so far.
-
-    Args:
-        t0 (float): Start time in seconds since epoch
-        n (int): Current step number
-        total (int): Total number of steps
-
-    Returns:
-        str: Formatted string with estimated remaining time
-    """
-
-
-"""Reporting module for generating instrument status and data reports.
-
-This module provides functionality for generating various types of reports
-about the USAXS instrument's status, data collection, and analysis results.
-"""
 
 
 def generate_status_report(instrument):
