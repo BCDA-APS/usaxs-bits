@@ -1,6 +1,7 @@
-'''
+"""
 This module provides functions to check if 12ID is in user operations mode
-'''
+"""
+
 from ophyd import EpicsSignalRO
 
 
@@ -16,5 +17,3 @@ def operations_in_12ide():
     # return diagnostics.PSS.b_station_enabled
     return BlueSkyEnabled
     # return False
-
-

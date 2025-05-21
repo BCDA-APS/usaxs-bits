@@ -11,15 +11,20 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 
-from apsbits.core.instrument_init import oregistry, MONO_FEEDBACK_ON, MONO_FEEDBACK_OFF
+from apsbits.core.instrument_init import MONO_FEEDBACK_OFF
+from apsbits.core.instrument_init import MONO_FEEDBACK_ON
+from apsbits.core.instrument_init import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from apstools.plans import restorable_stage_sigs
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+
+from ..suspenders.suspender_functions import suspend_BeamInHutch
+from ..suspenders.suspender_functions import suspend_FE_shutter
 from ..utils.override_parameters import user_override
-from ..utils.setup_new_user import cleanupText, techniqueSubdirectory
+from ..utils.setup_new_user import cleanupText
+from ..utils.setup_new_user import techniqueSubdirectory
 from ..utils.user_sample_title import getSampleTitle
-from ..suspenders.suspender_functions import suspend_FE_shutter, suspend_BeamInHutch
 
 # Constants
 ccd_shutter = oregistry["ccd_shutter"]
@@ -90,6 +95,7 @@ scaler1 = oregistry["scaler1"]
 constants = oregistry["constants"]
 after_plan = oregistry["after_plan"]
 before_plan = oregistry["before_plan"]
+
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)

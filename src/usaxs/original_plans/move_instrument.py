@@ -1,4 +1,3 @@
-
 """
 move the parts of the instrument in and out
 """
@@ -22,25 +21,27 @@ logger.info(__file__)
 
 from bluesky import plan_stubs as bps
 
-from ..devices.stages import a_stage, d_stage, saxs_stage
-from ..devices.shutters import ccd_shutter, ti_filter_shutter
-from ..devices.slits import guard_slit, usaxs_slit
+from ..devices import waxsx
+
 # from ..devices.protection_plc import plc_protect
 from ..devices.general_terms import terms
-from ..devices.user_data import user_data
-from ..devices import waxsx
-from ..utils.a2q_q2a import angle2q, q2angle
-
+from ..devices.shutters import ti_filter_shutter
+from ..devices.slits import guard_slit
+from ..devices.slits import usaxs_slit
+from ..devices.stages import a_stage
+from ..devices.stages import d_stage
+from ..devices.stages import saxs_stage
 
 UsaxsSaxsModes = {
-    "dirty": -1,        # moving or prior move did not finish correctly
-    "out of beam": 1,   # SAXS, WAXS, and USAXS out of beam
+    "dirty": -1,  # moving or prior move did not finish correctly
+    "out of beam": 1,  # SAXS, WAXS, and USAXS out of beam
     "USAXS in beam": 2,
     "SAXS in beam": 3,
     "WAXS in beam": 4,
     "Imaging in": 5,
     "Imaging tuning": 6,
 }
+
 
 def confirmUsaxsSaxsOutOfBeam():
     """raise ValueError if not"""
@@ -62,8 +63,9 @@ def confirmUsaxsSaxsOutOfBeam():
 def move_WAXSOut():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
+        # ccd_shutter,        "close",
+        ti_filter_shutter,
+        "close",
     )
 
     logger.info("Moving WAXS out of beam")
@@ -80,8 +82,9 @@ def move_WAXSOut():
 def move_WAXSIn():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
+        # ccd_shutter,        "close",
+        ti_filter_shutter,
+        "close",
     )
 
     logger.info("Moving to WAXS mode")
@@ -94,11 +97,16 @@ def move_WAXSIn():
 
     # first move USAXS out of way
     yield from bps.mv(
-        guard_slit.v_size, terms.SAXS.guard_v_size.get(),
-        guard_slit.h_size, terms.SAXS.guard_h_size.get(),
-        waxsx,             terms.WAXS.x_in.get(),
-        usaxs_slit.v_size, terms.SAXS.v_size.get(),
-        usaxs_slit.h_size, terms.SAXS.h_size.get(),
+        guard_slit.v_size,
+        terms.SAXS.guard_v_size.get(),
+        guard_slit.h_size,
+        terms.SAXS.guard_h_size.get(),
+        waxsx,
+        terms.WAXS.x_in.get(),
+        usaxs_slit.v_size,
+        terms.SAXS.v_size.get(),
+        usaxs_slit.h_size,
+        terms.SAXS.h_size.get(),
     )
 
     logger.info("WAXS is in position")
@@ -106,11 +114,11 @@ def move_WAXSIn():
 
 
 def move_SAXSOut():
-    
-    #yield from bps.null()
+    # yield from bps.null()
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
+        # ccd_shutter,        "close",
+        ti_filter_shutter,
+        "close",
     )
 
     logger.info("Moving SAXS out of beam")
@@ -128,13 +136,12 @@ def move_SAXSOut():
 
 
 def move_SAXSIn():
-    
-    
-    #yield from bps.null()
-    
+    # yield from bps.null()
+
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
+        # ccd_shutter,        "close",
+        ti_filter_shutter,
+        "close",
     )
 
     logger.info("Moving to Pinhole SAXS mode")
@@ -146,11 +153,16 @@ def move_SAXSIn():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
     yield from bps.mv(
-        guard_slit.v_size, terms.SAXS.guard_v_size.get(),
-        guard_slit.h_size, terms.SAXS.guard_h_size.get(),
-        saxs_stage.y,      terms.SAXS.y_in.get(),
-        usaxs_slit.v_size, terms.SAXS.v_size.get(),
-        usaxs_slit.h_size, terms.SAXS.h_size.get(),
+        guard_slit.v_size,
+        terms.SAXS.guard_v_size.get(),
+        guard_slit.h_size,
+        terms.SAXS.guard_h_size.get(),
+        saxs_stage.y,
+        terms.SAXS.y_in.get(),
+        usaxs_slit.v_size,
+        terms.SAXS.v_size.get(),
+        usaxs_slit.h_size,
+        terms.SAXS.h_size.get(),
     )
 
     # move Z _AFTER_ the others finish moving
@@ -163,8 +175,9 @@ def move_SAXSIn():
 def move_USAXSOut():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
+        # ccd_shutter,        "close",
+        ti_filter_shutter,
+        "close",
     )
 
     logger.info("Moving USAXS out of beam")
@@ -172,8 +185,10 @@ def move_USAXSOut():
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
     yield from bps.mv(
-        a_stage.x, terms.SAXS.ax_out.get(),
-        d_stage.x, terms.SAXS.dx_out.get(),
+        a_stage.x,
+        terms.SAXS.ax_out.get(),
+        d_stage.x,
+        terms.SAXS.dx_out.get(),
     )
 
     logger.info("Removed USAXS from beam position")
@@ -183,8 +198,9 @@ def move_USAXSOut():
 def move_USAXSIn():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
-        #ccd_shutter,        "close",
-        ti_filter_shutter,  "close",
+        # ccd_shutter,        "close",
+        ti_filter_shutter,
+        "close",
     )
 
     logger.info("Moving to USAXS mode")
@@ -198,14 +214,22 @@ def move_USAXSIn():
     # move USAXS in the beam
 
     yield from bps.mv(
-        guard_slit.h_size,  terms.SAXS.usaxs_guard_h_size.get(),
-        guard_slit.v_size,  terms.SAXS.usaxs_guard_v_size.get(),
-        usaxs_slit.h_size,  terms.SAXS.usaxs_h_size.get(),
-        usaxs_slit.v_size,  terms.SAXS.usaxs_v_size.get(),
-        a_stage.y,          terms.SAXS.ay_in.get(),
-        a_stage.x,          terms.SAXS.ax_in.get(),
-        d_stage.y,          terms.SAXS.dy_in.get(),
-        d_stage.x,          terms.USAXS.DX0.get(), #same as: terms.USAXS:Diode_dx.get(),
+        guard_slit.h_size,
+        terms.SAXS.usaxs_guard_h_size.get(),
+        guard_slit.v_size,
+        terms.SAXS.usaxs_guard_v_size.get(),
+        usaxs_slit.h_size,
+        terms.SAXS.usaxs_h_size.get(),
+        usaxs_slit.v_size,
+        terms.SAXS.usaxs_v_size.get(),
+        a_stage.y,
+        terms.SAXS.ay_in.get(),
+        a_stage.x,
+        terms.SAXS.ax_in.get(),
+        d_stage.y,
+        terms.SAXS.dy_in.get(),
+        d_stage.x,
+        terms.USAXS.DX0.get(),  # same as: terms.USAXS:Diode_dx.get(),
     )
 
     logger.info("USAXS is in position")

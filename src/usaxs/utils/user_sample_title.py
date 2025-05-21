@@ -2,7 +2,6 @@
 user-customizable sample title function
 """
 
-
 _sample_title_function = None
 
 

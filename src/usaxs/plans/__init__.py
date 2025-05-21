@@ -1,8 +1,6 @@
 # # flake8: noqa: F401
 """Bluesky plans."""
 
-from .mono_feedback import MONO_FEEDBACK_OFF
-from .mono_feedback import MONO_FEEDBACK_ON
 # from .axis_tuning import instrument_default_tune_ranges
 # from .axis_tuning import update_EPICS_tuning_widths
 # from .axis_tuning import user_defined_settings
@@ -15,14 +13,15 @@ from .filter_plans import insertRadiographyFilters
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertScanFilters
 from .filter_plans import insertWaxsFilters
+from .mode_changes import mode_OpenBeamPath
 
 # from .mode_changes import mode_BlackFly
 from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
-from .mode_changes import mode_OpenBeamPath
-
+from .mono_feedback import MONO_FEEDBACK_OFF
+from .mono_feedback import MONO_FEEDBACK_ON
 from .move_instrument import move_SAXSIn
 from .move_instrument import move_SAXSOut
 from .move_instrument import move_USAXSIn

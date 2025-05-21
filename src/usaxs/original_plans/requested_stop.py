@@ -1,4 +1,3 @@
-
 """
 User can set a PV to request scanning to stop
 
@@ -6,19 +5,20 @@ Scanning will stop between scans at next loop through scan sequence.
 """
 
 __all__ = [
-    'IfRequestedStopBeforeNextScan',
-    ]
+    "IfRequestedStopBeforeNextScan",
+]
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
+import datetime
+import time
+
 import bluesky
 from bluesky import plan_stubs as bps
 from bluesky.run_engine import RequestAbort
-import datetime
-import time
 
 from ..devices import mono_shutter
 from ..devices import terms
@@ -33,7 +33,7 @@ def IfRequestedStopBeforeNextScan():
     open_the_shutter = False
     t0 = time.time()
 
-    RE.pause_msg = bluesky.run_engine.PAUSE_MSG     # sloppy
+    RE.pause_msg = bluesky.run_engine.PAUSE_MSG  # sloppy
 
     pv_txt = "Pausing for user for %g s"
     while terms.PauseBeforeNextScan.get():
@@ -47,17 +47,21 @@ def IfRequestedStopBeforeNextScan():
         msg = "EPICS user requested stop data collection before next scan"
         logger.info(msg)
         # the last line of text is overwritten after the run ends
-        logger.info("#"*10)  # sacrificial text line
+        logger.info("#" * 10)  # sacrificial text line
         yield from bps.mv(
-            ti_filter_shutter,                  "close",
-            terms.StopBeforeNextScan,           0,
-            user_data.collection_in_progress,   0,
-            user_data.time_stamp, str(datetime.datetime.now()),
+            ti_filter_shutter,
+            "close",
+            terms.StopBeforeNextScan,
+            0,
+            user_data.collection_in_progress,
+            0,
+            user_data.time_stamp,
+            str(datetime.datetime.now()),
         )
         yield from user_data.set_state_plan("Aborted data collection")
 
         # RE.pause_msg = "DEBUG: stopped the scans, ignore the (informative) exception trace"
-        raise RequestAbort(msg)        # long exception trace?
+        raise RequestAbort(msg)  # long exception trace?
 
         # # To make the exception trace brief, `%xmode Minimal`
         # """
@@ -86,5 +90,5 @@ def IfRequestedStopBeforeNextScan():
         # """
 
     if open_the_shutter:
-        yield from bps.mv(mono_shutter, "open")     # waits until complete
+        yield from bps.mv(mono_shutter, "open")  # waits until complete
         # yield from bps.sleep(2)         # so, sleep not needed

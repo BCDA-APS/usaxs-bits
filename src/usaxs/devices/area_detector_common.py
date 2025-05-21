@@ -12,7 +12,6 @@ file systems on some area detectors need more work
 * Alta: /mnt/share1/USAXS_data/...
 """
 
-
 # from ophyd.utils import set_and_wait
 import itertools
 import logging

@@ -4,14 +4,16 @@ control the monochromator feedback
 
 import logging
 
-from usaxs.startup import oregistry
 from bluesky import plan_stubs as bps
+
+from usaxs.startup import oregistry
 
 logger = logging.getLogger(__name__)
 logger.bsdev(__file__)
 
 
 monochromator = oregistry["monochromator"]
+
 
 def MONO_FEEDBACK_OFF():
     """plan: could send email"""

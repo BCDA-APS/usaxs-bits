@@ -18,7 +18,6 @@ from apsbits.core.instrument_init import make_devices
 from apsbits.core.instrument_init import oregistry
 from apsbits.core.run_engine_init import init_RE
 from apsbits.utils.aps_functions import aps_dm_setup
-from apsbits.utils.aps_functions import host_on_aps_subnet
 from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
@@ -94,8 +93,3 @@ if in_operation:
     RE(make_devices(file="shutters_op.yml", clear=False))
 if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
-
- 
-from .plans.mono_feedback import MONO_FEEDBACK_OFF
-from .plans.mono_feedback import MONO_FEEDBACK_ON
-

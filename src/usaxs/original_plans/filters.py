@@ -9,54 +9,54 @@ logger.info(__file__)
 
 from bluesky import plan_stubs as bps
 
-from ..devices.monochromator import monochromator
 from ..devices.filters import Filter_AlTi
 from ..devices.general_terms import terms
+from ..devices.monochromator import monochromator
 
 
 def _insertFilters_(a):
     """plan: insert the EPICS-specified filters"""
     yield from bps.mv(Filter_AlTi.fPos, int(a))
-    yield from bps.sleep(0.5)       # allow all blades to re-position
+    yield from bps.sleep(0.5)  # allow all blades to re-position
 
 
 def insertBlackflyFilters():
     """plan: insert the EPICS-specified filters"""
     yield from _insertFilters_(
-        terms.USAXS.blackfly.filters.Al.get(),    # Bank A: Al
-        #terms.USAXS.blackfly.filters.Ti.get(),    # Bank B: Ti
+        terms.USAXS.blackfly.filters.Al.get(),  # Bank A: Al
+        # terms.USAXS.blackfly.filters.Ti.get(),    # Bank B: Ti
     )
 
 
 def insertRadiographyFilters():
     """plan: insert the EPICS-specified filters"""
     yield from _insertFilters_(
-        terms.USAXS.img_filters.Al.get(),    # Bank A: Al
-        #terms.USAXS.img_filters.Ti.get(),    # Bank B: Ti
+        terms.USAXS.img_filters.Al.get(),  # Bank A: Al
+        # terms.USAXS.img_filters.Ti.get(),    # Bank B: Ti
     )
 
 
 def insertSaxsFilters():
     """plan: insert the EPICS-specified filters"""
     yield from _insertFilters_(
-        terms.SAXS.filters.Al.get(),    # Bank A: Al
-        #terms.SAXS.filters.Ti.get(),    # Bank B: Ti
+        terms.SAXS.filters.Al.get(),  # Bank A: Al
+        # terms.SAXS.filters.Ti.get(),    # Bank B: Ti
     )
 
 
 def insertScanFilters():
     """plan: insert the EPICS-specified filters"""
     yield from _insertFilters_(
-        terms.USAXS.scan_filters.Al.get(),    # Bank A: Al
-        #terms.USAXS.scan_filters.Ti.get(),    # Bank B: Ti
+        terms.USAXS.scan_filters.Al.get(),  # Bank A: Al
+        # terms.USAXS.scan_filters.Ti.get(),    # Bank B: Ti
     )
 
 
 def insertWaxsFilters():
     """plan: insert the EPICS-specified filters"""
     yield from _insertFilters_(
-        terms.WAXS.filters.Al.get(),    # Bank A: Al
-        #terms.WAXS.filters.Ti.get(),    # Bank B: Ti
+        terms.WAXS.filters.Al.get(),  # Bank A: Al
+        # terms.WAXS.filters.Ti.get(),    # Bank B: Ti
     )
 
 

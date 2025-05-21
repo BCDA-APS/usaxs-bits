@@ -90,7 +90,7 @@ def test_plan(md=None, thickness=0.0):
 
 
     @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
-    def _image_acquisition_steps(): 
+    def _image_acquisition_steps():
         # yield from measure_SAXS_Transmission()
         # yield from insertSaxsFilters()
 

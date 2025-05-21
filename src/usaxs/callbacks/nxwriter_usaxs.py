@@ -12,13 +12,10 @@ import os
 import numpy as np
 from apstools.callbacks import NXWriterAPS
 
-
+from ..devices import terms  # noqa: F401
+from ..devices.user_data import user_data  # noqa: F401
 from ..utils.cleanup_text import cleanupText
 from ..utils.setup_new_user import techniqueSubdirectory
-
-
-from ..devices import terms # noqa: F401    
-from ..devices.user_data import user_data # noqa: F401
 
 logger = logging.getLogger(__name__)
 

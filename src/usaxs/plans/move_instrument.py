@@ -8,8 +8,8 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
-from apsbits.utils.config_loaders import get_config
 from apsbits.core.instrument_init import oregistry
+from apsbits.utils.config_loaders import get_config
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from ophyd.scaler import ScalerCH
@@ -25,7 +25,7 @@ usaxs_slit = oregistry["usaxs_slit"]
 waxsx = oregistry["waxsx"]
 saxs_stage = oregistry["saxs_stage"]
 user_data = oregistry["user_device"]
-a_stage =  oregistry["a_stage"]
+a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
 gslit_stage = oregistry["gslit_stage"]
 
@@ -194,8 +194,10 @@ def move_USAXSOut():
 
     # move the USAXS X away from sample
     yield from bps.mv(
-        a_stage.x, terms.SAXS.ax_out.get(),
-        d_stage.x, terms.SAXS.dx_out.get(),
+        a_stage.x,
+        terms.SAXS.ax_out.get(),
+        d_stage.x,
+        terms.SAXS.dx_out.get(),
     )
 
     logger.info("Removed USAXS from beam position")
@@ -220,17 +222,25 @@ def move_USAXSIn():
 
     # move to USAXS size
     yield from bps.mv(
-        guard_slit.h_size,  terms.USAXS.guard_h_size.get(),
-        guard_slit.v_size,  terms.USAXS.guard_v_size.get(),
-        usaxs_slit.h_size,  terms.USAXS.usaxs_h_size.get(),
-        usaxs_slit.v_size,  terms.USAXS.usaxs_v_size.get(),
-        a_stage.y,          terms.USAXS.ay_in.get(),
-        a_stage.x,          terms.USAXS.AX0.get(),
-        d_stage.y,          terms.USAXS.dy_in.get(),
-        d_stage.x,          terms.USAXS.DX0.get(), #same as: terms.USAXS:Diode_dx.get(),
-        gslit_stage.x,      terms.USAXS.AX0.get(),    #this requires AX0 and Gslits.X be the same.
+        guard_slit.h_size,
+        terms.USAXS.guard_h_size.get(),
+        guard_slit.v_size,
+        terms.USAXS.guard_v_size.get(),
+        usaxs_slit.h_size,
+        terms.USAXS.usaxs_h_size.get(),
+        usaxs_slit.v_size,
+        terms.USAXS.usaxs_v_size.get(),
+        a_stage.y,
+        terms.USAXS.ay_in.get(),
+        a_stage.x,
+        terms.USAXS.AX0.get(),
+        d_stage.y,
+        terms.USAXS.dy_in.get(),
+        d_stage.x,
+        terms.USAXS.DX0.get(),  # same as: terms.USAXS:Diode_dx.get(),
+        gslit_stage.x,
+        terms.USAXS.AX0.get(),  # this requires AX0 and Gslits.X be the same.
     )
-
 
     logger.info("USAXS is in position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["USAXS in beam"])

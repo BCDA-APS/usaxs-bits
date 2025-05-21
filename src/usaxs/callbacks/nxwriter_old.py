@@ -9,7 +9,6 @@ from ..startup import RE
 from ..startup import callback_db
 from .nxwriter_usaxs import NXWriterUascan
 
-
 # TODO move this into nxwriter_usaxs which subscribes
 nxwriter = NXWriterUascan()
 #

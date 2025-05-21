@@ -9,7 +9,6 @@ TunableEpicsMotor2WTolerance adds tolerance to TunableEpicsMotor2WTolerance
 
 """
 
-
 # from apstools.devices import AxisTunerMixin
 from ophyd import Component
 from ophyd import Device
