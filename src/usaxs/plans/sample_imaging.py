@@ -2,10 +2,6 @@
 take an image of the sample
 """
 
-__all__ = [
-    "record_sample_image_on_demand",
-]
-
 import logging
 import os
 from typing import Any

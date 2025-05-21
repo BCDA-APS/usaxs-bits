@@ -6,17 +6,7 @@ using apstools.utils.EmailNotifications as the underlying implementation.
 """
 
 # TODO: this will liekly fail due to network changes.
-# Remove from teh code and live with it. m
-__all__ = [
-    "email_notices",
-    "NOTIFY_ON_RESET",
-    "NOTIFY_ON_SCAN_DONE",
-    "NOTIFY_ON_BEAM_LOSS",
-    "NOTIFY_ON_BAD_FLY_SCAN",
-    "NOTIFY_ON_FEEDBACK",
-    "NOTIFY_ON_BADTUNE",
-    "send_notification",
-]
+# Remove from teh code and live with it.
 
 import logging
 from typing import List

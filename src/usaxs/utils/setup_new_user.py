@@ -2,12 +2,6 @@
 manage the user folder
 """
 
-__all__ = """
-    get_data_dir
-    newUser
-    techniqueSubdirectory
-    """.split()
-
 
 import datetime
 import logging
