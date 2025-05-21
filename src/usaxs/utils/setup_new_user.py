@@ -2,24 +2,20 @@
 manage the user folder
 """
 
-__all__ = """
-    get_data_dir
-    newUser
-    techniqueSubdirectory
-    """.split()
-
-
 import datetime
 import logging
 import os
 import pathlib
 
+from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
 
 from ..callbacks.nxwriter import nxwriter
 from ..callbacks.specwriter import specwriter
-from ..devices import user_data
 from .check_file_exists import filename_exists
+
+# from ..devices import user_data
+user_data = oregistry["user_data"]
 
 logger = logging.getLogger(__name__)
 

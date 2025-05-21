@@ -10,10 +10,6 @@ EXAMPLE::
     RE(hello_world())
 """
 
-__all__ = """
-    hello_world
-""".split()
-
 import logging
 
 logger = logging.getLogger(__name__)

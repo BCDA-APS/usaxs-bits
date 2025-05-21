@@ -2,12 +2,6 @@
 rotate the sample with PI C867 motor
 """
 
-__all__ = """
-    PI_Off
-    PI_onF
-    PI_onR
-""".split()
-
 import logging
 from typing import Any
 from typing import Dict

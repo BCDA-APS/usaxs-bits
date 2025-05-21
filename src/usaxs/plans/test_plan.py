@@ -74,10 +74,11 @@ def test_plan(md=None, thickness=0.0):
 
     # path on local file system
     SAXSscan_path = techniqueSubdirectory("saxs")
-    SAXS_file_name = local_file_template % (
+    sfn_args = (
         scan_title_clean,
         saxs_det.hdf1.file_number.get(),
     )
+    SAXS_file_name = local_file_template % sfn_args
     _md["hdf5_path"] = str(SAXSscan_path)
     _md["hdf5_file"] = str(SAXS_file_name)
 

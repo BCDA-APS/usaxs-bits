@@ -56,6 +56,7 @@ class OurCustomNXWriterBase(NXWriterAPS):
 
     instrument_name = "APS 12-ID-E USAXS"
     supported_plans = ("name", "the", "supported", "plans")
+    # File extension for NeXus files
     file_extension = "h5"
     config_version = "1.0"
 
