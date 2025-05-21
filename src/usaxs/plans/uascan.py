@@ -50,7 +50,6 @@ NOTIFY_ON_SCAN_DONE = oregistry["NOTIFY_ON_SCAN_DONE"]
 logger = logging.getLogger(__name__)
 
 
-
 def uascan(
     start: float,
     reference: float,
