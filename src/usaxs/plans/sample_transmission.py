@@ -10,7 +10,6 @@ using various detectors.
 import logging
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import Optional
 
 import numpy as np
@@ -43,7 +42,7 @@ user_data = oregistry["user_data"]
 
 def measure_USAXS_Transmission(
     md: Optional[Dict[str, Any]] = None,
-) -> Generator[Any, None, None]:
+):
     """
     Measure the sample transmission in USAXS mode.
 
@@ -164,7 +163,7 @@ def measure_USAXS_Transmission(
 
 def measure_SAXS_Transmission(
     md: Optional[Dict[str, Any]] = None,
-) -> Generator[Any, None, None]:
+):
     """
     Measure the sample transmission in SAXS mode.
 

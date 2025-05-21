@@ -2,9 +2,6 @@
 EPICS data about the sample
 """
 
-from typing import Any
-from typing import Generator
-
 from bluesky import plan_stubs as bps
 from ophyd import Component
 from ophyd import Device
@@ -63,7 +60,7 @@ class SampleDataDevice(Device):
         EpicsSignal, "usxSample:ChemicalFormula", string=True
     )
 
-    def resetAll(self) -> Generator[Any, None, None]:
+    def resetAll(self):
         """Bluesky plan to reset all to preset values."""
         yield from bps.mv(
             self.temperature,

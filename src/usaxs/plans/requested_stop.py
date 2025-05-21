@@ -66,7 +66,7 @@ def IfRequestedStopBeforeNextScan():
         # yield from bps.sleep(2)         # so, sleep not needed
 
 
-# def IfRequestedStopBeforeNextScan() -> Generator[Any, None, None]:
+# def IfRequestedStopBeforeNextScan():
 #     """
 #     Plan: check if stop was requested before next scan.
 

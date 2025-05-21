@@ -5,7 +5,6 @@ Amplifier support
 import logging
 from collections import OrderedDict
 from typing import Any
-from typing import Generator
 from typing import Optional
 
 import numpy as np
@@ -130,7 +129,7 @@ def _scaler_autoscale_(
     count_time: float = 0.05,
     max_iterations: int = 9,
     RE: Optional[RunEngine] = None,
-) -> Generator[Any, None, None]:
+):
     """Plan: internal: autoscale amplifiers for signals sharing a common scaler.
 
     Args:

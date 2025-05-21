@@ -13,7 +13,6 @@ import logging
 import time
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
@@ -67,7 +66,7 @@ user_override.register("usaxs_minstep")  # what is this for?
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
+def tune_mr(md: Optional[Dict[str, Any]] = None):
     """Tune the monochromator rotation."""
     if md is None:
         md = {}
@@ -134,7 +133,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def tune_ar(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
+def tune_ar(md: Optional[Dict[str, Any]] = None):
     """
     Tune the AR stage.
 
@@ -210,7 +209,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
 
 
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def tune_a2rp(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
+def tune_a2rp(md: Optional[Dict[str, Any]] = None):
     """
     Tune the A2RP stage.
 
@@ -282,7 +281,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def tune_dx(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
+def tune_dx(md: Optional[Dict[str, Any]] = None):
     """
     Tune the DX stage.
 
@@ -358,7 +357,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def tune_dy(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
+def tune_dy(md: Optional[Dict[str, Any]] = None):
     """
     Tune the DY stage.
 
@@ -429,7 +428,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
         raise
 
 
-def tune_diode(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
+def tune_diode(md: Optional[Dict[str, Any]] = None):
     """
     Tune both DX and DY stages.
 
@@ -459,9 +458,7 @@ def tune_diode(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None
         raise
 
 
-def tune_usaxs_optics(
-    side: bool = False, md: Optional[Dict[str, Any]] = None
-) -> Generator[Any, None, None]:
+def tune_usaxs_optics(side: bool = False, md: Optional[Dict[str, Any]] = None):
     """
     Tune all USAXS optics.
 
@@ -507,7 +504,7 @@ def tune_usaxs_optics(
         raise
 
 
-def tune_saxs_optics(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None, None]:
+def tune_saxs_optics(md: Optional[Dict[str, Any]] = None):
     """
     Tune all SAXS optics.
 
@@ -540,7 +537,7 @@ def tune_saxs_optics(md: Optional[Dict[str, Any]] = None) -> Generator[Any, None
         raise
 
 
-def instrument_default_tune_ranges() -> Generator[Any, None, None]:
+def instrument_default_tune_ranges():
     """
     Set default tune ranges for all tunable axes.
 
@@ -622,7 +619,7 @@ def instrument_default_tune_ranges() -> Generator[Any, None, None]:
         raise
 
 
-def update_EPICS_tuning_widths() -> Generator[Any, None, None]:
+def update_EPICS_tuning_widths():
     """
     Update the tuning widths in EPICS PVs from local settings.
 
@@ -654,7 +651,7 @@ def update_EPICS_tuning_widths() -> Generator[Any, None, None]:
         raise
 
 
-def user_defined_settings() -> Generator[Any, None, None]:
+def user_defined_settings():
     """
     Allow users to redefine instrument defaults.
 
