@@ -9,4 +9,3 @@ apstools.devices.SimulatedApsPssShutterWithStatus:
 ophyd.Signal:
 - name: a_shutter_autoopen
   value: 0
-

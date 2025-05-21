@@ -15,6 +15,7 @@ mono_shutter = oregistry["mono_shutter"]
 white_beam_ready = oregistry["white_beam_ready"]
 BeamInHutch = oregistry["usaxs_CheckBeamStandard"]
 
+
 def suspender_in_operations():
     """Configure suspenders for operations mode."""
     fb = FeedbackHandlingDuringSuspension()
@@ -45,5 +46,5 @@ def suspender_in_sim():
     _simulated_beam_in_hutch = Signal(name="_simulated_beam_in_hutch")
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: F841
     suspend_FE_shutter = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: F841
-    
+
     return suspend_FE_shutter, suspend_BeamInHutch
