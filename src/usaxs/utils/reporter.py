@@ -2,11 +2,6 @@
 report how much time remains in flyscan
 """
 
-__all__ = [
-    "remaining_time_reporter",
-]
-
-
 import datetime
 import logging
 import time

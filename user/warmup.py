@@ -3,7 +3,7 @@
 import logging
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 from bluesky import plan_stubs as bps
 from instrument.devices import usaxs_flyscan

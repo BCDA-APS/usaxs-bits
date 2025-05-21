@@ -22,7 +22,7 @@ from bluesky import plans as bp
 from ..utils.reporter import remaining_time_reporter
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Device instances
 user_data = oregistry["user_data"]

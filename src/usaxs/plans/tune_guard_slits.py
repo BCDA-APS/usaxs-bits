@@ -30,7 +30,7 @@ from .mode_changes import mode_USAXS
 # from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Device instances
 guard_slit = oregistry["guard_slit"]

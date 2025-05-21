@@ -42,7 +42,7 @@ uascan = oregistry["uascan"]
 NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # these two templates match each other, sort of
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"

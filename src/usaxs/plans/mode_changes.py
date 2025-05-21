@@ -39,7 +39,7 @@ from .move_instrument import move_WAXSIn
 from .move_instrument import move_WAXSOut
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 terms = oregistry["terms"]
 user_data = oregistry["user_device"]

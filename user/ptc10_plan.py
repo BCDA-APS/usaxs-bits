@@ -7,7 +7,7 @@ reload by
 import logging
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 import time
 

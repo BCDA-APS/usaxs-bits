@@ -20,7 +20,7 @@ limitations: uses new Linkam support only for tc1 with linux ioc
 import logging
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 import time
 

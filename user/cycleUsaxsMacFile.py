@@ -3,7 +3,7 @@
 import logging
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 
 from instrument.plans.command_list import run_command_file

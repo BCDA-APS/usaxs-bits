@@ -45,5 +45,5 @@ Add this code block at the top of the file, before anything else:
 # get all the symbols from the IPython shell
 import IPython
 globals().update(IPython.get_ipython().user_ns)
-logger.info(__file__)
+
 ```

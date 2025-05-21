@@ -20,7 +20,7 @@ from bluesky import preprocessors as bpp
 from ..utils.setup_new_user import techniqueSubdirectory
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Device instances
 blackfly_optical = oregistry["blackfly_optical"]

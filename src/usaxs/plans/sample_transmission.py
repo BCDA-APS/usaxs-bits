@@ -31,7 +31,7 @@ from .mode_changes import mode_USAXS
 from .no_run import no_run_trigger_and_wait
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Device instances
 I0_controls = oregistry["I0_controls"]

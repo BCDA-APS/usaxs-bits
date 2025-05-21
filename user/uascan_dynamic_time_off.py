@@ -11,7 +11,7 @@ In a command file::
 import logging
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 from instrument.devices import terms
 

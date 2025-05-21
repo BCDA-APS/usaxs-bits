@@ -85,7 +85,7 @@ from ophyd.scaler import ScalerCH
 from ophyd.scaler import ScalerChannel
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 iconfig = get_config()
 scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")

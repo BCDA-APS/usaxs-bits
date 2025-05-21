@@ -37,7 +37,7 @@ from .mode_changes import mode_WAXS
 from .requested_stop import RequestAbort
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 # Device instances
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]

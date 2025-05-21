@@ -36,7 +36,7 @@ trd = oregistry["trd"]
 user_data = oregistry["user_data"]
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
+
 
 
 def setup_amplifier_count_time():
