@@ -282,7 +282,7 @@ class NXWriterSaxsWaxs(OurCustomNXWriterBase):
         resource_id : str
             The resource identifier (UID).
 
-        Returns
+        ReturnsIfRequestedStopBeforeNextScan
         -------
         str
             The full path to the resource file.
