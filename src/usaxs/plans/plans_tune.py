@@ -10,20 +10,20 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 
-from .mono_feedback import MONO_FEEDBACK_ON
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
-from .axis_tuning import tune_mr
-from .axis_tuning import tune_ar
-from .axis_tuning import tune_a2rp
+
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.emails import email_notices
-from usaxs.utils.override_parameters import user_override
-from .requested_stop import IfRequestedStopBeforeNextScan
-from .mode_changes import mode_USAXS
 
+from .axis_tuning import tune_a2rp
+from .axis_tuning import tune_ar
+from .axis_tuning import tune_mr
+from .mode_changes import mode_USAXS
+from .mono_feedback import MONO_FEEDBACK_ON
+from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
 
@@ -82,10 +82,10 @@ m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
 NOTIFY_ON_BADTUNE = oregistry["NOTIFY_ON_BADTUNE"]
 
+
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def preUSAXStune(md={}
-):
+def preUSAXStune(md={}):
     """
     Tune the USAXS optics in any mode, is safe.
 
@@ -107,7 +107,6 @@ def preUSAXStune(md={}
 
     USAGE:  ``RE(preUSAXStune())``
     """
-
 
     yield from bps.mv(
         monochromator.feedback.on,
@@ -172,7 +171,7 @@ def preUSAXStune(md={}
         #     and set ASRP0 value
         pass
     # tuners[a_stage.r] = tune_ar  # tune A stage to M stage
-    #tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
+    # tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
     tuners[a_stage.r] = tune_ar  # tune A stage to M stage
     tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
 
@@ -248,8 +247,6 @@ def allUSAXStune(
 
     USAGE:  ``RE(allUSAXStune())``
     """
-
-
 
     yield from bps.mv(
         monochromator.feedback.on,
@@ -391,8 +388,6 @@ def preSWAXStune(
         raise ValueError("Bluesky Live Callbacks instance must be provided")
     if specwriter is None:
         raise ValueError("SPEC file writer instance must be provided")
-
-
 
     yield from bps.mv(
         monochromator.feedback.on,

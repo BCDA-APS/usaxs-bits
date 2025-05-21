@@ -24,7 +24,7 @@ from usaxs.utils.user_sample_title import cleanupText
 from usaxs.utils.user_sample_title import getSampleTitle
 
 from ..utils.a2q_q2a import q2angle
-from .amplifiers import autoscale_amplifiers
+from .amplifiers_plan import autoscale_amplifiers
 from .command_list import after_plan
 from .command_list import before_plan
 from .I0_controls import I0_controls

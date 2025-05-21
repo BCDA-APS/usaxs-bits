@@ -15,31 +15,30 @@ from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
-# from ..devices import constants
-# from ..devices.amplifiers import measure_background
-# from ..usaxs_flyscan_support import instrument_archive
-# from ..usaxs_flyscan_support import reset_manager
-# from ..utils.email import email_notices
-# from ..utils.utils import split_quoted_line
-# from .axis_tuning import instrument_default_tune_ranges
-# from .axis_tuning import update_EPICS_tuning_widths
-# from .axis_tuning import user_defined_settings
-# from .mode_changes import mode_BlackFly
-# from .mode_changes import mode_Radiography
-# from .mode_changes import mode_SAXS
-# from .mode_changes import mode_USAXS
-# from .mode_changes import mode_WAXS
-# from .requested_stop import RequestAbort
-# from .sample_rotator_plans import PI_Off
-# from .sample_rotator_plans import PI_onF
-# from .sample_rotator_plans import PI_onR
-# from .scans import SAXS
-# from .scans import WAXS
-# from .scans import USAXSscan
-# from .scans import allUSAXStune
-# from .scans import preSWAXStune
-# from .scans import preUSAXStune
-# from .utils.doc_run import documentation_run
+from ..devices.amplifiers import measure_background  # fix this
+from ..usaxs_flyscan_support import instrument_archive
+from ..usaxs_flyscan_support import reset_manager
+from ..utils.emails import email_notices
+from ..utils.quoted_line import split_quoted_line
+from .axis_tuning import instrument_default_tune_ranges
+from .axis_tuning import update_EPICS_tuning_widths
+from .axis_tuning import user_defined_settings
+from .mode_changes import mode_BlackFly
+from .mode_changes import mode_Radiography
+from .mode_changes import mode_SAXS
+from .mode_changes import mode_USAXS
+from .mode_changes import mode_WAXS
+from .plans_ads import SAXS
+from .plans_ads import WAXS
+from .plans_tune import allUSAXStune
+from .plans_tune import preSWAXStune
+from .plans_tune import preUSAXStune
+from .plans_usaxs import USAXSscan
+from .requested_stop import RequestAbort
+from .sample_rotator_plans import PI_Off
+from .sample_rotator_plans import PI_onF
+from .sample_rotator_plans import PI_onR
+from .utils.doc_run import documentation_run
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 saxs_det = oregistry["saxs_det"]
@@ -47,11 +46,12 @@ terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 waxs_det = oregistry["waxs_det"]
-# I00_controls = oregistry["I00_controls"]
-# I0_controls = oregistry["I0_controls"]
-# upd_controls = oregistry["upd_controls"]
-# trd_controls = oregistry["trd_controls"]
+I00_controls = oregistry["I00_controls"]  # fix this
+I0_controls = oregistry["I0_controls"]  # fix this
+upd_controls = oregistry["upd_controls"]  # fix this
+trd_controls = oregistry["trd_controls"]  # fix this
 s_stage = oregistry["s_stage"]
+constants = oregistry["constants"]
 
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 

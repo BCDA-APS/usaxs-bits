@@ -13,7 +13,7 @@ from bluesky import plan_stubs as bps
 
 from .command_list import run_command_file
 from .mode_changes import mode_Radiography
-from .scans import preUSAXStune
+from .plans_tune import preUSAXStune
 
 logger = logging.getLogger(__name__)
 

@@ -27,6 +27,7 @@ from .command_list import after_plan
 from .command_list import before_plan
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertWaxsFilters
+from .I0_controls import I0_controls  # fix this
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_WAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
@@ -34,8 +35,6 @@ from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_SAXS_Transmission
-from .I0_controls import I0_controls #fix this
-
 
 logger = logging.getLogger(__name__)
 
