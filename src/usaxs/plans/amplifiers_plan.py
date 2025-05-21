@@ -14,8 +14,8 @@ from bluesky import plan_stubs as bps
 
 # Add these imports at the top of the file
 
-# Constants
-MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+# Imports from local plans
+from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
 I00 = oregistry["I00"]

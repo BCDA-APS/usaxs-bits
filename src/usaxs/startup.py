@@ -88,7 +88,7 @@ in_operation = False  # should be a caget?
 
 ##load devices
 RE(make_devices(file="devices.yml", clear=False))
-# RE(make_devices(file="ad_devices.yml", clear=False))
+RE(make_devices(file="ad_devices.yml", clear=False))
 
 if in_operation:
     RE(make_devices(file="shutters_op.yml", clear=False))
