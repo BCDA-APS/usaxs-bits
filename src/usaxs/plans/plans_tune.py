@@ -20,7 +20,6 @@ from .axis_tuning import tune_a2rp
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.emails import email_notices
-from usaxs.utils.override_parameters import user_override
 from .requested_stop import IfRequestedStopBeforeNextScan
 from .mode_changes import mode_USAXS
 
@@ -31,56 +30,21 @@ MASTER_TIMEOUT = 60
 
 
 # # Device and plan instances from oregistry (allowed list)
-mono_shutter = oregistry["mono_shutter"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-guard_slit = oregistry["guard_slit"]
-monochromator = oregistry["monochromator"]
-terms = oregistry["terms"]
-s_stage = oregistry["s_stage"]
-usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_device"]
-scaler0 = oregistry["scaler0"]
-m_stage = oregistry["m_stage"]
-a_stage = oregistry["a_stage"]
-d_stage = oregistry["d_stage"]
-mono_shutter = oregistry["mono_shutter"]
-usaxs_shutter = oregistry["usaxs_shutter"]
-usaxs_slit = oregistry["usaxs_slit"]
-user_data = oregistry["user_device"]
-scaler0 = oregistry["scaler0"]
-m_stage = oregistry["m_stage"]
-a_stage = oregistry["a_stage"]
-d_stage = oregistry["d_stage"]
-monochromator = oregistry["monochromator"]
-terms = oregistry["terms"]
-s_stage = oregistry["s_stage"]
-guard_slit = oregistry["guard_slit"]
+# ms_stage = oregistry["ms_stage"]
+# tune_msrp = oregistry["tune_msrp"]
+# tune_m2rp = oregistry["tune_m2rp"]
 monochromator = oregistry["monochromator"]
 mono_shutter = oregistry["mono_shutter"]
-ccd_shutter = oregistry["ccd_shutter"]
-terms = oregistry["terms"]
-s_stage = oregistry["s_stage"]
-user_data = oregistry["user_data"]
-scaler0 = oregistry["scaler0"]
-usaxs_shutter = oregistry["usaxs_shutter"]
-m_stage = oregistry["m_stage"]
-ms_stage = oregistry["ms_stage"]
-tune_msrp = oregistry["tune_msrp"]
-tune_m2rp = oregistry["tune_m2rp"]
-monochromator = oregistry["monochromator"]
-mono_shutter = oregistry["mono_shutter"]
-ccd_shutter = oregistry["ccd_shutter"]
 terms = oregistry["terms"]
 s_stage = oregistry["s_stage"]
 d_stage = oregistry["d_stage"]
-user_data = oregistry["user_device"]
 usaxs_slit = oregistry["usaxs_slit"]
 guard_slit = oregistry["guard_slit"]
 scaler0 = oregistry["scaler0"]
-usaxs_shutter = oregistry["usaxs_shutter"]
 m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
-NOTIFY_ON_BADTUNE = oregistry["NOTIFY_ON_BADTUNE"]
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -256,7 +220,7 @@ def allUSAXStune(
         MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
-        ccd_shutter,
+        usaxs_shutter,
         "close",
         timeout=MASTER_TIMEOUT,
     )
@@ -323,11 +287,11 @@ def allUSAXStune(
         yield from tune(md=md, oregistry=oregistry)
         if not axis.tuner.tune_ok:
             logger.warning("!!! tune failed for axis %s !!!", axis.name)
-            if NOTIFY_ON_BADTUNE:
-                email_notices.send(
-                    f"USAXS tune failed for axis {axis.name}",
-                    f"USAXS tune failed for axis {axis.name}",
-                )
+            # if NOTIFY_ON_BADTUNE:
+            #     email_notices.send(
+            #         f"USAXS tune failed for axis {axis.name}",
+            #         f"USAXS tune failed for axis {axis.name}",
+            #     )
 
         # If we don't wait, the next tune often fails
         # intensity stays flat, statistically
@@ -399,7 +363,7 @@ def preSWAXStune(
         MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
-        ccd_shutter,
+        usaxs_shutter,
         "close",
         timeout=MASTER_TIMEOUT,
     )
@@ -432,10 +396,10 @@ def preSWAXStune(
 
     tuners = OrderedDict()  # list the axes to tune
     tuners[m_stage.r] = tune_mr  # tune M stage to monochromator
-    if not m_stage.isChannelCut:
-        tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
-    if terms.USAXS.useMSstage.get():
-        tuners[ms_stage.rp] = tune_msrp  # align MSR stage with M stage
+    # if not m_stage.isChannelCut:
+    #     tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
+    # if terms.USAXS.useMSstage.get():
+    #     tuners[ms_stage.rp] = tune_msrp  # align MSR stage with M stage
 
     # now, tune the desired axes, bail out if a tune fails
     yield from bps.install_suspender(suspend_BeamInHutch)

@@ -63,7 +63,7 @@ def confirmUsaxsSaxsOutOfBeam():
 def move_WAXSOut():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
     )
@@ -82,7 +82,7 @@ def move_WAXSOut():
 def move_WAXSIn():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
     )
@@ -116,7 +116,7 @@ def move_WAXSIn():
 def move_SAXSOut():
     # yield from bps.null()
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
     )
@@ -139,7 +139,7 @@ def move_SAXSIn():
     # yield from bps.null()
 
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
     )
@@ -175,7 +175,7 @@ def move_SAXSIn():
 def move_USAXSOut():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
     )
@@ -198,7 +198,7 @@ def move_USAXSOut():
 def move_USAXSIn():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
     )

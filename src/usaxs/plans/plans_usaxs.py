@@ -18,7 +18,7 @@ from bluesky import preprocessors as bpp
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.emails import email_notices
-from usaxs.utils.override_parameters import user_override
+from usaxs.utils.override import user_override
 from usaxs.utils.setup_new_user import techniqueSubdirectory
 from usaxs.utils.user_sample_title import cleanupText
 from usaxs.utils.user_sample_title import getSampleTitle

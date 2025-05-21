@@ -19,6 +19,7 @@ from apsbits.core.instrument_init import oregistry
 from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name
+from ..utils.override import user_override
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
@@ -32,28 +33,28 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 # autoscale_amplifiers = oregistry["autoscale_amplifiers"]
 # upd_controls = oregistry["upd_controls"]
 # user_override = oregistry["user_override"]
-# terms = oregistry["terms"]
+terms = oregistry["terms"]
 # usaxs_q_calc = oregistry["usaxs_q_calc"]
-# scaler0 = oregistry["scaler0"]
+scaler0 = oregistry["scaler0"]
 # mono_shutter = oregistry["mono_shutter"]
 # usaxs_shutter = oregistry["usaxs_shutter"]
 # a_stage = oregistry["a_stage"]
 # axis_tune_range = oregistry["axis_tune_range"]
-# d_stage = oregistry["d_stage"]
-# m_stage = oregistry["m_stage"]
+d_stage = oregistry["d_stage"]
+m_stage = oregistry["m_stage"]
 # ms_stage = oregistry["ms_stage"]
 # as_stage = oregistry["as_stage"]
 # s_stage = oregistry["s_stage"]
 
 user_data = oregistry["user_device"]
 monochromator = oregistry["monochromator"]
-ccd_shutter = oregistry["ccd_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 
 logger = logging.getLogger(__name__)
 
 
 # Register user override for USAXS minimum step
-user_override.register("usaxs_minstep")  # what is this for?
+# user_override.register("usaxs_minstep")  # what is this for?
 
 
 # Set empty plan for channel-cut crystals
@@ -78,7 +79,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
+        # yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_mr"
         logger.info(f"tuning axis: {m_stage.r.name}")
 
@@ -86,7 +87,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         yield from bps.trigger_and_read([m_stage.r])
         yield from IfRequestedStopBeforeNextScan()
 
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        # yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         scaler0.select_channels(["I0_USAXS"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -106,8 +107,8 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
             "close",
             scaler0.count_mode,
             "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
+            # upd_controls.auto.mode,
+            # "auto+background",
         )
         scaler0.select_channels(None)
         if stats.analysis.success:

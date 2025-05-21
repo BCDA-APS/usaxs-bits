@@ -73,7 +73,7 @@ def confirm_instrument_mode(mode_name):
 #         "Preparing for Laser distacne meter mode"
 #         )
 #     yield from bps.mv(
-#         ccd_shutter,        "close",
+#         usaxs_shutter,        "close",
 #         d_stage.x, laser.dx.get(),
 #         d_stage.y, laser.dy.get(),
 #         )
@@ -113,7 +113,7 @@ def confirm_instrument_mode(mode_name):
 #         user_data.macro_file_time, ts,
 #         user_data.scanning, 0,
 #         user_data.collection_in_progress, 0,
-#         blackfly_det.cam.acquire, 1,
+#         blackfly_det.cam.acquire, 1,                 
 # #we are using Blackfly now, let's start it...
 #     )
 
@@ -130,7 +130,7 @@ def mode_USAXS(md=None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
         # laser.enable,  0,
@@ -211,7 +211,7 @@ def mode_SAXS(md=None):
     """
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
         # laser.enable,  0,
@@ -255,7 +255,7 @@ def mode_WAXS(md=None):
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
     yield from bps.mv(
-        # ccd_shutter,        "close",
+        # usaxs_shutter,        "close",
         usaxs_shutter,
         "close",
         m_stage.x,
@@ -345,7 +345,7 @@ def mode_Radiography(md=None):
     yield from bps.mv(
         monochromator.feedback.on,
         1,
-        # ccd_shutter, "close",
+        # usaxs_shutter, "close",
         # laser.enable,  0,
         user_data.collection_in_progress,
         1,
@@ -375,7 +375,7 @@ def mode_Radiography(md=None):
     yield from bps.mv(
         usaxs_shutter,
         "open",
-        # ccd_shutter, "open",
+        # usaxs_shutter, "open",
         user_data.time_stamp,
         ts,
         user_data.macro_file_time,

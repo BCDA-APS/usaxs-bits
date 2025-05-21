@@ -28,7 +28,7 @@ from ..devices import a_stage  # , as_stage
 # from ..devices import apsbss
 from ..devices import ar_start
 from ..devices import autoscale_amplifiers
-from ..devices import ccd_shutter
+from ..devices import usaxs_shutter
 from ..devices import constants
 from ..devices import d_stage
 from ..devices import email_notices
@@ -107,7 +107,7 @@ def preUSAXStune(md={}):
         MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
-        ccd_shutter,
+        usaxs_shutter,
         "close",
         timeout=MASTER_TIMEOUT,
     )
@@ -229,7 +229,7 @@ def allUSAXStune(md={}):
         MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
-        ccd_shutter,
+        usaxs_shutter,
         "close",
         timeout=MASTER_TIMEOUT,
     )
@@ -341,7 +341,7 @@ def preSWAXStune(md={}):
     # yield from bps.mv(
     #     monochromator.feedback.on, MONO_FEEDBACK_ON,
     #     mono_shutter, "open",
-    #     ccd_shutter, "close",
+    #     usaxs_shutter, "close",
     #     timeout=MASTER_TIMEOUT,
     # )
     # yield from IfRequestedStopBeforeNextScan()         # stop if user chose to do so.
