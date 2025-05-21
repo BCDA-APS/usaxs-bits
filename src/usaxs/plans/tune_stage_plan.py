@@ -9,7 +9,7 @@ from typing import Dict
 from typing import Generator
 from typing import Optional
 
-from apsbits.utils.controls_setup import oregistry
+from ..startup import oregistry
 from bluesky.plans import lineup2
 
 # Device instances

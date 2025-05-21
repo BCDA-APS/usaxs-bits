@@ -22,7 +22,6 @@ from ..devices import user_data
 from .check_file_exists import filename_exists
 
 logger = logging.getLogger(__name__)
-logger.bsdev(__file__)
 
 APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"

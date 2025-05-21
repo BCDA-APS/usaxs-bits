@@ -14,7 +14,6 @@ import time
 from apstools.utils import run_in_thread
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 
 @run_in_thread

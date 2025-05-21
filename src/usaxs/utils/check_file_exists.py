@@ -4,11 +4,6 @@ test if file name exists, Windows-unique
 see: https://github.com/APS-USAXS/ipython-usaxs/issues/343
 """
 
-__all__ = [
-    "filename_exists",
-]
-
-
 import os
 
 

@@ -2,10 +2,6 @@
 splits a line into words some of which might be quoted
 """
 
-__all__ = [
-    "split_quoted_line",
-]
-
 
 def split_quoted_line(line):
     """

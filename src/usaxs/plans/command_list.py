@@ -15,7 +15,7 @@ from typing import Any
 from typing import Generator
 
 import pyRestTable
-from apsbits.utils.controls_setup import oregistry
+from ..startup import oregistry
 from apstools.utils import ExcelDatabaseFileGeneric
 from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps

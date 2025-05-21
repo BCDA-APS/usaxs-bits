@@ -2,11 +2,6 @@
 center-of-mass and sqrt(variance) of y(x)
 """
 
-__all__ = [
-    "peak_center",
-]
-
-
 import numpy as np
 
 

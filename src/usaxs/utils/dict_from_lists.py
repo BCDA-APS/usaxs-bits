@@ -2,10 +2,6 @@
 derivative of two vectors: y(x), returns y'(x)
 """
 
-__all__ = [
-    "makeOrderedDictFromTwoLists",
-]
-
 
 from collections import OrderedDict
 

@@ -17,7 +17,7 @@ from typing import Dict
 from typing import Optional
 
 import pyRestTable
-from apsbits.utils.controls_setup import oregistry
+from ..startup import oregistry
 from apstools.plans import TuneAxis
 from bluesky import plan_stubs as bps
 from ophyd import Kind

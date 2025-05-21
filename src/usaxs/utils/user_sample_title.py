@@ -2,12 +2,6 @@
 user-customizable sample title function
 """
 
-__all__ = """
-    getSampleTitle
-    resetSampleTitleFunction
-    setSampleTitleFunction
-""".split()
-
 
 _sample_title_function = None
 

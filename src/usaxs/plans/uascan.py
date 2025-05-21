@@ -18,7 +18,7 @@ from typing import Generator
 from typing import Optional
 
 # Get devices from oregistry
-from apsbits.utils.controls_setup import oregistry
+from ..startup import oregistry
 from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp

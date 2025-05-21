@@ -2,7 +2,7 @@
 
 from ..utils.setup_new_user import techniqueSubdirectory
 import os
-from apsbits.utils.controls_setup import oregistry
+from ..startup import oregistry
 from apsbits.utils.config_loaders import get_config
 from collections import OrderedDict
 from bluesky import plan_stubs as bps
