@@ -2,12 +2,8 @@
 run batch of scans from command list
 """
 
-import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import datetime
+import logging
 import os
 
 import pyRestTable
@@ -48,6 +44,9 @@ from ..usaxs_flyscan_support import reset_manager
 from ..utils.quoted_line import split_quoted_line
 
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 
 def beforeScanComputeOtherStuff():
@@ -525,9 +524,9 @@ def execute_command_list(filename, commands, md=None):
                 _md.update(dict(sx=sx, sy=sy, thickness=sth, title=snm))
                 yield from WAXS(sx, sy, sth, snm, md=_md)
 
-            elif action in ("run_python", "run"):
-                filename = args[0]
-                yield from run_python_file(filename, md={})
+            # elif action in ("run_python", "run"):
+            #     filename = args[0]
+            #     yield from run_python_file(filename, md={})
 
             elif action in ("set",):
                 yield from run_set_command(*args)
