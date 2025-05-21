@@ -20,7 +20,7 @@ from bluesky import preprocessors as bpp
 from ..devices import AutorangeSettings
 from ..utils.emails import send_notification
 from .mode_changes import mode_USAXS
-from .mono_feedback import DCMfeedbackON
+from .mono_feedback import MONO_FEEDBACK_ON
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -101,7 +101,7 @@ def reset_USAXS() -> Generator[Any, None, None]:
     logger.info("Resetting USAXS")
     yield from mode_USAXS()
     yield from user_data.set_state_plan("resetting motors")
-    yield from DCMfeedbackON()
+    yield from MONO_FEEDBACK_ON()
     yield from bps.mv(
         scaler0.count_mode,
         SCALER_AUTOCOUNT_MODE,

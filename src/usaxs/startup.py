@@ -88,7 +88,7 @@ in_operation = False  # should be a caget?
 
 ##load devices
 RE(make_devices(file="devices.yml", clear=False))
-# RE(make_devices(file="ad_devices.yml", clear=False))
+RE(make_devices(file="ad_devices.yml", clear=False))
 
 if in_operation:
     RE(make_devices(file="shutters_op.yml", clear=False))
@@ -96,8 +96,8 @@ if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
 
 # Import sim plans
-from .plans import sim_count_plan  # noqa: E402, F401
-from .plans import sim_print_plan  # noqa: E402, F401
-from .plans import sim_rel_scan_plan  # noqa: E402, F401
+# from .plans import sim_count_plan  # noqa: E402, F401
+# from .plans import sim_print_plan  # noqa: E402, F401
+# from .plans import sim_rel_scan_plan  # noqa: E402, F401
  
 from usaxs.plans import *
