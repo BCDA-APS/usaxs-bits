@@ -31,7 +31,7 @@ def idle_reporter() -> None:
 
 
 def remote_ops(
-) -> Generator[Any, None, Any]:
+):
     """Enable PV-directed data collection.
 
     This function enables automatic data collection based on EPICS PV commands.

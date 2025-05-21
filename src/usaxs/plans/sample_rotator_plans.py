@@ -98,7 +98,7 @@ def rotate_sample(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Rotate sample to a specific angle.
 
     This function rotates the sample to a specified angle and optionally
@@ -137,7 +137,7 @@ def rotate_sample(
     _md.update(md or {})
 
     @bpp.run_decorator(md=_md)
-    def _inner() -> Generator[Any, None, Any]:
+    def _inner():
         yield from user_data.set_state_plan(f"rotating sample to {angle} degrees")
         yield from bps.mv(scaler0.count_mode, "OneShot")
         yield from bps.trigger(scaler0, group="rotation")

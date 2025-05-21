@@ -100,7 +100,7 @@ def insertScanFilters(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Insert filters for scanning.
 
     This function inserts the appropriate filters for scanning operations,
@@ -137,7 +137,7 @@ def insertScanFilters(
     _md.update(md or {})
 
     @bpp.run_decorator(md=_md)
-    def _inner() -> Generator[Any, None, Any]:
+    def _inner():
         yield from user_data.set_state_plan("inserting scan filters")
         yield from bps.mv(scaler0.count_mode, "OneShot")
         yield from bps.trigger(scaler0, group="filters")

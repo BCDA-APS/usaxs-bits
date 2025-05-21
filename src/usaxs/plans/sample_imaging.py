@@ -95,7 +95,7 @@ def image_sample(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Image a sample using the detector.
 
     This function images a sample by setting up the detector and
@@ -134,7 +134,7 @@ def image_sample(
     _md.update(md or {})
 
     @bpp.run_decorator(md=_md)
-    def _inner() -> Generator[Any, None, Any]:
+    def _inner():
         yield from user_data.set_state_plan("imaging sample")
         yield from bps.mv(scaler0.preset_time, count_time)
         yield from bps.trigger(scaler0, group="imaging")

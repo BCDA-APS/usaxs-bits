@@ -67,7 +67,7 @@ def uascan(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Execute a USAXS scan with variable step size.
 
     This function performs a USAXS scan with step size that varies with distance
@@ -262,7 +262,7 @@ def uascan(
         return dist * math.tan(angle * math.pi / 180)
 
     @bpp.run_decorator(md=_md)
-    def _scan_() -> Generator[Any, None, Any]:
+    def _scan_():
         count_time = count_time_base
 
         ar0 = terms.USAXS.center.AR.get()
@@ -320,7 +320,7 @@ def uascan(
                 else:
                     count_time = 2 * count_time_base
 
-    def _after_scan_() -> Generator[Any, None, Any]:
+    def _after_scan_():
         yield from bps.mv(
             # indicate USAXS scan is not running
             terms.USAXS.scanning,

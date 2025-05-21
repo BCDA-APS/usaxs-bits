@@ -96,7 +96,7 @@ def IfRequestedStopBeforeNextScan():
 #     RE: Optional[Any] = None,
 #     bec: Optional[Any] = None,
 #     specwriter: Optional[Any] = None,
-# ) -> Generator[Any, None, Any]:
+# ):
 #     """Handle a requested stop during instrument operation.
 
 #     This function handles a requested stop by performing necessary cleanup
@@ -133,7 +133,7 @@ def IfRequestedStopBeforeNextScan():
 #     _md.update(md or {})
 
 #     @bpp.run_decorator(md=_md)
-#     def _inner() -> Generator[Any, None, Any]:
+#     def _inner():
 #         yield from user_data.set_state_plan("handling stop request")
 #         yield from bps.mv(scaler0.count_mode, "AutoCount")
 #         yield from bps.sleep(1)  # Allow time for cleanup

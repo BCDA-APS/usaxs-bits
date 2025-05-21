@@ -273,7 +273,7 @@ def measure_transmission(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Measure sample transmission.
 
     This function measures the transmission of a sample by comparing
@@ -312,7 +312,7 @@ def measure_transmission(
     _md.update(md or {})
 
     @bpp.run_decorator(md=_md)
-    def _inner() -> Generator[Any, None, Any]:
+    def _inner():
         yield from user_data.set_state_plan("measuring transmission")
         yield from bps.mv(scaler0.preset_time, count_time)
         yield from bps.trigger(scaler0, group="transmission")

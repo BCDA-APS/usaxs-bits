@@ -71,7 +71,7 @@ def autoscale_amplifiers(
     count_time: float = 0.05,
     max_iterations: int = 9,
     RE: Optional[RunEngine] = None,
-) -> Generator[Any, None, Any]:
+):
     """Bluesky plan: autoscale detector amplifiers simultaneously.
 
     Parameters

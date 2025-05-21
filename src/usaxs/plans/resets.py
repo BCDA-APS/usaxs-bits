@@ -43,7 +43,7 @@ def reset_instrument(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Reset the instrument to its default state.
 
     This function resets various components of the instrument to their
@@ -80,7 +80,7 @@ def reset_instrument(
     _md.update(md or {})
 
     @bpp.run_decorator(md=_md)
-    def _inner() -> Generator[Any, None, Any]:
+    def _inner():
         yield from user_data.set_state_plan("resetting instrument")
         yield from bps.mv(scaler0.count_mode, "AutoCount")
         yield from bps.sleep(1)  # Allow time for reset

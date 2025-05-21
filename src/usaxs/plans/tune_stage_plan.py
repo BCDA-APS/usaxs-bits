@@ -22,7 +22,7 @@ def tune(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Execute a tuning plan.
 
     This function performs a scan to tune a stage motor by optimizing
@@ -60,7 +60,7 @@ def tune(
     _md = {}
     _md.update(md or {})
 
-    def _inner() -> Generator[Any, None, Any]:
+    def _inner():
         if self.pre_tune_hook is not None:
             yield from self.pre_tune_hook()
 

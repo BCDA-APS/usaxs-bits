@@ -252,7 +252,7 @@ def move_instrument(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Move instrument to a target position.
 
     This function moves the instrument to a specified position and
@@ -291,7 +291,7 @@ def move_instrument(
     _md.update(md or {})
 
     @bpp.run_decorator(md=_md)
-    def _inner() -> Generator[Any, None, Any]:
+    def _inner():
         yield from user_data.set_state_plan(
             f"moving instrument to {target_position} mm"
         )

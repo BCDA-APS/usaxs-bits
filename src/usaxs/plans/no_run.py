@@ -51,7 +51,7 @@ def no_run_operation(
     RE: Optional[Any] = None,
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
-) -> Generator[Any, None, Any]:
+):
     """Perform a no-run operation.
 
     This function performs an operation that doesn't require a full run,
@@ -88,7 +88,7 @@ def no_run_operation(
     _md.update(md or {})
 
     @bpp.run_decorator(md=_md)
-    def _inner() -> Generator[Any, None, Any]:
+    def _inner():
         yield from user_data.set_state_plan("performing no-run operation")
         yield from bps.sleep(1)  # Simulate operation time
 
