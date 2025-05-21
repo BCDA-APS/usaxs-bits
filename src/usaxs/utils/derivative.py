@@ -2,11 +2,6 @@
 derivative of two vectors: y(x), returns y'(x)
 """
 
-__all__ = [
-    "numerical_derivative",
-]
-
-
 import numpy as np
 
 

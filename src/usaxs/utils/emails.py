@@ -25,7 +25,6 @@ from typing import Optional
 from apstools.utils import EmailNotifications
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 # Notification flags - these control when emails are sent
 NOTIFY_ON_RESET = False

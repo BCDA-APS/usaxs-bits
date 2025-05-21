@@ -20,73 +20,26 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 
-from apsbits.utils.controls_setup import oregistry
+from apsbits.core.instrument_init import oregistry, MONO_FEEDBACK_ON, MONO_FEEDBACK_OFF
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from apstools.plans import restorable_stage_sigs
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from ..utils.override_parameters import user_override
+from ..utils.setup_new_user import cleanupText, techniqueSubdirectory
+from ..utils.user_sample_title import getSampleTitle
+from ..suspenders.suspender_functions import suspend_FE_shutter, suspend_BeamInHutch
 
 # Constants
-MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
-MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
-NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
-NOTIFY_ON_BADTUNE = oregistry["NOTIFY_ON_BADTUNE"]
-
-# Device instances
-I0_controls = oregistry["I0_controls"]
-I00_controls = oregistry["I00_controls"]
-a_stage = oregistry["a_stage"]
-ar_start = oregistry["ar_start"]
-autoscale_amplifiers = oregistry["autoscale_amplifiers"]
 ccd_shutter = oregistry["ccd_shutter"]
-constants = oregistry["constants"]
-d_stage = oregistry["d_stage"]
-email_notices = oregistry["email_notices"]
-flyscan_trajectories = oregistry["flyscan_trajectories"]
-guard_slit = oregistry["guard_slit"]
-lax_autosave = oregistry["lax_autosave"]
-m_stage = oregistry["m_stage"]
-mono_shutter = oregistry["mono_shutter"]
-monochromator = oregistry["monochromator"]
-s_stage = oregistry["s_stage"]
-saxs_det = oregistry["saxs_det"]
-saxs_stage = oregistry["saxs_stage"]
-scaler0 = oregistry["scaler0"]
-scaler1 = oregistry["scaler1"]
-struck = oregistry["struck"]
-terms = oregistry["terms"]
-usaxs_shutter = oregistry["usaxs_shutter"]
-trd_controls = oregistry["trd_controls"]
-upd_controls = oregistry["upd_controls"]
-usaxs_flyscan = oregistry["usaxs_flyscan"]
-usaxs_q_calc = oregistry["usaxs_q_calc"]
-usaxs_slit = oregistry["usaxs_slit"]
-user_data = oregistry["user_data"]
-user_override = oregistry["user_override"]
-waxs_det = oregistry["waxs_det"]
-suspend_BeamInHutch = oregistry["suspend_BeamInHutch"]
-suspend_FE_shutter = oregistry["suspend_FE_shutter"]
-q2angle = oregistry["q2angle"]
-cleanupText = oregistry["cleanupText"]
-techniqueSubdirectory = oregistry["techniqueSubdirectory"]
-getSampleTitle = oregistry["getSampleTitle"]
-areaDetectorAcquire = oregistry["areaDetectorAcquire"]
-tune_a2rp = oregistry["tune_a2rp"]
-tune_ar = oregistry["tune_ar"]
 tune_m2rp = oregistry["tune_m2rp"]
+tune_ar = oregistry["tune_ar"]
+tune_a2rp = oregistry["tune_a2rp"]
+NOTIFY_ON_BADTUNE = oregistry["NOTIFY_ON_BADTUNE"]
+email_notices = oregistry["email_notices"]
 tune_mr = oregistry["tune_mr"]
-insertSaxsFilters = oregistry["insertSaxsFilters"]
-insertWaxsFilters = oregistry["insertWaxsFilters"]
-mode_SAXS = oregistry["mode_SAXS"]
-mode_USAXS = oregistry["mode_USAXS"]
-mode_WAXS = oregistry["mode_WAXS"]
-IfRequestedStopBeforeNextScan = oregistry["IfRequestedStopBeforeNextScan"]
-record_sample_image_on_demand = oregistry["record_sample_image_on_demand"]
-measure_SAXS_Transmission = oregistry["measure_SAXS_Transmission"]
-measure_USAXS_Transmission = oregistry["measure_USAXS_Transmission"]
 uascan = oregistry["uascan"]
-after_plan = oregistry["after_plan"]
-before_plan = oregistry["before_plan"]
+NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -103,6 +56,49 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
     acquire_time acquire_period num_images num_exposures
 """.split()
 
+# Device and plan instances from oregistry (allowed list)
+mono_shutter = oregistry["mono_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+ar_start = oregistry["ar_start"]
+guard_slit = oregistry["guard_slit"]
+lax_autosave = oregistry["lax_autosave"]
+m_stage = oregistry["m_stage"]
+monochromator = oregistry["monochromator"]
+s_stage = oregistry["s_stage"]
+saxs_det = oregistry["saxs_det"]
+saxs_stage = oregistry["saxs_stage"]
+struck = oregistry["struck"]
+terms = oregistry["terms"]
+usaxs_flyscan = oregistry["usaxs_flyscan"]
+usaxs_q_calc = oregistry["usaxs_q_calc"]
+usaxs_slit = oregistry["usaxs_slit"]
+user_data = oregistry["user_data"]
+waxs_det = oregistry["waxs_det"]
+a_stage = oregistry["a_stage"]
+d_stage = oregistry["d_stage"]
+flyscan_trajectories = oregistry["flyscan_trajectories"]
+# Plan helpers (if available in oregistry)
+IfRequestedStopBeforeNextScan = oregistry["IfRequestedStopBeforeNextScan"]
+mode_USAXS = oregistry["mode_USAXS"]
+mode_SAXS = oregistry["mode_SAXS"]
+mode_WAXS = oregistry["mode_WAXS"]
+record_sample_image_on_demand = oregistry["record_sample_image_on_demand"]
+measure_USAXS_Transmission = oregistry["measure_USAXS_Transmission"]
+measure_SAXS_Transmission = oregistry["measure_SAXS_Transmission"]
+insertSaxsFilters = oregistry["insertSaxsFilters"]
+insertWaxsFilters = oregistry["insertWaxsFilters"]
+areaDetectorAcquire = oregistry["areaDetectorAcquire"]
+q2angle = oregistry["q2angle"]
+autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+upd_controls = oregistry["upd_controls"]
+trd_controls = oregistry["trd_controls"]
+scaler0 = oregistry["scaler0"]
+scaler1 = oregistry["scaler1"]
+constants = oregistry["constants"]
+after_plan = oregistry["after_plan"]
+before_plan = oregistry["before_plan"]
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -165,16 +161,12 @@ def preUSAXStune(
         )
 
     yield from bps.mv(
-        # ensure diode in place (Radiography puts it elsewhere)
-        # d_stage.x, terms.USAXS.diode.dx.get(), - this is WRONG, TODO fix me
         d_stage.x,
         terms.USAXS.DX0.get(),
         d_stage.y,
         terms.USAXS.diode.dy.get(),
         user_data.time_stamp,
         str(datetime.datetime.now()),
-        # user_data.collection_in_progress, 1,
-        # Is this covered by user_mode, "USAXS"?
         usaxs_slit.v_size,
         terms.SAXS.usaxs_v_size.get(),
         usaxs_slit.h_size,
@@ -244,7 +236,6 @@ def preUSAXStune(
         terms.USAXS.usaxs_time.get(),
         user_data.time_stamp,
         str(datetime.datetime.now()),
-        # user_data.collection_in_progress, 0,
         terms.preUSAXStune.num_scans_last_tune,
         0,
         terms.preUSAXStune.run_tune_next,
@@ -301,7 +292,7 @@ def allUSAXStune(
     terms = oregistry["terms"]
     s_stage = oregistry["s_stage"]
     d_stage = oregistry["d_stage"]
-    user_data = oregistry["user_data"]
+    user_data = oregistry["user_device"]
     usaxs_slit = oregistry["usaxs_slit"]
     guard_slit = oregistry["guard_slit"]
     scaler0 = oregistry["scaler0"]
@@ -335,16 +326,12 @@ def allUSAXStune(
         )
 
     yield from bps.mv(
-        # ensure diode in place (Radiography puts it elsewhere)
-        # d_stage.x, terms.USAXS.diode.dx.get(),
         d_stage.x,
         terms.USAXS.DX0.get(),  # TODO: resolve this database issue
         d_stage.y,
         terms.USAXS.diode.dy.get(),
         user_data.time_stamp,
         str(datetime.datetime.now()),
-        # user_data.collection_in_progress, 1,
-        # Is this covered by user_mode, "USAXS"?
         usaxs_slit.v_size,
         terms.SAXS.usaxs_v_size.get(),
         usaxs_slit.h_size,
@@ -405,7 +392,6 @@ def allUSAXStune(
         terms.USAXS.usaxs_time.get(),
         user_data.time_stamp,
         str(datetime.datetime.now()),
-        # user_data.collection_in_progress, 0,
         terms.preUSAXStune.num_scans_last_tune,
         0,
         terms.preUSAXStune.run_tune_next,

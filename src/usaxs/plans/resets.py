@@ -2,17 +2,13 @@
 Reset the instrument.
 """
 
-__all__ = [
-    "reset_USAXS",
-]
-
 import logging
 from typing import Any
 from typing import Dict
 from typing import Generator
 from typing import Optional
 
-from apsbits.utils.controls_setup import oregistry
+from apsbits.core.instrument_init import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
@@ -23,7 +19,6 @@ from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 # Device instances
 I00 = oregistry["I00"]

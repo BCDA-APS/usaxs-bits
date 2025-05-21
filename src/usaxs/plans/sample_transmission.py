@@ -20,7 +20,7 @@ from typing import Optional
 
 import numpy as np
 import pyRestTable
-from apsbits.utils.controls_setup import oregistry
+from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 

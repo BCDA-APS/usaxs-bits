@@ -12,19 +12,19 @@ import os
 import numpy as np
 from apstools.callbacks import NXWriterAPS
 
-from ..devices import terms
-from ..devices.user_data import user_data
+
 from ..utils.cleanup_text import cleanupText
 from ..utils.setup_new_user import techniqueSubdirectory
 
+
+from ..devices import terms # noqa: F401    
+from ..devices.user_data import user_data # noqa: F401
+
 __all__ = [
-    # "NXWriterFlyScan",    # not yet tested
     "NXWriterUascan",
-    # "NXWriterSaxsWaxs",    # not yet tested
 ]
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 
 class OurCustomNXWriterBase(NXWriterAPS):
