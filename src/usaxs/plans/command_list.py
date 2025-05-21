@@ -9,7 +9,6 @@ logger.info(__file__)
 
 import datetime
 import os
-import sys
 
 import pyRestTable
 from apstools.utils import ExcelDatabaseFileGeneric
@@ -31,9 +30,6 @@ from ..devices.amplifiers import measure_background
 from ..devices.amplifiers import trd_controls
 from ..devices.amplifiers import upd_controls
 from ..devices.stages import s_stage
-from ..usaxs_flyscan_support import reset_manager
-from ..usaxs_flyscan_support import instrument_archive
-from ..utils.quoted_line import split_quoted_line
 from ..original_plans.axis_tuning import instrument_default_tune_ranges
 from ..original_plans.axis_tuning import update_EPICS_tuning_widths
 from ..original_plans.axis_tuning import user_defined_settings
@@ -47,6 +43,9 @@ from ..original_plans.requested_stop import RequestAbort
 from ..original_plans.sample_rotator_plans import PI_Off
 from ..original_plans.sample_rotator_plans import PI_onF
 from ..original_plans.sample_rotator_plans import PI_onR
+from ..usaxs_flyscan_support import instrument_archive
+from ..usaxs_flyscan_support import reset_manager
+from ..utils.quoted_line import split_quoted_line
 
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
@@ -607,7 +606,6 @@ def sync_order_numbers():
         waxs_det.hdf1.file_number,
         order_number,
     )
-
 
 
 def run_set_command(*args):

@@ -3,6 +3,7 @@ import logging
 import bluesky.suspenders
 from apsbits.core.instrument_init import oregistry
 from ophyd import Signal
+from ophyd import EpicsSignalRO
 
 # from ..devices.shutters import FE_shutter # this needs to become oregistry 
 # from ..devices.shutters import mono_shutter # this needs to become oregistry 
