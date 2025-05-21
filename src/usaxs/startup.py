@@ -81,6 +81,26 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
+RE(make_devices(file="scaler.yml", clear=False))
+scaler0 = oregistry["scaler0"]
+scaler0.stage_sigs["count_mode"] = "OneShot"
+
+scaler0.channels.chan03.name = "I00_SIGNAL"
+scaler0.channels.chan03.s.name = "I00"
+oregistry.register(scaler0.channels.chan03) #I00 singal
+
+scaler0.channels.chan02.name = "I0_SIGNAL"
+scaler0.channels.chan02.s.name = "I0"
+oregistry.register(scaler0.channels.chan02) #I0 signal
+
+scaler0.channels.chan04.name = "UPD_SIGNAL"
+scaler0.channels.chan04.s.name = "UPD"
+oregistry.register(scaler0.channels.chan04) #UPD signal
+
+scaler0.channels.chan05.name = "TRD_SIGNAL"
+scaler0.channels.chan05.s.name = "TRD"
+oregistry.register(scaler0.channels.chan05) #TRD signal
+
 
 ##operation variables
 in_operation = False  # should be a caget?
@@ -94,6 +114,6 @@ if in_operation:
 if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
 
- 
+
 from .plans import *
 

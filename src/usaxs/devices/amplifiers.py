@@ -58,7 +58,7 @@ AMPLIFIER_MINIMUM_SETTLING_TIME = 0.01  # reasonable?
 
 scaler0 = ScalerCH(scaler0_name, name="scaler0")
 scaler0.stage_sigs["count_mode"] = "OneShot"
-scaler0.select_channels()
+# scaler0.select_channels()
 
 I00_SIGNAL = scaler0.channels.chan03
 I0 = scaler0.channels.chan02.s
