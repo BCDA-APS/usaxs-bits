@@ -9,7 +9,9 @@ from ..startup import RE
 from ..startup import bec
 from ..utils.reporter import remaining_time_reporter
 
-"""Plans for area detector operations in the USAXS beamline."""
+"""
+Plans for area detector operations in USAXS.
+"""
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 """
-Bluesky plans to tune various axes and stages.
+Plans for axis tuning in USAXS.
 
 This module provides functions for tuning and calibrating various instrument axes
 and stages. It includes functions for tuning monochromator, analyzer, detector,

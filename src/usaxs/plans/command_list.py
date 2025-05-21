@@ -1,4 +1,6 @@
 """
+Plans for executing command lists in USAXS.
+
 run batch of scans from command list
 """
 

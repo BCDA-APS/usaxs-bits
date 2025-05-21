@@ -1,5 +1,5 @@
 """
-USAXS step scan
+Plans for USAXS scan operations.
 
 This module provides plans for performing USAXS (Ultra Small Angle X-ray
 Scattering) scans, including both standard USAXS and side-bounce USAXS (SBUSAXS)

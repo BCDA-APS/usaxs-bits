@@ -1,5 +1,5 @@
 """
-Support the different instrument modes
+Plans for changing instrument modes in USAXS.
 """
 
 ### This file is work-in-progress

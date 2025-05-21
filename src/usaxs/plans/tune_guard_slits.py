@@ -1,5 +1,5 @@
 """
-tune the guard slits
+Plans for tuning guard slits in USAXS.
 """
 
 import datetime

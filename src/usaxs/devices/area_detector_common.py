@@ -65,7 +65,8 @@ class BadPixelPlugin(PluginBase):
 
 
 class Override_AD_EpicsHdf5FileName(AD_EpicsHdf5FileName):
-    """Override for AD_EpicsHdf5FileName to customize staging behavior for area detectors."""
+    """Override for AD_EpicsHdf5FileName to customize staging behavior for area
+    detectors."""
 
     # TODO: for apstools, but not yet as of 6-12-2024
 

@@ -1,5 +1,5 @@
 """
-Test plan for SAXS data collection using area detector.
+Test plans for USAXS.
 """
 
 import os

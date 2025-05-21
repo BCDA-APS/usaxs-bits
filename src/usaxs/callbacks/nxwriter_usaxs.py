@@ -56,7 +56,7 @@ class OurCustomNXWriterBase(NXWriterAPS):
 
     instrument_name = "APS 12-ID-E USAXS"
     supported_plans = ("name", "the", "supported", "plans")
-    file_extension = "h5"  # no dot
+    file_extension = "h5"
     config_version = "1.0"
 
     def write_entry(self):
