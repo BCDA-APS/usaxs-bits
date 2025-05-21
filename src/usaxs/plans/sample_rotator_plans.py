@@ -2,7 +2,6 @@
 rotate the sample with PI C867 motor
 """
 
-
 import logging
 from typing import Any
 from typing import Dict

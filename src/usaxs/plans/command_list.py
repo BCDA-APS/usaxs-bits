@@ -571,19 +571,15 @@ def execute_command_list(filename, commands, md=None):
                     f" during attempt {attempt+1} of {maximum_attempts}"
                     f" of command '{command}''"
                 )
-                body = (
-                    f"subject: {subject}"
-                    f"\n"
-                    f"\ndate: {datetime.datetime.now().isoformat(' ')}"
-                    f"\ncommand file: {full_filename}"
-                    f"\nline number: {i}"
-                    f"\ncommand: {command}"
-                    f"\nraw command: {raw_command}"
-                    f"\nattempt: {attempt+1} of {maximum_attempts}"
-                    f"\nexception: {exc}"
-                    f"\n"
-                    f"Stopping further processing of this command list.\n"
-                )
+                body = f"subject: {subject}\n"
+                body += f"\ndate: {datetime.datetime.now().isoformat(' ')}\n"
+                body += f"command file: {full_filename}\n"
+                body += f"line number: {i}\n"
+                body += f"command: {command}\n"
+                body += f"raw command: {raw_command}\n"
+                body += f"attempt: {attempt+1} of {maximum_attempts}\n"
+                body += f"exception: {exc}\n"
+                body += "Stopping further processing of this command list.\n"
                 logger.error("Exception %s\n%s", subject, body)
                 email_notices.send(subject, body)
                 attempt += 1

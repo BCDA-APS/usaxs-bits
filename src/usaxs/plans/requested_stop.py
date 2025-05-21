@@ -45,7 +45,7 @@ def IfRequestedStopBeforeNextScan():
         logger.info(msg)
         # the last line of text is overwritten after the run ends
         logger.info("#" * 10)  # sacrificial text line
-        yield from bps.mv(
+        mv_args = [
             usaxs_shutter,
             "close",
             terms.StopBeforeNextScan,
@@ -54,7 +54,8 @@ def IfRequestedStopBeforeNextScan():
             0,
             user_data.time_stamp,
             str(datetime.datetime.now()),
-        )
+        ]
+        yield from bps.mv(*mv_args)
         yield from user_data.set_state_plan("Aborted data collection")
 
         # RE.pause_msg = "DEBUG: stopped the scans, ignore the (informative) exception trace"

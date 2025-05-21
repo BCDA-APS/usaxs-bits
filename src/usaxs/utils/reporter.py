@@ -2,7 +2,6 @@
 report how much time remains in flyscan
 """
 
-
 import datetime
 import logging
 import time

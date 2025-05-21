@@ -4,7 +4,6 @@ This module provides plans for automatic data collection in the USAXS instrument
 including remote operation control and command execution.
 """
 
-
 import datetime
 import logging
 import os
