@@ -8,7 +8,6 @@ import math
 import numpy
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 
 RMAX_CUTOFF = 0.4  # when calculating the center, look at data above CUTOFF*R_max
