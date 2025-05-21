@@ -2,11 +2,11 @@ import logging
 
 import bluesky.suspenders
 from apsbits.core.instrument_init import oregistry
-from ophyd import Signal
 from ophyd import EpicsSignalRO
+from ophyd import Signal
 
-# from ..devices.shutters import FE_shutter # this needs to become oregistry 
-# from ..devices.shutters import mono_shutter # this needs to become oregistry 
+# from ..devices.shutters import FE_shutter # this needs to become oregistry
+# from ..devices.shutters import mono_shutter # this needs to become oregistry
 # from ..devices.white_beam_ready_calc import white_beam_ready
 # from .permit import BeamInHutch
 from .suspenders import FeedbackHandlingDuringSuspension
@@ -17,12 +17,13 @@ FE_shutter = oregistry["FE_shutter"]
 mono_shutter = oregistry["mono_shutter"]
 white_beam_ready = oregistry["white_beam_ready"]
 
-#move this to registry?
+# move this to registry?
 BeamInHutch = EpicsSignalRO(
     "usxLAX:blCalc:userCalc1",
     name="usaxs_CheckBeamStandard",
     auto_monitor=False,
 )
+
 
 def suspender_in_operations():
     """Configure suspenders for operations mode."""
@@ -32,7 +33,7 @@ def suspender_in_operations():
         pre_plan=fb.mono_beam_lost_plan,
         sleep=100,  # RE sleeps _before_ calling post_plan
         post_plan=fb.mono_beam_just_came_back_but_after_sleep_plan,
-    )  # noqa: E501
+    )  # noqa: F841
 
     suspend_FE_shutter = bluesky.suspenders.SuspendFloor(FE_shutter.pss_state, 1)
 
@@ -44,12 +45,12 @@ def suspender_in_operations():
     logger.info(
         "Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired."
     )
-    suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)  # noqa: E501
+    suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)  # noqa: F841
 
 
 def suspender_in_sim():
     """Configure suspenders for simulation mode."""
     # simulators
     _simulated_beam_in_hutch = Signal(name="_simulated_beam_in_hutch")
-    suspend_BeamInHutch = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: E501
-    suspend_FE_shutter = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: E501
+    suspend_BeamInHutch = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: F841
+    suspend_FE_shutter = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: F841
