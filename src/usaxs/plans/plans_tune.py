@@ -10,16 +10,18 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 
+<<<<<<< HEAD
 from .mono_feedback import MONO_FEEDBACK_ON
+=======
+>>>>>>> 5ab800cbc50b7e4e1e263d4458929e867aba03b1
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
-from .axis_tuning import tune_mr
-from .axis_tuning import tune_ar
-from .axis_tuning import tune_a2rp
+
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.emails import email_notices
+<<<<<<< HEAD
 from usaxs.utils.override_parameters import user_override
 from .requested_stop import IfRequestedStopBeforeNextScan
 from .mode_changes import mode_USAXS
@@ -28,17 +30,78 @@ from .I0_controls import I0_controls
 from .I00_controls import I00_controls
 from .upd_controls import upd_controls
 from .trd_controls import trd_controls
+=======
+>>>>>>> 5ab800cbc50b7e4e1e263d4458929e867aba03b1
 
+from .axis_tuning import tune_a2rp
+from .axis_tuning import tune_ar
+from .axis_tuning import tune_mr
+from .mode_changes import mode_USAXS
+from .mono_feedback import MONO_FEEDBACK_ON
+from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
 
 MASTER_TIMEOUT = 60
+<<<<<<< HEAD
+=======
+# user_override.register("useDynamicTime")
+
+# # Make sure these are not staged. For acquire_time,
+# # any change > 0.001 s takes ~0.5 s for Pilatus to complete!
+# DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
+#     acquire_time acquire_period num_images num_exposures
+# """.split()
+
+# # Device and plan instances from oregistry (allowed list)
+mono_shutter = oregistry["mono_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+# usaxs_shutter = oregistry["usaxs_shutter"]
+# ar_start = oregistry["ar_start"]
+guard_slit = oregistry["guard_slit"]
+# lax_autosave = oregistry["lax_autosave"]
+# m_stage = oregistry["m_stage"]
+monochromator = oregistry["monochromator"]
+terms = oregistry["terms"]
+s_stage = oregistry["s_stage"]
+# saxs_det = oregistry["saxs_det"]
+# saxs_stage = oregistry["saxs_stage"]
+# struck = oregistry["struck"]
+# terms = oregistry["terms"]
+# usaxs_flyscan = oregistry["usaxs_flyscan"]
+# usaxs_q_calc = oregistry["usaxs_q_calc"]
+usaxs_slit = oregistry["usaxs_slit"]
+user_data = oregistry["user_device"]
+scaler0 = oregistry["scaler0"]
+# waxs_det = oregistry["waxs_det"]
+m_stage = oregistry["m_stage"]
+a_stage = oregistry["a_stage"]
+d_stage = oregistry["d_stage"]
+# flyscan_trajectories = oregistry["flyscan_trajectories"]
+# # Plan helpers (if available in oregistry)
+# mode_USAXS = oregistry["mode_USAXS"]
+# mode_SAXS = oregistry["mode_SAXS"]
+# mode_WAXS = oregistry["mode_WAXS"]
+# record_sample_image_on_demand = oregistry["record_sample_image_on_demand"]
+# measure_USAXS_Transmission = oregistry["measure_USAXS_Transmission"]
+# measure_SAXS_Transmission = oregistry["measure_SAXS_Transmission"]
+# insertSaxsFilters = oregistry["insertSaxsFilters"]
+# insertWaxsFilters = oregistry["insertWaxsFilters"]
+# areaDetectorAcquire = oregistry["areaDetectorAcquire"]
+# autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+# I0_controls = oregistry["I0_controls"]
+# I00_controls = oregistry["I00_controls"]
+# upd_controls = oregistry["upd_controls"]
+# trd_controls = oregistry["trd_controls"]
+# scaler0 = oregistry["scaler0"]
+# scaler1 = oregistry["scaler1"]
+# constants = oregistry["constants"]
+>>>>>>> 5ab800cbc50b7e4e1e263d4458929e867aba03b1
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
-def preUSAXStune(md={}
-):
+def preUSAXStune(md={}):
     """
     Tune the USAXS optics in any mode, is safe.
 
@@ -136,8 +199,13 @@ def preUSAXStune(md={}
         #     align ASR stage with MSR stage
         #     and set ASRP0 value
         pass
+<<<<<<< HEAD
     # tuners[a_stage.r] = tune_ar  # tune A stage to M stage
     #tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
+=======
+    tuners[a_stage.r] = tune_ar  # tune A stage to M stage
+    # tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
+>>>>>>> 5ab800cbc50b7e4e1e263d4458929e867aba03b1
     tuners[a_stage.r] = tune_ar  # tune A stage to M stage
     tuners[a_stage.r2p] = tune_a2rp  # make A stage crystals parallel
 

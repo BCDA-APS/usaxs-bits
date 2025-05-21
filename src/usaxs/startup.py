@@ -80,7 +80,7 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
-RE(make_devices(file="scalers.yml", clear=False))# move this to registry?
+RE(make_devices(file="scalers.yml", clear=False))  # move this to registry?
 
 scaler0 = oregistry["scaler0"]
 
