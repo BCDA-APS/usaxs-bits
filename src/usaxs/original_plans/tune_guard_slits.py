@@ -25,7 +25,7 @@ from ..devices import guard_slit
 from ..devices import monochromator
 from ..devices import scaler0
 from ..devices import terms
-from ..devices import ti_filter_shutter
+from ..devices import usaxs_shutter
 from ..devices import upd_controls
 from ..devices import usaxs_slit
 from ..devices import user_data
@@ -68,7 +68,7 @@ def tune_GslitsCenter():
         usaxs_slit.h_size,
         terms.SAXS.usaxs_h_size.get(),
     )
-    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(usaxs_shutter, "open")
     yield from insertTransmissionFilters()
     yield from bps.sleep(0.1)
     yield from user_data.set_state_plan("autoranging the PD")
@@ -118,7 +118,7 @@ def tune_GslitsCenter():
                     x_c,
                     scaler0.preset_time,
                     old_preset_time,
-                    ti_filter_shutter,
+                    usaxs_shutter,
                     "close",
                 )
                 raise GuardSlitTuneError(msg)
@@ -147,7 +147,7 @@ def tune_GslitsCenter():
 
     yield from bps.mv(scaler0.preset_time, old_preset_time)
 
-    yield from bps.mv(ti_filter_shutter, "close")
+    yield from bps.mv(usaxs_shutter, "close")
 
 
 def _USAXS_tune_guardSlits():
@@ -431,7 +431,7 @@ def tune_GslitsSize():
         terms.FlyScan.setpoint_up.get(),
         upd_controls.auto.gainD,
         terms.FlyScan.setpoint_down.get(),
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
     # insertCCDfilters
@@ -439,7 +439,7 @@ def tune_GslitsSize():
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     yield from _USAXS_tune_guardSlits()
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         terms.SAXS.guard_h_size,
         guard_slit.h_size.get(),

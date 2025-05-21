@@ -23,7 +23,7 @@ from ..devices import constants
 from ..devices import saxs_stage
 from ..devices import scaler0
 from ..devices import terms
-from ..devices import ti_filter_shutter
+from ..devices import usaxs_shutter
 from ..devices import trd_controls
 from ..devices import user_data
 from .filters import insertScanFilters
@@ -51,7 +51,7 @@ def measure_USAXS_Transmission(md={}):
             ax_target,
             a_stage.x,
             ax_target,
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
         )
         yield from insertTransmissionFilters()
@@ -83,7 +83,7 @@ def measure_USAXS_Transmission(md={}):
         yield from bps.mv(
             a_stage.x,
             terms.USAXS.AX0.get(),
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
         )
         yield from insertScanFilters()
@@ -139,7 +139,7 @@ def measure_SAXS_Transmission(md={}):
     yield from bps.mv(
         saxs_stage.x,
         pinx_target,
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
 
@@ -174,7 +174,7 @@ def measure_SAXS_Transmission(md={}):
     yield from bps.mv(
         saxs_stage.x,
         terms.SAXS.x_in.get(),
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
     # z can move.

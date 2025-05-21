@@ -6,7 +6,6 @@ including alignment and optimization procedures.
 
 from typing import Any
 from typing import Dict
-from typing import Generator
 from typing import Optional
 
 from apsbits.core.instrument_init import oregistry

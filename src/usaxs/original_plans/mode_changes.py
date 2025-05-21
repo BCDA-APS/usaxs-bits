@@ -25,7 +25,7 @@ from ..devices.monochromator import monochromator
 from ..devices.scalers import scaler0
 from ..devices.shutters import ccd_shutter
 from ..devices.shutters import mono_shutter
-from ..devices.shutters import ti_filter_shutter
+from ..devices.shutters import usaxs_shutter
 from ..devices.slits import guard_slit
 from ..devices.slits import usaxs_slit
 from ..devices.stages import a_stage
@@ -103,7 +103,7 @@ def mode_BlackFly(md=None):
 
     yield from insertBlackflyFilters()
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
 
@@ -128,7 +128,7 @@ def mode_USAXS(md=None):
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         # laser.enable,  0,
     )
@@ -210,7 +210,7 @@ def mode_SAXS(md=None):
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         # laser.enable,  0,
         m_stage.x,
@@ -246,7 +246,7 @@ def mode_WAXS(md=None):
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         m_stage.x,
         0,
@@ -356,7 +356,7 @@ def mode_Radiography(md=None):
     # when all that is complete, then ...
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
         # ccd_shutter, "open",
         user_data.time_stamp,
@@ -421,7 +421,7 @@ def mode_OpenBeamPath(md=None):
     yield from user_data.set_state_plan("Moving USAXS to OpenBeamPath mode")
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         # laser.enable,  0,
     )

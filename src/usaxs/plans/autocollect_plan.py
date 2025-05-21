@@ -7,8 +7,6 @@ including remote operation control and command execution.
 import datetime
 import logging
 import os
-from typing import Any
-from typing import Generator
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
@@ -24,14 +22,14 @@ logger = logging.getLogger(__name__)
 user_data = oregistry["user_device"]
 auto_collect = oregistry["auto_collect"]
 
+
 def idle_reporter() -> None:
     """Update the console while waiting for next remote command."""
     ts = datetime.datetime.now().isoformat(sep=" ", timespec="seconds")
     print(f"{ts}: auto_collect is waiting for next command from EPICS ...", end="\r")
 
 
-def remote_ops(
-):
+def remote_ops():
     """Enable PV-directed data collection.
 
     This function enables automatic data collection based on EPICS PV commands.
@@ -44,10 +42,9 @@ def remote_ops(
 
     Returns
     -------
-    Generator[Any, None, Any]
-        A sequence of plan messages
+    None
 
-    USAGE:  ``RE(auto_collect.remote_ops())``
+    USAGE:  ``RE(remote_ops())``
     """
 
     yield from bps.mv(auto_collect.permit, "yes")

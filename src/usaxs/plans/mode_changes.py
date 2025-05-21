@@ -113,7 +113,8 @@ def confirm_instrument_mode(mode_name):
 #         user_data.macro_file_time, ts,
 #         user_data.scanning, 0,
 #         user_data.collection_in_progress, 0,
-#         blackfly_det.cam.acquire, 1,                 #we are using Blackfly now, let's start it...
+#         blackfly_det.cam.acquire, 1,
+# #we are using Blackfly now, let's start it...
 #     )
 
 

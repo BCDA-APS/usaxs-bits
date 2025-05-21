@@ -48,6 +48,8 @@ def suspender_in_operations():
         "Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired."
     )
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)  # noqa: F841
+    
+    return suspend_FE_shutter, suspend_BeamInHutch
 
 
 def suspender_in_sim():
@@ -56,3 +58,6 @@ def suspender_in_sim():
     _simulated_beam_in_hutch = Signal(name="_simulated_beam_in_hutch")
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: F841
     suspend_FE_shutter = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: F841
+    
+    return suspend_FE_shutter, suspend_BeamInHutch
+    

@@ -25,7 +25,7 @@ from ..devices import waxsx
 
 # from ..devices.protection_plc import plc_protect
 from ..devices.general_terms import terms
-from ..devices.shutters import ti_filter_shutter
+from ..devices.shutters import usaxs_shutter
 from ..devices.slits import guard_slit
 from ..devices.slits import usaxs_slit
 from ..devices.stages import a_stage
@@ -64,7 +64,7 @@ def move_WAXSOut():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -83,7 +83,7 @@ def move_WAXSIn():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -117,7 +117,7 @@ def move_SAXSOut():
     # yield from bps.null()
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -140,7 +140,7 @@ def move_SAXSIn():
 
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -176,7 +176,7 @@ def move_USAXSOut():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 
@@ -199,7 +199,7 @@ def move_USAXSIn():
     # yield from plc_protect.stop_if_tripped()
     yield from bps.mv(
         # ccd_shutter,        "close",
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
 

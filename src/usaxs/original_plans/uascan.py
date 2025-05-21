@@ -32,7 +32,7 @@ from ..devices import monochromator
 from ..devices import s_stage  # , as_stage
 from ..devices import scaler0
 from ..devices import terms
-from ..devices import ti_filter_shutter
+from ..devices import usaxs_shutter
 from ..devices import trd
 from ..devices import trd_controls
 from ..devices import upd_controls
@@ -116,7 +116,7 @@ def uascan(
         "manual",
         I00_controls.auto.mode,
         "manual",
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
 
@@ -297,7 +297,7 @@ def uascan(
             I00_controls.auto.mode,
             "manual",
             # close the shutter after each scan to preserve the detector
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
         )
 

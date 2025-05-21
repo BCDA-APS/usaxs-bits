@@ -27,7 +27,7 @@ from ..devices import m_stage  # as_stage
 from ..devices import s_stage  # as_stage
 from ..devices import scaler0
 from ..devices import terms
-from ..devices import ti_filter_shutter
+from ..devices import usaxs_shutter
 from ..devices import trd
 from ..devices import upd_controls
 from ..devices import user_data
@@ -52,7 +52,7 @@ def reset_USAXS():
         AutorangeSettings.manual,
         I00_controls.auto.mode,
         AutorangeSettings.manual,
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         user_data.scanning,
         "no",

@@ -22,7 +22,7 @@ from bluesky.run_engine import RequestAbort
 
 from ..devices import mono_shutter
 from ..devices import terms
-from ..devices import ti_filter_shutter
+from ..devices import usaxs_shutter
 from ..devices import user_data
 from ..framework import RE
 
@@ -49,7 +49,7 @@ def IfRequestedStopBeforeNextScan():
         # the last line of text is overwritten after the run ends
         logger.info("#" * 10)  # sacrificial text line
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
             terms.StopBeforeNextScan,
             0,

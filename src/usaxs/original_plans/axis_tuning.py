@@ -28,7 +28,7 @@ from ..devices.general_terms import terms
 from ..devices.miscellaneous import usaxs_q_calc
 from ..devices.scalers import scaler0
 from ..devices.shutters import mono_shutter
-from ..devices.shutters import ti_filter_shutter
+from ..devices.shutters import usaxs_shutter
 from ..devices.stages import a_stage  # as_stage, ms_stage
 from ..devices.stages import axis_tune_range
 from ..devices.stages import d_stage  # as_stage, ms_stage
@@ -53,12 +53,12 @@ user_override.register("usaxs_minstep")
 #     axis_start = axis.position
 #     yield from bps.mv(
 #         mono_shutter, "open",
-#         ti_filter_shutter, "open",
+#         usaxs_shutter, "open",
 #     )
 #     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
 #     uuids = yield from axis.tune(md=md)     #note: the tune method comes from usaxs_motor_devices, TunableEpicsMotor, which uses lineup2
 #     yield from bps.mv(
-#         ti_filter_shutter, "close",
+#         usaxs_shutter, "close",
 #         scaler0.count_mode, "AutoCount",
 #     )
 #     # plotxy(uuids,I0_SIGNAL or UPD_SIGNAL)
@@ -88,7 +88,7 @@ user_override.register("usaxs_minstep")
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
 def tune_mr(md={}):
-    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(usaxs_shutter, "open")
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
     md["plan_name"] = "tune_mr"
@@ -98,7 +98,7 @@ def tune_mr(md={}):
     yield from bps.mv(
         mono_shutter,
         "open",
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -117,7 +117,7 @@ def tune_mr(md={}):
     )
     print(stats.report())
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         scaler0.count_mode,
         "AutoCount",
@@ -169,7 +169,7 @@ def tune_msrp(md={}):
 
 
 # def tune_ar(md={}):
-#     yield from bps.mv(ti_filter_shutter, "open")
+#     yield from bps.mv(usaxs_shutter, "open")
 #     ##redundant## yield from autoscale_amplifiers([upd_controls])
 #     yield from bps.mv(scaler0.preset_time, 0.1)
 #     yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -181,7 +181,7 @@ def tune_msrp(md={}):
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
 def tune_ar(md={}):
-    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(usaxs_shutter, "open")
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
     md["plan_name"] = "tune_ar"
@@ -191,7 +191,7 @@ def tune_ar(md={}):
     yield from bps.mv(
         mono_shutter,
         "open",
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -211,7 +211,7 @@ def tune_ar(md={}):
     # trim_plot_lines(bec, 5, a_stage.r, UPD_SIGNAL) #UPD_SIGNAL
     print(stats.report())
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         scaler0.count_mode,
         "AutoCount",
@@ -239,7 +239,7 @@ def tune_asrp(md={}):
     pass
 
 
-#     yield from bps.mv(ti_filter_shutter, "open")
+#     yield from bps.mv(usaxs_shutter, "open")
 #     ##redundant## yield from autoscale_amplifiers([upd_controls])
 #     yield from bps.mv(scaler0.preset_time, 0.1)
 #     yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -249,7 +249,7 @@ def tune_asrp(md={}):
 
 
 # def tune_a2rp(md={}):
-#     yield from bps.mv(ti_filter_shutter, "open")
+#     yield from bps.mv(usaxs_shutter, "open")
 #     yield from bps.sleep(0.1)   # piezo is fast, give the system time to react
 #     ##redundant## yield from autoscale_amplifiers([upd_controls])
 #     yield from bps.mv(scaler0.preset_time, 0.1)
@@ -264,7 +264,7 @@ def tune_asrp(md={}):
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
 def tune_a2rp(md={}):
-    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(usaxs_shutter, "open")
     yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -275,7 +275,7 @@ def tune_a2rp(md={}):
     yield from bps.mv(
         mono_shutter,
         "open",
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -295,7 +295,7 @@ def tune_a2rp(md={}):
     print(stats.report())
     # trim_plot_lines(bec, 5, a_stage.r2p, UPD_SIGNAL) #UPD_SIGNAL
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         scaler0.count_mode,
         "AutoCount",
@@ -314,7 +314,7 @@ def tune_a2rp(md={}):
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
 def tune_dx(md={}):
-    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(usaxs_shutter, "open")
     yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -325,7 +325,7 @@ def tune_dx(md={}):
     yield from bps.mv(
         mono_shutter,
         "open",
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -344,7 +344,7 @@ def tune_dx(md={}):
     )
     print(stats.report())
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         scaler0.count_mode,
         "AutoCount",
@@ -363,7 +363,7 @@ def tune_dx(md={}):
 
 
 # def tune_dx(md={}):
-#     yield from bps.mv(ti_filter_shutter, "open")
+#     yield from bps.mv(usaxs_shutter, "open")
 #     ##redundant## yield from autoscale_amplifiers([upd_controls])
 #     yield from bps.mv(scaler0.preset_time, 0.1)
 #     yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -377,7 +377,7 @@ def tune_dx(md={}):
     suspend_BeamInHutch
 )  # this is how to do proper suspender for one function, not for the whole module
 def tune_dy(md={}):
-    yield from bps.mv(ti_filter_shutter, "open")
+    yield from bps.mv(usaxs_shutter, "open")
     yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
     yield from bps.mv(scaler0.preset_time, 0.1)
     yield from bps.mv(upd_controls.auto.mode, "manual")
@@ -388,7 +388,7 @@ def tune_dy(md={}):
     yield from bps.mv(
         mono_shutter,
         "open",
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -407,7 +407,7 @@ def tune_dy(md={}):
     )
     print(stats.report())
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         scaler0.count_mode,
         "AutoCount",
@@ -423,7 +423,7 @@ def tune_dy(md={}):
 
 
 # def tune_dy(md={}):
-#     yield from bps.mv(ti_filter_shutter, "open")
+#     yield from bps.mv(usaxs_shutter, "open")
 #     ##redundant## yield from autoscale_amplifiers([upd_controls])
 #     yield from bps.mv(scaler0.preset_time, 0.1)
 #     yield from bps.mv(upd_controls.auto.mode, "manual")

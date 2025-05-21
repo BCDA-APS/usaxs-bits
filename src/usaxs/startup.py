@@ -112,3 +112,5 @@ if in_operation:
     RE(make_devices(file="shutters_op.yml", clear=False))
 if not in_operation:
     RE(make_devices(file="shutters_sim.yml", clear=False))
+
+from .plans import *  # noqa: F401

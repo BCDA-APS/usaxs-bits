@@ -2,7 +2,7 @@
 suspenders : conditions that will interrupt the RunEngine execution
 """
 
-from apsbits.utils import oregistry
+from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 
 monochromator = oregistry["monochromator"]

@@ -15,42 +15,42 @@ from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
-from ..devices import constants
-from ..devices.amplifiers import measure_background
-from ..usaxs_flyscan_support import instrument_archive
-from ..usaxs_flyscan_support import reset_manager
-from ..utils.email import email_notices
-from ..utils.utils import split_quoted_line
-from .axis_tuning import instrument_default_tune_ranges
-from .axis_tuning import update_EPICS_tuning_widths
-from .axis_tuning import user_defined_settings
-from .mode_changes import mode_BlackFly
-from .mode_changes import mode_Radiography
-from .mode_changes import mode_SAXS
-from .mode_changes import mode_USAXS
-from .mode_changes import mode_WAXS
-from .requested_stop import RequestAbort
-from .sample_rotator_plans import PI_Off
-from .sample_rotator_plans import PI_onF
-from .sample_rotator_plans import PI_onR
-from .scans import SAXS
-from .scans import WAXS
-from .scans import USAXSscan
-from .scans import allUSAXStune
-from .scans import preSWAXStune
-from .scans import preUSAXStune
-from .utils.doc_run import documentation_run
+# from ..devices import constants
+# from ..devices.amplifiers import measure_background
+# from ..usaxs_flyscan_support import instrument_archive
+# from ..usaxs_flyscan_support import reset_manager
+# from ..utils.email import email_notices
+# from ..utils.utils import split_quoted_line
+# from .axis_tuning import instrument_default_tune_ranges
+# from .axis_tuning import update_EPICS_tuning_widths
+# from .axis_tuning import user_defined_settings
+# from .mode_changes import mode_BlackFly
+# from .mode_changes import mode_Radiography
+# from .mode_changes import mode_SAXS
+# from .mode_changes import mode_USAXS
+# from .mode_changes import mode_WAXS
+# from .requested_stop import RequestAbort
+# from .sample_rotator_plans import PI_Off
+# from .sample_rotator_plans import PI_onF
+# from .sample_rotator_plans import PI_onR
+# from .scans import SAXS
+# from .scans import WAXS
+# from .scans import USAXSscan
+# from .scans import allUSAXStune
+# from .scans import preSWAXStune
+# from .scans import preUSAXStune
+# from .utils.doc_run import documentation_run
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
-ti_filter_shutter = oregistry["ti_filter_shutter"]
-user_data = oregistry["user_data"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+user_data = oregistry["user_device"]
 waxs_det = oregistry["waxs_det"]
-I00_controls = oregistry["I00_controls"]
-I0_controls = oregistry["I0_controls"]
-upd_controls = oregistry["upd_controls"]
-trd_controls = oregistry["trd_controls"]
+# I00_controls = oregistry["I00_controls"]
+# I0_controls = oregistry["I0_controls"]
+# upd_controls = oregistry["upd_controls"]
+# trd_controls = oregistry["trd_controls"]
 s_stage = oregistry["s_stage"]
 
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
@@ -135,7 +135,7 @@ def before_command_list(md=None, commands=None):
     yield from user_data.set_state_plan("Starting data collection")
 
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         terms.SAXS.collecting,
         0,
@@ -243,7 +243,7 @@ def after_command_list(md=None):
         str(datetime.datetime.now()),
         user_data.collection_in_progress,
         0,
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
     )
     yield from user_data.set_state_plan("USAXS macro file done")

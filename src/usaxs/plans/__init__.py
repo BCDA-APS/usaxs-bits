@@ -2,7 +2,7 @@
 """Bluesky plans."""
 
 from .area_detector_plans import areaDetectorAcquire
-
+from .autocollect_plan import remote_ops
 # from .axis_tuning import instrument_default_tune_ranges
 # from .axis_tuning import update_EPICS_tuning_widths
 # from .axis_tuning import user_defined_settings

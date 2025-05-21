@@ -45,7 +45,7 @@ from ..devices import scaler0
 from ..devices import scaler1
 from ..devices import struck
 from ..devices import terms
-from ..devices import ti_filter_shutter
+from ..devices import usaxs_shutter
 from ..devices import trd_controls
 from ..devices import upd_controls
 from ..devices import usaxs_flyscan
@@ -150,7 +150,7 @@ def preUSAXStune(md={}):
     yield from user_data.set_state_plan("pre-USAXS optics tune")
 
     # when all that is complete, then ...
-    yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+    yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
 
     # TODO: install suspender using usaxs_CheckBeamStandard.get()
 
@@ -173,7 +173,7 @@ def preUSAXStune(md={}):
     # now, tune the desired axes, bail out if a tune fails
     # yield from bps.install_suspender(suspend_BeamInHutch)
     for axis, tune in tuners.items():
-        yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+        yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
         yield from tune(md=md)
         # if not axis.tuner.tune_ok:
         #    logger.warning("!!! tune failed for axis %s !!!", axis.name)
@@ -189,7 +189,7 @@ def preUSAXStune(md={}):
         # to complete processing and report back to us.
         yield from bps.sleep(1)
     # tune a2rp one more time as final step, we will see if it is needed...
-    # yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+    # yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
     # yield from tune_a2rp(md=md)
     # if not axis.tuner.tune_ok:
     #    logger.warning("!!! tune failed for axis %s !!!", "a2rp")
@@ -272,7 +272,7 @@ def allUSAXStune(md={}):
     yield from user_data.set_state_plan("pre-USAXS optics tune")
 
     # when all that is complete, then ...
-    yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+    yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
 
     # TODO: install suspender using usaxs_CheckBeamStandard.get()
 
@@ -294,7 +294,7 @@ def allUSAXStune(md={}):
     # now, tune the desired axes, bail out if a tune fails
     # yield from bps.install_suspender(suspend_BeamInHutch)
     for axis, tune in tuners.items():
-        yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+        yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
         yield from tune(md=md)
         if not axis.tuner.tune_ok:
             logger.warning("!!! tune failed for axis %s !!!", axis.name)
@@ -363,7 +363,7 @@ def preSWAXStune(md={}):
     # yield from user_data.set_state_plan("pre-SWAXS optics tune")
 
     # # when all that is complete, then ...
-    # yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+    # yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
 
     # # TODO: install suspender using usaxs_CheckBeamStandard.get()
 
@@ -377,7 +377,7 @@ def preSWAXStune(md={}):
     # # now, tune the desired axes, bail out if a tune fails
     # yield from bps.install_suspender(suspend_BeamInHutch)
     # for axis, tune in tuners.items():
-    #     yield from bps.mv(ti_filter_shutter, "open", timeout=MASTER_TIMEOUT)
+    #     yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
     #     yield from tune(md=md)
     #     if axis.tuner.tune_ok:
     #         # If we don't wait, the next tune often fails
@@ -556,7 +556,7 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         terms.USAXS.setpoint_up.get(),
         upd_controls.auto.gainD,
         terms.USAXS.setpoint_down.get(),
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
         timeout=MASTER_TIMEOUT,
     )
@@ -635,7 +635,7 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
 
     yield from bps.mvr(terms.FlyScan.order_number, 1)  # increment it
     yield from bps.mv(
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         monochromator.feedback.on,
         MONO_FEEDBACK_ON,
@@ -828,7 +828,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         terms.FlyScan.setpoint_up.get(),
         upd_controls.auto.gainD,
         terms.FlyScan.setpoint_down.get(),
-        ti_filter_shutter,
+        usaxs_shutter,
         "open",
         timeout=MASTER_TIMEOUT,
     )
@@ -936,7 +936,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         0,  # enable
         lax_autosave.max_time,
         0,  # start right away
-        ti_filter_shutter,
+        usaxs_shutter,
         "close",
         monochromator.feedback.on,
         MONO_FEEDBACK_ON,
@@ -1109,7 +1109,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             "open",
             monochromator.feedback.on,
             MONO_FEEDBACK_OFF,
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
             saxs_det.cam.num_images,
             terms.SAXS.num_images.get(),
@@ -1131,7 +1131,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         yield from autoscale_amplifiers([I0_controls])
 
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
             timeout=MASTER_TIMEOUT,
         )
@@ -1334,7 +1334,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             "open",
             monochromator.feedback.on,
             MONO_FEEDBACK_OFF,
-            ti_filter_shutter,
+            usaxs_shutter,
             "open",
             waxs_det.cam.num_images,
             terms.WAXS.num_images.get(),
@@ -1356,7 +1356,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         yield from autoscale_amplifiers([I0_controls, trd_controls])
 
         yield from bps.mv(
-            ti_filter_shutter,
+            usaxs_shutter,
             "close",
             timeout=MASTER_TIMEOUT,
         )
