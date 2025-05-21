@@ -11,6 +11,7 @@ import os
 
 import numpy as np
 from apstools.callbacks import NXWriterAPS
+import apstools
 
 from ..devices import terms  # noqa: F401
 from ..devices.user_data import user_data  # noqa: F401
@@ -60,7 +61,6 @@ class OurCustomNXWriterBase(NXWriterAPS):
 
     def write_entry(self):
         """Write the NeXus entry group and set additional attributes specific to this instrument."""
-        import apstools
 
         nxentry = super().write_entry()  # default technique
         logger.debug("write_entry of file: %s", self.root.attrs["file_name"])

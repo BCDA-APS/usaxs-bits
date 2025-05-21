@@ -1,21 +1,20 @@
-"""
-support area detector
-"""
-
 import logging
-
-logger = logging.getLogger(__name__)
-logger.info(__file__)
-
 import time
 
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 
-from ..devices import user_data
+from apsbits.core.instrument_init import oregistry
 from ..framework import RE
 from ..framework import bec
 from ..utils.reporter import remaining_time_reporter
+
+"""
+Support area detector plans for image acquisition and data collection.
+"""
+
+logger = logging.getLogger(__name__)
+logger.info(__file__)
 
 user_data = oregistry["user_device"]
 

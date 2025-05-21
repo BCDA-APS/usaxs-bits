@@ -1,4 +1,6 @@
-# these two templates match each other, sort of
+"""
+Test plan for SAXS data collection using area detector.
+"""
 
 import os
 from collections import OrderedDict
@@ -44,8 +46,16 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 
 
 def test_plan(md=None, thickness=0.0):
-    # Update Sample name. getSampleTitle is used to create proper sample name. It may add time and temperature
-    #   therefore it needs to be done close to real data collection, after mode chaneg and optional tuning.
+    """
+    Plan for collecting a test SAXS image using the area detector.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary for the scan.
+    thickness : float, optional
+        Sample thickness in mm.
+    """
     scan_title = "test"
     # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
@@ -78,9 +88,9 @@ def test_plan(md=None, thickness=0.0):
     # area detector will create this path if needed ("Create dir. depth" setting)
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"  # area detector needs this
-    local_name = os.path.join(SAXSscan_path, SAXS_file_name)
+    # local_name = os.path.join(SAXSscan_path, SAXS_file_name)
+    # pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
     # logger.info(f"Area Detector HDF5 file: {local_name}")
-    pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
     # logger.info(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
     saxs_det.hdf1.file_path._auto_monitor = False
