@@ -10,6 +10,8 @@ from typing import Dict
 from typing import Optional
 
 import pyRestTable
+from apsbits.core.instrument_init import MONO_FEEDBACK_OFF
+from apsbits.core.instrument_init import MONO_FEEDBACK_ON
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import TuneAxis
 from bluesky import plan_stubs as bps
@@ -19,8 +21,7 @@ from ..utils.derivative import numerical_derivative
 from ..utils.peak_centers import peak_center
 from .filter_plans import insertTransmissionFilters
 from .mode_changes import mode_USAXS
-
-# from .requested_stop import IfRequestedStopBeforeNextScan
+from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -30,6 +31,16 @@ guard_slit = oregistry["guard_slit"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 user_data = oregistry["user_data"]
+# Get devices from oregistry
+UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+guard_slit = oregistry["guard_slit"]
+scaler0 = oregistry["scaler0"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+upd_controls = oregistry["upd_controls"]
+usaxs_slit = oregistry["usaxs_slit"]
 
 
 class GuardSlitTuneError(RuntimeError):
@@ -52,18 +63,6 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    # Get devices from oregistry
-    UPD_SIGNAL = oregistry["UPD_SIGNAL"]
-    I0_controls = oregistry["I0_controls"]
-    I00_controls = oregistry["I00_controls"]
-    autoscale_amplifiers = oregistry["autoscale_amplifiers"]
-    guard_slit = oregistry["guard_slit"]
-    scaler0 = oregistry["scaler0"]
-    terms = oregistry["terms"]
-    usaxs_shutter = oregistry["usaxs_shutter"]
-    upd_controls = oregistry["upd_controls"]
-    usaxs_slit = oregistry["usaxs_slit"]
-    user_data = oregistry["user_data"]
 
     yield from IfRequestedStopBeforeNextScan(oregistry)
     title = "tuning USAXS Gslit center"

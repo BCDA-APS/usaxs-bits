@@ -87,19 +87,19 @@ scaler0.stage_sigs["count_mode"] = "OneShot"
 
 scaler0.channels.chan03.name = "I00_SIGNAL"
 scaler0.channels.chan03.s.name = "I00"
-oregistry.register(scaler0.channels.chan03) #I00 singal
+oregistry.register(scaler0.channels.chan03)  # I00 singal
 
 scaler0.channels.chan02.name = "I0_SIGNAL"
 scaler0.channels.chan02.s.name = "I0"
-oregistry.register(scaler0.channels.chan02) #I0 signal
+oregistry.register(scaler0.channels.chan02)  # I0 signal
 
 scaler0.channels.chan04.name = "UPD_SIGNAL"
 scaler0.channels.chan04.s.name = "UPD"
-oregistry.register(scaler0.channels.chan04) #UPD signal
+oregistry.register(scaler0.channels.chan04)  # UPD signal
 
 scaler0.channels.chan05.name = "TRD_SIGNAL"
 scaler0.channels.chan05.s.name = "TRD"
-oregistry.register(scaler0.channels.chan05) #TRD signal
+oregistry.register(scaler0.channels.chan05)  # TRD signal
 
 
 ##operation variables
