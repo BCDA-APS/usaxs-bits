@@ -1,8 +1,9 @@
 """
 USAXS step scan
 
-This module provides plans for performing USAXS (Ultra Small Angle X-ray Scattering) scans,
-including both standard USAXS and side-bounce USAXS (SBUSAXS) configurations.
+This module provides plans for performing USAXS (Ultra Small Angle X-ray
+Scattering) scans, including both standard USAXS and side-bounce USAXS (SBUSAXS)
+configurations.
 """
 
 import logging

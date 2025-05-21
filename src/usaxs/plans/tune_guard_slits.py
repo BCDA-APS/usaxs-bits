@@ -32,7 +32,8 @@ terms = oregistry["terms"]
 user_data = oregistry["user_data"]
 
 
-class GuardSlitTuneError(RuntimeError): ...  # custom error
+class GuardSlitTuneError(RuntimeError):
+    """Custom error raised when guard slit tuning fails."""
 
 
 def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
@@ -52,14 +53,11 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
         A generator that yields plan steps
     """
     # Get devices from oregistry
-    MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
-    MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
     UPD_SIGNAL = oregistry["UPD_SIGNAL"]
     I0_controls = oregistry["I0_controls"]
     I00_controls = oregistry["I00_controls"]
     autoscale_amplifiers = oregistry["autoscale_amplifiers"]
     guard_slit = oregistry["guard_slit"]
-    monochromator = oregistry["monochromator"]
     scaler0 = oregistry["scaler0"]
     terms = oregistry["terms"]
     usaxs_shutter = oregistry["usaxs_shutter"]
@@ -483,13 +481,11 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
         A generator that yields plan steps
     """
     # Get devices from oregistry
-    MONO_FEEDBACK_OFF = oregistry["MONO_FEEDBACK_OFF"]
-    MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+    UPD_SIGNAL = oregistry["UPD_SIGNAL"]
     I0_controls = oregistry["I0_controls"]
     I00_controls = oregistry["I00_controls"]
     autoscale_amplifiers = oregistry["autoscale_amplifiers"]
     guard_slit = oregistry["guard_slit"]
-    monochromator = oregistry["monochromator"]
     scaler0 = oregistry["scaler0"]
     terms = oregistry["terms"]
     usaxs_shutter = oregistry["usaxs_shutter"]

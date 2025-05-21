@@ -1,3 +1,17 @@
+"""
+Plans for slits alignment and control in USAXS experiments.
+"""
+
+from typing import Any
+from typing import Generator
+from typing import Optional
+
+from apsbits.core.instrument_init import oregistry
+from bluesky import plan_stubs as bps
+
+terms = oregistry["terms"]
+
+
 def plan_slit_ok():
     """Create a plan to check and adjust slit positions.
 

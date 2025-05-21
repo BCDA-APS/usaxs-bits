@@ -22,19 +22,12 @@ from apstools.plans import write_stream
 from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 
-from ..devices.amplifiers import AutorangeSettings
-from ..devices.amplifiers import upd_controls
-from ..devices.general_terms import terms
-from ..devices.shutters import usaxs_shutter
-from ..devices.stages import a_stage
-from ..devices.stages import d_stage
-from ..devices.struck3820 import struck
-from ..devices.user_data import user_data
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
 logger = logging.getLogger(__name__)
 
 # Device instances
+# from ..devices.amplifiers import AutorangeSettings
 upd_controls = oregistry["upd_controls"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]

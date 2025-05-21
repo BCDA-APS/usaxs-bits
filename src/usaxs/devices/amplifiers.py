@@ -69,6 +69,8 @@ I0_SIGNAL = scaler0.channels.chan02
 
 
 class ModifiedSwaitRecord(SwaitRecord):
+    """Modified SwaitRecord with enable component removed."""
+
     enable = None  # remove this Component
 
 
@@ -77,11 +79,11 @@ def _gain_to_str_(gain):  # convenience function
 
 
 class AutoscaleError(RuntimeError):
-    "raised when autoscale fails to converge"
+    """Raised when autoscale fails to converge."""
 
 
 class AutorangeSettings(object):
-    """values allowed for sequence program's ``reqrange`` PV"""
+    """Values allowed for sequence program's ``reqrange`` PV."""
 
     automatic = "automatic"
     auto_background = "auto+background"
@@ -89,10 +91,14 @@ class AutorangeSettings(object):
 
 
 class CurrentAmplifierDevice(Device):
+    """Base device for current amplifiers."""
+
     gain = Component(EpicsSignalRO, "gain", kind="omitted")
 
 
 class FemtoAmplifierDevice(CurrentAmplifierDevice):
+    """Device for Femto amplifier with gain and description components."""
+
     gainindex = Component(EpicsSignal, "gainidx", kind="omitted")
     description = Component(EpicsSignal, "femtodesc", kind="omitted")
 
@@ -100,6 +106,14 @@ class FemtoAmplifierDevice(CurrentAmplifierDevice):
     settling_time = Component(Signal, value=0.08)
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialize the FemtoAmplifierDevice.
+
+        Parameters
+        ----------
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+        """
         super().__init__(*args, **kwargs)
 
         self._gain_info_known = False
@@ -162,6 +176,8 @@ class FemtoAmplifierDevice(CurrentAmplifierDevice):
 
 
 class AmplfierGainDevice(Device):
+    """Device for amplifier gain, background, and error channels."""
+
     _default_configuration_attrs = ()
     _default_read_attrs = ("gain", "background", "background_error")
 
@@ -172,6 +188,17 @@ class AmplfierGainDevice(Device):
     )
 
     def __init__(self, prefix, ch_num=None, **kwargs):
+        """
+        Initialize the AmplfierGainDevice.
+
+        Parameters
+        ----------
+        prefix : str
+            The prefix for the device.
+        ch_num : int, optional
+            The channel number.
+        **kwargs: Arbitrary keyword arguments.
+        """
         assert ch_num is not None, "Must provide `ch_num=` keyword argument."
         self._ch_num = ch_num
         super().__init__(prefix, **kwargs)
@@ -189,7 +216,7 @@ def _gains_subgroup_(cls, nm, gains, **kwargs):
 
 class AmplifierAutoDevice(CurrentAmplifierDevice):
     """
-    Ophyd support for amplifier sequence program
+    Ophyd support for amplifier sequence program.
     """
 
     reqrange = Component(EpicsSignal, "reqrange")
@@ -211,6 +238,15 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
     max_count_rate = Component(Signal, value=950000)
 
     def __init__(self, prefix, **kwargs):
+        """
+        Initialize the AmplifierAutoDevice.
+
+        Parameters
+        ----------
+        prefix : str
+            The prefix for the device.
+        **kwargs: Arbitrary keyword arguments.
+        """
         self.scaler = None
         super().__init__(prefix, **kwargs)
 
@@ -277,6 +313,14 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
 
     @property
     def isUpdating(self):
+        """
+        Return True if the autorange device is updating.
+
+        Returns
+        -------
+        bool
+            True if updating, False otherwise.
+        """
         v = self.mode.get() in (1, AutorangeSettings.auto_background)
         if v:
             v = self.updating.get() in (1, "Updating")
@@ -301,13 +345,30 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
 
 class DetectorAmplifierAutorangeDevice(Device):
     """
-    Coordinate the different objects that control a diode or ion chamber
+    Coordinate the different objects that control a diode or ion chamber.
 
     This is a convenience intended to simplify tasks such
     as measuring simultaneously the backgrounds of all channels.
     """
 
     def __init__(self, nickname, scaler, signal, amplifier, auto, **kwargs):
+        """
+        Initialize DetectorAmplifierAutorangeDevice.
+
+        Parameters
+        ----------
+        nickname : str
+            Nickname for the device.
+        scaler : ScalerCH
+            The scaler device.
+        signal : ScalerChannel
+            The signal channel.
+        amplifier : FemtoAmplifierDevice
+            The Femto amplifier device.
+        auto : AmplifierAutoDevice
+            The autorange control device.
+        **kwargs: Arbitrary keyword arguments.
+        """
         if not isinstance(nickname, str):
             raise ValueError(
                 "'nickname' should be of 'str' type,"

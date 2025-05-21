@@ -118,6 +118,14 @@ def confirm_instrument_mode(mode_name):
 
 
 def mode_USAXS(md=None):
+    """
+    Set the instrument to USAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary for the scan.
+    """
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
     yield from bps.mv(
@@ -192,6 +200,14 @@ mode_SBUSAXS = mode_USAXS  # for now
 
 
 def mode_SAXS(md=None):
+    """
+    Set the instrument to SAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary for the scan.
+    """
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
     yield from bps.mv(
         # ccd_shutter,        "close",
@@ -227,6 +243,14 @@ def mode_SAXS(md=None):
 
 
 def mode_WAXS(md=None):
+    """
+    Set the instrument to WAXS mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary for the scan.
+    """
     # plc_protect.stop_if_tripped()
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
     yield from bps.mv(
@@ -303,11 +327,13 @@ def mode_WAXS(md=None):
 
 def mode_Radiography(md=None):
     """
-    put in USAXS Radiography mode
+    Put the instrument in USAXS Radiography mode.
 
-    USAGE:  ``RE(mode_Radiography())``
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary for the scan.
     """
-
     yield from mode_USAXS()
 
     yield from bps.mv(
@@ -390,7 +416,12 @@ def mode_Radiography(md=None):
 
 def mode_Imaging(md=None):
     """
-    prepare the instrument for USAXS imaging
+    Prepare the instrument for USAXS imaging.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary for the scan.
     """
     # see: /share1/USAXS_data/2019-02/USAXS_user_macros.mac
     # there it calls useModeUSAXS so that's what we'll do here
@@ -401,6 +432,14 @@ def mode_Imaging(md=None):
 
 
 def mode_OpenBeamPath(md=None):
+    """
+    Set the instrument to Open Beam Path mode.
+
+    Parameters
+    ----------
+    md : dict, optional
+        Metadata dictionary for the scan.
+    """
     yield from user_data.set_state_plan("Moving USAXS to OpenBeamPath mode")
     yield from bps.mv(
         usaxs_shutter,

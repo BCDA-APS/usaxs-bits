@@ -1,23 +1,24 @@
-"""
-support area detector
-"""
-
 import logging
+import time
+
+from apsbits.core.instrument_init import oregistry
+from bluesky import plan_stubs as bps
+from bluesky import plans as bp
+from ..devices import user_data
+from ..startup import RE
+from ..startup import bec
+
+from ..utils.reporter import remaining_time_reporter
+
+"""
+Plans for area detector image acquisition and data collection.
+"""
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-import time
-
-from bluesky import plan_stubs as bps
-from bluesky import plans as bp
-from apsbits.core.instrument_init import oregistry
-from ..devices import user_data
-from ..startup import RE
-from ..startup import bec
-from ..utils.reporter import remaining_time_reporter
-
 user_data = oregistry["user_device"]
+
 
 def areaDetectorAcquire(det, create_directory=None, md=None):
     """
