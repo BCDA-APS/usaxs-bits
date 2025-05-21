@@ -60,7 +60,7 @@ def _validate_AD_FileWriter_path_(path, root_path):
 
 
 class BadPixelPlugin(PluginBase):
-    """ADCore NDBadPixel, new in AD 3.13"""
+    """ADCore NDBadPixel, new in AD 3.13."""
 
     _html_docs = ["NDBadPixelDoc.html"]
 
@@ -68,8 +68,9 @@ class BadPixelPlugin(PluginBase):
 
 
 class Override_AD_EpicsHdf5FileName(AD_EpicsHdf5FileName):
+    """Override for AD_EpicsHdf5FileName to customize staging behavior for area detectors."""
     # TODO: for apstools, but not yet as of 6-12-2024
-
+    
     def stage(self):
         """
         overrides default behavior
@@ -124,31 +125,40 @@ class Override_AD_EpicsHdf5FileName(AD_EpicsHdf5FileName):
 
 class myHdf5EpicsIterativeWriter(
     Override_AD_EpicsHdf5FileName, FileStoreIterativeWrite
-): ...
+):
+    """HDF5 file writer with iterative write support for area detectors."""
 
 
-class myHDF5FileNames(HDF5Plugin, myHdf5EpicsIterativeWriter): ...
+class myHDF5FileNames(HDF5Plugin, myHdf5EpicsIterativeWriter):
+    """HDF5 plugin with custom file naming for area detectors."""
 
 
-class EpicsDefinesHDF5FileNames(HDF5Plugin, myHdf5EpicsIterativeWriter): ...
+class EpicsDefinesHDF5FileNames(HDF5Plugin, myHdf5EpicsIterativeWriter):
+    """HDF5 plugin where EPICS defines the file names."""
 
 
-class myJpegEpicsIterativeWriter(AD_EpicsJPEGFileName, FileStoreIterativeWrite): ...
+class myJpegEpicsIterativeWriter(AD_EpicsJPEGFileName, FileStoreIterativeWrite):
+    """JPEG file writer with iterative write support for area detectors."""
 
 
-class myJpegFileNames(JPEGPlugin, myJpegEpicsIterativeWriter): ...
+class myJpegFileNames(JPEGPlugin, myJpegEpicsIterativeWriter):
+    """JPEG plugin with custom file naming for area detectors."""
 
 
-class EpicsDefinesJpegFileNames(JPEGPlugin, myJpegEpicsIterativeWriter): ...
+class EpicsDefinesJpegFileNames(JPEGPlugin, myJpegEpicsIterativeWriter):
+    """JPEG plugin where EPICS defines the file names."""
 
 
-class myTiffEpicsIterativeWriter(AD_EpicsTIFFFileName, FileStoreIterativeWrite): ...
+class myTiffEpicsIterativeWriter(AD_EpicsTIFFFileName, FileStoreIterativeWrite):
+    """TIFF file writer with iterative write support for area detectors."""
 
 
-class myTiffFileNames(TIFFPlugin, myTiffEpicsIterativeWriter): ...
+class myTiffFileNames(TIFFPlugin, myTiffEpicsIterativeWriter):
+    """TIFF plugin with custom file naming for area detectors."""
 
 
-class EpicsDefinesTiffFileNames(TIFFPlugin, myTiffEpicsIterativeWriter): ...
+class EpicsDefinesTiffFileNames(TIFFPlugin, myTiffEpicsIterativeWriter):
+    """TIFF plugin where EPICS defines the file names."""
 
 
 def Override_AD_plugin_primed(plugin):

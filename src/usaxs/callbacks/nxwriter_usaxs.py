@@ -59,6 +59,7 @@ class OurCustomNXWriterBase(NXWriterAPS):
     config_version = "1.0"
 
     def write_entry(self):
+        """Write the NeXus entry group and set additional attributes specific to this instrument."""
         import apstools
 
         nxentry = super().write_entry()  # default technique
@@ -77,7 +78,21 @@ class OurCustomNXWriterBase(NXWriterAPS):
         keys=None,  # <- removed: y_offset mode
     ):
         """
-        group: /entry/instrument/monochromator:NXmonochromator
+        Write the monochromator group to the NeXus file.
+
+        Parameters
+        ----------
+        parent : h5py.Group
+            The parent HDF5 group.
+        pre : str, optional
+            Prefix for the stream link keys, by default "monochromator_dcm".
+        keys : list or None, optional
+            List of keys to include, by default None.
+
+        Returns
+        -------
+        h5py.Group or None
+            The created monochromator group, or None if not created.
         """
         if keys is None:
             keys = ["wavelength", "energy", "theta"]
@@ -102,11 +117,24 @@ class OurCustomNXWriterBase(NXWriterAPS):
 
     def get_sample_title(self):
         """
-        return the title for this sample
+        Return the title for this sample from the stream link.
+
+        Returns
+        -------
+        str
+            The sample title.
         """
         return self.get_stream_link("user_data_sample_title")
 
     def start(self, doc):
+        """
+        Start the writer for a new run if the plan is supported.
+
+        Parameters
+        ----------
+        doc : dict
+            The start document from Bluesky.
+        """
         "ensure we only collect data for plans we are prepared to handle"
         if doc.get("plan_name") in self.supported_plans:
             # pay attention to this run of documents
@@ -124,6 +152,9 @@ class OurCustomNXWriterBase(NXWriterAPS):
             self.file_name = None or self.file_name  # TODO: 2024-11-20
 
     def writer(self):
+        """
+        Write the data if the current plan is supported.
+        """
         "write the data if this plan is supported"
         plan = self.metadata.get("plan_name")
         if plan not in self.supported_plans:
@@ -132,6 +163,24 @@ class OurCustomNXWriterBase(NXWriterAPS):
         super().writer()
 
     def write_stream_internal(self, parent, d, subgroup, stream_name, k, v):
+        """
+        Write a stream of data to the NeXus file.
+
+        Parameters
+        ----------
+        parent : h5py.Group
+            The parent HDF5 group.
+        d : Any
+            The data to write.
+        subgroup : h5py.Group
+            The subgroup to write into.
+        stream_name : str
+            The name of the stream.
+        k : str
+            The key for the data.
+        v : dict
+            Metadata for the data.
+        """
         subgroup.attrs["signal"] = "value"
         subgroup.attrs["axes"] = [
             "time",
@@ -166,7 +215,19 @@ class OurCustomNXWriterBase(NXWriterAPS):
                     ) from exc
 
     def h5string(self, text):
-        """Local fix for issue #459."""
+        """
+        Convert text to UTF-8 encoded bytes for HDF5 storage.
+
+        Parameters
+        ----------
+        text : str or list or tuple
+            The text to encode.
+
+        Returns
+        -------
+        bytes or list
+            Encoded text.
+        """
         if isinstance(text, (tuple, list)):
             return [self.h5string(str(t)) for t in text]
         text = text or ""
@@ -174,10 +235,24 @@ class OurCustomNXWriterBase(NXWriterAPS):
 
 
 class NXWriterFlyScan(OurCustomNXWriterBase):
+    """NeXus writer for Flyscan plans."""
+
     supported_plans = ("Flyscan",)
 
     def write_streams(self, parent):
-        "write all bluesky document streams in this run"
+        """
+        Write all Bluesky document streams in this run.
+
+        Parameters
+        ----------
+        parent : h5py.Group
+            The parent HDF5 group.
+
+        Returns
+        -------
+        dict
+            Dictionary of written streams.
+        """
         bluesky = super().write_streams(parent)
 
         if "primary" not in bluesky and "mca" in bluesky:
@@ -189,7 +264,7 @@ class NXWriterFlyScan(OurCustomNXWriterBase):
 
 class NXWriterSaxsWaxs(OurCustomNXWriterBase):
     """
-    writes NeXus data file from USAXS instrument SAXS & WAXS area detector scans
+    Writes NeXus data file from USAXS instrument SAXS & WAXS area detector scans.
     """
 
     supported_plans = (
@@ -199,9 +274,17 @@ class NXWriterSaxsWaxs(OurCustomNXWriterBase):
 
     def getResourceFile(self, resource_id):
         """
-        full path to the resource file specified by uid ``resource_id``
+        Get the full path to the resource file specified by uid ``resource_id``.
 
-        override in subclass as needed
+        Parameters
+        ----------
+        resource_id : str
+            The resource identifier (UID).
+
+        Returns
+        -------
+        str
+            The full path to the resource file.
         """
         # logger.debug(self.__class__.__name__)
         fname = super().getResourceFile(resource_id)
@@ -217,7 +300,7 @@ class NXWriterSaxsWaxs(OurCustomNXWriterBase):
 
 class NXWriterUascan(OurCustomNXWriterBase):
     """
-    write raw uascan data to a NeXus/HDF5 file, no specific application definition
+    Write raw uascan data to a NeXus/HDF5 file, no specific application definition.
     """
 
     # TODO: identify what additional data is needed to collect
@@ -233,7 +316,16 @@ class NXWriterUascan(OurCustomNXWriterBase):
     # convention: methods written in alphabetical order
 
     def save_reduced_as_nxdata(self, addr, data):
-        """Save the reduced ``data`` to NXdata group ``key``."""
+        """
+        Save the reduced ``data`` to NXdata group ``addr``.
+
+        Parameters
+        ----------
+        addr : str
+            HDF5 address for the NXdata group.
+        data : dict
+            Data to save in the group.
+        """
         nxdata = self.root.create_group(addr)
         nxdata.attrs["NX_class"] = "NXdata"
         nxdata.attrs["Q_indices"] = 0
@@ -247,7 +339,9 @@ class NXWriterUascan(OurCustomNXWriterBase):
         nxdata["R"].attrs["units"] = "none"
 
     def write_entry(self):
-        "Write reduced SAXS data from here."
+        """
+        Write reduced SAXS data from here, after calling the base class method.
+        """
         super().write_entry()  # write the raw data
 
         # https://github.com/APS-USAXS/usaxs-bluesky/issues/588
@@ -269,7 +363,12 @@ class NXWriterUascan(OurCustomNXWriterBase):
 
     def write_slits(self, parent):
         """
-        group: /entry/instrument/slits:NXnote/SLIT:NXslit
+        Write the slits group to the NeXus file.
+
+        Parameters
+        ----------
+        parent : h5py.Group
+            The parent HDF5 group.
         """
         group = self.create_NX_group(parent, "slits:NXnote")
         for pre in "guard_slit usaxs_slit".split():

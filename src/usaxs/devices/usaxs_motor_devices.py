@@ -26,9 +26,11 @@ class TunableEpicsMotor2(EpicsMotor):
 
         uuids = yield from motor.tune()
 
-    retunrs list of uuids for the tune scans (default 1)
-    this list can be plotted using plotxy() from APStools
-
+    Returns
+    -------
+    list
+        List of uuids for the tune scans (default 1).
+        This list can be plotted using plotxy() from APStools.
     """
 
     def __init__(
@@ -74,9 +76,11 @@ class TunableEpicsMotor2(EpicsMotor):
 
 class DeadbandMixin(Device, PositionerBase):
     """
+    Mixin for absolute tolerance on moves for positioners.
+
     Should be the leftmost class in the inheritance list so that it grabs move first!
     Must be combined with either EpicsMotor or PVPositioner, or some other class
-    that has a done_value attribute
+    that has a done_value attribute.
     An EpicsMotor subclass that has an absolute tolerance for moves.
     If the readback is within tolerance of the setpoint, the MoveStatus
     is marked as finished, even if the motor is still settling.
@@ -140,7 +144,8 @@ class DeadbandMixin(Device, PositionerBase):
 
 
 class TunableEpicsMotor2WTolerance(DeadbandMixin, TunableEpicsMotor2):
-    """Motor with tuning capabilities and deadband tolerance.
+    """
+    Motor with tuning capabilities and deadband tolerance.
 
     This class combines the tuning capabilities of TunableEpicsMotor2 with
     the deadband tolerance functionality of DeadbandMixin. It is specifically

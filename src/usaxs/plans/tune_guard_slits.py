@@ -32,7 +32,8 @@ terms = oregistry["terms"]
 user_data = oregistry["user_data"]
 
 
-class GuardSlitTuneError(RuntimeError): ...  # custom error
+class GuardSlitTuneError(RuntimeError):
+    """Custom error raised when guard slit tuning fails."""
 
 
 def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
