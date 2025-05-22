@@ -4,9 +4,16 @@
 from .area_detector_plans import areaDetectorAcquire
 from .autocollect_plan import remote_ops
 
-# from .axis_tuning import instrument_default_tune_ranges
-# from .axis_tuning import update_EPICS_tuning_widths
-# from .axis_tuning import user_defined_settings
+from .plans_tune import tune_mr
+from .plans_tune import tune_ar
+from .plans_tune import tune_a2rp
+
+from .plans_ads import SAXS
+from .plans_ads import WAXS
+
+from .plans_usaxs import USAXSscan
+from .plans_usaxs import Flyscan
+from .plans_usaxs import USAXSscanStep
 # from .command_list import execute_command_list
 # from .command_list import run_command_file
 # from .command_list import run_python_file
