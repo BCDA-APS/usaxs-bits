@@ -15,9 +15,9 @@ from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
-from ..devices.amplifiers import measure_background  # fix this
-from ..usaxs_flyscan_support import instrument_archive
-from ..usaxs_flyscan_support import reset_manager
+from .amplifiers_plans import measure_background  # fix this
+#from ..usaxs_flyscan_support import instrument_archive
+from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
 from ..utils.emails import email_notices
 from ..utils.quoted_line import split_quoted_line
 from .axis_tuning import instrument_default_tune_ranges
@@ -468,8 +468,8 @@ def execute_command_list(filename, commands, md=None):
 
     # save the command list as a separate Bluesky run for documentation purposes
     yield from documentation_run(text)
-
-    instrument_archive(text)
+    #TODO: figure out what this was doing, does not seem to have the code available in bits 
+    #instrument_archive(text)
 
     yield from before_command_list(md=md, commands=commands)
     for command in commands:
