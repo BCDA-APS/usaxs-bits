@@ -13,11 +13,14 @@ import apstools
 import numpy as np
 from apstools.callbacks import NXWriterAPS
 from apsbits.core.instrument_init import oregistry
+from apstools.utils import cleanupText
+
+from ..startup import RE
+from ..startup import callback_db
 
 terms = oregistry["terms"]
 user_data = oregistry["user_device"]
 
-from apstools.utils import cleanupText
 from usaxs.utils.utils import techniqueSubdirectory
 
 logger = logging.getLogger(__name__)
@@ -381,3 +384,8 @@ class NXWriterUascan(OurCustomNXWriterBase):
             slit["y_gap"] = self.get_stream_link(f"{pre}_v_size")
             for key in "x y".split():
                 slit[key] = self.get_stream_link(f"{pre}_{key}")
+
+
+nxwriter = NXWriterUascan()
+#
+callback_db["nxwriter"] = RE.subscribe(nxwriter.receiver)
