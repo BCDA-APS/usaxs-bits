@@ -15,7 +15,7 @@ from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
-from .amplifiers_plans import measure_background  # fix this
+from .amplifiers_plan import measure_background  # fix this
 #from ..usaxs_flyscan_support import instrument_archive
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
 #from ..utils.emails import email_notices
