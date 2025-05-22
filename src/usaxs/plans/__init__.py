@@ -1,23 +1,7 @@
 # flake8: noqa: F401
 """Bluesky plans."""
 
-from .area_detector_plans import areaDetectorAcquire
-from .autocollect_plan import remote_ops
 
-from .plans_tune import tune_mr
-from .plans_tune import tune_ar
-from .plans_tune import tune_a2rp
-
-from .plans_ads import SAXS
-from .plans_ads import WAXS
-
-from .plans_usaxs import USAXSscan
-from .plans_usaxs import Flyscan
-from .plans_usaxs import USAXSscanStep
-# from .command_list import execute_command_list
-# from .command_list import run_command_file
-# from .command_list import run_python_file
-# from .command_list import sync_order_numbers
 from .filter_plans import insertBlackflyFilters
 from .filter_plans import insertRadiographyFilters
 from .filter_plans import insertSaxsFilters
@@ -39,6 +23,24 @@ from .move_instrument import move_USAXSOut
 from .move_instrument import move_WAXSIn
 from .move_instrument import move_WAXSOut
 
+from .axis_tuning import tune_mr
+from .axis_tuning import tune_ar
+from .axis_tuning import tune_a2rp
+
+from .plans_tune import allUSAXStune
+from .plans_tune import preSWAXStune
+from .plans_tune import preUSAXStune
+
+from .area_detector_plans import areaDetectorAcquire
+from .plans_ads import SAXS
+from .plans_ads import WAXS
+
+from .plans_usaxs import USAXSscan
+from .plans_usaxs import Flyscan
+from .plans_usaxs import USAXSscanStep
+
+from .autocollect_plan import remote_ops
+
 # from .resets import resets
 # from .sample_imaging import sample_imaging
 # from .sample_transmission import sample_transmission
@@ -47,3 +49,8 @@ from .sim_plans import sim_count_plan
 from .sim_plans import sim_print_plan
 from .sim_plans import sim_rel_scan_plan
 # from .uascan import uascan
+
+# from .command_list import execute_command_list
+# from .command_list import run_command_file
+# from .command_list import run_python_file
+# from .command_list import sync_order_numbers
