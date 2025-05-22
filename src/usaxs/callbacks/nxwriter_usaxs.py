@@ -15,7 +15,7 @@ from apstools.callbacks import NXWriterAPS
 from apsbits.core.instrument_init import oregistry
 
 terms = oregistry["terms"]
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 
 from usaxs.utils.user_sample_title import cleanupText
 from usaxs.utils.setup_new_user import techniqueSubdirectory
