@@ -158,14 +158,12 @@ def move_SAXSIn():
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
-    # first move USAXS out of way
+    # move SAXS in place, in two steps to prevent possible damage to snout
     yield from bps.mv(
         guard_slit.v_size,
         terms.SAXS.guard_v_size.get(),
         guard_slit.h_size,
         terms.SAXS.guard_h_size.get(),
-        saxs_stage.z,
-        terms.SAXS.z_in.get(),
         saxs_stage.y,
         terms.SAXS.y_in.get(),
         usaxs_slit.v_size,
@@ -174,6 +172,10 @@ def move_SAXSIn():
         terms.SAXS.h_size.get(),
     )
 
+    yield from bps.mv(
+        saxs_stage.z,
+        terms.SAXS.z_in.get(),
+    )
     logger.info("SAXS is in position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["SAXS in beam"])
 
