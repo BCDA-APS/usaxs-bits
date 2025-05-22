@@ -12,11 +12,13 @@ import os
 import apstools
 import numpy as np
 from apstools.callbacks import NXWriterAPS
+from apsbits.core.instrument_init import oregistry
 
-from ..devices import terms  # noqa: F401
-from ..devices.user_data import user_data  # noqa: F401
-from ..utils.cleanup_text import cleanupText
-from ..utils.setup_new_user import techniqueSubdirectory
+terms = oregistry["terms"]
+user_data = oregistry["user_data"]
+
+from usaxs.utils.user_sample_title import cleanupText
+from usaxs.utils.setup_new_user import techniqueSubdirectory
 
 logger = logging.getLogger(__name__)
 
