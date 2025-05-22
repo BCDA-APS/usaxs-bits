@@ -35,7 +35,6 @@ from .requested_stop import RequestAbort
 from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
 from .sample_rotator_plans import PI_onR
-#from .utils.doc_run import documentation_run #does nto seem to exist anymore
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 saxs_det = oregistry["saxs_det"]
@@ -44,7 +43,7 @@ usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 waxs_det = oregistry["waxs_det"]
 s_stage = oregistry["s_stage"]
-constants = oregistry["constants"]
+# constants = oregistry["constants"]    #this is in iconfig.yml, how to get this?
 
 #I00_controls = oregistry["I00_controls"]  # fix this after amplifiers are sorted out, part of measure background which is disabled. 
 #I0_controls = oregistry["I0_controls"]  # fix this
