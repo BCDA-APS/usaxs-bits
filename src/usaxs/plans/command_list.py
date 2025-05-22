@@ -15,7 +15,7 @@ from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
-from .amplifiers_plan import measure_background  # fix this
+# from .amplifiers_plan import measure_background  # add back when amplfiers are fixed.
 #from ..usaxs_flyscan_support import instrument_archive
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
 #from ..utils.emails import email_notices
@@ -38,7 +38,7 @@ from .requested_stop import RequestAbort
 from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
 from .sample_rotator_plans import PI_onR
-from .utils.doc_run import documentation_run
+#from .utils.doc_run import documentation_run #does nto seem to exist anymore
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 saxs_det = oregistry["saxs_det"]
@@ -145,10 +145,10 @@ def before_command_list(md=None, commands=None):
         1,
     )
 
-    if constants["MEASURE_DARK_CURRENTS"]:
-        yield from measure_background(
-            [upd_controls, I0_controls, I00_controls, trd_controls],
-        )
+    # if constants["MEASURE_DARK_CURRENTS"]:
+    #     yield from measure_background(
+    #         [upd_controls, I0_controls, I00_controls, trd_controls],
+    #     )
 
     # reset the ranges to be used when tuning optical axes (issue #129)
     # These routines are defined in file: 29-axis-tuning.py
@@ -467,7 +467,8 @@ def execute_command_list(filename, commands, md=None):
     logger.info("memory report: %s", rss_mem())
 
     # save the command list as a separate Bluesky run for documentation purposes
-    yield from documentation_run(text)
+    # yield from documentation_run(text)
+    
     #TODO: figure out what this was doing, does not seem to have the code available in bits 
     #instrument_archive(text)
 
