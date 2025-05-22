@@ -28,12 +28,9 @@ from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
-from .plans_ads import SAXS
-from .plans_ads import WAXS
 from .plans_tune import allUSAXStune
 from .plans_tune import preSWAXStune
 from .plans_tune import preUSAXStune
-from .plans_usaxs import USAXSscan
 from .requested_stop import RequestAbort
 from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
@@ -451,6 +448,9 @@ def execute_command_list(filename, commands, md=None):
         contents from input file, such as:
         ``SAXS 0 0 0 blank``
     """
+    from .plans_ads import SAXS
+    from .plans_ads import WAXS
+    from .plans_usaxs import USAXSscan
 
     if md is None:
         md = {}
@@ -468,7 +468,7 @@ def execute_command_list(filename, commands, md=None):
 
     # save the command list as a separate Bluesky run for documentation purposes
     # yield from documentation_run(text)
-    
+
     #TODO: figure out what this was doing, does not seem to have the code available in bits 
     #instrument_archive(text)
 
