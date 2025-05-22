@@ -11,7 +11,7 @@ import pathlib
 
 from instrument.utils import getSampleTitle
 from instrument.utils import setSampleTitleFunction
-from instrument.utils.cleanup_text import cleanupText
+from apstools.utils import cleanupText
 
 
 def myNamer(title):

@@ -17,8 +17,8 @@ from apsbits.core.instrument_init import oregistry
 terms = oregistry["terms"]
 user_data = oregistry["user_device"]
 
-from usaxs.utils.cleanup_text import cleanupText
-from usaxs.utils.setup_new_user import techniqueSubdirectory
+from apstools.utils import cleanupText
+from usaxs.utils.utils import techniqueSubdirectory
 
 logger = logging.getLogger(__name__)
 

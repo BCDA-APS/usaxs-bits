@@ -12,13 +12,14 @@ from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import restorable_stage_sigs
+from apstools.utils import cleanupText
+
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
-from usaxs.utils.setup_new_user import techniqueSubdirectory
-from usaxs.utils.user_sample_title import cleanupText
+from usaxs.utils.utils import techniqueSubdirectory
 from usaxs.utils.user_sample_title import getSampleTitle
 
 from .amplifiers_plan import autoscale_amplifiers

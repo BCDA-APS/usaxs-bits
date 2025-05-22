@@ -11,6 +11,7 @@ from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
 
 from usaxs.callbacks.nxwriter_usaxs import nxwriter
+from usaxs.utils.utils import techniqueSubdirectory
 
 # from usaxs.callbacks.specwriter import specwriter
 from .check_file_exists import filename_exists
@@ -106,35 +107,6 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
 
     return str(path.absolute())
-
-
-def get_data_dir():
-    """
-    Get the data directory from EPICS.
-
-    The directory MUST exist or raises a FileNotFoundError exception.
-    """
-    data_path = pathlib.Path(user_data.user_dir.get())
-    if not data_path.exists():
-        raise FileNotFoundError(f"Cannot find user directory: {data_path}")
-    return str(data_path)
-
-
-def techniqueSubdirectory(technique):
-    """
-    Create a technique-based subdirectory per table in ``newUser()``.
-
-    NOTE: Assumes CWD is now the directory returned by ``newFile()``
-    """
-    data_path = get_data_dir()
-    stub = os.path.basename(data_path)
-    path = os.path.join(data_path, f"{stub}_{technique}")
-
-    if not os.path.exists(path):
-        logger.info("Creating technique directory: %s", path)
-        os.mkdir(path)
-
-    return os.path.abspath(path)
 
 
 # def _pick_esaf(user, now, cycle):
