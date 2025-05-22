@@ -10,8 +10,8 @@ import pathlib
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
 
-from usaxs.callbacks.nxwriter_usaxs import nxwriter
-from usaxs.utils.utils import techniqueSubdirectory
+from ..callbacks.nxwriter_usaxs import nxwriter
+from .utils import techniqueSubdirectory
 
 # from usaxs.callbacks.specwriter import specwriter
 from .check_file_exists import filename_exists
