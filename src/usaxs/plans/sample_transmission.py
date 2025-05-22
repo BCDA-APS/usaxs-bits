@@ -25,18 +25,20 @@ from .mode_changes import mode_USAXS
 from .no_run import no_run_trigger_and_wait
 
 logger = logging.getLogger(__name__)
+#import after amplifiers are finished:
+#autoscale_amplifiers = oregistry["autoscale_amplifiers"]
 
 
 # Device instances
-I0_controls = oregistry["I0_controls"]
+# I0_controls = oregistry["I0_controls"] #fix after amplfiers are finished. 
+# trd_controls = oregistry["trd_controls"]
+
 a_stage = oregistry["a_stage"]
-autoscale_amplifiers = oregistry["autoscale_amplifiers"]
-constants = oregistry["constants"]
+#constants = oregistry["constants"]     #where is this? 
 saxs_stage = oregistry["saxs_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-trd_controls = oregistry["trd_controls"]
 user_data = oregistry["user_device"]
 
 
@@ -86,7 +88,7 @@ def measure_USAXS_Transmission(
             )
             yield from insertTransmissionFilters()
 
-            yield from autoscale_amplifiers([I0_controls, trd_controls])
+            #yield from autoscale_amplifiers([I0_controls, trd_controls])
 
             yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
             md["plan_name"] = "measure_USAXS_Transmission"
@@ -102,7 +104,7 @@ def measure_USAXS_Transmission(
                 _tr_diode > secs * constants["TR_MAX_ALLOWED_COUNTS"]
                 or _I0 > secs * constants["TR_MAX_ALLOWED_COUNTS"]
             ):
-                yield from autoscale_amplifiers([I0_controls, trd_controls])
+                #yield from autoscale_amplifiers([I0_controls, trd_controls])
 
                 yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
                 scaler0.select_channels(["I0_USAXS", "TR diode"])
@@ -124,8 +126,8 @@ def measure_USAXS_Transmission(
                 trd_controls.femto.gain.get(),
                 trmssn.I0_counts,
                 s["I0_USAXS"]["value"],
-                trmssn.I0_gain,
-                I0_controls.femto.gain.get(),
+                #trmssn.I0_gain,
+                #I0_controls.femto.gain.get(),
             )
             tbl = pyRestTable.Table()
             tbl.addLabel("detector")
@@ -203,7 +205,7 @@ def measure_SAXS_Transmission(
             "open",
         )
 
-        yield from autoscale_amplifiers([I0_controls, trd_controls])
+        #yield from autoscale_amplifiers([I0_controls, trd_controls])
         yield from bps.mv(
             scaler0.preset_time,
             constants["SAXS_TR_TIME"],
@@ -248,8 +250,8 @@ def measure_SAXS_Transmission(
             trd_controls.femto.gain.get(),
             terms.SAXS_WAXS.I0_transmission,
             s["I0_USAXS"]["value"],
-            terms.SAXS_WAXS.I0_gain,
-            I0_controls.femto.gain.get(),
+            #terms.SAXS_WAXS.I0_gain,
+            #I0_controls.femto.gain.get(),
         )
         logger.info(
             (
