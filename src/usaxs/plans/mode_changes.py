@@ -15,6 +15,7 @@ from bluesky import plan_stubs as bps
 from ophyd.scaler import ScalerCH
 
 from .filter_plans import insertRadiographyFilters
+from .move_instrument import insertBlackflyFilters
 from .move_instrument import UsaxsSaxsModes
 from .move_instrument import move_SAXSIn
 from .move_instrument import move_SAXSOut
@@ -22,6 +23,7 @@ from .move_instrument import move_USAXSIn
 from .move_instrument import move_USAXSOut
 from .move_instrument import move_WAXSIn
 from .move_instrument import move_WAXSOut
+from .mono_feedback import MONO_FEEDBACK_ON
 
 logger = logging.getLogger(__name__)
 
@@ -82,40 +84,40 @@ def confirm_instrument_mode(mode_name):
 #         )
 
 
-# def mode_BlackFly(md=None):
-#     """
-#     Sets to imaging mode for direct beam, using BlackFly camera.
-#     """
-#     yield from mode_USAXS()
-#     yield from MONO_FEEDBACK_ON()
-#     yield from user_data.set_state_plan(
-#         "Preparing for BlackFly imaging mode"
-#         )
+def mode_BlackFly(md=None):
+    """
+    Sets to imaging mode for direct beam, using BlackFly camera.
+    """
+    yield from mode_USAXS()
+    yield from MONO_FEEDBACK_ON()
+    yield from user_data.set_state_plan(
+        "Preparing for BlackFly imaging mode"
+        )
 
-#     yield from bps.mv(
-#         #laser.enable,  0,
-#         d_stage.x, terms.USAXS.blackfly.dx.get(),
-#         d_stage.y, terms.USAXS.blackfly.dy.get(),
-#         m_stage.x, -200,
-#         a_stage.x, -200,
-#         gslit_stage.x, 0,
-#     )
+    yield from bps.mv(
+        #laser.enable,  0,
+        d_stage.x, terms.USAXS.blackfly.dx.get(),
+        d_stage.y, terms.USAXS.blackfly.dy.get(),
+        m_stage.x, -200,
+        a_stage.x, -200,
+        gslit_stage.x, 0,
+    )
 
-#     yield from insertBlackflyFilters()
-#     yield from bps.mv(
-#         usaxs_shutter,  "open",
-#     )
+    yield from insertBlackflyFilters()
+    yield from bps.mv(
+        usaxs_shutter,  "open",
+    )
 
-#     yield from user_data.set_state_plan("Ready for BlackFly imaging mode")
-#     ts = str(datetime.datetime.now())
-#     yield from bps.mv(
-#         user_data.time_stamp, ts,
-#         user_data.macro_file_time, ts,
-#         user_data.scanning, 0,
-#         user_data.collection_in_progress, 0,
-#         blackfly_det.cam.acquire, 1,                 
-# #we are using Blackfly now, let's start it...
-#     )
+    yield from user_data.set_state_plan("Ready for BlackFly imaging mode")
+    ts = str(datetime.datetime.now())
+    yield from bps.mv(
+        user_data.time_stamp, ts,
+        user_data.macro_file_time, ts,
+        user_data.scanning, 0,
+        user_data.collection_in_progress, 0,
+        blackfly_det.cam.acquire, 1,                 
+#we are using Blackfly now, let's start it...
+    )
 
 
 def mode_USAXS(md=None):
