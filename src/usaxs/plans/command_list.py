@@ -43,12 +43,13 @@ terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 waxs_det = oregistry["waxs_det"]
-I00_controls = oregistry["I00_controls"]  # fix this
-I0_controls = oregistry["I0_controls"]  # fix this
-upd_controls = oregistry["upd_controls"]  # fix this
-trd_controls = oregistry["trd_controls"]  # fix this
 s_stage = oregistry["s_stage"]
 constants = oregistry["constants"]
+
+#I00_controls = oregistry["I00_controls"]  # fix this after amplifiers are sorted out, part of measure background which is disabled. 
+#I0_controls = oregistry["I0_controls"]  # fix this
+#upd_controls = oregistry["upd_controls"]  # fix this
+#trd_controls = oregistry["trd_controls"]  # fix this
 
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
