@@ -18,7 +18,7 @@ from ophyd import Signal
 from .amplifiers_plans import measure_background  # fix this
 #from ..usaxs_flyscan_support import instrument_archive
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
-from ..utils.emails import email_notices
+#from ..utils.emails import email_notices
 from ..utils.quoted_line import split_quoted_line
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
@@ -581,7 +581,7 @@ def execute_command_list(filename, commands, md=None):
                 body += f"exception: {exc}\n"
                 body += "Stopping further processing of this command list.\n"
                 logger.error("Exception %s\n%s", subject, body)
-                email_notices.send(subject, body)
+                #email_notices.send(subject, body)
                 attempt += 1
                 exit_requested = True  # issue #502: stop if an Exception was noted
 
