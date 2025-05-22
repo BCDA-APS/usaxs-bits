@@ -15,7 +15,7 @@ from bluesky import plan_stubs as bps
 from ophyd.scaler import ScalerCH
 
 from .filter_plans import insertRadiographyFilters
-from .move_instrument import insertBlackflyFilters
+from .filter_plans import insertBlackflyFilters
 from .move_instrument import UsaxsSaxsModes
 from .move_instrument import move_SAXSIn
 from .move_instrument import move_SAXSOut
