@@ -16,7 +16,7 @@ from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
 
 from ..startup import RE
-from ..startup import callback_db
+from ..framework import callback_db
 
 terms = oregistry["terms"]
 user_data = oregistry["user_device"]
