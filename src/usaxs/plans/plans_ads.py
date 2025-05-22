@@ -50,7 +50,6 @@ lax_autosave = oregistry["lax_autosave"]
 struck = oregistry["struck"]
 flyscan_trajectories = oregistry["flyscan_trajectories"]
 ar_start = oregistry["ar_start"]
-NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
 saxs_det = oregistry["saxs_det"]
 waxs_det = oregistry["waxs_det"]
 waxs_stage = oregistry["waxs_stage"]
@@ -71,7 +70,11 @@ scaler0 = oregistry["scaler0"]
 m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
-trd_controls = oregistry["trd_controls"]
+
+# this is in iconfig.yml, how to get to it?
+# NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
+
+#trd_controls = oregistry["trd_controls"]
 
 
 logger = logging.getLogger(__name__)
@@ -558,8 +561,8 @@ def WAXS(
         scaler1.channels.chan02.s.get(),
         terms.SAXS_WAXS.diode_transmission,
         scaler0.channels.chan05.s.get(),
-        terms.SAXS_WAXS.diode_gain,
-        trd_controls.femto.gain.get(),
+        #terms.SAXS_WAXS.diode_gain,
+        #trd_controls.femto.gain.get(),
         terms.SAXS_WAXS.I0_transmission,
         scaler0.channels.chan02.s.get(),
         terms.SAXS_WAXS.I0_gain,
