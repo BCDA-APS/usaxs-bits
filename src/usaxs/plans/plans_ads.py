@@ -37,6 +37,7 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_SAXS_Transmission
 
+
 logger = logging.getLogger(__name__)
 
 MASTER_TIMEOUT = 60
@@ -52,8 +53,6 @@ flyscan_trajectories = oregistry["flyscan_trajectories"]
 ar_start = oregistry["ar_start"]
 saxs_det = oregistry["saxs_det"]
 waxs_det = oregistry["waxs_det"]
-waxs_stage = oregistry["waxs_stage"]
-tune_m2rp = oregistry["tune_m2rp"]
 scaler1 = oregistry["scaler1"]
 constants = oregistry["constants"]
 user_override = oregistry["user_override"]
