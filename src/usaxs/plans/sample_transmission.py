@@ -37,7 +37,7 @@ scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 trd_controls = oregistry["trd_controls"]
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 
 
 def measure_USAXS_Transmission(

@@ -34,7 +34,7 @@ terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 trd = oregistry["trd"]
 upd_controls = oregistry["upd_controls"]
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 
 
 def reset_instrument(

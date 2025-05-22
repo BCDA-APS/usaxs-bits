@@ -23,7 +23,7 @@ saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 waxs_det = oregistry["waxs_det"]
 scaler0 = oregistry["scaler0"]
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 
 
 def record_sample_image_on_demand(

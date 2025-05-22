@@ -17,7 +17,7 @@ from usaxs.utils.utils import techniqueSubdirectory
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 
 logger = logging.getLogger(__name__)
 

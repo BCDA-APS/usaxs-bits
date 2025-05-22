@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Device instances
 scaler0 = oregistry["scaler0"]
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 
 
 def no_run_trigger_and_wait(

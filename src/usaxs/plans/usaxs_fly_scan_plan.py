@@ -35,7 +35,7 @@ usaxs_shutter = oregistry["usaxs_shutter"]
 a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
 struck = oregistry["struck"]
-user_data = oregistry["user_data"]
+user_data = oregistry["user_device"]
 
 
 def plan(
