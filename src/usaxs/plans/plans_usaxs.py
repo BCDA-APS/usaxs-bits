@@ -20,15 +20,17 @@ from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.emails import email_notices
 from usaxs.utils.override import user_override
 from usaxs.utils.setup_new_user import techniqueSubdirectory
-from usaxs.utils.user_sample_title import cleanupText
+from apstools.utils import cleanupText
 from usaxs.utils.user_sample_title import getSampleTitle
 
 from ..utils.a2q_q2a import q2angle
-from .amplifiers_plan import autoscale_amplifiers
+# from .amplifiers_plan import autoscale_amplifiers     # fix this when amplifiers are available
+# from .amplifiers_plan import I0_controls     # fix this when amplifiers are available
+# from .amplifiers_plan import I00_controls     # fix this when amplifiers are available
+
 from .command_list import after_plan
 from .command_list import before_plan
-from .I0_controls import I0_controls
-from .I00_controls import I00_controls
+
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
@@ -36,7 +38,7 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_USAXS_Transmission
 from .uascan import uascan
-from .upd_controls import upd_controls
+
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +62,7 @@ struck = oregistry["struck"]
 flyscan_trajectories = oregistry["flyscan_trajectories"]
 ar_start = oregistry["ar_start"]
 NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
-
+upd_controls = oregistry["upd_controls"]
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)

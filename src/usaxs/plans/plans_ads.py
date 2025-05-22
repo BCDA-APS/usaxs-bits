@@ -22,13 +22,13 @@ from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.utils import techniqueSubdirectory
 from usaxs.utils.user_sample_title import getSampleTitle
 
-from .amplifiers_plan import autoscale_amplifiers
+#from .amplifiers_plan import autoscale_amplifiers # fix this when amplifiers are available
+#from .amplifiers_plan import I0_controls  # fix this when amplifiers are available
 from .area_detector_plans import areaDetectorAcquire
 from .command_list import after_plan
 from .command_list import before_plan
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertWaxsFilters
-from .I0_controls import I0_controls  # fix this
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_WAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
@@ -267,7 +267,7 @@ def SAXS(
         saxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
         yield from bps.sleep(0.2)
-        yield from autoscale_amplifiers([I0_controls])
+        #yield from autoscale_amplifiers([I0_controls])
 
         yield from bps.mv(
             usaxs_shutter,
@@ -509,7 +509,7 @@ def WAXS(
         waxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
         yield from bps.sleep(0.2)
-        yield from autoscale_amplifiers([I0_controls, trd_controls])
+        #yield from autoscale_amplifiers([I0_controls, trd_controls])
 
         yield from bps.mv(
             usaxs_shutter,
@@ -563,7 +563,7 @@ def WAXS(
         terms.SAXS_WAXS.I0_transmission,
         scaler0.channels.chan02.s.get(),
         terms.SAXS_WAXS.I0_gain,
-        I0_controls.femto.gain.get(),
+        #I0_controls.femto.gain.get(),
         scaler0.update_rate,
         5,
         scaler1.update_rate,
