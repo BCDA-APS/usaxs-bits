@@ -17,12 +17,13 @@ from ..utils.emails import send_notification
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 
+from ..devices import NOTIFY_ON_RESET
+
 logger = logging.getLogger(__name__)
 
 # Device instances
 I00 = oregistry["I00"]
-I000 = oregistry["I000"]
-NOTIFY_ON_RESET = oregistry["NOTIFY_ON_RESET"]
+I0 = oregistry["I0"]
 I0_controls = oregistry["I0_controls"]
 I00_controls = oregistry["I00_controls"]
 a_stage = oregistry["a_stage"]

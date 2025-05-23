@@ -25,6 +25,8 @@ from ..utils.emails import send_notification
 from ..utils.ustep import Ustep
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
+from ..devices import NOTIFY_ON_SCAN_DONE
+
 
 # Device instances
 I00 = oregistry["I00"]
@@ -46,7 +48,6 @@ scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
-NOTIFY_ON_SCAN_DONE = oregistry["NOTIFY_ON_SCAN_DONE"]
 
 logger = logging.getLogger(__name__)
 

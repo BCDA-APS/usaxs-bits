@@ -38,6 +38,7 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_USAXS_Transmission
 from .uascan import uascan
+from ..devices import NOTIFY_ON_BAD_FLY_SCAN
 
 
 logger = logging.getLogger(__name__)
@@ -61,7 +62,6 @@ lax_autosave = oregistry["lax_autosave"]
 struck = oregistry["struck"]
 flyscan_trajectories = oregistry["flyscan_trajectories"]
 ar_start = oregistry["ar_start"]
-NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
 upd_controls = oregistry["upd_controls"]
 
 @bpp.suspend_decorator(suspend_FE_shutter)
