@@ -62,7 +62,7 @@ lax_autosave = oregistry["lax_autosave"]
 struck = oregistry["struck"]
 flyscan_trajectories = oregistry["flyscan_trajectories"]
 ar_start = oregistry["ar_start"]
-upd_controls = oregistry["upd_controls"]
+#upd_controls = oregistry["upd_controls"]
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -265,19 +265,19 @@ def USAXSscanStep(
             timeout=MASTER_TIMEOUT,
         )
 
-    old_femto_change_gain_up = upd_controls.auto.gainU.get()
-    old_femto_change_gain_down = upd_controls.auto.gainD.get()
+    #old_femto_change_gain_up = upd_controls.auto.gainU.get()
+   #old_femto_change_gain_down = upd_controls.auto.gainD.get()
 
     yield from bps.mv(
-        upd_controls.auto.gainU,
-        terms.USAXS.setpoint_up.get(),
-        upd_controls.auto.gainD,
-        terms.USAXS.setpoint_down.get(),
+        #upd_controls.auto.gainU,
+        #terms.USAXS.setpoint_up.get(),
+        #upd_controls.auto.gainD,
+        #terms.USAXS.setpoint_down.get(),
         usaxs_shutter,
         "open",
         timeout=MASTER_TIMEOUT,
     )
-    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
 
     yield from user_data.set_state_plan("Running USAXS step scan")
 
@@ -362,10 +362,10 @@ def USAXSscanStep(
         1,
         scaler0.auto_count_time,
         1,
-        upd_controls.auto.gainU,
-        old_femto_change_gain_up,
-        upd_controls.auto.gainD,
-        old_femto_change_gain_down,
+        #upd_controls.auto.gainU,
+        #old_femto_change_gain_up,
+        #upd_controls.auto.gainD,
+        #old_femto_change_gain_down,
         timeout=MASTER_TIMEOUT,
     )
 
@@ -537,19 +537,19 @@ def Flyscan(
             timeout=MASTER_TIMEOUT,
         )
 
-    old_femto_change_gain_up = upd_controls.auto.gainU.get()
-    old_femto_change_gain_down = upd_controls.auto.gainD.get()
+    #old_femto_change_gain_up = upd_controls.auto.gainU.get()
+    #old_femto_change_gain_down = upd_controls.auto.gainD.get()
 
     yield from bps.mv(
-        upd_controls.auto.gainU,
-        terms.FlyScan.setpoint_up.get(),
-        upd_controls.auto.gainD,
-        terms.FlyScan.setpoint_down.get(),
+        #upd_controls.auto.gainU,
+        #terms.FlyScan.setpoint_up.get(),
+        #upd_controls.auto.gainD,
+        #terms.FlyScan.setpoint_down.get(),
         usaxs_shutter,
         "open",
         timeout=MASTER_TIMEOUT,
     )
-    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
 
     FlyScanAutoscaleTime = 0.025
     yield from bps.mv(
@@ -557,8 +557,8 @@ def Flyscan(
         0,
         scaler0.auto_count_update_rate,
         0,
-        upd_controls.auto.mode,
-        "auto+background",
+       #upd_controls.auto.mode,
+        #"auto+background",
         scaler0.preset_time,
         FlyScanAutoscaleTime,
         scaler0.auto_count_time,
@@ -656,10 +656,10 @@ def Flyscan(
         1,
         scaler0.auto_count_time,
         1,
-        upd_controls.auto.gainU,
-        old_femto_change_gain_up,
-        upd_controls.auto.gainD,
-        old_femto_change_gain_down,
+        #upd_controls.auto.gainU,
+        #old_femto_change_gain_up,
+        #upd_controls.auto.gainD,
+        #old_femto_change_gain_down,
         timeout=MASTER_TIMEOUT,
     )
 
