@@ -22,6 +22,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
+from usaxs.devices import setup_scalers
 
 logger = logging.getLogger(__name__)
 
@@ -81,31 +82,7 @@ else:
     from bluesky import plans as bp  # noqa: F401
 
 RE(make_devices(file="scalers_and_amplifiers.yml", clear=False))
-
-# TODO: move to scaler_setup plan?
-scaler0 = oregistry["scaler0"]  # See scalers.yml
-
-scaler0.channels.chan02.name = "I0_SIGNAL"
-scaler0.channels.chan02.s.name = "I0"
-oregistry.register(scaler0.channels.chan02)  # I0 signal
-
-scaler0.channels.chan03.name = "I00_SIGNAL"
-scaler0.channels.chan03.s.name = "I00"
-oregistry.register(scaler0.channels.chan03)  # I00 signal
-
-scaler0.channels.chan04.name = "UPD_SIGNAL"
-scaler0.channels.chan04.s.name = "UPD"
-oregistry.register(scaler0.channels.chan04)  # UPD signal
-
-scaler0.channels.chan05.name = "TRD_SIGNAL"
-scaler0.channels.chan05.s.name = "TRD"
-oregistry.register(scaler0.channels.chan05)  # TRD signal
-
-scaler0.channels.chan06.name = "I000_SIGNAL"
-scaler0.channels.chan06.s.name = "I000"
-oregistry.register(scaler0.channels.chan06)  # I000 signal
-
-# scaler1 = oregistry["scaler1"]  # See scalers.yml
+setup_scalers()
 
 ##operation variables
 # in_operation = caget("usxLAX:blCalc:userCalc2.VAL")  # should be a caget?
