@@ -1,10 +1,13 @@
 """Support the scaler devices."""
 
+import sys
+
 from ..startup import oregistry
 
 
 def setup_scalers():
-    """Make specific scaler channels available."""
+    """Make specific scaler channels available in oregistry & console."""
+    main_namespace = sys.modules["__main__"]  # "console"
     scaler0 = oregistry["scaler0"]  # See scalers.yml
 
     channels = {
@@ -15,7 +18,11 @@ def setup_scalers():
         "I000": scaler0.channels.chan06,
     }
     for key, channel in channels.items():
-        channel.name = f"{key}_SIGNAL"  # ... UPD_SIGNAL ...
-        oregistry.register(channel)
-        channel.s.name = key
+        channel.s.name = key  # channel counts
         oregistry.register(channel.s)  # ... UPD ...
+        setattr(main_namespace, key, channel.s)
+
+        label = f"{key}_SIGNAL"
+        channel.name = label  # ... UPD_SIGNAL ...
+        oregistry.register(channel)
+        setattr(main_namespace, label, channel)
