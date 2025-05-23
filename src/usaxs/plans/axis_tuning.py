@@ -47,6 +47,7 @@ m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
 usaxs_q_calc = oregistry["usaxs_q_calc"]
 UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+UPD = oregistry["UPD"]
 I0_SIGNAL = oregistry["I0_SIGNAL"]
 
 user_data = oregistry["user_device"]
@@ -394,7 +395,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD_SIGNAL, scaler0],
+            [UPD, scaler0],
             d_stage.y,
             -d_stage.y.tune_range.get(),
             d_stage.y.tune_range.get(),
