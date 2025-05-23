@@ -84,7 +84,8 @@ class UsaxsCollimatorStageDevice(MotorBundle):
             "collimator",
             "tunable",
         ),
-    )
+        tune_range=axis_tune_range.m2rp,
+   )
     isChannelCut: bool = True
 
 
@@ -101,6 +102,7 @@ class UsaxsDetectorStageDevice(MotorBundle):
             "detector",
             "tunable",
         ),
+        tune_range=axis_tune_range.dx,
     )
     y: Component[EpicsMotor] = Component(
         EpicsMotor,
@@ -109,6 +111,7 @@ class UsaxsDetectorStageDevice(MotorBundle):
             "detector",
             "tunable",
         ),
+        tune_range=axis_tune_range.dy,
     )
 
 
@@ -138,6 +141,7 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
         EpicsMotor,
         "usxLAX:pi:c0:m1",
         labels=("analyzer", "tunable"),
+        tune_range=axis_tune_range.a2rp,
     )
     # rt = Component(EpicsMotor, 'usxLAX:m58:c1:m3', labels=("analyzer",))
 
