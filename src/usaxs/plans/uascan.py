@@ -23,15 +23,20 @@ from ..utils.emails import send_notification
 
 # Add these imports at the top of the file
 from ..utils.ustep import Ustep
-
-# Constants
-MONO_FEEDBACK_ON = oregistry["MONO_FEEDBACK_ON"]
+from .mono_feedback import MONO_FEEDBACK_OFF
+from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
 I00 = oregistry["I00"]
 I000 = oregistry["I000"]
-I0_controls = oregistry["I0_controls"]
-I00_controls = oregistry["I00_controls"]
+trd = oregistry["trd"]
+upd= oregistry["upd"]
+
+# I0_controls = oregistry["I0_controls"]
+# I00_controls = oregistry["I00_controls"]
+# trd_controls = oregistry["trd_controls"]
+# upd_controls = oregistry["upd_controls"]
+
 a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
@@ -39,10 +44,7 @@ monochromator = oregistry["monochromator"]
 s_stage = oregistry["s_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
-upd_controls = oregistry["upd_controls"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-trd_controls = oregistry["trd_controls"]
-trd = oregistry["trd"]
 user_data = oregistry["user_device"]
 NOTIFY_ON_SCAN_DONE = oregistry["NOTIFY_ON_SCAN_DONE"]
 
@@ -154,12 +156,12 @@ def uascan(
         count_time,
         scaler0.count_mode,
         "OneShot",
-        upd_controls.auto.mode,
-        "automatic",
-        I0_controls.auto.mode,
-        "manual",
-        I00_controls.auto.mode,
-        "manual",
+        # upd_controls.auto.mode,
+        # "automatic",
+        # I0_controls.auto.mode,
+        # "manual",
+        # I00_controls.auto.mode,
+        # "manual",
         usaxs_shutter,
         "open",
     )
@@ -180,14 +182,14 @@ def uascan(
         s_stage.y.user_readback,
         d_stage.x.user_readback,
         scaler0,
-        upd_controls.auto.gain,
-        I0_controls.auto.gain,
-        I00_controls.auto.gain,
-        trd_controls.auto.gain,
-        upd_controls.auto.reqrange,
-        I0_controls.auto.reqrange,
-        I00_controls.auto.reqrange,
-        trd_controls.auto.reqrange,
+        # upd_controls.auto.gain,
+        # I0_controls.auto.gain,
+        # I00_controls.auto.gain,
+        # trd_controls.auto.gain,
+        # upd_controls.auto.reqrange,
+        # I0_controls.auto.reqrange,
+        # I00_controls.auto.reqrange,
+        # trd_controls.auto.reqrange,
     ]
 
     # do not report the "quiet" detectors/stages during a uascan
@@ -322,12 +324,12 @@ def uascan(
             MONO_FEEDBACK_ON,
             scaler0.count_mode,
             "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
-            I0_controls.auto.mode,
-            "manual",
-            I00_controls.auto.mode,
-            "manual",
+            # upd_controls.auto.mode,
+            # "auto+background",
+            # I0_controls.auto.mode,
+            # "manual",
+            # I00_controls.auto.mode,
+            # "manual",
             # close the shutter after each scan to preserve the detector
             usaxs_shutter,
             "close",
