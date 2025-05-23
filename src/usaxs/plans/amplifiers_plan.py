@@ -1,6 +1,7 @@
 """
 Amplifier support
 """
+# FIXME: depends on issue #27
 
 import logging
 from collections import OrderedDict

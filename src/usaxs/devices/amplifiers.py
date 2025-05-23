@@ -1,42 +1,30 @@
 """
-detectors, amplifiers, and related support
-
-#            Define local PD address:
- if(Use_DLPCA300){
-     PDstring = "pd01:seq02"
-     UPD_PV    =    "usxUSX:pd01:seq02"
-  }else{
-     PDstring = "pd01:seq01"
-     UPD_PV    =    "usxUSX:pd01:seq01"
-  }
+Detectors, scaler channels, amplifiers, and related support
 
 ========  =================  ====================  ===================  ===========
-detector  scaler             amplifier             autorange sequence   Femto model
+detector  scaler channel     amplifier             autorange sequence   Femto model
 ========  =================  ====================  ===================  ===========
-UPD       usxLAX:vsc:c0.S4  usxLAX:fem01:seq01:  usxLAX:pd01:seq01:  DLPCA200
-UPD       usxLAX:vsc:c0.S4  usxLAX:fem09:seq02:  usxLAX:pd01:seq02:  DDPCA300
-I0        usxLAX:vsc:c0.S2  usxRIO:fem02:seq01:  usxLAX:pd02:seq01:
-I00       usxLAX:vsc:c0.S3  usxRIO:fem03:seq01:  usxLAX:pd03:seq01:
-I000      usxLAX:vsc:c0.S6  usxRIO:fem04:seq01:  None
-TRD       usxLAX:vsc:c0.S5  usxRIO:fem05:seq01:  usxLAX:pd05:seq01:
+UPD       usxLAX:vsc:c0.S4   usxLAX:fem01:seq01:   usxLAX:pd01:seq01:   DLPCA200
+UPD       usxLAX:vsc:c0.S4   usxLAX:fem09:seq02:   usxLAX:pd01:seq02:   DDPCA300
+I0        usxLAX:vsc:c0.S2   usxRIO:fem02:seq01:   usxLAX:pd02:seq01:
+I00       usxLAX:vsc:c0.S3   usxRIO:fem03:seq01:   usxLAX:pd03:seq01:
+I000      usxLAX:vsc:c0.S6   usxRIO:fem04:seq01:   None
+TRD       usxLAX:vsc:c0.S5   usxRIO:fem05:seq01:   usxLAX:pd05:seq01:
 ========  =================  ====================  ===================  ===========
 
-A PV (``usxLAX:femto:model``) tells which UPD amplifier and sequence
-programs we're using now.  This PV is read-only since it is set when
-IOC boots, based on a soft link that configures the IOC.  The soft
-link may be changed using the ``use200pd``  or  ``use300pd`` script.
-
-We only need to get this once, get it via one-time call with PyEpics
-and then use it with inline dictionaries to pick the right PVs.
+Edit the `configs/scalers_and_amplifiers.yml` file to select the proper devices
+with the UPD Femto amplifier currently being used.  A read-only PV
+(``usxLAX:femto:model``) tells which UPD amplifier and sequence programs we're
+using now.  This PV is read-only since it is set when IOC boots, based on a soft
+link that configures the IOC.
 """
 
 import logging
 from collections import OrderedDict
 
-import epics
-from apsbits.utils.config_loaders import get_config
 from apstools.synApps import SwaitRecord
 from bluesky import plan_stubs as bps
+from bluesky.utils import plan
 from ophyd import Component
 from ophyd import Device
 from ophyd import DynamicDeviceComponent
@@ -47,25 +35,13 @@ from ophyd import Signal
 from ophyd.scaler import ScalerCH
 from ophyd.scaler import ScalerChannel
 
+from ..startup import oregistry
+
 logger = logging.getLogger(__name__)
 
 
-iconfig = get_config()
-scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
-
 NUM_AUTORANGE_GAINS = 5  # common to all autorange sequence programs
 AMPLIFIER_MINIMUM_SETTLING_TIME = 0.01  # reasonable?
-
-scaler0 = ScalerCH(scaler0_name, name="scaler0")
-scaler0.stage_sigs["count_mode"] = "OneShot"
-# scaler0.select_channels()
-
-I00_SIGNAL = scaler0.channels.chan03
-I0 = scaler0.channels.chan02.s
-I00 = scaler0.channels.chan03.s
-UPD_SIGNAL = scaler0.channels.chan04
-TRD_SIGNAL = scaler0.channels.chan05
-I0_SIGNAL = scaler0.channels.chan02
 
 
 class ModifiedSwaitRecord(SwaitRecord):
@@ -278,6 +254,7 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
 
         self._gain_info_known = True
 
+    @plan
     def setGain(self, target):
         """
         plan: set the gain on the autorange controls
@@ -327,31 +304,15 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
         return v
 
 
-# class ComputedScalerAmplifierSignal(SynSignal):
-#    """
-#    Scales signal from counter by amplifier gain.
-#    """
-#
-#    def __init__(self, name, parent, **kwargs):
-#
-#        def func():		# runs only when Device is triggered
-#            counts = parent.signal.s.get()
-#            volts = counts / parent.auto.counts_per_volt.get()
-#            volts_per_amp = parent.femto.gain.get()
-#            return volts / volts_per_amp
-#
-#        super().__init__(func=func, name=name, **kwargs)
-
-
 class DetectorAmplifierAutorangeDevice(Device):
     """
     Coordinate the different objects that control a diode or ion chamber.
 
-    This is a convenience intended to simplify tasks such
-    as measuring simultaneously the backgrounds of all channels.
+    This is a convenience intended to simplify tasks such as measuring the
+    backgrounds of all channels simultaneously.
     """
 
-    def __init__(self, nickname, scaler, signal, amplifier, auto, **kwargs):
+    def __init__(self, nickname, scaler, det, **kwargs):
         """
         Initialize DetectorAmplifierAutorangeDevice.
 
@@ -359,14 +320,10 @@ class DetectorAmplifierAutorangeDevice(Device):
         ----------
         nickname : str
             Nickname for the device.
-        scaler : ScalerCH
-            The scaler device.
-        signal : ScalerChannel
-            The signal channel.
-        amplifier : FemtoAmplifierDevice
-            The Femto amplifier device.
-        auto : AmplifierAutoDevice
-            The autorange control device.
+        scaler : str
+            Name of the ScalerCH.
+        det : str
+            Name of the detector.
         **kwargs: Arbitrary keyword arguments.
         """
         if not isinstance(nickname, str):
@@ -374,146 +331,32 @@ class DetectorAmplifierAutorangeDevice(Device):
                 "'nickname' should be of 'str' type,"
                 f" received type: {type(nickname)}"
             )
-        if not isinstance(scaler, ScalerCH):
-            raise ValueError(
-                "'scaler' should be of 'ScalerCH' type,"
-                f" received type: {type(scaler)}"
-            )
-        if not isinstance(signal, ScalerChannel):
-            raise ValueError(
-                "'signal' should be of 'ScalerChannel' type,"
-                f" received type: {type(signal)}"
-            )
-        if not isinstance(amplifier, FemtoAmplifierDevice):
-            raise ValueError(
-                "'amplifier' should be of 'FemtoAmplifierDevice' type,"
-                f" received type: {type(amplifier)}"
-            )
-        if not isinstance(auto, AmplifierAutoDevice):
-            raise ValueError(
-                "'auto' should be of 'AmplifierAutoDevice' type,"
-                f" received type: {type(auto)}"
-            )
+
         self.nickname = nickname
-        self.scaler = scaler
-        self.signal = signal
-        self.femto = amplifier
-        self.auto = auto
+        self.scaler = oregistry[scaler]
+        self.signal = oregistry[f"{det.upper()}_SIGNAL"]
+        self.femto = oregistry[f"{det}_femto_amplifier"]
+        self.auto = [f"{det}_autorange_controls"]
+
+        if not isinstance(self.scaler, ScalerCH):
+            raise ValueError(
+                "'scaler' should name a 'ScalerCH' type,"
+                f" received type: {type(self.scaler)}"
+            )
+        if not isinstance(self.signal, ScalerChannel):
+            raise ValueError(
+                "'signal' should name a 'ScalerChannel' type,"
+                f" received type: {type(self.signal)}"
+            )
+        if not isinstance(self.amplifier, FemtoAmplifierDevice):
+            raise ValueError(
+                "'amplifier' should name a 'FemtoAmplifierDevice' type,"
+                f" received type: {type(self.amplifier)}"
+            )
+        if not isinstance(self.auto, AmplifierAutoDevice):
+            raise ValueError(
+                "'auto' should name a 'AmplifierAutoDevice' type,"
+                f" received type: {type(self.auto)}"
+            )
+
         super().__init__("", **kwargs)
-
-
-# ------------
-
-_amplifier_id_upd = epics.caget("usxLAX:femto:model", as_string=True)
-
-if _amplifier_id_upd == "DLCPA200":
-    _upd_femto_prefix = "usxLAX:fem01:seq01:"
-    _upd_auto_prefix = "usxLAX:pd01:seq01:"
-elif _amplifier_id_upd == "DDPCA300":
-    _upd_femto_prefix = "usxLAX:fem09:seq02:"
-    _upd_auto_prefix = "usxLAX:pd01:seq02:"
-
-upd_femto_amplifier = FemtoAmplifierDevice(
-    _upd_femto_prefix, name="upd_femto_amplifier"
-)
-trd_femto_amplifier = FemtoAmplifierDevice(
-    "usxRIO:fem05:seq01:", name="trd_femto_amplifier"
-)
-I0_femto_amplifier = FemtoAmplifierDevice(
-    "usxRIO:fem02:seq01:", name="I0_femto_amplifier"
-)
-I00_femto_amplifier = FemtoAmplifierDevice(
-    "usxRIO:fem03:seq01:", name="I00_femto_amplifier"
-)
-I000_femto_amplifier = FemtoAmplifierDevice(
-    "usxRIO:fem04:seq01:", name="I000_femto_amplifier"
-)
-
-upd_autorange_controls = AmplifierAutoDevice(
-    _upd_auto_prefix, name="upd_autorange_controls"
-)
-trd_autorange_controls = AmplifierAutoDevice(
-    "usxLAX:pd05:seq01:", name="trd_autorange_controls"
-)
-I0_autorange_controls = AmplifierAutoDevice(
-    "usxLAX:pd02:seq01:", name="I0_autorange_controls"
-)
-I00_autorange_controls = AmplifierAutoDevice(
-    "usxLAX:pd03:seq01:", name="I00_autorange_controls"
-)
-
-# # record at start and end of each scan
-# sd.baseline.append(upd_autorange_controls)
-# sd.baseline.append(trd_autorange_controls)
-# sd.baseline.append(I0_autorange_controls)
-# sd.baseline.append(I00_autorange_controls)
-
-upd_controls = DetectorAmplifierAutorangeDevice(
-    "PD_USAXS",
-    scaler0,
-    UPD_SIGNAL,
-    upd_femto_amplifier,
-    upd_autorange_controls,
-    name="upd_controls",
-)
-# upd_photocurrent = ComputedScalerAmplifierSignal(
-#    name="upd_photocurrent", parent=upd_controls)
-upd_photocurrent_calc = ModifiedSwaitRecord(
-    "usxLAX:USAXS:upd", name="upd_photocurrent_calc"
-)
-upd_photocurrent = upd_photocurrent_calc.get()
-
-trd_controls = DetectorAmplifierAutorangeDevice(
-    "TR diode",
-    scaler0,
-    TRD_SIGNAL,
-    trd_femto_amplifier,
-    trd_autorange_controls,
-    name="trd_controls",
-)
-# trd_photocurrent = ComputedScalerAmplifierSignal(
-#    name="trd_photocurrent", parent=trd_controls)
-trd_photocurrent_calc = ModifiedSwaitRecord(
-    "usxLAX:USAXS:trd", name="trd_photocurrent_calc"
-)
-trd_photocurrent = trd_photocurrent_calc.get()
-
-I0_controls = DetectorAmplifierAutorangeDevice(
-    "I0_USAXS",
-    scaler0,
-    I0_SIGNAL,
-    I0_femto_amplifier,
-    I0_autorange_controls,
-    name="I0_controls",
-)
-# I0_photocurrent = ComputedScalerAmplifierSignal(
-#    name="I0_photocurrent", parent=I0_controls)
-I0_photocurrent_calc = ModifiedSwaitRecord(
-    "usxLAX:USAXS:I0", name="I0_photocurrent_calc"
-)
-I0_photocurrent = I0_photocurrent_calc.get()
-
-I00_controls = DetectorAmplifierAutorangeDevice(
-    "I00_USAXS",
-    scaler0,
-    I00_SIGNAL,
-    I00_femto_amplifier,
-    I00_autorange_controls,
-    name="I00_controls",
-)
-# I00_photocurrent = ComputedScalerAmplifierSignal(
-#    name="I00_photocurrent", parent=I00_controls)
-I00_photocurrent_calc = ModifiedSwaitRecord(
-    "usxLAX:USAXS:I00", name="I00_photocurrent_calc"
-)
-I00_photocurrent = I00_photocurrent_calc.get()
-
-
-I000_photocurrent_calc = ModifiedSwaitRecord(
-    "usxLAX:USAXS:I000", name="I000_photocurrent_calc"
-)
-I000_photocurrent = I000_photocurrent_calc.get()
-
-
-controls_list_I0_I00_TRD = [I0_controls, I00_controls, trd_controls]
-controls_list_UPD_I0_I00_TRD = [upd_controls] + controls_list_I0_I00_TRD

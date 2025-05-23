@@ -1,5 +1,0 @@
-ophyd.scaler.ScalerCH:
-- name: scaler0
-  prefix: usxLAX:vsc:c0
-- name: scaler1
-  prefix: usxLAX:vsc:c1
