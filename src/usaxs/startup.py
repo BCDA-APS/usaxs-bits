@@ -100,6 +100,11 @@ scaler0.channels.chan05.name = "TRD_SIGNAL"
 scaler0.channels.chan05.s.name = "TRD"
 oregistry.register(scaler0.channels.chan05)  # TRD signal
 
+scaler1 = oregistry["scaler1"]
+
+scaler0.channels.chan02.name = "I000_SIGNAL"
+scaler0.channels.chan02.s.name = "I000"
+oregistry.register(scaler0.channels.chan02)  # I000 singal
 
 ##operation variables
 # in_operation = caget("usxLAX:blCalc:userCalc2.VAL")  # should be a caget?

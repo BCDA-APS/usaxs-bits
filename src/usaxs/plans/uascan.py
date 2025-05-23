@@ -28,9 +28,9 @@ from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
 I00 = oregistry["I00"]
-#I000 = oregistry["I000"]
-#trd = oregistry["trd"]
-upd= oregistry["upd"]
+I0 = oregistry["I0"]
+trd = oregistry["TRD"]
+upd= oregistry["UPD"]
 
 # I0_controls = oregistry["I0_controls"]
 # I00_controls = oregistry["I00_controls"]
