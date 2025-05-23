@@ -11,6 +11,7 @@ from ophyd import EpicsSignal
 from ophyd import MotorBundle
 
 from .usaxs_motor_devices import TunableEpicsMotor2WTolerance
+from .usaxs_motor_devices import TunableEpicsMotor2
 
 # this is for tuning part of the code.
 # 2024-06-28 we need to merge stages.py with axis_tuning.py since the new tunable motor
@@ -78,7 +79,7 @@ class UsaxsCollimatorStageDevice(MotorBundle):
         EpicsMotor, "usxAERO:m11", labels=("collimator",)
     )
     r2p: Component[EpicsMotor] = Component(
-        EpicsMotor,
+        TunableEpicsMotor2,
         "usxLAX:pi:c0:m2",
         labels=(
             "collimator",
@@ -96,7 +97,7 @@ class UsaxsDetectorStageDevice(MotorBundle):
     """USAXS detector stage"""
 
     x: Component[EpicsMotor] = Component(
-        EpicsMotor,
+        TunableEpicsMotor2,
         "usxAERO:m1",
         labels=(
             "detector",
@@ -105,7 +106,7 @@ class UsaxsDetectorStageDevice(MotorBundle):
         tune_range=axis_tune_range.dx,
     )
     y: Component[EpicsMotor] = Component(
-        EpicsMotor,
+        TunableEpicsMotor2,
         "usxAERO:m2",
         labels=(
             "detector",
@@ -138,7 +139,7 @@ class UsaxsAnalyzerStageDevice(MotorBundle):
     y: Component[EpicsMotor] = Component(EpicsMotor, "usxAERO:m5", labels=("analyzer",))
     # z = Component(EpicsMotor, 'usxLAX:m58:c0:m7', labels=("analyzer",))
     r2p: Component[EpicsMotor] = Component(
-        EpicsMotor,
+        TunableEpicsMotor2,
         "usxLAX:pi:c0:m1",
         labels=("analyzer", "tunable"),
         tune_range=axis_tune_range.a2rp,
