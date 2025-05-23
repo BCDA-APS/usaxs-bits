@@ -46,6 +46,8 @@ d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
 usaxs_q_calc = oregistry["usaxs_q_calc"]
+UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+I0_SIGNAL = oregistry["I0_SIGNAL"]
 
 user_data = oregistry["user_device"]
 monochromator = oregistry["monochromator"]
@@ -93,7 +95,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [I0_SIGNAL, scaler0],
             m_stage.r,
             -m_stage.r.tune_range.get(),
             m_stage.r.tune_range.get(),
@@ -167,7 +169,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         scaler0.select_channels(["PD_USAXS"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [UPD_SIGNAL, scaler0],
             a_stage.r,
             -a_stage.r.tune_range.get(),
             a_stage.r.tune_range.get(),
@@ -244,7 +246,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [UPD_SIGNAL, scaler0],
             a_stage.r2p,
             -a_stage.r2p.tune_range.get(),
             a_stage.r2p.tune_range.get(),
@@ -316,7 +318,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         scaler0.select_channels(["PD_USAXS"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [UPD_SIGNAL, scaler0],
             d_stage.x,
             -d_stage.x.tune_range.get(),
             d_stage.x.tune_range.get(),
@@ -392,7 +394,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [UPD_SIGNAL, scaler0],
             d_stage.y,
             -d_stage.y.tune_range.get(),
             d_stage.y.tune_range.get(),

@@ -102,8 +102,8 @@ oregistry.register(scaler0.channels.chan05)  # TRD signal
 
 scaler1 = oregistry["scaler1"]
 
-scaler0.channels.chan02.name = "I000_SIGNAL"
-scaler0.channels.chan02.s.name = "I000"
+scaler1.channels.chan02.name = "I000_SIGNAL"
+scaler1.channels.chan02.s.name = "I000"
 oregistry.register(scaler0.channels.chan02)  # I000 singal
 
 ##operation variables
