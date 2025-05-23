@@ -391,11 +391,11 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
             "open",
         )
         #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        scaler0.select_channels(["PD_USAXS"])
+        #scaler0.select_channels(["PD_USAXS"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD, scaler0],
+            [UPD_SIGNAL, scaler0],
             d_stage.y,
             -d_stage.y.tune_range.get(),
             d_stage.y.tune_range.get(),
