@@ -23,9 +23,15 @@ from .move_instrument import move_USAXSOut
 from .move_instrument import move_WAXSIn
 from .move_instrument import move_WAXSOut
 
+#these are all tuning plans facing users and staff
 from .axis_tuning import tune_mr
 from .axis_tuning import tune_ar
 from .axis_tuning import tune_a2rp
+from .axis_tuning import tune_dx
+from .axis_tuning import tune_dy
+from .axis_tuning import tune_diode
+from .axis_tuning import tune_usaxs_optics
+from .axis_tuning import tune_saxs_optics
 
 from .plans_tune import allUSAXStune
 from .plans_tune import preSWAXStune
