@@ -13,7 +13,7 @@ from apstools.utils import cleanupText
 from ..callbacks.nxwriter_usaxs import nxwriter
 from .utils import techniqueSubdirectory
 
-# from usaxs.callbacks.specwriter import specwriter
+from usaxs.callbacks.spec_data_file_writer import specwriter
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
