@@ -20,7 +20,9 @@ from apsbits.core.instrument_init import oregistry
 from apstools.plans import write_stream
 from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
+from bluesky.utils import plan
 
+# FIXME: depends on issue #27
 from src.usaxs.devices.amplifier_device import AutorangeSettings
 
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
@@ -28,6 +30,7 @@ from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 logger = logging.getLogger(__name__)
 
 # Device instances
+# FIXME: depends on issue #27
 # from ..devices.amplifiers import AutorangeSettings
 upd_controls = oregistry["upd_controls"]
 terms = oregistry["terms"]
@@ -38,6 +41,7 @@ struck = oregistry["struck"]
 user_data = oregistry["user_device"]
 
 
+@plan
 def plan(
     self,
     md: Optional[Dict[str, Any]] = None,

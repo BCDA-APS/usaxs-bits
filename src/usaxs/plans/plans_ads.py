@@ -22,6 +22,7 @@ from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.utils import techniqueSubdirectory
 from usaxs.utils.user_sample_title import getSampleTitle
 
+# FIXME: depends on issue #27
 #from .amplifiers_plan import autoscale_amplifiers # fix this when amplifiers are available
 #from .amplifiers_plan import I0_controls  # fix this when amplifiers are available
 from .area_detector_plans import areaDetectorAcquire

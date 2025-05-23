@@ -13,12 +13,12 @@ detectors, amplifiers, and related support
 ========  =================  ====================  ===================  ===========
 detector  scaler             amplifier             autorange sequence   Femto model
 ========  =================  ====================  ===================  ===========
-UPD       usxLAX:vsc:c0.S4  usxLAX:fem01:seq01:  usxLAX:pd01:seq01:  DLPCA200
-UPD       usxLAX:vsc:c0.S4  usxLAX:fem09:seq02:  usxLAX:pd01:seq02:  DDPCA300
-I0        usxLAX:vsc:c0.S2  usxRIO:fem02:seq01:  usxLAX:pd02:seq01:
-I00       usxLAX:vsc:c0.S3  usxRIO:fem03:seq01:  usxLAX:pd03:seq01:
-I000      usxLAX:vsc:c0.S6  usxRIO:fem04:seq01:  None
-TRD       usxLAX:vsc:c0.S5  usxRIO:fem05:seq01:  usxLAX:pd05:seq01:
+UPD       usxLAX:vsc:c0.S4   usxLAX:fem01:seq01:   usxLAX:pd01:seq01:   DLPCA200
+UPD       usxLAX:vsc:c0.S4   usxLAX:fem09:seq02:   usxLAX:pd01:seq02:   DDPCA300
+I0        usxLAX:vsc:c0.S2   usxRIO:fem02:seq01:   usxLAX:pd02:seq01:
+I00       usxLAX:vsc:c0.S3   usxRIO:fem03:seq01:   usxLAX:pd03:seq01:
+I000      usxLAX:vsc:c0.S6   usxRIO:fem04:seq01:   None
+TRD       usxLAX:vsc:c0.S5   usxRIO:fem05:seq01:   usxLAX:pd05:seq01:
 ========  =================  ====================  ===================  ===========
 
 A PV (``usxLAX:femto:model``) tells which UPD amplifier and sequence
@@ -37,6 +37,7 @@ import epics
 from apsbits.utils.config_loaders import get_config
 from apstools.synApps import SwaitRecord
 from bluesky import plan_stubs as bps
+from bluesky.utils import plan
 from ophyd import Component
 from ophyd import Device
 from ophyd import DynamicDeviceComponent
@@ -47,19 +48,23 @@ from ophyd import Signal
 from ophyd.scaler import ScalerCH
 from ophyd.scaler import ScalerChannel
 
+from ..startup import oregistry
+
 logger = logging.getLogger(__name__)
 
 
-iconfig = get_config()
-scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
+# iconfig = get_config()  # TODO: discard?
 
 NUM_AUTORANGE_GAINS = 5  # common to all autorange sequence programs
 AMPLIFIER_MINIMUM_SETTLING_TIME = 0.01  # reasonable?
 
-scaler0 = ScalerCH(scaler0_name, name="scaler0")
+scaler0 = oregistry["scaler0"]
+
+# TODO: move to scaler_setup plan?
 scaler0.stage_sigs["count_mode"] = "OneShot"
 # scaler0.select_channels()
 
+# TODO: Done in startup but move to scaler_setup plan?
 I00_SIGNAL = scaler0.channels.chan03
 I0 = scaler0.channels.chan02.s
 I00 = scaler0.channels.chan03.s
@@ -278,6 +283,7 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
 
         self._gain_info_known = True
 
+    @plan
     def setGain(self, target):
         """
         plan: set the gain on the autorange controls

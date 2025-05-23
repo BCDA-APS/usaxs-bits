@@ -24,6 +24,7 @@ from apstools.utils import cleanupText
 from usaxs.utils.user_sample_title import getSampleTitle
 
 from ..utils.a2q_q2a import q2angle
+# FIXME: depends on issue #27
 # from .amplifiers_plan import autoscale_amplifiers     # fix this when amplifiers are available
 # from .amplifiers_plan import I0_controls     # fix this when amplifiers are available
 # from .amplifiers_plan import I00_controls     # fix this when amplifiers are available

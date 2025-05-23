@@ -15,6 +15,7 @@ from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from ophyd import Signal
 
+# FIXME: depends on issue #27
 # from .amplifiers_plan import measure_background  # add back when amplfiers are fixed.
 #from ..usaxs_flyscan_support import instrument_archive
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
