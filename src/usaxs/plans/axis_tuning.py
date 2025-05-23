@@ -33,20 +33,21 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 # I00_controls = oregistry["I00_controls"]
 # autoscale_amplifiers = oregistry["autoscale_amplifiers"]
 # upd_controls = oregistry["upd_controls"]
+
 terms = oregistry["terms"]
-# usaxs_q_calc = oregistry["usaxs_q_calc"]
 scaler0 = oregistry["scaler0"]
-# mono_shutter = oregistry["mono_shutter"]
-# usaxs_shutter = oregistry["usaxs_shutter"]
-# a_stage = oregistry["a_stage"]
+mono_shutter = oregistry["mono_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+a_stage = oregistry["a_stage"]
 # axis_tune_range = oregistry["axis_tune_range"]
 d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
 d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
-# ms_stage = oregistry["ms_stage"]
-# as_stage = oregistry["as_stage"]
 s_stage = oregistry["s_stage"]
+usaxs_q_calc = oregistry["usaxs_q_calc"]
+UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+I0_SIGNAL = oregistry["I0_SIGNAL"]
 
 user_data = oregistry["user_device"]
 monochromator = oregistry["monochromator"]
@@ -94,7 +95,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [I0_SIGNAL, scaler0],
             m_stage.r,
             -m_stage.r.tune_range.get(),
             m_stage.r.tune_range.get(),
@@ -152,7 +153,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
+        #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_ar"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r.name}")
@@ -163,12 +164,12 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         trim_plot_by_name(5)
         scaler0.select_channels(["PD_USAXS"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [UPD_SIGNAL, scaler0],
             a_stage.r,
             -a_stage.r.tune_range.get(),
             a_stage.r.tune_range.get(),
@@ -183,8 +184,8 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
             "close",
             scaler0.count_mode,
             "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
+            #upd_controls.auto.mode,
+            #"auto+background",
         )
         scaler0.select_channels(None)
         if stats.analysis.success:
@@ -229,7 +230,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from bps.mv(scaler0.preset_time, 0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
+        #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_a2rp"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r2p.name}")
@@ -240,12 +241,12 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         scaler0.select_channels(["PD_USAXS"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [UPD_SIGNAL, scaler0],
             a_stage.r2p,
             -a_stage.r2p.tune_range.get(),
             a_stage.r2p.tune_range.get(),
@@ -260,8 +261,8 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             "close",
             scaler0.count_mode,
             "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
+            #upd_controls.auto.mode,
+            #"auto+background",
         )
         scaler0.select_channels(None)
         if stats.analysis.success:
@@ -301,7 +302,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from bps.mv(scaler0.preset_time, 0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
+        #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_dx"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {d_stage.x.name}")
@@ -312,12 +313,12 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         trim_plot_by_name(5)
         scaler0.select_channels(["PD_USAXS"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [UPD_SIGNAL, scaler0],
             d_stage.x,
             -d_stage.x.tune_range.get(),
             d_stage.x.tune_range.get(),
@@ -332,8 +333,8 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
             "close",
             scaler0.count_mode,
             "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
+            #upd_controls.auto.mode,
+            #"auto+background",
         )
         scaler0.select_channels(None)
         if stats.analysis.success:
@@ -377,7 +378,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from bps.mv(scaler0.preset_time, 0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
+        #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_dy"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {d_stage.y.name}")
@@ -388,12 +389,12 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         scaler0.select_channels(["PD_USAXS"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [scaler0],
+            [UPD_SIGNAL, scaler0],
             d_stage.y,
             -d_stage.y.tune_range.get(),
             d_stage.y.tune_range.get(),
@@ -408,8 +409,8 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
             "close",
             scaler0.count_mode,
             "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
+            #upd_controls.auto.mode,
+            #"auto+background",
         )
         scaler0.select_channels(None)
         if stats.analysis.success:
