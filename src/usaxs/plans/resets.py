@@ -17,7 +17,7 @@ from ..utils.emails import send_notification
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 
-from ..devices import NOTIFY_ON_RESET
+from usaxs.utils.emails import NOTIFY_ON_RESET
 
 logger = logging.getLogger(__name__)
 

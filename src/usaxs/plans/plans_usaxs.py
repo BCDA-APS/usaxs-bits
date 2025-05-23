@@ -38,7 +38,7 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_USAXS_Transmission
 from .uascan import uascan
-from ..devices import NOTIFY_ON_BAD_FLY_SCAN
+from usaxs.utils.emails import NOTIFY_ON_BAD_FLY_SCAN
 
 
 logger = logging.getLogger(__name__)

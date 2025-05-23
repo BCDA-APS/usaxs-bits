@@ -25,7 +25,7 @@ from ..utils.emails import send_notification
 from ..utils.ustep import Ustep
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
-from ..devices import NOTIFY_ON_SCAN_DONE
+from usaxs.utils.emails import NOTIFY_ON_SCAN_DONE
 
 
 # Device instances
