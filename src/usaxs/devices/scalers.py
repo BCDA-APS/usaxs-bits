@@ -10,6 +10,10 @@ def setup_scalers():
     main_namespace = sys.modules["__main__"]  # "console"
     scaler0 = oregistry["scaler0"]  # See scalers.yml
 
+    scaler0.stage_sigs["count_mode"] = "OneShot"
+    # scaler0.wait_for_connection()
+    # scaler0.select_channels()
+
     channels = {
         "I0": scaler0.channels.chan02,
         "I00": scaler0.channels.chan03,
