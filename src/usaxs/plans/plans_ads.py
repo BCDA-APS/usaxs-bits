@@ -36,6 +36,7 @@ from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_SAXS_Transmission
+from usaxs.utils.override import user_override
 
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,6 @@ ar_start = oregistry["ar_start"]
 saxs_det = oregistry["saxs_det"]
 waxs_det = oregistry["waxs_det"]
 scaler1 = oregistry["scaler1"]
-user_override = oregistry["user_override"]
 saxs_stage = oregistry["saxs_stage"]
 mono_shutter = oregistry["mono_shutter"]
 usaxs_shutter = oregistry["usaxs_shutter"]
