@@ -29,7 +29,7 @@ from .mono_feedback import MONO_FEEDBACK_ON
 # Device instances
 I00 = oregistry["I00"]
 #I000 = oregistry["I000"]
-trd = oregistry["trd"]
+#trd = oregistry["trd"]
 upd= oregistry["upd"]
 
 # I0_controls = oregistry["I0_controls"]
@@ -196,7 +196,7 @@ def uascan(
     quiet_detectors = [
         I00,
         #I000,
-        trd,
+        #trd,
     ]
     quiet_stages = [
         m_stage.r,
