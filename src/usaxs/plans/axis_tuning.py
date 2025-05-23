@@ -33,7 +33,6 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 # I00_controls = oregistry["I00_controls"]
 # autoscale_amplifiers = oregistry["autoscale_amplifiers"]
 # upd_controls = oregistry["upd_controls"]
-# user_override = oregistry["user_override"]
 terms = oregistry["terms"]
 # usaxs_q_calc = oregistry["usaxs_q_calc"]
 scaler0 = oregistry["scaler0"]

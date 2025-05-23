@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 # trd_controls = oregistry["trd_controls"]
 
 a_stage = oregistry["a_stage"]
-#constants = oregistry["constants"]     #where is this? 
+from usaxs.utils.constants import constants
+
 saxs_stage = oregistry["saxs_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]

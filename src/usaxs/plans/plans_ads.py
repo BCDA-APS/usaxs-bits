@@ -70,7 +70,7 @@ a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
 
 # this is in iconfig.yml, how to get to it?
-# NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
+from usaxs.utils.emails import NOTIFY_ON_BAD_FLY_SCAN
 
 #trd_controls = oregistry["trd_controls"]
 from usaxs.utils.constants import constants
