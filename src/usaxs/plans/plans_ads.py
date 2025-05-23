@@ -54,7 +54,6 @@ ar_start = oregistry["ar_start"]
 saxs_det = oregistry["saxs_det"]
 waxs_det = oregistry["waxs_det"]
 scaler1 = oregistry["scaler1"]
-constants = oregistry["constants"]
 user_override = oregistry["user_override"]
 saxs_stage = oregistry["saxs_stage"]
 mono_shutter = oregistry["mono_shutter"]
@@ -74,6 +73,7 @@ d_stage = oregistry["d_stage"]
 # NOTIFY_ON_BAD_FLY_SCAN = oregistry["NOTIFY_ON_BAD_FLY_SCAN"]
 
 #trd_controls = oregistry["trd_controls"]
+from usaxs.utils.constants import constants
 
 
 logger = logging.getLogger(__name__)

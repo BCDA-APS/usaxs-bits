@@ -35,6 +35,7 @@ from .requested_stop import RequestAbort
 from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
 from .sample_rotator_plans import PI_onR
+from usaxs.utils.constants import constants
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 saxs_det = oregistry["saxs_det"]
@@ -43,7 +44,6 @@ usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 waxs_det = oregistry["waxs_det"]
 s_stage = oregistry["s_stage"]
-# constants = oregistry["constants"]    #this is in iconfig.yml, how to get this?
 
 #I00_controls = oregistry["I00_controls"]  # fix this after amplifiers are sorted out, part of measure background which is disabled. 
 #I0_controls = oregistry["I0_controls"]  # fix this
@@ -142,10 +142,10 @@ def before_command_list(md=None, commands=None):
         1,
     )
 
-    # if constants["MEASURE_DARK_CURRENTS"]:
+    #if constants["MEASURE_DARK_CURRENTS"]:
     #     yield from measure_background(
     #         [upd_controls, I0_controls, I00_controls, trd_controls],
-    #     )
+    #    )
 
     # reset the ranges to be used when tuning optical axes (issue #129)
     # These routines are defined in file: 29-axis-tuning.py
