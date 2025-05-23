@@ -42,7 +42,7 @@ from .plans_usaxs import USAXSscanStep
 from .autocollect_plan import remote_ops
 
 # from .resets import resets
-# from .sample_imaging import sample_imaging
+from .utils.setup_new_user import newUser
 # from .sample_transmission import sample_transmission
 # from .scans import scans
 from .sim_plans import sim_count_plan
@@ -53,4 +53,4 @@ from .sim_plans import sim_rel_scan_plan
 # from .command_list import execute_command_list
 # from .command_list import run_command_file
 # from .command_list import run_python_file
-# from .command_list import sync_order_numbers
+from .command_list import sync_order_numbers
