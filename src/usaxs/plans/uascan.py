@@ -18,26 +18,25 @@ from apsbits.core.instrument_init import oregistry
 from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from bluesky.utils import plan
 
+from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
-
 # Add these imports at the top of the file
 from ..utils.ustep import Ustep
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
-from usaxs.utils.emails import NOTIFY_ON_SCAN_DONE
-
 
 # Device instances
-I00 = oregistry["I00"]
 I0 = oregistry["I0"]
+I00 = oregistry["I00"]
 trd = oregistry["TRD"]
-upd= oregistry["UPD"]
+upd = oregistry["UPD"]
 
-# I0_controls = oregistry["I0_controls"]
-# I00_controls = oregistry["I00_controls"]
-# trd_controls = oregistry["trd_controls"]
-# upd_controls = oregistry["upd_controls"]
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+trd_controls = oregistry["trd_controls"]
+upd_controls = oregistry["upd_controls"]
 
 a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
@@ -52,6 +51,7 @@ user_data = oregistry["user_device"]
 logger = logging.getLogger(__name__)
 
 
+@plan
 def uascan(
     start: float,
     reference: float,
@@ -196,8 +196,8 @@ def uascan(
     # do not report the "quiet" detectors/stages during a uascan
     quiet_detectors = [
         I00,
-        #I000,
-        #trd,
+        # I000,
+        # trd,
     ]
     quiet_stages = [
         m_stage.r,
@@ -297,11 +297,11 @@ def uascan(
                 tanBragg = math.tan(reference * math.pi / 180)
                 cosScatAngle = math.cos((reference - target_ar) * math.pi / 180)
 
-            yield from user_data.set_state_plan(f"moving motors {i+1}/{intervals}")
+            yield from user_data.set_state_plan(f"moving motors {i + 1}/{intervals}")
             yield from bps.mv(*moves)
 
             # count
-            yield from user_data.set_state_plan(f"counting {i+1}/{intervals}")
+            yield from user_data.set_state_plan(f"counting {i + 1}/{intervals}")
             yield from bps.trigger(scaler0, group="uascan_count")  # start the scaler
             yield from bps.wait(group="uascan_count")  # wait for the scaler
 

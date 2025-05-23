@@ -13,18 +13,18 @@ from typing import Optional
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import restorable_stage_sigs
 from apstools.utils import cleanupText
-
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from bluesky.utils import plan
 
-from usaxs.startup import suspend_BeamInHutch
-from usaxs.startup import suspend_FE_shutter
-from usaxs.utils.utils import techniqueSubdirectory
-from usaxs.utils.user_sample_title import getSampleTitle
-
-# FIXME: depends on issue #27
-#from .amplifiers_plan import autoscale_amplifiers # fix this when amplifiers are available
-#from .amplifiers_plan import I0_controls  # fix this when amplifiers are available
+from ..startup import suspend_BeamInHutch
+from ..startup import suspend_FE_shutter
+from ..utils.constants import constants
+from ..utils.emails import NOTIFY_ON_BAD_FLY_SCAN
+from ..utils.override import user_override
+from ..utils.user_sample_title import getSampleTitle
+from ..utils.utils import techniqueSubdirectory
+from .amplifiers_plan import autoscale_amplifiers
 from .area_detector_plans import areaDetectorAcquire
 from .command_list import after_plan
 from .command_list import before_plan
@@ -37,50 +37,39 @@ from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_SAXS_Transmission
-from usaxs.utils.override import user_override
-
 
 logger = logging.getLogger(__name__)
 
 MASTER_TIMEOUT = 60
-mono_shutter = oregistry["mono_shutter"]
-usaxs_shutter = oregistry["usaxs_shutter"]
-guard_slit = oregistry["guard_slit"]
-monochromator = oregistry["monochromator"]
-usaxs_q_calc = oregistry["usaxs_q_calc"]
-usaxs_flyscan = oregistry["usaxs_flyscan"]
-lax_autosave = oregistry["lax_autosave"]
-struck = oregistry["struck"]
-flyscan_trajectories = oregistry["flyscan_trajectories"]
+a_stage = oregistry["a_stage"]
 ar_start = oregistry["ar_start"]
-saxs_det = oregistry["saxs_det"]
-waxs_det = oregistry["waxs_det"]
-scaler1 = oregistry["scaler1"]
-saxs_stage = oregistry["saxs_stage"]
-mono_shutter = oregistry["mono_shutter"]
-usaxs_shutter = oregistry["usaxs_shutter"]
+d_stage = oregistry["d_stage"]
+flyscan_trajectories = oregistry["flyscan_trajectories"]
 guard_slit = oregistry["guard_slit"]
+guard_slit = oregistry["guard_slit"]
+I0_controls = oregistry["I0_controls"]
+lax_autosave = oregistry["lax_autosave"]
+m_stage = oregistry["m_stage"]
+mono_shutter = oregistry["mono_shutter"]
+mono_shutter = oregistry["mono_shutter"]
 monochromator = oregistry["monochromator"]
-terms = oregistry["terms"]
+monochromator = oregistry["monochromator"]
 s_stage = oregistry["s_stage"]
+saxs_det = oregistry["saxs_det"]
+saxs_stage = oregistry["saxs_stage"]
+scaler0 = oregistry["scaler0"]
+scaler1 = oregistry["scaler1"]
+struck = oregistry["struck"]
+terms = oregistry["terms"]
+trd_controls = oregistry["trd_controls"]
+usaxs_flyscan = oregistry["usaxs_flyscan"]
+usaxs_q_calc = oregistry["usaxs_q_calc"]
+usaxs_shutter = oregistry["usaxs_shutter"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_device"]
-scaler0 = oregistry["scaler0"]
-m_stage = oregistry["m_stage"]
-a_stage = oregistry["a_stage"]
-d_stage = oregistry["d_stage"]
+waxs_det = oregistry["waxs_det"]
 
-# this is in iconfig.yml, how to get to it?
-from usaxs.utils.emails import NOTIFY_ON_BAD_FLY_SCAN
-
-#trd_controls = oregistry["trd_controls"]
-from usaxs.utils.constants import constants
-
-
-logger = logging.getLogger(__name__)
-
-
-# # these two templates match each other, sort of
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"
 LOCAL_FILE_TEMPLATE = "%s_%04d.hdf"
 MASTER_TIMEOUT = 60
@@ -89,10 +78,11 @@ user_override.register("useDynamicTime")
 # Make sure these are not staged. For acquire_time,
 # # any change > 0.001 s takes ~0.5 s for Pilatus to complete!
 DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
-#     acquire_time acquire_period num_images num_exposures
-# """.split()
+    acquire_time acquire_period num_images num_exposures
+""".split()
 
 
+@plan
 def SAXS(
     pos_X: float,
     pos_Y: float,
@@ -270,7 +260,7 @@ def SAXS(
         saxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
         yield from bps.sleep(0.2)
-        #yield from autoscale_amplifiers([I0_controls])
+        # yield from autoscale_amplifiers([I0_controls])
 
         yield from bps.mv(
             usaxs_shutter,
@@ -342,6 +332,7 @@ def SAXS(
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
+@plan
 def WAXS(
     pos_X: float,
     pos_Y: float,
@@ -512,7 +503,7 @@ def WAXS(
         waxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
         yield from bps.sleep(0.2)
-        #yield from autoscale_amplifiers([I0_controls, trd_controls])
+        # yield from autoscale_amplifiers([I0_controls, trd_controls])
 
         yield from bps.mv(
             usaxs_shutter,
@@ -561,12 +552,12 @@ def WAXS(
         scaler1.channels.chan02.s.get(),
         terms.SAXS_WAXS.diode_transmission,
         scaler0.channels.chan05.s.get(),
-        #terms.SAXS_WAXS.diode_gain,
-        #trd_controls.femto.gain.get(),
+        # terms.SAXS_WAXS.diode_gain,
+        # trd_controls.femto.gain.get(),
         terms.SAXS_WAXS.I0_transmission,
         scaler0.channels.chan02.s.get(),
         terms.SAXS_WAXS.I0_gain,
-        #I0_controls.femto.gain.get(),
+        # I0_controls.femto.gain.get(),
         scaler0.update_rate,
         5,
         scaler1.update_rate,

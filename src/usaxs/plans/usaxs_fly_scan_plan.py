@@ -22,22 +22,18 @@ from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
-# FIXME: depends on issue #27
-from src.usaxs.devices.amplifier_device import AutorangeSettings
-
+from ..devices.amplifiers import AutorangeSettings
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
 logger = logging.getLogger(__name__)
 
 # Device instances
-# FIXME: depends on issue #27
-# from ..devices.amplifiers import AutorangeSettings
-upd_controls = oregistry["upd_controls"]
-terms = oregistry["terms"]
-usaxs_shutter = oregistry["usaxs_shutter"]
 a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
 struck = oregistry["struck"]
+terms = oregistry["terms"]
+upd_controls = oregistry["upd_controls"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 
 
@@ -49,7 +45,8 @@ def plan(
     bec: Optional[Any] = None,
     specwriter: Optional[Any] = None,
 ):
-    """Execute a USAXS fly scan.
+    """
+    Execute a USAXS fly scan.
 
     This function coordinates the execution of a USAXS fly scan, including:
     - Setting up the HDF5 file for data storage

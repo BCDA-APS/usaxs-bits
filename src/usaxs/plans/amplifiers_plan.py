@@ -1,7 +1,4 @@
-"""
-Amplifier support
-"""
-# FIXME: depends on issue #27
+"""Amplifier support"""
 
 import logging
 from collections import OrderedDict
@@ -9,21 +6,20 @@ from typing import Any
 from typing import Optional
 
 import numpy as np
-
 # Get devices from oregistry
 from apsbits.core.instrument_init import oregistry
-
 # Add missing imports at the top
 from bluesky import RunEngine
 from bluesky import plan_stubs as bps
+from bluesky.utils import plan
+from ophyd.scaler import ScalerChannel
 from ophyd.signal import EpicsSignalRO
 
-from src.usaxs.devices.amplifier_device import AMPLIFIER_MINIMUM_SETTLING_TIME
-from src.usaxs.devices.amplifier_device import NUM_AUTORANGE_GAINS
-from src.usaxs.devices.amplifier_device import AutorangeSettings
-from src.usaxs.devices.amplifier_device import AutoscaleError
-from src.usaxs.devices.amplifier_device import DetectorAmplifierAutorangeDevice
-from src.usaxs.devices.scaler_device import ScalerChannel
+from ..devices.amplifiers import AMPLIFIER_MINIMUM_SETTLING_TIME
+from ..devices.amplifiers import NUM_AUTORANGE_GAINS
+from ..devices.amplifiers import AutorangeSettings
+from ..devices.amplifiers import AutoscaleError
+from ..devices.amplifiers import DetectorAmplifierAutorangeDevice
 
 # Add these imports at the top of the file
 # Imports from local plans
@@ -50,21 +46,26 @@ logger = logging.getLogger(__name__)
 
 
 def setup_amplifier_count_time():
-    """Set up the count time for the amplifier.
+    """
+    Set up the count time for the amplifier.
 
     This function configures the count time settings for the amplifier
     and ensures proper synchronization with the scaler.
     """
+    raise NotImplementedError("TODO")
 
 
 def setup_amplifier_auto_background():
-    """Set up automatic background measurement for the amplifier.
+    """
+    Set up automatic background measurement for the amplifier.
 
     This function configures the amplifier for automatic background
     measurement and updates the necessary parameters.
     """
+    raise NotImplementedError("TODO")
 
 
+@plan
 def autoscale_amplifiers(
     controls: list[DetectorAmplifierAutorangeDevice],
     shutter: Optional[Any] = None,
@@ -72,7 +73,8 @@ def autoscale_amplifiers(
     max_iterations: int = 9,
     RE: Optional[RunEngine] = None,
 ):
-    """Bluesky plan: autoscale detector amplifiers simultaneously.
+    """
+    Bluesky plan: autoscale detector amplifiers simultaneously.
 
     Parameters
     ----------
@@ -125,13 +127,15 @@ def autoscale_amplifiers(
                 )
 
 
+@plan
 def _scaler_autoscale_(
     controls: list[DetectorAmplifierAutorangeDevice],
     count_time: float = 0.05,
     max_iterations: int = 9,
     RE: Optional[RunEngine] = None,
 ):
-    """Plan: internal: autoscale amplifiers for signals sharing a common scaler.
+    """
+    Plan: internal: autoscale amplifiers for signals sharing a common scaler.
 
     Args:
         controls: list of DetectorAmplifierAutorangeDevice instances
@@ -229,14 +233,14 @@ def _scaler_autoscale_(
 
     if not complete and aps.inUserOperations:  # bailed out early from loop
         logger.warning(f"converged={converged}")
-        msg = "FAILED TO FIND CORRECT GAIN IN " f"{max_iterations} AUTOSCALE ITERATIONS"
+        msg = f"FAILED TO FIND CORRECT GAIN IN {max_iterations} AUTOSCALE ITERATIONS"
         if RE.state != "idle":  # don't raise if in summarize_plan()
             raise AutoscaleError(msg)
 
 
 def group_controls_by_scaler(controls):
     """
-    return dictionary of [controls] keyed by common scaler support
+    Return dictionary of [controls] keyed by common scaler support.
 
     controls [obj]
         list (or tuple) of ``DetectorAmplifierAutorangeDevice``
@@ -245,9 +249,11 @@ def group_controls_by_scaler(controls):
     scaler_dict = OrderedDefaultDict(list)  # sort the list of controls by scaler
     for i, control in enumerate(controls):
         # each item in list MUST be instance of DetectorAmplifierAutorangeDevice
-        msg = f"controls[{i}] must be"
-        msg += " instance of 'DetectorAmplifierAutorangeDevice'"
-        msg += f", provided: {control}"
+        msg = (
+            f"controls[{i}] must be"
+            " instance of 'DetectorAmplifierAutorangeDevice'"
+            f", provided: {control}"
+        )
         assert isinstance(control, DetectorAmplifierAutorangeDevice), msg
 
         k = control.scaler.name  # key by scaler's ophyd device name
@@ -255,10 +261,10 @@ def group_controls_by_scaler(controls):
     return scaler_dict
 
 
+@plan
 def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8):
     """
-    plan: internal: measure amplifier backgrounds for signals
-    sharing a common scaler
+    Measure amplifier backgrounds for signals that share a common scaler.
     """
     scaler = control_list[0].scaler
     signals = [c.signal for c in control_list]
@@ -319,7 +325,7 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
             )
             msg = f"{control.nickname}"
             msg += f" range={n}"
-            msg += f" gain={ _gain_to_str_(control.auto.gain.get())}"
+            msg += f" gain={_gain_to_str_(control.auto.gain.get())}"
             msg += f" bkg={g.background.get()}"
             msg += f" +/- {g.background_error.get()}"
 
@@ -368,7 +374,8 @@ def UPDRange(self) -> int:
 
 
 def _gain_to_str_(gain: int) -> str:
-    """Convert a gain value to a string representation.
+    """
+    Convert a gain value to a string representation.
 
     Args:
         gain: The gain value to convert
@@ -383,7 +390,8 @@ class OrderedDefaultDict(OrderedDict):
     """A defaultdict that maintains insertion order."""
 
     def __init__(self, default_factory=None, *args, **kwargs):
-        """Initialize the OrderedDefaultDict.
+        """
+        Initialize the OrderedDefaultDict.
 
         Args:
             default_factory: Factory function to create default values

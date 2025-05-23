@@ -15,9 +15,8 @@ from apsbits.core.instrument_init import MONO_FEEDBACK_ON
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import TuneAxis
 from bluesky import plan_stubs as bps
+from bluesky.utils import plan
 from ophyd import Kind
-
-from src.usaxs.devices.monochromator import monochromator
 
 from ..startup import RE
 from ..utils.derivative import numerical_derivative
@@ -39,15 +38,17 @@ UPD_SIGNAL = oregistry["UPD_SIGNAL"]
 I0_controls = oregistry["I0_controls"]
 I00_controls = oregistry["I00_controls"]
 autoscale_amplifiers = oregistry["autoscale_amplifiers"]
+monochromator = oregistry["monochromator"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-upd_controls = oregistry["upd_controls"]
 usaxs_slit = oregistry["usaxs_slit"]
+upd_controls = oregistry["upd_controls"]
 
 
 class GuardSlitTuneError(RuntimeError):
     """Custom error raised when guard slit tuning fails."""
 
 
+@plan
 def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
     """
     Plan: optimize the guard slits' position.
@@ -172,6 +173,7 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
     yield from bps.mv(usaxs_shutter, "close")
 
 
+@plan
 def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
     """
     Plan: (internal) this performs the guard slit scan.
@@ -413,6 +415,7 @@ def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
     return tunes
 
 
+@plan
 def _unstick_GslitsSizeMotors(oregistry: Optional[Dict[str, Any]] = None):
     """
     Plan: (internal) unstick the guard slit motors.
@@ -466,6 +469,7 @@ def _unstick_GslitsSizeMotors(oregistry: Optional[Dict[str, Any]] = None):
     logger.info("Workaround Complete.")
 
 
+@plan
 def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
     """
     Plan: optimize the guard slits' size.
@@ -534,6 +538,7 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
     )
 
 
+@plan
 def tune_Gslits(oregistry: Optional[Dict[str, Any]] = None):
     """
     Plan: optimize the guard slits' position and size.

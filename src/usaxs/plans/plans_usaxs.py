@@ -12,26 +12,23 @@ from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
+from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from bluesky.utils import plan
 
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.emails import email_notices
 from usaxs.utils.override import user_override
 from usaxs.utils.setup_new_user import techniqueSubdirectory
-from apstools.utils import cleanupText
 from usaxs.utils.user_sample_title import getSampleTitle
 
 from ..utils.a2q_q2a import q2angle
-# FIXME: depends on issue #27
-# from .amplifiers_plan import autoscale_amplifiers     # fix this when amplifiers are available
-# from .amplifiers_plan import I0_controls     # fix this when amplifiers are available
-# from .amplifiers_plan import I00_controls     # fix this when amplifiers are available
-
+from ..utils.emails import NOTIFY_ON_BAD_FLY_SCAN
+from .amplifiers_plan import autoscale_amplifiers
 from .command_list import after_plan
 from .command_list import before_plan
-
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
@@ -39,34 +36,35 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_USAXS_Transmission
 from .uascan import uascan
-from usaxs.utils.emails import NOTIFY_ON_BAD_FLY_SCAN
-
 
 logger = logging.getLogger(__name__)
 
 MASTER_TIMEOUT = 60
-mono_shutter = oregistry["mono_shutter"]
-usaxs_shutter = oregistry["usaxs_shutter"]
+a_stage = oregistry["a_stage"]
+ar_start = oregistry["ar_start"]
+d_stage = oregistry["d_stage"]
+flyscan_trajectories = oregistry["flyscan_trajectories"]
 guard_slit = oregistry["guard_slit"]
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+lax_autosave = oregistry["lax_autosave"]
+m_stage = oregistry["m_stage"]
+mono_shutter = oregistry["mono_shutter"]
 monochromator = oregistry["monochromator"]
-terms = oregistry["terms"]
 s_stage = oregistry["s_stage"]
+scaler0 = oregistry["scaler0"]
+struck = oregistry["struck"]
+terms = oregistry["terms"]
+upd_controls = oregistry["upd_controls"]
+usaxs_flyscan = oregistry["usaxs_flyscan"]
+usaxs_q_calc = oregistry["usaxs_q_calc"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_device"]
-scaler0 = oregistry["scaler0"]
-m_stage = oregistry["m_stage"]
-a_stage = oregistry["a_stage"]
-d_stage = oregistry["d_stage"]
-usaxs_q_calc = oregistry["usaxs_q_calc"]
-usaxs_flyscan = oregistry["usaxs_flyscan"]
-lax_autosave = oregistry["lax_autosave"]
-struck = oregistry["struck"]
-flyscan_trajectories = oregistry["flyscan_trajectories"]
-ar_start = oregistry["ar_start"]
-#upd_controls = oregistry["upd_controls"]
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
+@plan
 def USAXSscan(
     x: float,
     y: float,
@@ -126,6 +124,7 @@ def USAXSscan(
     yield from bps.mv(monochromator.feedback.on, MONO_FEEDBACK_ON)
 
 
+@plan
 def USAXSscanStep(
     pos_X: float,
     pos_Y: float,
@@ -384,6 +383,7 @@ def USAXSscanStep(
     yield from after_plan(weight=3)
 
 
+@plan
 def Flyscan(
     pos_X: float,
     pos_Y: float,
