@@ -47,6 +47,7 @@ m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
 usaxs_q_calc = oregistry["usaxs_q_calc"]
 UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+UPD = oregistry["UPD"]
 I0_SIGNAL = oregistry["I0_SIGNAL"]
 
 user_data = oregistry["user_device"]

@@ -22,7 +22,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
-from usaxs.devices import setup_scalers
+from usaxs.devices.scalers import setup_scalers
 
 logger = logging.getLogger(__name__)
 
