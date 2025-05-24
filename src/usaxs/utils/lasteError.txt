@@ -1,74 +1,10 @@
-raceback (most recent call last):
-  Cell In[1], line 1
-    from usaxs.startup import *
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/startup.py:108
-    from .plans import *  # noqa: F401
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/__init__.py:8
-    from .autocollect_plan import remote_ops
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/autocollect_plan.py:14
-    from .command_list import run_command_file
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/command_list.py:24
-    from .amplifiers_plan import measure_background
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/amplifiers_plan.py:30
-    I0_controls = oregistry["I0_controls"]
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:172 in __getitem__
-    return self.find(key)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:346 in find
-    devices = self.findall(
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:504 in findall
-    raise ComponentNotFound(
-ComponentNotFound: 'Could not find components matching: label="I0_controls", name="I0_controls"'
-
-
-In [1]: from usaxs.devices.amplfiers import ModifedSwiatRecord
-Traceback (most recent call last):
-  Cell In[1], line 1
-    from usaxs.devices.amplfiers import ModifedSwiatRecord
-ModuleNotFoundError: No module named 'usaxs.devices.amplfiers'
-
-
-In [2]: from usaxs.devices.amplfiers import ModifedSwaitRecord
-Traceback (most recent call last):
-  Cell In[2], line 1
-    from usaxs.devices.amplfiers import ModifedSwaitRecord
-ModuleNotFoundError: No module named 'usaxs.devices.amplfiers'
-
-
-In [3]: from usaxs.devices.amplifiers import ModifedSwaitRecord
-Traceback (most recent call last):
-  Cell In[3], line 1
-    from usaxs.devices.amplifiers import ModifedSwaitRecord
-ImportError: cannot import name 'ModifedSwaitRecord' from 'usaxs.devices.amplifiers' (/home/beams11/USAXS/bits_usaxs/src/usaxs/devices/amplifiers.py)
-
-
-In [4]: from usaxs.devices.amplifiers import ModifiedSwaitRecord
-
-In [5]: I0_photocurrent_calc=ModifiedSwaitRecord("usxLAX:USAXS:I0",name="I0_photocurrent_calc")
-
-In [6]: I0_photocurrent_calc
-Out[6]: ModifiedSwaitRecord(prefix='usxLAX:USAXS:I0', name='I0_photocurrent_calc', read_attrs=['channels.A', 'channels.B', 'channels.C', 'channels.D', 'channels.E', 'channels.F', 'channels.G', 'channels.H', 'channels.I', 'channels.J', 'channels.K', 'channels.L'], configuration_attrs=['description', 'scanning_rate', 'disable_value', 'scan_disable_input_link_value', 'scan_disable_value_input_link', 'forward_link', 'device_type', 'alarm_status', 'alarm_severity', 'new_alarm_status', 'new_alarm_severity', 'disable_alarm_severity', 'precision', 'high_operating_range', 'low_operating_range', 'calculation', 'output_link_pv', 'output_location_name', 'output_location_data', 'output_data_option', 'output_execute_option', 'output_execution_delay', 'event_to_issue', 'channels', 'channels.A', 'channels.A.input_value', 'channels.A.input_pv', 'channels.A.input_trigger', 'channels.B', 'channels.B.input_value', 'channels.B.input_pv', 'channels.B.input_trigger', 'channels.C', 'channels.C.input_value', 'channels.C.input_pv', 'channels.C.input_trigger', 'channels.D', 'channels.D.input_value', 'channels.D.input_pv', 'channels.D.input_trigger', 'channels.E', 'channels.E.input_value', 'channels.E.input_pv', 'channels.E.input_trigger', 'channels.F', 'channels.F.input_value', 'channels.F.input_pv', 'channels.F.input_trigger', 'channels.G', 'channels.G.input_value', 'channels.G.input_pv', 'channels.G.input_trigger', 'channels.H', 'channels.H.input_value', 'channels.H.input_pv', 'channels.H.input_trigger', 'channels.I', 'channels.I.input_value', 'channels.I.input_pv', 'channels.I.input_trigger', 'channels.J', 'channels.J.input_value', 'channels.J.input_pv', 'channels.J.input_trigger', 'channels.K', 'channels.K.input_value', 'channels.K.input_pv', 'channels.K.input_trigger', 'channels.L', 'channels.L.input_value', 'channels.L.input_pv', 'channels.L.input_trigger'])
-
-In [7]: I0_photocurrent_calc.connected
-Out[7]: True
-
-In [8]: I00_photocurrent_calc=ModifiedSwaitRecord("usxLAX:USAXS:I00",name="I00_photocurrent_calc")
-
-In [9]: I000_photocurrent_calc=ModifiedSwaitRecord("usxLAX:USAXS:I000",name="I000_photocurrent_calc")
-
-In [10]: I000_photocurrent_calc=ModifiedSwaitRecord("usxLAX:USAXS:I000",name="trd_photocurrent_calc")
-
-In [11]: I000_photocurrent_calc=ModifiedSwaitRecord("usxLAX:USAXS:trd",name="trd_photocurrent_calc")
-
-In [12]: I000_photocurrent_calc=ModifiedSwaitRecord("usxLAX:USAXS:upd",name="trd_photocurrent_calc")
-
-In [13]: exit
 (base) usaxs@usaxscontrol .../USAXS_data/2025-05 $ start-bits-usaxs 
 CONDA_PREFIX = '/home/beams/USAXS/.conda/envs/bits_usaxs'
 Python 3.11.12 | packaged by conda-forge | (main, Apr 10 2025, 22:23:25) [GCC 13.3.0]
 Type 'copyright', 'credits' or 'license' for more information
 IPython 9.1.0 -- An enhanced Interactive Python. Type '?' for help.
-Tip: You can use LaTeX or Unicode completion, `\alpha<tab>` will insert the α symbol.
-I Sat-08:43:21.223: **************************************** Bluesky Startup
+Tip: IPython supports combining unicode identifiers, eg F\vec<tab> will become F⃗, useful for physics equations. Play with \dot \ddot and others.
+I Sat-14:02:04.166: **************************************** Bluesky Startup
 
 Below are the IPython logging settings for your session.
 These settings have no impact on your experiment.
@@ -84,42 +20,60 @@ Exception reporting mode: Plain
 
 End of IPython settings
 
-I Sat-08:43:26.247: Starting Instrument with iconfig: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/iconfig.yml
-W Sat-08:43:26.265: APS DM setup file does not exist: '/home/dm/etc/dm.setup.sh'
-I Sat-08:43:26.266: Registered Bluesky IPython magics
-I Sat-08:43:26.345: Databroker catalog name: usaxs
-I Sat-08:43:26.346: using ophyd control layer: 'pyepics'
-I Sat-08:43:26.347: RunEngine metadata saved to: .re_md_dict.yml
-I Sat-08:43:26.870: SPEC data file: /share1/USAXS_data/2025-05/20250524-084326.dat
-I Sat-08:43:26.871: Loading device file: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/scalers_and_amplifiers.yml
-^CA 'deferred pause' has been requested. The RunEngine will pause at the next checkpoint. To pause immediately, hit Ctrl+C again in the next 10 seconds.
-Deferred pause acknowledged. Continuing to checkpoint.
-^Ctrying a second time
-Pausing...
+I Sat-14:02:09.069: Starting Instrument with iconfig: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/iconfig.yml
+W Sat-14:02:09.096: APS DM setup file does not exist: '/home/dm/etc/dm.setup.sh'
+I Sat-14:02:09.097: Registered Bluesky IPython magics
+I Sat-14:02:09.182: Databroker catalog name: usaxs
+I Sat-14:02:09.182: using ophyd control layer: 'pyepics'
+I Sat-14:02:09.183: RunEngine metadata saved to: .re_md_dict.yml
+I Sat-14:02:09.680: SPEC data file: /share1/USAXS_data/2025-05/20250524-140209.dat
+I Sat-14:02:09.681: Loading device file: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/scalers_and_amplifiers.yml
+Exception in thread Thread-2 (internal):
+Traceback (most recent call last):
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/run_blocking_function_plan.py", line 67, in internal
+    result = function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apsbits/core/instrument_init.py", line 132, in namespace_loader
+    instrument.load(yaml_device_file)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/guarneri/instrument.py", line 399, in load
+    devices = self.make_devices(device_defns, fake=fake)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/guarneri/instrument.py", line 190, in make_devices
+    device = self.make_device(
+             ^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/guarneri/instrument.py", line 274, in make_device
+    result = Klass(**kwargs)
+             ^^^^^^^^^^^^^^^
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/devices/amplifiers.py", line 335, in __init__
+    self.scaler = oregistry[scaler]
+                  ~~~~~~~~~^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py", line 172, in __getitem__
+    return self.find(key)
+           ^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py", line 346, in find
+    devices = self.findall(
+              ^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py", line 504, in findall
+    raise ComponentNotFound(
+ophydregistry.exceptions.ComponentNotFound: 'Could not find components matching: label="scaler0", name="scaler0"'
 Traceback (most recent call last):
   Cell In[1], line 1
     from usaxs.startup import *
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/startup.py:84
-    RE(make_devices(file="scalers_and_amplifiers.yml", clear=False))
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:976 in __call__
-    raise RunEngineInterrupted(self.pause_msg) from None
-RunEngineInterrupted: 
-Your RunEngine is entering a paused state. These are your options for changing
-the state of the RunEngine:
-
-RE.resume()    Resume the plan.
-RE.abort()     Perform cleanup, then kill plan. Mark exit_stats='aborted'.
-RE.stop()      Perform cleanup, then kill plan. Mark exit_status='success'.
-RE.halt()      Emergency Stop: Do not perform cleanup --- just stop.
-
+  File /home/beams11/USAXS/bits_usaxs/src/usaxs/startup.py:85
+    setup_scalers()
+  File /home/beams11/USAXS/bits_usaxs/src/usaxs/devices/scalers.py:11 in setup_scalers
+    scaler0 = oregistry["scaler0"]  # See scalers.yml
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:172 in __getitem__
+    return self.find(key)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:346 in find
+    devices = self.findall(
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:504 in findall
+    raise ComponentNotFound(
+ComponentNotFound: 'Could not find components matching: label="scaler0", name="scaler0"'
 
 
-In [1]: exiI Sat-08:43:39.873: Devices loaded in 13.002 s.
-I Sat-08:43:39.874: Adding ophyd device 'I000_photocurrent_calc' to main namespace
-I Sat-08:43:39.875: Adding ophyd device 'I00_photocurrent_calc' to main namespace
-I Sat-08:43:39.875: Adding ophyd device 'trd_photocurrent_calc' to main namespace
-I Sat-08:43:39.875: Adding ophyd device 'I0_photocurrent_calc' to main namespace
-I Sat-08:43:39.875: Adding ophyd device 'scaler1' to main namespace
-I Sat-08:43:39.876: Adding ophyd device 'scaler0' to main namespace
-I Sat-08:43:39.876: Adding ophyd device 'upd_photocurrent_calc' to main namespace
-t
+In [1]: 
