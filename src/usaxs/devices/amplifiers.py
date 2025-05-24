@@ -35,7 +35,7 @@ from ophyd import Signal
 from ophyd.scaler import ScalerCH
 from ophyd.scaler import ScalerChannel
 
-from ..startup import oregistry
+#from ..startup import oregistry
 
 logger = logging.getLogger(__name__)
 
@@ -325,37 +325,37 @@ class DetectorAmplifierAutorangeDevice(Device):
             Name of the detector.
         **kwargs: Arbitrary keyword arguments.
         """
-        if not isinstance(nickname, str):
-            raise ValueError(
-                "'nickname' should be of 'str' type,"
-                f" received type: {type(nickname)}"
-            )
+        # if not isinstance(nickname, str):
+        #     raise ValueError(
+        #         "'nickname' should be of 'str' type,"
+        #         f" received type: {type(nickname)}"
+        #     )
 
-        self.nickname = nickname
-        self.scaler = oregistry[scaler]
-        self.signal = oregistry[f"{det.upper()}_SIGNAL"]
-        self.femto = oregistry[f"{det}_femto_amplifier"]
-        self.auto = [f"{det}_autorange_controls"]
+        # self.nickname = nickname
+        # self.scaler = oregistry[scaler]
+        # self.signal = oregistry[f"{det.upper()}_SIGNAL"]
+        # self.femto = oregistry[f"{det}_femto_amplifier"]
+        # self.auto = [f"{det}_autorange_controls"]
 
-        if not isinstance(self.scaler, ScalerCH):
-            raise ValueError(
-                "'scaler' should name a 'ScalerCH' type,"
-                f" received type: {type(self.scaler)}"
-            )
-        if not isinstance(self.signal, ScalerChannel):
-            raise ValueError(
-                "'signal' should name a 'ScalerChannel' type,"
-                f" received type: {type(self.signal)}"
-            )
-        if not isinstance(self.amplifier, FemtoAmplifierDevice):
-            raise ValueError(
-                "'amplifier' should name a 'FemtoAmplifierDevice' type,"
-                f" received type: {type(self.amplifier)}"
-            )
-        if not isinstance(self.auto, AmplifierAutoDevice):
-            raise ValueError(
-                "'auto' should name a 'AmplifierAutoDevice' type,"
-                f" received type: {type(self.auto)}"
-            )
+        # if not isinstance(self.scaler, ScalerCH):
+        #     raise ValueError(
+        #         "'scaler' should name a 'ScalerCH' type,"
+        #         f" received type: {type(self.scaler)}"
+        #     )
+        # if not isinstance(self.signal, ScalerChannel):
+        #     raise ValueError(
+        #         "'signal' should name a 'ScalerChannel' type,"
+        #         f" received type: {type(self.signal)}"
+        #     )
+        # if not isinstance(self.amplifier, FemtoAmplifierDevice):
+        #     raise ValueError(
+        #         "'amplifier' should name a 'FemtoAmplifierDevice' type,"
+        #         f" received type: {type(self.amplifier)}"
+        #     )
+        # if not isinstance(self.auto, AmplifierAutoDevice):
+        #     raise ValueError(
+        #         "'auto' should name a 'AmplifierAutoDevice' type,"
+        #         f" received type: {type(self.auto)}"
+        #     )
 
-        super().__init__("", **kwargs)
+        # super().__init__("", **kwargs)
