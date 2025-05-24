@@ -9,33 +9,35 @@ from apsbits.core.instrument_init import oregistry
 from apsbits.utils.config_loaders import get_config
 from apstools.plans import restorable_stage_sigs
 from bluesky import plan_stubs as bps
-from ophyd.scaler import ScalerCH
+from bluesky.utils import plan
 
 from ..utils.setup_new_user import techniqueSubdirectory
+from .amplifiers_plan import autoscale_amplifiers
 from .area_detector_plans import areaDetectorAcquire
 
 saxs_det = oregistry["saxs_det"]
 monochromator = oregistry["monochromator"]
 terms = oregistry["terms"]
+I0_controls = oregistry["I0_controls"]
+
 
 iconfig = get_config()
 scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
 scaler1_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER1_NAME")
 
-scaler0 = ScalerCH(scaler0_name, name="scaler0")
-scaler1 = ScalerCH(scaler1_name, name="scaler1")
+scaler0 = oregistry["scaler0"]
+scaler1 = oregistry["scaler1"]
 
 scaler0.stage_sigs["count_mode"] = "OneShot"
 scaler0.select_channels()
 scaler1.select_channels()
 
-
-I00_SIGNAL = scaler0.channels.chan03
-I0 = scaler0.channels.chan02.s
-I00 = scaler0.channels.chan03.s
-UPD_SIGNAL = scaler0.channels.chan04
-TRD_SIGNAL = scaler0.channels.chan05
-I0_SIGNAL = scaler0.channels.chan02
+I0 = oregistry["I0"]
+I0_SIGNAL = oregistry["I0_SIGNAL"]
+I00 = oregistry["I00"]
+I00_SIGNAL = oregistry["I00_SIGNAL"]
+TRD_SIGNAL = oregistry["TRD_SIGNAL"]
+UPD_SIGNAL = oregistry["UPD_SIGNAL"]
 
 
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"
@@ -45,6 +47,7 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 """.split()
 
 
+@plan
 def test_plan(md=None, thickness=0.0):
     """
     Plan for collecting a test SAXS image using the area detector.
@@ -135,7 +138,7 @@ def test_plan(md=None, thickness=0.0):
         saxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
         yield from bps.sleep(0.2)
-        # yield from autoscale_amplifiers([I0_controls])
+        yield from autoscale_amplifiers([I0_controls])
 
         # yield from bps.mv(
         #     usaxs_shutter, "close",

@@ -57,8 +57,7 @@ def _gain_to_str_(gain):  # convenience function
 class AutoscaleError(RuntimeError):
     """Raised when autoscale fails to converge."""
 
-
-class AutorangeSettings(object):
+class AutorangeSettings:
     """Values allowed for sequence program's ``reqrange`` PV."""
 
     automatic = "automatic"

@@ -11,17 +11,18 @@ import os
 
 import apstools
 import numpy as np
-from apstools.callbacks import NXWriterAPS
 from apsbits.core.instrument_init import oregistry
+from apstools.callbacks import NXWriterAPS
 from apstools.utils import cleanupText
 
 from ..startup import RE
+from ..utils.utils import techniqueSubdirectory
+
 #from ..framework import callback_db
 
 terms = oregistry["terms"]
 user_data = oregistry["user_device"]
 
-from usaxs.utils.utils import techniqueSubdirectory
 
 logger = logging.getLogger(__name__)
 

@@ -11,33 +11,34 @@ from apsbits.core.instrument_init import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from bluesky.utils import plan
 
 from ..devices import AutorangeSettings
+from ..utils.emails import NOTIFY_ON_RESET
 from ..utils.emails import send_notification
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 
-from usaxs.utils.emails import NOTIFY_ON_RESET
-
 logger = logging.getLogger(__name__)
 
 # Device instances
-I00 = oregistry["I00"]
-I0 = oregistry["I0"]
-I0_controls = oregistry["I0_controls"]
-I00_controls = oregistry["I00_controls"]
 a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
+I0 = oregistry["I0"]
+I0_controls = oregistry["I0_controls"]
+I00 = oregistry["I00"]
+I00_controls = oregistry["I00_controls"]
 m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
-usaxs_shutter = oregistry["usaxs_shutter"]
 trd = oregistry["trd"]
 upd_controls = oregistry["upd_controls"]
+usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 
 
+@plan
 def reset_instrument(
     md: Optional[Dict[str, Any]] = None,
     RE: Optional[Any] = None,
@@ -88,6 +89,7 @@ def reset_instrument(
     return (yield from _inner())
 
 
+@plan
 def reset_USAXS():
     """
     bluesky plan to set USAXS instrument in safe configuration

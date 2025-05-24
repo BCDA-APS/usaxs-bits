@@ -17,7 +17,10 @@ import pyRestTable
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from bluesky.utils import plan
 
+from ..utils.constants import constants
+from .amplifiers_plan import autoscale_amplifiers
 from .filter_plans import insertScanFilters
 from .filter_plans import insertTransmissionFilters
 from .mode_changes import mode_SAXS
@@ -25,17 +28,13 @@ from .mode_changes import mode_USAXS
 from .no_run import no_run_trigger_and_wait
 
 logger = logging.getLogger(__name__)
-#import after amplifiers are finished:
-#autoscale_amplifiers = oregistry["autoscale_amplifiers"]
 
 
 # Device instances
-# I0_controls = oregistry["I0_controls"] #fix after amplfiers are finished. 
-# trd_controls = oregistry["trd_controls"]
+I0_controls = oregistry["I0_controls"]
+trd_controls = oregistry["trd_controls"]
 
 a_stage = oregistry["a_stage"]
-from usaxs.utils.constants import constants
-
 saxs_stage = oregistry["saxs_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
@@ -43,6 +42,7 @@ usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 
 
+@plan
 def measure_USAXS_Transmission(
     md: Optional[Dict[str, Any]] = None,
 ):
@@ -89,7 +89,7 @@ def measure_USAXS_Transmission(
             )
             yield from insertTransmissionFilters()
 
-            #yield from autoscale_amplifiers([I0_controls, trd_controls])
+            yield from autoscale_amplifiers([I0_controls, trd_controls])
 
             yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
             md["plan_name"] = "measure_USAXS_Transmission"
@@ -164,6 +164,7 @@ def measure_USAXS_Transmission(
         raise
 
 
+@plan
 def measure_SAXS_Transmission(
     md: Optional[Dict[str, Any]] = None,
 ):
@@ -269,6 +270,7 @@ def measure_SAXS_Transmission(
         raise
 
 
+@plan
 def measure_transmission(
     count_time: float = 1.0,
     md: Optional[Dict[str, Any]] = None,

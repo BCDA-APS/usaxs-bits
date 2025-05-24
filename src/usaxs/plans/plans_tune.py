@@ -13,10 +13,16 @@ from typing import Optional
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from bluesky.utils import plan
 
-from usaxs.startup import suspend_BeamInHutch
-from usaxs.startup import suspend_FE_shutter
-from usaxs.utils.emails import email_notices
+from ..startup import suspend_BeamInHutch
+from ..startup import suspend_FE_shutter
+from ..utils.emails import email_notices
+from .axis_tuning import tune_a2rp
+from .axis_tuning import tune_ar
+from .axis_tuning import tune_mr
+from .mode_changes import mode_USAXS
+from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
@@ -28,8 +34,6 @@ MASTER_TIMEOUT = 60
 usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 # ms_stage = oregistry["ms_stage"]
-# tune_msrp = oregistry["tune_msrp"]
-# tune_m2rp = oregistry["tune_m2rp"]
 monochromator = oregistry["monochromator"]
 mono_shutter = oregistry["mono_shutter"]
 terms = oregistry["terms"]
@@ -41,8 +45,10 @@ scaler0 = oregistry["scaler0"]
 m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
 
+
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
+@plan
 def preUSAXStune(md={}):
     """
     Tune the USAXS optics in any mode, is safe.
@@ -66,9 +72,8 @@ def preUSAXStune(md={}):
     USAGE:  ``RE(preUSAXStune())``
     """
 
+    yield from MONO_FEEDBACK_ON()
     yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
         usaxs_shutter,
@@ -178,6 +183,7 @@ def preUSAXStune(md={}):
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
+@plan
 def allUSAXStune(
     md: Optional[Dict[str, Any]] = None,
     RE: Optional[Any] = None,
@@ -206,9 +212,8 @@ def allUSAXStune(
     USAGE:  ``RE(allUSAXStune())``
     """
 
+    yield from MONO_FEEDBACK_ON()
     yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
         usaxs_shutter,
@@ -258,8 +263,8 @@ def allUSAXStune(
 
     tuners = OrderedDict()  # list the axes to tune
     tuners[m_stage.r] = tune_mr  # tune M stage to monochromator
-    if not m_stage.isChannelCut:
-        tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
+    # if not m_stage.isChannelCut:
+    #     tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
     if terms.USAXS.useMSstage.get():
         # tuners[ms_stage.rp] = tune_msrp    # align MSR stage with M stage
         pass
@@ -311,6 +316,7 @@ def allUSAXStune(
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
+@plan
 def preSWAXStune(
     md: Optional[Dict[str, Any]] = None,
     RE: Optional[Any] = None,
@@ -347,9 +353,8 @@ def preSWAXStune(
     if specwriter is None:
         raise ValueError("SPEC file writer instance must be provided")
 
+    yield from MONO_FEEDBACK_ON()
     yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
         usaxs_shutter,

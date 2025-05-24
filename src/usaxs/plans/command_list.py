@@ -13,14 +13,15 @@ from apsbits.core.instrument_init import oregistry
 from apstools.utils import ExcelDatabaseFileGeneric
 from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
+from bluesky.utils import plan
 from ophyd import Signal
 
-# FIXME: depends on issue #27
-# from .amplifiers_plan import measure_background  # add back when amplfiers are fixed.
-#from ..usaxs_flyscan_support import instrument_archive
+# from ..usaxs_flyscan_support import instrument_archive
+# from ..utils.emails import email_notices
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
-#from ..utils.emails import email_notices
+from ..utils.constants import constants
 from ..utils.quoted_line import split_quoted_line
+from .amplifiers_plan import measure_background
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
 from .axis_tuning import user_defined_settings
@@ -36,20 +37,19 @@ from .requested_stop import RequestAbort
 from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
 from .sample_rotator_plans import PI_onR
-from usaxs.utils.constants import constants
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
+s_stage = oregistry["s_stage"]
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_device"]
 waxs_det = oregistry["waxs_det"]
-s_stage = oregistry["s_stage"]
 
-#I00_controls = oregistry["I00_controls"]  # fix this after amplifiers are sorted out, part of measure background which is disabled. 
-#I0_controls = oregistry["I0_controls"]  # fix this
-#upd_controls = oregistry["upd_controls"]  # fix this
-#trd_controls = oregistry["trd_controls"]  # fix this
+I0_controls = oregistry["I0_controls"]
+I00_controls = oregistry["I00_controls"]
+trd_controls = oregistry["trd_controls"]
+upd_controls = oregistry["upd_controls"]
 
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
@@ -58,6 +58,7 @@ logger = logging.getLogger(__name__)
 ##User facing functions
 
 
+@plan
 def run_command_file(filename, md=None):
     """
     Plan: execute a list of commands from a text or Excel file.
@@ -77,12 +78,15 @@ def summarize_command_file(filename):
     logger.info("Command file: %s\n%s", command_list_as_table(commands), filename)
 
 
-##Internal functions
+## Internal functions
+
+@plan
 def beforeScanComputeOtherStuff():
     """Actions before each data collection starts."""
     yield from bps.null()  # TODO: remove this once you add the "other stuff"
 
 
+@plan
 def postCommandsListfile2WWW(commands):
     """Post list of commands to WWW and archive the list for posterity."""
     tbl_file = "commands.txt"
@@ -114,6 +118,7 @@ def postCommandsListfile2WWW(commands):
         fp.write(file_contents)
 
 
+@plan
 def before_command_list(md=None, commands=None):
     """Actions before a command list is run."""
 
@@ -143,10 +148,10 @@ def before_command_list(md=None, commands=None):
         1,
     )
 
-    #if constants["MEASURE_DARK_CURRENTS"]:
-    #     yield from measure_background(
-    #         [upd_controls, I0_controls, I00_controls, trd_controls],
-    #    )
+    if constants["MEASURE_DARK_CURRENTS"]:
+        yield from measure_background(
+            [upd_controls, I0_controls, I00_controls, trd_controls],
+        )
 
     # reset the ranges to be used when tuning optical axes (issue #129)
     # These routines are defined in file: 29-axis-tuning.py
@@ -173,8 +178,7 @@ def before_command_list(md=None, commands=None):
 
 def verify_commands(commands):
     """Verifies command input parameters to check if they are valid"""
-    # create string for error logging
-    list_of_errors = []
+    errors: list[str] = []
     # separate commands into individual components, see execute_command_list for details
     scan_actions = "flyscan usaxsscan saxs saxsexp waxs waxsexp".split()
     for command in commands:
@@ -187,30 +191,30 @@ def verify_commands(commands):
                 sy = float(args[1])
                 sth = float(args[2])
                 snm = args[3]
-            except (IndexError, ValueError) as exc:
-                list_of_errors.append(
-                    f"line {i}: Improper command : {raw_command.strip()} : {exc}"
+            except (IndexError, ValueError) as exinfo:
+                errors.append(
+                    f"line {i}: Improper command : {raw_command.strip()} : {exinfo}"
                 )
                 continue
             # check sx against travel limits
             if sx < s_stage.x.low_limit:
-                list_of_errors.append(
+                errors.append(
                     f"line {i}: SX low limit: value {sx} < low limit {s_stage.x.low_limit}, "
                     f"command: {raw_command.strip()}"
                 )
             if sx > s_stage.x.high_limit:
-                list_of_errors.append(
+                errors.append(
                     f"line {i}: SX high limit: value {sx} > high limit {s_stage.x.high_limit}, "
                     f"command: {raw_command.strip()}"
                 )
             # check sy against travel limits
             if sy < s_stage.y.low_limit:
-                list_of_errors.append(
+                errors.append(
                     f"line {i}: SY low limit: value {sy} < low limit {s_stage.y.low_limit}, "
                     f"command: {raw_command.strip()}"
                 )
             if sy > s_stage.y.high_limit:
-                list_of_errors.append(
+                errors.append(
                     f"line {i}: SY high limit: value {sy} > high limit {s_stage.y.high_limit}, "
                     f"command: {raw_command.strip()}"
                 )
@@ -221,10 +225,10 @@ def verify_commands(commands):
                 )
             #    list_of_errors.append(f"line {i}: thickness incorrect for : {raw_command.strip()}")
             # check snm for reasonable sample title value
-    if len(list_of_errors) > 0:
+    if len(errors) > 0:
         err_msg = (
             "Errors were found in command file. Cannot continue. List of errors:\n"
-            + "\n".join(list_of_errors)
+            "\n".join(errors)
         )
         raise RuntimeError(err_msg)
     # this is the end of this routine
@@ -232,6 +236,7 @@ def verify_commands(commands):
     logger.info("Command file verified")
 
 
+@plan
 def after_command_list(md=None):
     """Actions after a command list is run."""
     # if md is None:
@@ -247,6 +252,7 @@ def after_command_list(md=None):
     yield from user_data.set_state_plan("USAXS macro file done")
 
 
+@plan
 def before_plan(md=None):
     """Actions before every data collection plan."""
     if md is None:
@@ -263,6 +269,7 @@ def before_plan(md=None):
             yield from preSWAXStune(md=md)
 
 
+@plan
 def after_plan(weight=1, md=None):
     """Actions after every data collection plan."""
 
@@ -416,6 +423,7 @@ def get_command_list(filename):
     return commands
 
 
+@plan
 def execute_command_list(filename, commands, md=None):
     """
     Plan: execute the command list.
@@ -449,9 +457,9 @@ def execute_command_list(filename, commands, md=None):
         contents from input file, such as:
         ``SAXS 0 0 0 blank``
     """
-    from .plans_ads import SAXS
-    from .plans_ads import WAXS
     from .plans_usaxs import USAXSscan
+    from .plans_user_facing import SAXS
+    from .plans_user_facing import WAXS
 
     if md is None:
         md = {}
@@ -470,8 +478,8 @@ def execute_command_list(filename, commands, md=None):
     # save the command list as a separate Bluesky run for documentation purposes
     # yield from documentation_run(text)
 
-    #TODO: figure out what this was doing, does not seem to have the code available in bits 
-    #instrument_archive(text)
+    # TODO: figure out what this was doing, does not seem to have the code available in bits
+    # instrument_archive(text)
 
     yield from before_command_list(md=md, commands=commands)
     for command in commands:
@@ -570,7 +578,7 @@ def execute_command_list(filename, commands, md=None):
                     break  # we requested abort from EPICS
                 subject = (
                     f"{exc.__class__.__name__}"
-                    f" during attempt {attempt+1} of {maximum_attempts}"
+                    f" during attempt {attempt + 1} of {maximum_attempts}"
                     f" of command '{command}''"
                 )
                 body = f"subject: {subject}\n"
@@ -579,11 +587,11 @@ def execute_command_list(filename, commands, md=None):
                 body += f"line number: {i}\n"
                 body += f"command: {command}\n"
                 body += f"raw command: {raw_command}\n"
-                body += f"attempt: {attempt+1} of {maximum_attempts}\n"
+                body += f"attempt: {attempt + 1} of {maximum_attempts}\n"
                 body += f"exception: {exc}\n"
                 body += "Stopping further processing of this command list.\n"
                 logger.error("Exception %s\n%s", subject, body)
-                #email_notices.send(subject, body)
+                # email_notices.send(subject, body)
                 attempt += 1
                 exit_requested = True  # issue #502: stop if an Exception was noted
 
@@ -594,6 +602,7 @@ def execute_command_list(filename, commands, md=None):
     logger.info("memory report: %s", rss_mem())
 
 
+@plan
 def sync_order_numbers():
     """
     Synchronize the order numbers between the various detectors.
@@ -617,6 +626,7 @@ def sync_order_numbers():
     )
 
 
+@plan
 def run_set_command(*args):
     """
     Change a general parameter from a command file.

@@ -6,7 +6,7 @@ import logging
 
 from bluesky import plan_stubs as bps
 
-from usaxs.startup import oregistry
+from ..startup import oregistry
 
 logger = logging.getLogger(__name__)
 logger.bsdev(__file__)
