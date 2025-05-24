@@ -24,6 +24,7 @@ from .axis_tuning import tune_mr
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
+from .amplifiers_plan import autoscale_amplifiers
 
 logger = logging.getLogger(__name__)
 
