@@ -102,7 +102,6 @@ def autoscale_amplifiers(
 
     for control_list in scaler_dict.values():
         # do amplifiers in sequence, in case same hardware used multiple times
-        print(control_list)
         if len(control_list) > 0:
             try:
                 yield from _scaler_autoscale_(
@@ -179,12 +178,10 @@ def _scaler_autoscale_(
 
     # Autoscale has converged if no gains change
     # Also, make sure no detector count rates are stuck at max
-
     complete = False
     for _ in range(max_iterations):
         converged = []  # append True is convergence criteria is satisfied
         yield from bps.trigger(scaler, wait=True)  # timeout=count_time+1.0)
-
         # amplifier sequence program (in IOC) will adjust the gain now
 
         for control in controls:
@@ -199,11 +196,12 @@ def _scaler_autoscale_(
             if isinstance(control.signal, ScalerChannel):  # ophyd.ScalerCH
                 actual_rate = control.signal.s.get() / control.scaler.time.get()
             elif isinstance(control.signal, EpicsSignalRO):  # ophyd.EpicsScaler
-                # actual_rate = control.signal.get()      # FIXME
+                actual_rate = control.signal.get()      # FIXME
                 raise RuntimeError("This scaler needs to divide by time")
             else:
                 raise ValueError(f"unexpected control.signal: {control.signal}")
             converged.append(actual_rate <= max_rate)
+            print(f"gain={gain_now}  rate: {actual_rate}  max: {max_rate}")
             # logger.debug(
             #     "gain={gain_now}  rate: {actual_rate}  "
             #     "max: {max_rate}  converged={converged}"

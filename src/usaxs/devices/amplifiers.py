@@ -310,7 +310,7 @@ class DetectorAmplifierAutorangeDevice(Device):
     This is a convenience intended to simplify tasks such as measuring the
     backgrounds of all channels simultaneously.
     """
-
+    
     def __init__(self, nickname, scaler, det, **kwargs):
         """
         Initialize DetectorAmplifierAutorangeDevice.
@@ -333,7 +333,7 @@ class DetectorAmplifierAutorangeDevice(Device):
         self.nickname = nickname
         self.scaler = oregistry[scaler]
         self.signal = oregistry[f"{det.upper()}_SIGNAL"]
-        self.amplifier = oregistry[f"{det}_femto_amplifier"]    #changed from .femto, I assume amplfier is correct? 
+        self.femto = oregistry[f"{det}_femto_amplifier"]    #changed from .femto, I assume amplfier is correct? 
         self.auto = oregistry[f"{det}_autorange_controls"]       
 
         if not isinstance(self.scaler, ScalerCH):
@@ -346,10 +346,10 @@ class DetectorAmplifierAutorangeDevice(Device):
                 "'signal' should name a 'ScalerChannel' type,"
                 f" received type: {type(self.signal)}"
             )
-        if not isinstance(self.amplifier, FemtoAmplifierDevice):
+        if not isinstance(self.femto, FemtoAmplifierDevice):
             raise ValueError(
                 "'amplifier' should name a 'FemtoAmplifierDevice' type,"
-                f" received type: {type(self.amplifier)}"
+                f" received type: {type(self.femto)}"
             )
         if not isinstance(self.auto, AmplifierAutoDevice):          #this fails to for I0_USAXS
             raise ValueError(
