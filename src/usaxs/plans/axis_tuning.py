@@ -48,8 +48,10 @@ m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
 usaxs_q_calc = oregistry["usaxs_q_calc"]
 UPD_SIGNAL = oregistry["UPD_SIGNAL"]
-#UPD = oregistry["UPD"]
+UPD = oregistry["UPD"]
 I0_SIGNAL = oregistry["I0_SIGNAL"]
+I0 = oregistry["I0"]
+scaler0 = oregistry["scaler0"]
 
 user_data = oregistry["user_device"]
 monochromator = oregistry["monochromator"]
@@ -168,7 +170,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         trim_plot_by_name(5)
-        #scaler0.select_channels(["PD_USAXS"])
+        scaler0.select_channels(["PD_USAXS"])
         stats = SignalStatsCallback()
         yield from lineup2(
             [UPD_SIGNAL, scaler0],
