@@ -28,7 +28,7 @@ from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
-I0 = oregistry["I0"]
+#I0 = oregistry["I0"]
 I00 = oregistry["I00"]
 trd = oregistry["TRD"]
 upd = oregistry["UPD"]
@@ -157,12 +157,12 @@ def uascan(
         count_time,
         scaler0.count_mode,
         "OneShot",
-        # upd_controls.auto.mode,
-        # "automatic",
-        # I0_controls.auto.mode,
-        # "manual",
-        # I00_controls.auto.mode,
-        # "manual",
+        upd_controls.auto.mode,
+        "automatic",
+        I0_controls.auto.mode,
+        "manual",
+        I00_controls.auto.mode,
+        "manual",
         usaxs_shutter,
         "open",
     )
@@ -183,21 +183,21 @@ def uascan(
         s_stage.y.user_readback,
         d_stage.x.user_readback,
         scaler0,
-        # upd_controls.auto.gain,
-        # I0_controls.auto.gain,
-        # I00_controls.auto.gain,
-        # trd_controls.auto.gain,
-        # upd_controls.auto.reqrange,
-        # I0_controls.auto.reqrange,
-        # I00_controls.auto.reqrange,
-        # trd_controls.auto.reqrange,
+        upd_controls.auto.gain,
+        I0_controls.auto.gain,
+        I00_controls.auto.gain,
+        trd_controls.auto.gain,
+        upd_controls.auto.reqrange,
+        I0_controls.auto.reqrange,
+        I00_controls.auto.reqrange,
+        trd_controls.auto.reqrange,
     ]
 
     # do not report the "quiet" detectors/stages during a uascan
     quiet_detectors = [
         I00,
-        # I000,
-        # trd,
+        I000,
+        trd,
     ]
     quiet_stages = [
         m_stage.r,
@@ -325,12 +325,12 @@ def uascan(
             MONO_FEEDBACK_ON,
             scaler0.count_mode,
             "AutoCount",
-            # upd_controls.auto.mode,
-            # "auto+background",
-            # I0_controls.auto.mode,
-            # "manual",
-            # I00_controls.auto.mode,
-            # "manual",
+            upd_controls.auto.mode,
+            "auto+background",
+            I0_controls.auto.mode,
+            "manual",
+            I00_controls.auto.mode,
+            "manual",
             # close the shutter after each scan to preserve the detector
             usaxs_shutter,
             "close",

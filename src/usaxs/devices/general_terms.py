@@ -235,7 +235,7 @@ class Parameters_SAXS_WAXS(Device):
     I0_transmission = Component(EpicsSignal, "usxLAX:SAXS:SAXS_TrI0")
 
     # this is Io value from gates scalar in LAX for Nexus file
-    I0 = Component(EpicsSignal, "usxLAX:SAXS:I0")
+    I0_gated = Component(EpicsSignal, "usxLAX:SAXS:I0")
 
 
 class Parameters_WAXS(Device):

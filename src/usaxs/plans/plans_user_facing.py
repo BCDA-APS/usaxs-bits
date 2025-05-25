@@ -307,7 +307,7 @@ def SAXS(
         0,
         scaler1.count,
         0,
-        terms.SAXS_WAXS.I0,
+        terms.SAXS_WAXS.I0_gated,
         scaler1.channels.chan02.s.get(),
         scaler0.update_rate,
         5,
@@ -326,7 +326,7 @@ def SAXS(
         timeout=MASTER_TIMEOUT,
     )
     yield from user_data.set_state_plan("Done SAXS")
-    logger.info(f"I0 value: {terms.SAXS_WAXS.I0.get()}")
+    logger.info(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
     yield from after_plan()
 
 
@@ -548,7 +548,7 @@ def WAXS(
         0,
         scaler1.count,
         0,
-        terms.SAXS_WAXS.I0,
+        terms.SAXS_WAXS.I0_gated,
         scaler1.channels.chan02.s.get(),
         terms.SAXS_WAXS.diode_transmission,
         scaler0.channels.chan05.s.get(),
@@ -576,5 +576,5 @@ def WAXS(
     )
     yield from user_data.set_state_plan("Done WAXS")
 
-    logger.info(f"I0 value: {terms.SAXS_WAXS.I0.get()}")
+    logger.info(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
     yield from after_plan()
