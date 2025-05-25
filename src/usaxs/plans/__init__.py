@@ -46,6 +46,7 @@ from .plans_usaxs import USAXSscan
 from .plans_usaxs import USAXSscanStep
 from .plans_user_facing import SAXS
 from .plans_user_facing import WAXS
+from .amplifiers_plan import autoscale_amplifiers
 # from .sample_transmission import sample_transmission
 # from .scans import scans
 from .sim_plans import sim_count_plan

@@ -106,12 +106,7 @@ def USAXSscan(
     """
     if md is None:
         md = {}
-    if RE is None:
-        raise ValueError("RunEngine instance must be provided")
-    if bec is None:
-        raise ValueError("Bluesky Live Callbacks instance must be provided")
-    if specwriter is None:
-        raise ValueError("SPEC file writer instance must be provided")
+
 
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness_mm
@@ -166,12 +161,7 @@ def USAXSscanStep(
     """
     if md is None:
         md = {}
-    if RE is None:
-        raise ValueError("RunEngine instance must be provided")
-    if bec is None:
-        raise ValueError("Bluesky Live Callbacks instance must be provided")
-    if specwriter is None:
-        raise ValueError("SPEC file writer instance must be provided")
+
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -425,12 +415,7 @@ def Flyscan(
     """
     if md is None:
         md = {}
-    if RE is None:
-        raise ValueError("RunEngine instance must be provided")
-    if bec is None:
-        raise ValueError("Bluesky Live Callbacks instance must be provided")
-    if specwriter is None:
-        raise ValueError("SPEC file writer instance must be provided")
+
 
     yield from IfRequestedStopBeforeNextScan()
 

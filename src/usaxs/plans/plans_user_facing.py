@@ -124,12 +124,7 @@ def SAXS(
     """
     if md is None:
         md = {}
-    if RE is None:
-        raise ValueError("RunEngine instance must be provided")
-    if bec is None:
-        raise ValueError("Bluesky Live Callbacks instance must be provided")
-    if specwriter is None:
-        raise ValueError("SPEC file writer instance must be provided")
+
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -260,7 +255,7 @@ def SAXS(
         saxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
         yield from bps.sleep(0.2)
-        # yield from autoscale_amplifiers([I0_controls])
+        yield from autoscale_amplifiers([I0_controls])
 
         yield from bps.mv(
             usaxs_shutter,
@@ -374,12 +369,7 @@ def WAXS(
     """
     if md is None:
         md = {}
-    if RE is None:
-        raise ValueError("RunEngine instance must be provided")
-    if bec is None:
-        raise ValueError("Bluesky Live Callbacks instance must be provided")
-    if specwriter is None:
-        raise ValueError("SPEC file writer instance must be provided")
+
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -503,7 +493,7 @@ def WAXS(
         waxs_det.hdf1.stage_sigs["blocking_callbacks"] = "No"
 
         yield from bps.sleep(0.2)
-        # yield from autoscale_amplifiers([I0_controls, trd_controls])
+        yield from autoscale_amplifiers([I0_controls, trd_controls])
 
         yield from bps.mv(
             usaxs_shutter,
@@ -552,12 +542,12 @@ def WAXS(
         scaler1.channels.chan02.s.get(),
         terms.SAXS_WAXS.diode_transmission,
         scaler0.channels.chan05.s.get(),
-        # terms.SAXS_WAXS.diode_gain,
-        # trd_controls.femto.gain.get(),
+        terms.SAXS_WAXS.diode_gain,
+        trd_controls.femto.gain.get(),
         terms.SAXS_WAXS.I0_transmission,
         scaler0.channels.chan02.s.get(),
         terms.SAXS_WAXS.I0_gain,
-        # I0_controls.femto.gain.get(),
+        I0_controls.femto.gain.get(),
         scaler0.update_rate,
         5,
         scaler1.update_rate,

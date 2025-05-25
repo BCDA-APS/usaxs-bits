@@ -90,6 +90,7 @@ setup_scalers()
 in_operation = False
 
 RE(make_devices(file="devices.yml", clear=False))
+RE(make_devices(file="devices_aps_only.yml", clear=False))
 RE(make_devices(file="ad_devices.yml", clear=False))
 RE(make_devices(file="autorange_devices.yml", clear=False))
 

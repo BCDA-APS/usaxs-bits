@@ -281,12 +281,7 @@ def move_instrument(
     """
     if md is None:
         md = {}
-    if RE is None:
-        raise ValueError("RunEngine instance must be provided")
-    if bec is None:
-        raise ValueError("Bluesky Live Callbacks instance must be provided")
-    if specwriter is None:
-        raise ValueError("SPEC file writer instance must be provided")
+
 
     _md = {}
     _md.update(md or {})

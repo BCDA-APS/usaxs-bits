@@ -25,6 +25,7 @@ from ..devices.amplifiers import DetectorAmplifierAutorangeDevice
 # Imports from local plans
 
 # Device instances
+I0 = oregistry["I0"]
 I00 = oregistry["I00"]
 I000 = oregistry["I000"]
 I0_controls = oregistry["I0_controls"]
@@ -92,8 +93,6 @@ def autoscale_amplifiers(
     Generator[Any, None, Any]
         Bluesky plan
     """
-    if RE is None:
-        raise ValueError("RunEngine instance must be provided")
 
     assert isinstance(controls, (tuple, list)), "controls must be a list"
     scaler_dict = group_controls_by_scaler(controls)
@@ -144,8 +143,6 @@ def _scaler_autoscale_(
     Yields:
         Generator: Control flow for the autoscale operation
     """
-    if RE is None:
-        raise ValueError("RunEngine instance must be provided")
 
     aps = oregistry["aps"]
     global _last_autorange_gain_
