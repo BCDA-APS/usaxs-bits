@@ -211,6 +211,7 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
     updating = Component(EpicsSignalRO, "updating")
 
     max_count_rate = Component(Signal, value=950000)
+    min_count_rate = Component(Signal, value=500)
 
     def __init__(self, prefix, **kwargs):
         """
