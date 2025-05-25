@@ -2,7 +2,7 @@
 
 import sys
 
-from ..startup import oregistry
+from apsbits.core.instrument_init import oregistry
 
 
 def setup_scalers():

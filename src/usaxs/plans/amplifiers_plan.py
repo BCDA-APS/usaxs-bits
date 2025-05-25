@@ -102,6 +102,7 @@ def autoscale_amplifiers(
 
     for control_list in scaler_dict.values():
         # do amplifiers in sequence, in case same hardware used multiple times
+        print(control_list)
         if len(control_list) > 0:
             try:
                 yield from _scaler_autoscale_(
