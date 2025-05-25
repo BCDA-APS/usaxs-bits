@@ -330,13 +330,12 @@ class DetectorAmplifierAutorangeDevice(Device):
                 "'nickname' should be of 'str' type,"
                 f" received type: {type(nickname)}"
             )
-        print(f"DetectorAmplifierAutorangeDevice: {nickname}")
         self.nickname = nickname
         self.scaler = oregistry[scaler]
         self.signal = oregistry[f"{det.upper()}_SIGNAL"]
-        self.amplifier = oregistry[f"{det}_femto_amplifier"]    #changed from .femto, I assuem amplfier is correct? 
-        self.auto = [f"{det}_autorange_controls"]       
-        print(self.auto)
+        self.amplifier = oregistry[f"{det}_femto_amplifier"]    #changed from .femto, I assume amplfier is correct? 
+        self.auto = oregistry[f"{det}_autorange_controls"]       
+
         if not isinstance(self.scaler, ScalerCH):
             raise ValueError(
                 "'scaler' should name a 'ScalerCH' type,"

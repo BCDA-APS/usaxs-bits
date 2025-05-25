@@ -84,12 +84,14 @@ else:
 RE(make_devices(file="scalers_and_amplifiers.yml", clear=False))
 setup_scalers()
 
+
 ##operation variables
 # in_operation = caget("usxLAX:blCalc:userCalc2.VAL")  # should be a caget?
 in_operation = False
 
 RE(make_devices(file="devices.yml", clear=False))
 RE(make_devices(file="ad_devices.yml", clear=False))
+RE(make_devices(file="autorange_devices.yml", clear=False))
 
 if in_operation:
     RE(make_devices(file="shutters_op.yml", clear=False))

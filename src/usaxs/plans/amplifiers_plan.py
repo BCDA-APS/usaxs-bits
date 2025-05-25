@@ -39,8 +39,6 @@ terms = oregistry["terms"]
 upd_controls = oregistry["upd_controls"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 trd_controls = oregistry["trd_controls"]
-trd = oregistry["trd"]
-user_data = oregistry["user_device"]
 
 logger = logging.getLogger(__name__)
 

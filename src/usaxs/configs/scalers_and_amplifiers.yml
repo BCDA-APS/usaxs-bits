@@ -51,25 +51,25 @@ usaxs.devices.amplifiers.AmplifierAutoDevice:
 # ----------------------
 # MUST come __after__ above devices.
 
-usaxs.devices.amplifiers.DetectorAmplifierAutorangeDevice:
-  - name: I0_controls
-    nickname: I0_USAXS
-    scaler: scaler0
-    det: I0
+# usaxs.devices.amplifiers.DetectorAmplifierAutorangeDevice:
+#   - name: I0_controls
+#     nickname: I0_USAXS
+#     scaler: scaler0
+#     det: I0
 
-  - name: I00_controls
-    nickname: I00_USAXS
-    scaler: scaler0
-    det: I00
+#   - name: I00_controls
+#     nickname: I00_USAXS
+#     scaler: scaler0
+#     det: I00
 
-  # Nothing for I000
+#   # Nothing for I000
 
-  - name: trd_controls
-    nickname: "TR diode"
-    scaler: scaler0
-    det: trd
+#   - name: trd_controls
+#     nickname: "TR diode"
+#     scaler: scaler0
+#     det: trd
 
-  - name: upd_controls
-    nickname: PD_USAXS
-    scaler: scaler0
-    det: upd
+#   - name: upd_controls
+#     nickname: PD_USAXS
+#     scaler: scaler0
+#     det: upd
