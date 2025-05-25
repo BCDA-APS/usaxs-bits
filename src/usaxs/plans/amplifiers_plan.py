@@ -207,8 +207,8 @@ def _scaler_autoscale_(
             converged.append(actual_rate <= max_rate)
             if changed:
                 converged.append(actual_rate >= min_rate)
-            print(f"gain={gain_now}  rate: {actual_rate}  max: {max_rate} min: {min_rate}")
-            print(converged)
+            #print(f"gain={gain_now}  rate: {actual_rate}  max: {max_rate} min: {min_rate}")
+            #print(converged)
             # logger.debug(
             #     "gain={gain_now}  rate: {actual_rate}  "
             #     "max: {max_rate}  converged={converged}"
