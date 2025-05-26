@@ -119,7 +119,7 @@ def USAXSscan(
     else:
         yield from USAXSscanStep(x, y, thickness_mm, title, md=_md)
 
-    yield from MONO_FEEDBACK_ON())
+    yield from MONO_FEEDBACK_ON()
 
 
 @plan
@@ -366,7 +366,7 @@ def USAXSscanStep(
         timeout=MASTER_TIMEOUT,
     )
     yield from MONO_FEEDBACK_ON()
-    
+
     yield from user_data.set_state_plan("Moving USAXS back and saving data")
     yield from bps.mv(
         a_stage.r,

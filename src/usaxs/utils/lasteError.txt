@@ -1,12 +1,26 @@
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py:118 in USAXSscan
-    yield from Flyscan(x, y, thickness_mm, title, md=_md)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py:618 in Flyscan
-    yield from Flyscan_internal_plan(md=_md)   #this needs to change
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/usaxs_fly_scan_plan.py:268 in Flyscan_internal_plan
-    yield from write_stream([struck.mca1, struck.mca2, struck.mca3], "mca")
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/doc_run.py:114 in write_stream
-    yield from bps.save()
+
+Transient Scan ID: 11     Time: 2025-05-26 12:37:57
+Persistent Unique Scan ID: '347a6817-bc10-493b-b7f1-71d5a0c90168'
+New stream: 'label_start_motor'
+I Mon-12:37:57.305: HDF5 config: /share1/AreaDetectorConfig/FlyScan_config/saveFlyData.xml
+I Mon-12:37:57.305: HDF5 output: /share1/USAXS_data/2025-05/05_26_test/05_26_test_usaxs/Test_0002.h5
+Exception in thread Thread-233 (prepare_HDF5_file):
+Traceback (most recent call last):
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/plans/usaxs_fly_scan_plan.py", line 164, in prepare_HDF5_file
+    usaxs_flyscan.saveFlyData = SaveFlyScan(fname, config_file=usaxs_flyscan.saveFlyData_config)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/saveFlyData.py", line 93, in __init__
+    self._prepare_to_acquire()
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/saveFlyData.py", line 241, in _prepare_to_acquire
+    self.mgr._read_configuration()
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/nexus_flyscan.py", line 167, in _read_configuration
+    Group_Specification(node, self)
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/nexus_flyscan.py", line 325, in __init__
+    self.label = xml_element_node.attrib["label"]
+                 ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "src/lxml/etree.pyx", line 2548, in lxml.etree._Attrib.__getitem__
+KeyError: 'label'
