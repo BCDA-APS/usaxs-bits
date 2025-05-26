@@ -38,6 +38,7 @@ from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_USAXS_Transmission
 from .uascan import uascan
+from .usaxs_fly_scan_plan import Flyscan_internal_plan
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +119,7 @@ def USAXSscan(
     else:
         yield from USAXSscanStep(x, y, thickness_mm, title, md=_md)
 
-    yield from bps.mv(monochromator.feedback.on, MONO_FEEDBACK_ON)
+    yield from MONO_FEEDBACK_ON())
 
 
 @plan
@@ -244,11 +245,12 @@ def USAXSscanStep(
 
     yield from measure_USAXS_Transmission(md=_md)
 
-    yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_OFF,
-        timeout=MASTER_TIMEOUT,
-    )
+    # yield from bps.mv(
+    #     monochromator.feedback.on,
+    #     MONO_FEEDBACK_OFF,
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    yield from MONO_FEEDBACK_OFF()
 
     if terms.USAXS.is2DUSAXSscan.get():
         RECORD_SCAN_INDEX_10x_per_second = 9
@@ -345,8 +347,8 @@ def USAXSscanStep(
     yield from bps.mv(
         usaxs_shutter,
         "close",
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
         scaler0.update_rate,
         5,
         scaler0.auto_count_delay,
@@ -363,7 +365,8 @@ def USAXSscanStep(
         #old_femto_change_gain_down,
         timeout=MASTER_TIMEOUT,
     )
-
+    yield from MONO_FEEDBACK_ON()
+    
     yield from user_data.set_state_plan("Moving USAXS back and saving data")
     yield from bps.mv(
         a_stage.r,
@@ -532,19 +535,19 @@ def Flyscan(
     #         timeout=MASTER_TIMEOUT,
     #     )
 
-    #old_femto_change_gain_up = upd_controls.auto.gainU.get()
-    #old_femto_change_gain_down = upd_controls.auto.gainD.get()
+    old_femto_change_gain_up = upd_controls.auto.gainU.get()
+    old_femto_change_gain_down = upd_controls.auto.gainD.get()
 
     yield from bps.mv(
-        #upd_controls.auto.gainU,
-        #terms.FlyScan.setpoint_up.get(),
-        #upd_controls.auto.gainD,
-        #terms.FlyScan.setpoint_down.get(),
+        upd_controls.auto.gainU,
+        terms.FlyScan.setpoint_up.get(),
+        upd_controls.auto.gainD,
+        terms.FlyScan.setpoint_down.get(),
         usaxs_shutter,
         "open",
         timeout=MASTER_TIMEOUT,
     )
-    #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
 
     FlyScanAutoscaleTime = 0.025
     yield from bps.mv(
@@ -613,7 +616,8 @@ def Flyscan(
     # TODO fix me later after we fix the blackfly cameras taking images. 
     #yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
-    yield from usaxs_flyscan.plan(md=_md)
+    #yield from usaxs_flyscan.plan(md=_md)   #this needs to change 
+    yield from Flyscan_internal_plan(md=_md)   #this needs to change 
 
     yield from bps.mv(
         user_data.scanning,
@@ -642,7 +646,8 @@ def Flyscan(
         usaxs_shutter,
         "close",
         monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #MONO_FEEDBACK_ON,
+        1,
         scaler0.update_rate,
         5,
         scaler0.auto_count_delay,
@@ -653,10 +658,10 @@ def Flyscan(
         1,
         scaler0.auto_count_time,
         1,
-        #upd_controls.auto.gainU,
-        #old_femto_change_gain_up,
-        #upd_controls.auto.gainD,
-        #old_femto_change_gain_down,
+        upd_controls.auto.gainU,
+        old_femto_change_gain_up,
+        upd_controls.auto.gainD,
+        old_femto_change_gain_down,
         timeout=MASTER_TIMEOUT,
     )
 

@@ -103,14 +103,15 @@ def preUSAXStune(md={}):
     USAGE:  ``RE(preUSAXStune())``
     """
     yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
         usaxs_shutter,
         "close",
         timeout=MASTER_TIMEOUT,
     )
+    yield from MONO_FEEDBACK_ON()
     yield from IfRequestedStopBeforeNextScan()  # stop if user chose to do so.
 
     yield from mode_USAXS()
@@ -225,14 +226,15 @@ def allUSAXStune(md={}):
     USAGE:  ``RE(allUSAXStune())``
     """
     yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
         mono_shutter,
         "open",
         usaxs_shutter,
         "close",
         timeout=MASTER_TIMEOUT,
     )
+    yield from MONO_FEEDBACK_ON()
     yield from IfRequestedStopBeforeNextScan()  # stop if user chose to do so.
 
     yield from mode_USAXS()
@@ -425,7 +427,7 @@ def USAXSscan(x, y, thickness_mm, title, md=None):
     else:
         yield from USAXSscanStep(x, y, thickness_mm, title, md=_md)
 
-    yield from bps.mv(monochromator.feedback.on, MONO_FEEDBACK_ON)
+    yield from MONO_FEEDBACK_ON()
 
 
 def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
@@ -532,11 +534,12 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     # yield from bps.install_suspender(suspend_BeamInHutch)
     yield from measure_USAXS_Transmission(md=_md)
 
-    yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_OFF,
-        timeout=MASTER_TIMEOUT,
-    )
+    # yield from bps.mv(
+    #     monochromator.feedback.on,
+    #     MONO_FEEDBACK_OFF,
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    yield from MONO_FEEDBACK_OFF()
 
     # enable asrp link to ar for 2D USAXS
     if terms.USAXS.is2DUSAXSscan.get():
@@ -637,9 +640,9 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
     yield from bps.mv(
         usaxs_shutter,
         "close",
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
-        # user_data.collection_in_progress, 0,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
+        user_data.collection_in_progress, 0,
         scaler0.update_rate,
         5,
         scaler0.auto_count_delay,
@@ -656,6 +659,7 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         old_femto_change_gain_down,
         timeout=MASTER_TIMEOUT,
     )
+    yield from MONO_FEEDBACK_ON()
 
     yield from user_data.set_state_plan("Moving USAXS back and saving data")
     # file writing is handled by the nxwriter callback, by a RE subscription
@@ -804,11 +808,12 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
     # yield from bps.install_suspender(suspend_BeamInHutch)
     yield from measure_USAXS_Transmission(md=_md)
 
-    yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_OFF,
-        timeout=MASTER_TIMEOUT,
-    )
+    # yield from bps.mv(
+    #     monochromator.feedback.on,
+    #     MONO_FEEDBACK_OFF,
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    yield from MONO_FEEDBACK_OFF()
 
     # enable asrp link to ar for 2D USAXS
     if terms.USAXS.is2DUSAXSscan.get():
@@ -938,9 +943,9 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         0,  # start right away
         usaxs_shutter,
         "close",
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
-        # user_data.collection_in_progress, 0,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
+        user_data.collection_in_progress, 0,
         scaler0.update_rate,
         5,
         scaler0.auto_count_delay,
@@ -957,6 +962,8 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
         old_femto_change_gain_down,
         timeout=MASTER_TIMEOUT,
     )
+
+    yield from MONO_FEEDBACK_ON()
 
     yield from user_data.set_state_plan("Moving USAXS back and saving data")
     yield from bps.mv(
@@ -1107,8 +1114,8 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         yield from bps.mv(
             mono_shutter,
             "open",
-            monochromator.feedback.on,
-            MONO_FEEDBACK_OFF,
+            #monochromator.feedback.on,
+            #MONO_FEEDBACK_OFF,
             usaxs_shutter,
             "open",
             saxs_det.cam.num_images,
@@ -1119,6 +1126,9 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             terms.SAXS.acquire_time.get() + 0.004,
             timeout=MASTER_TIMEOUT,
         )
+
+        yield from MONO_FEEDBACK_OFF()
+
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in saxs_det.cam.stage_sigs:
                 # print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
@@ -1190,8 +1200,8 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         ts,
         scaler0.delay,
         old_delay,
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
         terms.SAXS.collecting,
         0,
         user_data.time_stamp,
@@ -1199,6 +1209,9 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         # user_data.collection_in_progress, 0,
         timeout=MASTER_TIMEOUT,
     )
+
+    yield from MONO_FEEDBACK_ON()
+
     yield from user_data.set_state_plan("Done SAXS")
     logger.info(f"I0 value: {terms.SAXS_WAXS.I0.get()}")
     yield from after_plan()
@@ -1332,8 +1345,8 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         yield from bps.mv(
             mono_shutter,
             "open",
-            monochromator.feedback.on,
-            MONO_FEEDBACK_OFF,
+            #monochromator.feedback.on,
+            #MONO_FEEDBACK_OFF,
             usaxs_shutter,
             "open",
             waxs_det.cam.num_images,
@@ -1344,6 +1357,9 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             terms.WAXS.acquire_time.get() + 0.004,
             timeout=MASTER_TIMEOUT,
         )
+        
+        yield from MONO_FEEDBACK_OFF()
+
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in waxs_det.cam.stage_sigs:
                 # print(f"Removing {waxs_det.cam.name}.stage_sigs[{k}].")
@@ -1428,8 +1444,8 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         ts,
         scaler0.delay,
         old_delay,
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
         terms.WAXS.collecting,
         0,
         user_data.time_stamp,
@@ -1437,6 +1453,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         # user_data.collection_in_progress, 0,
         timeout=MASTER_TIMEOUT,
     )
+    yield from MONO_FEEDBACK_ON()    
     yield from user_data.set_state_plan("Done WAXS")
 
     logger.info(f"I0 value: {terms.SAXS_WAXS.I0.get()}")

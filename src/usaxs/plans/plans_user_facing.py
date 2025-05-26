@@ -237,8 +237,8 @@ def SAXS(
         yield from bps.mv(
             mono_shutter,
             "open",
-            monochromator.feedback.on,
-            MONO_FEEDBACK_OFF,
+            #monochromator.feedback.on,
+            #MONO_FEEDBACK_OFF,
             usaxs_shutter,
             "open",
             saxs_det.cam.num_images,
@@ -249,6 +249,8 @@ def SAXS(
             terms.SAXS.acquire_time.get() + 0.004,
             timeout=MASTER_TIMEOUT,
         )
+        yield from MONO_FEEDBACK_OFF()
+
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in saxs_det.cam.stage_sigs:
                 saxs_det.cam.stage_sigs.pop(k)
@@ -316,14 +318,16 @@ def SAXS(
         ts,
         scaler0.delay,
         old_delay,
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
         terms.SAXS.collecting,
         0,
         user_data.time_stamp,
         ts,
         timeout=MASTER_TIMEOUT,
     )
+    yield from MONO_FEEDBACK_ON()
+
     yield from user_data.set_state_plan("Done SAXS")
     logger.info(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
     yield from after_plan()
@@ -479,8 +483,8 @@ def WAXS(
         yield from bps.mv(
             mono_shutter,
             "open",
-            monochromator.feedback.on,
-            MONO_FEEDBACK_OFF,
+            #monochromator.feedback.on,
+            #MONO_FEEDBACK_OFF,
             usaxs_shutter,
             "open",
             waxs_det.cam.num_images,
@@ -491,6 +495,7 @@ def WAXS(
             terms.WAXS.acquire_time.get() + 0.004,
             timeout=MASTER_TIMEOUT,
         )
+        yield from MONO_FEEDBACK_OFF()
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in waxs_det.cam.stage_sigs:
                 waxs_det.cam.stage_sigs.pop(k)
@@ -562,14 +567,15 @@ def WAXS(
         ts,
         scaler0.delay,
         old_delay,
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
         terms.WAXS.collecting,
         0,
         user_data.time_stamp,
         ts,
         timeout=MASTER_TIMEOUT,
     )
+    yield from MONO_FEEDBACK_ON()
     yield from user_data.set_state_plan("Done WAXS")
 
     logger.info(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")

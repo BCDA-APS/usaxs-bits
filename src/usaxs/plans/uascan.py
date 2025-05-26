@@ -19,6 +19,7 @@ from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
+from ..startup import RE
 
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
@@ -66,9 +67,6 @@ def uascan(
     SAD_mm: float,
     useDynamicTime: bool = True,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """Execute a USAXS scan with variable step size.
 
@@ -321,8 +319,8 @@ def uascan(
             # indicate USAXS scan is not running
             terms.USAXS.scanning,
             0,
-            monochromator.feedback.on,
-            MONO_FEEDBACK_ON,
+            #monochromator.feedback.on,
+            #MONO_FEEDBACK_ON,
             scaler0.count_mode,
             "AutoCount",
             upd_controls.auto.mode,
@@ -335,7 +333,7 @@ def uascan(
             usaxs_shutter,
             "close",
         )
-
+        yield from MONO_FEEDBACK_ON()
         yield from user_data.set_state_plan("returning AR, AX, SY, and DX")
 
         motor_resets = [

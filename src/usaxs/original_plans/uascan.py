@@ -286,8 +286,8 @@ def uascan(
             # indicate USAXS scan is not running
             terms.USAXS.scanning,
             0,
-            monochromator.feedback.on,
-            MONO_FEEDBACK_ON,
+            #monochromator.feedback.on,
+            #MONO_FEEDBACK_ON,
             scaler0.count_mode,
             "AutoCount",
             upd_controls.auto.mode,
@@ -300,6 +300,7 @@ def uascan(
             usaxs_shutter,
             "close",
         )
+        yield from MONO_FEEDBACK_ON()
 
         yield from user_data.set_state_plan("returning AR, AX, SY, and DX")
 

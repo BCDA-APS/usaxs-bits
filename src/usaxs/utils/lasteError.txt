@@ -1,54 +1,12 @@
-oldBS:
-
-In [1]: scaler0
-Out[1]: ScalerCH(prefix='usxLAX:vsc:c0', name='scaler0', read_attrs=['channels', 'channels.chan01', 
-'channels.chan01.s', 'channels.chan02', 'channels.chan02.s', 'channels.chan03', 'channels.chan03.s', 
-'channels.chan04', 'channels.chan04.s', 'channels.chan05', 'channels.chan05.s', 'time'], 
-configuration_attrs=['channels', 'channels.chan01', 'channels.chan01.chname', 'channels.chan01.preset', 
-'channels.chan01.gate', 'channels.chan02', 'channels.chan02.chname', 'channels.chan02.preset', 
-'channels.chan02.gate', 'channels.chan03', 'channels.chan03.chname', 'channels.chan03.preset', 
-'channels.chan03.gate', 'channels.chan04', 'channels.chan04.chname', 'channels.chan04.preset', 
-'channels.chan04.gate', 'channels.chan05', 'channels.chan05.chname', 'channels.chan05.preset', 
-'channels.chan05.gate', 'count_mode', 'delay', 'auto_count_delay', 'freq', 'preset_time', 'auto_count_time', 
-'egu'])
-
-In [2]: scaler0.select_channels(["PD_USAXS"])
-
-In [3]: scaler0
-Out[3]: ScalerCH(prefix='usxLAX:vsc:c0', name='scaler0', read_attrs=['channels', 
-'channels.chan04', 'channels.chan04.s', 'time'], configuration_attrs=['channels', 
-'channels.chan04', 'channels.chan04.chname', 'channels.chan04.preset', 'channels.chan04.gate', 
-'count_mode', 'delay', 'auto_count_delay', 'freq', 'preset_time', 'auto_count_time', 'egu'])
-
-In [5]: upd2
-Out[5]: EpicsSignalRO(read_pv='usxLAX:vsc:c0.S4', name='PD_USAXS', parent='scaler0_channels_chan04', 
-timestamp=1748205483.057522, auto_monitor=False, string=False)
-
-
-
-new BS:
-
-Out[7]: ScalerCH(prefix='usxLAX:vsc:c0', name='scaler0', read_attrs=['channels', 'channels.chan01', 
-'channels.chan01.s', 'channels.chan02', 'channels.chan02.s', 'channels.chan03', 'channels.chan03.s', 
-'channels.chan04', 'channels.chan04.s', 'channels.chan05', 'channels.chan05.s', 'time'], 
-configuration_attrs=['channels', 'channels.chan01', 'channels.chan01.chname', 'channels.chan01.preset', 
-'channels.chan01.gate', 'channels.chan02', 'channels.chan02.chname', 'channels.chan02.preset', 
-'channels.chan02.gate', 'channels.chan03', 'channels.chan03.chname', 'channels.chan03.preset', 
-'channels.chan03.gate', 'channels.chan04', 'channels.chan04.chname', 'channels.chan04.preset', 
-'channels.chan04.gate', 'channels.chan05', 'channels.chan05.chname', 'channels.chan05.preset', 
-'channels.chan05.gate', 'count_mode', 'delay', 'auto_count_delay', 'freq', 'preset_time', 'auto_count_time', 
-'egu'])
-
-In [8]: scaler0.select_channels(["PD_USAXS"])
-
-In [9]: scaler0
-Out[9]: ScalerCH(prefix='usxLAX:vsc:c0', name='scaler0', read_attrs=['channels', 
-'channels.chan04', 'channels.chan04.s', 'time'], configuration_attrs=['channels', 
-'channels.chan04', 'channels.chan04.chname', 'channels.chan04.preset', 'channels.chan04.gate', 
-'count_mode', 'delay', 'auto_count_delay', 'freq', 'preset_time', 'auto_count_time', 'egu'])
-
-In [10]: 
-In [10]: UPD
-Out[10]: EpicsSignalRO(read_pv='usxLAX:vsc:c0.S4', name='PD_USAXS', parent='UPD_SIGNAL', 
-value=6771.0, timestamp=1748205481.474189, auto_monitor=False, string=False)
-
+  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py:118 in USAXSscan
+    yield from Flyscan(x, y, thickness_mm, title, md=_md)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
+    return (yield from self._iter)
+  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py:618 in Flyscan
+    yield from Flyscan_internal_plan(md=_md)   #this needs to change
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
+    return (yield from self._iter)
+  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/usaxs_fly_scan_plan.py:268 in Flyscan_internal_plan
+    yield from write_stream([struck.mca1, struck.mca2, struck.mca3], "mca")
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/doc_run.py:114 in write_stream
+    yield from bps.save()

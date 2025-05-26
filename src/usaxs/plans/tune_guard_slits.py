@@ -504,9 +504,11 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
         terms.SAXS.v_size.get(),
         usaxs_slit.h_size,
         terms.SAXS.h_size.get(),
-        monochromator.feedback.on,
-        MONO_FEEDBACK_OFF,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_OFF,
     )
+    yield from MONO_FEEDBACK_OFF()
+
     yield from bps.mv(
         upd_controls.auto.gainU,
         terms.FlyScan.setpoint_up.get(),
@@ -526,10 +528,10 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
         guard_slit.h_size.get(),
         terms.SAXS.guard_v_size,
         guard_slit.v_size.get(),
-        monochromator.feedback.on,
-        MONO_FEEDBACK_ON,
+        #monochromator.feedback.on,
+        #MONO_FEEDBACK_ON,
     )
-
+    yield from MONO_FEEDBACK_ON()
     # workaround for issue #425 (#404)
     yield from _unstick_GslitsSizeMotors(oregistry)
 
