@@ -169,7 +169,7 @@ def SAXS(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    SCAN_N = user_data.spec_scan.get() + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     #SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
@@ -266,7 +266,7 @@ def SAXS(
         )
 
         # SPEC-compatibility
-        SCAN_N = user_data.spec_scan.get() + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+        SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
         #SCAN_N = RE.md["scan_id"] + 1
         yield from bps.mv(
             scaler1.preset_time,
@@ -414,7 +414,7 @@ def WAXS(
     scan_title_clean = cleanupText(scan_title)
 
    # SPEC-compatibility
-    SCAN_N = user_data.spec_scan.get() + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     #SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
