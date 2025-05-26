@@ -23,6 +23,7 @@ from usaxs.utils.emails import email_notices
 from usaxs.utils.override import user_override
 from usaxs.utils.setup_new_user import techniqueSubdirectory
 from usaxs.utils.user_sample_title import getSampleTitle
+from usaxs.callbacks.spec_data_file_writer import specwriter
 
 from ..utils.a2q_q2a import q2angle
 from ..utils.emails import NOTIFY_ON_BAD_FLY_SCAN
@@ -380,9 +381,9 @@ def Flyscan(
     thickness: float,
     scan_title: str,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
+    #RE: Optional[Any] = None,
+    #bec: Optional[Any] = None,
+    #specwriter: Optional[Any] = None,
 ):
     """
     Execute a fly scan at the specified position.
@@ -454,11 +455,16 @@ def Flyscan(
     _md["title"] = scan_title
 
     scan_title_clean = cleanupText(scan_title)
+    print("scan_title_clean:", scan_title_clean)
 
-    SCAN_N = RE.md["scan_id"] + 1
+    # TODO fix when #42 is solved. 
+    #SCAN_N = RE.md["scan_id"] + 1
+    SCAN_N = 1
 
     flyscan_path = techniqueSubdirectory("usaxs")
-    if not os.path.exists(flyscan_path) and RE.state != "idle":
+    # TODO fix when #42 is solved. 
+    #if not os.path.exists(flyscan_path) and RE.state != "idle":
+    if not os.path.exists(flyscan_path) :
         os.mkdir(flyscan_path)
     flyscan_file_name = (
         f"{scan_title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
