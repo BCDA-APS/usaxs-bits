@@ -80,6 +80,7 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     global specwriter
 
     user_data.user_name.put(user)  # set in the PV
+    user_data.spec_scan.put(scan_id)  # set in the PV
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]

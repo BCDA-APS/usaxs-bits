@@ -516,19 +516,20 @@ def Flyscan(
     usaxs_flyscan.saveFlyData_HDF5_file = flyscan_file_name
     yield from measure_USAXS_Transmission(md=_md)
 
-    yield from bps.mv(
-        monochromator.feedback.on,
-        MONO_FEEDBACK_OFF,
-        timeout=MASTER_TIMEOUT,
-    )
-
-    if terms.USAXS.is2DUSAXSscan.get():
-        RECORD_SCAN_INDEX_10x_per_second = 9
-        yield from bps.mv(
-            terms.FlyScan.asrp_calc_SCAN,
-            RECORD_SCAN_INDEX_10x_per_second,
-            timeout=MASTER_TIMEOUT,
-        )
+    # yield from bps.mv(
+    #     monochromator.feedback.on,
+    #     MONO_FEEDBACK_OFF,
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    #yield from bps.mv(MONO_FEEDBACK_OFF)
+    MONO_FEEDBACK_OFF
+    # if terms.USAXS.is2DUSAXSscan.get():
+    #     RECORD_SCAN_INDEX_10x_per_second = 9
+    #     yield from bps.mv(
+    #         terms.FlyScan.asrp_calc_SCAN,
+    #         RECORD_SCAN_INDEX_10x_per_second,
+    #         timeout=MASTER_TIMEOUT,
+    #     )
 
     #old_femto_change_gain_up = upd_controls.auto.gainU.get()
     #old_femto_change_gain_down = upd_controls.auto.gainD.get()
@@ -550,8 +551,8 @@ def Flyscan(
         0,
         scaler0.auto_count_update_rate,
         0,
-       #upd_controls.auto.mode,
-        #"auto+background",
+        upd_controls.auto.mode,
+        "auto+background",
         scaler0.preset_time,
         FlyScanAutoscaleTime,
         scaler0.auto_count_time,
@@ -608,8 +609,8 @@ def Flyscan(
         scan_title=scan_title,
     )
     _md["fly_scan_time"] = usaxs_flyscan.scan_time.get()
-
-    yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+    # TODO fix me later after we fix the blackfly cameras taking images. 
+    #yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
     yield from usaxs_flyscan.plan(md=_md)
 
