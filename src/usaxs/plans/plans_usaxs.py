@@ -201,7 +201,8 @@ def USAXSscanStep(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = RE.md["scan_id"] + 1  # update with next number
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
@@ -274,8 +275,8 @@ def USAXSscanStep(
     yield from user_data.set_state_plan("Running USAXS step scan")
 
     # SPEC-compatibility
-    SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
-    #SCAN_N = RE.md["scan_id"] + 1  # update with next number
+    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = RE.md["scan_id"] + 1  # update with next number
     yield from bps.mv(
         user_data.scanning,
         "scanning",
@@ -460,9 +461,9 @@ def Flyscan(
     scan_title_clean = cleanupText(scan_title)
     print("scan_title_clean:", scan_title_clean)
 
-   # SPEC-compatibility
-    SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
-    #SCAN_N = RE.md["scan_id"] + 1
+    # SPEC-compatibility
+    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = RE.md["scan_id"] + 1
     
     flyscan_path = techniqueSubdirectory("usaxs")
     if not os.path.exists(flyscan_path) and RE.state != "idle":
@@ -522,7 +523,7 @@ def Flyscan(
     #     timeout=MASTER_TIMEOUT,
     # )
     #yield from bps.mv(MONO_FEEDBACK_OFF)
-    MONO_FEEDBACK_OFF
+    yield from MONO_FEEDBACK_OFF()
     # if terms.USAXS.is2DUSAXSscan.get():
     #     RECORD_SCAN_INDEX_10x_per_second = 9
     #     yield from bps.mv(
@@ -589,8 +590,8 @@ def Flyscan(
     )
 
     # SPEC-compatibility
-    SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
-    #SCAN_N = RE.md["scan_id"] + 1
+    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = RE.md["scan_id"] + 1
     yield from bps.mv(
         user_data.scanning,
         "scanning",

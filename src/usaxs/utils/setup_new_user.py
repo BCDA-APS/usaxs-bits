@@ -9,6 +9,8 @@ import pathlib
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
+from ..startup import RE
+
 
 from ..callbacks.nxwriter_usaxs import nxwriter
 from .utils import techniqueSubdirectory
@@ -38,7 +40,7 @@ def _setNeXusFileName(path, scan_id=1):
     logger.info("File will be written at end of next bluesky scan.")
 
 
-def _setSpecFileName(path, RE=None, scan_id=1):
+def _setSpecFileName(path, scan_id=1):
     """
     SPEC file name
     """
@@ -80,7 +82,7 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     global specwriter
 
     user_data.user_name.put(user)  # set in the PV
-    user_data.spec_scan.put(scan_id)  # set in the PV
+    #user_data.spec_scan.put(scan_id)  # set in the PV
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]
