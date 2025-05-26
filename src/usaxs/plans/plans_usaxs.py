@@ -16,6 +16,7 @@ from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
+from ..startup import RE
 
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
@@ -200,7 +201,7 @@ def USAXSscanStep(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    SCAN_N = user_data.spec_scan.get() + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
@@ -272,7 +273,9 @@ def USAXSscanStep(
 
     yield from user_data.set_state_plan("Running USAXS step scan")
 
-    SCAN_N = RE.md["scan_id"] + 1  # update with next number
+    # SPEC-compatibility
+    SCAN_N = user_data.spec_scan.get() + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    #SCAN_N = RE.md["scan_id"] + 1  # update with next number
     yield from bps.mv(
         user_data.scanning,
         "scanning",
@@ -457,13 +460,12 @@ def Flyscan(
     scan_title_clean = cleanupText(scan_title)
     print("scan_title_clean:", scan_title_clean)
 
-    # TODO fix when #42 is solved. 
+   # SPEC-compatibility
+    SCAN_N = user_data.spec_scan.get() + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     #SCAN_N = RE.md["scan_id"] + 1
-    SCAN_N = 1
-
+    
     flyscan_path = techniqueSubdirectory("usaxs")
-    # TODO fix when #42 is solved. 
-    #if not os.path.exists(flyscan_path) and RE.state != "idle":
+    if not os.path.exists(flyscan_path) and RE.state != "idle":
     if not os.path.exists(flyscan_path) :
         os.mkdir(flyscan_path)
     flyscan_file_name = (
@@ -586,7 +588,9 @@ def Flyscan(
         timeout=MASTER_TIMEOUT,
     )
 
-    SCAN_N = RE.md["scan_id"] + 1
+    # SPEC-compatibility
+    SCAN_N = user_data.spec_scan.get() + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    #SCAN_N = RE.md["scan_id"] + 1
     yield from bps.mv(
         user_data.scanning,
         "scanning",

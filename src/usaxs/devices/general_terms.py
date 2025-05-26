@@ -117,6 +117,7 @@ class Parameters_transmission(Device):
     I0_gain = Component(EpicsSignal, "usxLAX:USAXS:TR_I0Gain")
 
 
+
 class Parameters_USAXS(Device):
     """Internal values shared with EPICS for USAXS operations."""
 
