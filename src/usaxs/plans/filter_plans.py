@@ -45,7 +45,7 @@ def _insertFilters_(a: Union[int, float]):
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    yield from bps.mv(Filter_AlTi.fPos, int(a))
+    yield from bps.mv(Filter_AlTi.fPos,int(a))  # set filter position
     yield from bps.sleep(0.5)  # allow all blades to re-position
 
 
@@ -154,16 +154,29 @@ def insertWaxsFilters():
     )
 
 
+# def insertTransmissionFilters():
+#     """
+#     Set filters to reduce diode damage when measuring tranmission on guard slits etc.
+
+#     Returns
+#     -------
+#     Generator[Any, None, None]
+#         A generator that yields plan steps
+#     """
+#     yield from _insertFilters_(
+#         terms.USAXS.transmission.filters.Al.get(),  # Bank A: Al
+#         # terms.USAXS.transmission.filters.Ti.get(),    # Bank B: Ti
+#     )
+
+
 def insertTransmissionFilters():
     """
-    Set filters to reduce diode damage when measuring tranmission on guard slits etc.
-
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    set filters to reduce diode damage when measuring tranmission on guard slits etc
     """
-    yield from _insertFilters_(
-        terms.USAXS.transmission.filters.Al.get(),  # Bank A: Al
-        # terms.USAXS.transmission.filters.Ti.get(),    # Bank B: Ti
-    )
+    if monochromator.dcm.energy.position < 12.1:
+        al_filters = 0
+    elif monochromator.dcm.energy.position < 18.1:
+        al_filters = 3
+    else:
+        al_filters = 7
+    yield from _insertFilters_(al_filters)

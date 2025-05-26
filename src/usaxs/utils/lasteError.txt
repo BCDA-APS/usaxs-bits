@@ -1,242 +1,54 @@
+oldBS:
 
-End of IPython settings
+In [1]: scaler0
+Out[1]: ScalerCH(prefix='usxLAX:vsc:c0', name='scaler0', read_attrs=['channels', 'channels.chan01', 
+'channels.chan01.s', 'channels.chan02', 'channels.chan02.s', 'channels.chan03', 'channels.chan03.s', 
+'channels.chan04', 'channels.chan04.s', 'channels.chan05', 'channels.chan05.s', 'time'], 
+configuration_attrs=['channels', 'channels.chan01', 'channels.chan01.chname', 'channels.chan01.preset', 
+'channels.chan01.gate', 'channels.chan02', 'channels.chan02.chname', 'channels.chan02.preset', 
+'channels.chan02.gate', 'channels.chan03', 'channels.chan03.chname', 'channels.chan03.preset', 
+'channels.chan03.gate', 'channels.chan04', 'channels.chan04.chname', 'channels.chan04.preset', 
+'channels.chan04.gate', 'channels.chan05', 'channels.chan05.chname', 'channels.chan05.preset', 
+'channels.chan05.gate', 'count_mode', 'delay', 'auto_count_delay', 'freq', 'preset_time', 'auto_count_time', 
+'egu'])
 
-I Sat-15:08:46.116: Starting Instrument with iconfig: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/iconfig.yml
-W Sat-15:08:46.142: APS DM setup file does not exist: '/home/dm/etc/dm.setup.sh'
-I Sat-15:08:46.143: Registered Bluesky IPython magics
-I Sat-15:08:46.229: Databroker catalog name: usaxs
-I Sat-15:08:46.230: using ophyd control layer: 'pyepics'
-I Sat-15:08:46.231: RunEngine metadata saved to: .re_md_dict.yml
-I Sat-15:08:46.747: SPEC data file: /share1/USAXS_data/2025-05/20250524-150846.dat
-I Sat-15:08:46.748: Loading device file: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/scalers_and_amplifiers.yml
-I Sat-15:08:48.885: Devices loaded in 2.137 s.
-I Sat-15:08:48.886: Adding ophyd device 'trd_femto_amplifier' to main namespace
-I Sat-15:08:48.887: Adding ophyd device 'upd_femto_amplifier' to main namespace
-I Sat-15:08:48.887: Adding ophyd device 'I0_photocurrent_calc' to main namespace
-I Sat-15:08:48.887: Adding ophyd device 'upd_photocurrent_calc' to main namespace
-I Sat-15:08:48.888: Adding ophyd device 'I0_autorange_controls' to main namespace
-I Sat-15:08:48.888: Adding ophyd device 'I000_photocurrent_calc' to main namespace
-I Sat-15:08:48.888: Adding ophyd device 'trd_autorange_controls' to main namespace
-I Sat-15:08:48.889: Adding ophyd device 'scaler1' to main namespace
-I Sat-15:08:48.889: Adding ophyd device 'trd_photocurrent_calc' to main namespace
-I Sat-15:08:48.889: Adding ophyd device 'I000_femto_amplifier' to main namespace
-I Sat-15:08:48.890: Adding ophyd device 'I00_femto_amplifier' to main namespace
-I Sat-15:08:48.890: Adding ophyd device 'upd_autorange_controls' to main namespace
-I Sat-15:08:48.890: Adding ophyd device 'I00_autorange_controls' to main namespace
-I Sat-15:08:48.890: Adding ophyd device 'I00_photocurrent_calc' to main namespace
-I Sat-15:08:48.891: Adding ophyd device 'I0_femto_amplifier' to main namespace
-I Sat-15:08:48.891: Adding ophyd device 'scaler0' to main namespace
-I Sat-15:08:49.897: Loading device file: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/devices.yml
-I Sat-15:08:51.826: Devices loaded in 1.928 s.
-I Sat-15:08:51.829: Adding ophyd device 'white_beam_ready' to main namespace
-I Sat-15:08:51.829: Adding ophyd device 'scaler2_I000_counts' to main namespace
-I Sat-15:08:51.830: Adding ophyd device 'I0_photocurrent_calc' to main namespace
-I Sat-15:08:51.830: Adding ophyd device 'sim_motor' to main namespace
-I Sat-15:08:51.831: Adding ophyd device 'sim_det' to main namespace
-I Sat-15:08:51.831: Adding ophyd device 'trd_photocurrent_calc' to main namespace
-I Sat-15:08:51.831: Adding ophyd device 'undulator' to main namespace
-I Sat-15:08:51.832: Adding ophyd device 'LAXm1' to main namespace
-I Sat-15:08:51.832: Adding ophyd device 'upd_autorange_controls' to main namespace
-I Sat-15:08:51.833: Adding ophyd device 's_stage' to main namespace
-I Sat-15:08:51.834: Adding ophyd device 'LAXm3' to main namespace
-I Sat-15:08:51.835: Adding ophyd device 'ar_start' to main namespace
-I Sat-15:08:51.835: Adding ophyd device 'lax_autosave' to main namespace
-I Sat-15:08:51.836: Adding ophyd device 'auto_collect' to main namespace
-I Sat-15:08:51.836: Adding ophyd device 'upd_photocurrent_calc' to main namespace
-I Sat-15:08:51.837: Adding ophyd device 'waxsx' to main namespace
-I Sat-15:08:51.838: Adding ophyd device 'linkam_tc1' to main namespace
-I Sat-15:08:51.839: Adding ophyd device 'pi_c867' to main namespace
-I Sat-15:08:51.840: Adding ophyd device 'scaler1' to main namespace
-I Sat-15:08:51.841: Adding ophyd device 'userCalcs_lax' to main namespace
-I Sat-15:08:51.842: Adding ophyd device 'm_stage' to main namespace
-I Sat-15:08:51.842: Adding ophyd device 'monochromator' to main namespace
-I Sat-15:08:51.843: Adding ophyd device 'I00_femto_amplifier' to main namespace
-I Sat-15:08:51.843: Adding ophyd device 'terms' to main namespace
-I Sat-15:08:51.844: Adding ophyd device 'I00_autorange_controls' to main namespace
-I Sat-15:08:51.844: Adding ophyd device 'I00_photocurrent_calc' to main namespace
-I Sat-15:08:51.844: Adding ophyd device 'LAXm2' to main namespace
-I Sat-15:08:51.845: Adding ophyd device 'usaxs_CheckBeamStandard' to main namespace
-I Sat-15:08:51.845: Adding ophyd device 'LAXm5' to main namespace
-I Sat-15:08:51.845: Adding ophyd device 'upd_femto_amplifier' to main namespace
-I Sat-15:08:51.845: Adding ophyd device 'Filter_AlTi' to main namespace
-I Sat-15:08:51.845: Adding ophyd device 'd_stage' to main namespace
-I Sat-15:08:51.846: Adding ophyd device 'I000_photocurrent_calc' to main namespace
-I Sat-15:08:51.846: Adding ophyd device 'LAXm8' to main namespace
-I Sat-15:08:51.846: Adding ophyd device 'trd_autorange_controls' to main namespace
-I Sat-15:08:51.846: Adding ophyd device 'user_device' to main namespace
-I Sat-15:08:51.846: Adding ophyd device 'usaxs_slit' to main namespace
-I Sat-15:08:51.846: Adding ophyd device 'gslit_stage' to main namespace
-I Sat-15:08:51.846: Adding ophyd device 'guard_slit' to main namespace
-I Sat-15:08:51.847: Adding ophyd device 'struck' to main namespace
-I Sat-15:08:51.847: Adding ophyd device 'usaxs_q_calc' to main namespace
-I Sat-15:08:51.847: Adding ophyd device 'scaler2_I000_cps' to main namespace
-I Sat-15:08:51.847: Adding ophyd device 'scaler0' to main namespace
-I Sat-15:08:51.847: Adding ophyd device 'ptc10' to main namespace
-I Sat-15:08:51.847: Adding ophyd device 'waxs2x' to main namespace
-I Sat-15:08:51.848: Adding ophyd device 'flyscan_trajectories' to main namespace
-I Sat-15:08:51.848: Adding ophyd device 'saxs_stage' to main namespace
-I Sat-15:08:51.848: Adding ophyd device 'a_stage' to main namespace
-I Sat-15:08:51.848: Adding ophyd device 'I0_autorange_controls' to main namespace
-I Sat-15:08:51.848: Adding ophyd device 'usaxs_flyscan' to main namespace
-I Sat-15:08:51.848: Adding ophyd device 'LAXm6' to main namespace
-I Sat-15:08:51.849: Adding ophyd device 'sample_data_device' to main namespace
-I Sat-15:08:51.849: Adding ophyd device 'I000_femto_amplifier' to main namespace
-I Sat-15:08:51.849: Adding ophyd device 'LAXm7' to main namespace
-I Sat-15:08:51.849: Adding ophyd device 'diagnostics' to main namespace
-I Sat-15:08:51.849: Adding ophyd device 'I0_femto_amplifier' to main namespace
-I Sat-15:08:51.849: Adding ophyd device 'LAXm4' to main namespace
-I Sat-15:08:51.849: Adding ophyd device 'trd_femto_amplifier' to main namespace
-I Sat-15:08:52.853: Loading device file: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/ad_devices.yml
-I Sat-15:08:53.146: Devices loaded in 0.293 s.
-I Sat-15:08:53.148: Adding ophyd device 'white_beam_ready' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'scaler2_I000_counts' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'I0_photocurrent_calc' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'blackfly_det' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'sim_motor' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'sim_det' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'trd_photocurrent_calc' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'undulator' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'LAXm1' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 'upd_autorange_controls' to main namespace
-I Sat-15:08:53.149: Adding ophyd device 's_stage' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'LAXm3' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'ar_start' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'lax_autosave' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'auto_collect' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'blackfly_optical' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'upd_photocurrent_calc' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'waxsx' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'linkam_tc1' to main namespace
-I Sat-15:08:53.150: Adding ophyd device 'pi_c867' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'scaler1' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'userCalcs_lax' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'm_stage' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'monochromator' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'I00_femto_amplifier' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'terms' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'I00_autorange_controls' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'I00_photocurrent_calc' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'LAXm2' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'usaxs_CheckBeamStandard' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'waxs_det' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'LAXm5' to main namespace
-I Sat-15:08:53.151: Adding ophyd device 'upd_femto_amplifier' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'Filter_AlTi' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'd_stage' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'I000_photocurrent_calc' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'LAXm8' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'trd_autorange_controls' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'user_device' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'usaxs_slit' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'gslit_stage' to main namespace
-I Sat-15:08:53.152: Adding ophyd device 'guard_slit' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'saxs_det' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'struck' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'usaxs_q_calc' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'scaler2_I000_cps' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'scaler0' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'ptc10' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'waxs2x' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'flyscan_trajectories' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'saxs_stage' to main namespace
-I Sat-15:08:53.153: Adding ophyd device 'a_stage' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'I0_autorange_controls' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'usaxs_flyscan' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'LAXm6' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'sample_data_device' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'I000_femto_amplifier' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'LAXm7' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'diagnostics' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'I0_femto_amplifier' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'LAXm4' to main namespace
-I Sat-15:08:53.154: Adding ophyd device 'trd_femto_amplifier' to main namespace
-I Sat-15:08:54.157: Loading device file: /home/beams11/USAXS/bits_usaxs/src/usaxs/configs/shutters_sim.yml
-I Sat-15:08:54.164: Devices loaded in 0.007 s.
-I Sat-15:08:54.167: Adding ophyd device 'white_beam_ready' to main namespace
-I Sat-15:08:54.167: Adding ophyd device 'scaler2_I000_counts' to main namespace
-I Sat-15:08:54.167: Adding ophyd device 'I0_photocurrent_calc' to main namespace
-I Sat-15:08:54.167: Adding ophyd device 'blackfly_det' to main namespace
-I Sat-15:08:54.167: Adding ophyd device 'sim_motor' to main namespace
-I Sat-15:08:54.167: Adding ophyd device 'sim_det' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'trd_photocurrent_calc' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'undulator' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'LAXm1' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'upd_autorange_controls' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 's_stage' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'LAXm3' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'ar_start' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'lax_autosave' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'auto_collect' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'blackfly_optical' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'upd_photocurrent_calc' to main namespace
-I Sat-15:08:54.168: Adding ophyd device 'waxsx' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'linkam_tc1' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'pi_c867' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'scaler1' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'userCalcs_lax' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'a_shutter_autoopen' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'm_stage' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'monochromator' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'I00_femto_amplifier' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'terms' to main namespace
-I Sat-15:08:54.169: Adding ophyd device 'I00_autorange_controls' to main namespace
-I Sat-15:08:54.170: Adding ophyd device 'I00_photocurrent_calc' to main namespace
-I Sat-15:08:54.170: Adding ophyd device 'LAXm2' to main namespace
-I Sat-15:08:54.170: Adding ophyd device 'usaxs_CheckBeamStandard' to main namespace
-I Sat-15:08:54.170: Adding ophyd device 'waxs_det' to main namespace
-I Sat-15:08:54.170: Adding ophyd device 'LAXm5' to main namespace
-I Sat-15:08:54.170: Adding ophyd device 'upd_femto_amplifier' to main namespace
-I Sat-15:08:54.170: Adding ophyd device 'Filter_AlTi' to main namespace
-I Sat-15:08:54.170: Adding ophyd device 'd_stage' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'I000_photocurrent_calc' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'LAXm8' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'trd_autorange_controls' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'user_device' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'mono_shutter' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'usaxs_slit' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'gslit_stage' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'guard_slit' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'saxs_det' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'struck' to main namespace
-I Sat-15:08:54.171: Adding ophyd device 'usaxs_q_calc' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'scaler2_I000_cps' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'scaler0' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'ptc10' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'waxs2x' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'flyscan_trajectories' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'FE_shutter' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'saxs_stage' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'a_stage' to main namespace
-I Sat-15:08:54.172: Adding ophyd device 'I0_autorange_controls' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'usaxs_flyscan' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'usaxs_shutter' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'LAXm6' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'sample_data_device' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'I000_femto_amplifier' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'LAXm7' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'diagnostics' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'I0_femto_amplifier' to main namespace
-I Sat-15:08:54.173: Adding ophyd device 'LAXm4' to main namespace
-I Sat-15:08:54.174: Adding ophyd device 'trd_femto_amplifier' to main namespace
-I Sat-15:08:55.183: /home/beams11/USAXS/bits_usaxs/src/usaxs/utils/utils.py
-Traceback (most recent call last):
-  Cell In[1], line 1
-    from usaxs.startup import *
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/startup.py:109
-    from .plans import *  # noqa: F401
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/__init__.py:8
-    from .autocollect_plan import remote_ops
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/autocollect_plan.py:14
-    from .command_list import run_command_file
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/command_list.py:24
-    from .amplifiers_plan import measure_background
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/amplifiers_plan.py:30
-    I0_controls = oregistry["I0_controls"]
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:172 in __getitem__
-    return self.find(key)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:346 in find
-    devices = self.findall(
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophydregistry/registry.py:504 in findall
-    raise ComponentNotFound(
-ComponentNotFound: 'Could not find components matching: label="I0_controls", name="I0_controls"'
+In [2]: scaler0.select_channels(["PD_USAXS"])
+
+In [3]: scaler0
+Out[3]: ScalerCH(prefix='usxLAX:vsc:c0', name='scaler0', read_attrs=['channels', 
+'channels.chan04', 'channels.chan04.s', 'time'], configuration_attrs=['channels', 
+'channels.chan04', 'channels.chan04.chname', 'channels.chan04.preset', 'channels.chan04.gate', 
+'count_mode', 'delay', 'auto_count_delay', 'freq', 'preset_time', 'auto_count_time', 'egu'])
+
+In [5]: upd2
+Out[5]: EpicsSignalRO(read_pv='usxLAX:vsc:c0.S4', name='PD_USAXS', parent='scaler0_channels_chan04', 
+timestamp=1748205483.057522, auto_monitor=False, string=False)
+
+
+
+new BS:
+
+Out[7]: ScalerCH(prefix='usxLAX:vsc:c0', name='scaler0', read_attrs=['channels', 'channels.chan01', 
+'channels.chan01.s', 'channels.chan02', 'channels.chan02.s', 'channels.chan03', 'channels.chan03.s', 
+'channels.chan04', 'channels.chan04.s', 'channels.chan05', 'channels.chan05.s', 'time'], 
+configuration_attrs=['channels', 'channels.chan01', 'channels.chan01.chname', 'channels.chan01.preset', 
+'channels.chan01.gate', 'channels.chan02', 'channels.chan02.chname', 'channels.chan02.preset', 
+'channels.chan02.gate', 'channels.chan03', 'channels.chan03.chname', 'channels.chan03.preset', 
+'channels.chan03.gate', 'channels.chan04', 'channels.chan04.chname', 'channels.chan04.preset', 
+'channels.chan04.gate', 'channels.chan05', 'channels.chan05.chname', 'channels.chan05.preset', 
+'channels.chan05.gate', 'count_mode', 'delay', 'auto_count_delay', 'freq', 'preset_time', 'auto_count_time', 
+'egu'])
+
+In [8]: scaler0.select_channels(["PD_USAXS"])
+
+In [9]: scaler0
+Out[9]: ScalerCH(prefix='usxLAX:vsc:c0', name='scaler0', read_attrs=['channels', 
+'channels.chan04', 'channels.chan04.s', 'time'], configuration_attrs=['channels', 
+'channels.chan04', 'channels.chan04.chname', 'channels.chan04.preset', 'channels.chan04.gate', 
+'count_mode', 'delay', 'auto_count_delay', 'freq', 'preset_time', 'auto_count_time', 'egu'])
+
+In [10]: 
+In [10]: UPD
+Out[10]: EpicsSignalRO(read_pv='usxLAX:vsc:c0.S4', name='PD_USAXS', parent='UPD_SIGNAL', 
+value=6771.0, timestamp=1748205481.474189, auto_monitor=False, string=False)
 
