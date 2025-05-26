@@ -79,8 +79,8 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
     if md is None:
         md = {}
 
-    yield from bps.mv(m_stage.r, m_stage.r.position)
-    yield from bps.trigger_and_read([m_stage.r])
+    #yield from bps.mv(m_stage.r, m_stage.r.position)
+    #yield from bps.trigger_and_read([m_stage.r])
     yield from IfRequestedStopBeforeNextScan()
 
     try:
@@ -91,7 +91,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         logger.info(f"tuning axis: {m_stage.r.name}")
 
         yield from bps.mv(m_stage.r, m_stage.r.position)
-        yield from bps.trigger_and_read([m_stage.r])
+        #yield from bps.trigger_and_read([m_stage.r])
         yield from IfRequestedStopBeforeNextScan()
 
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -99,7 +99,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [I0_SIGNAL, scaler0],
+            [I0],
             m_stage.r,
             -m_stage.r.tune_range.get(),
             m_stage.r.tune_range.get(),
@@ -170,10 +170,10 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         trim_plot_by_name(5)
-        scaler0.select_channels(["PD_USAXS"])
+        #scaler0.select_channels(["PD_USAXS"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD_SIGNAL, scaler0],
+            [UPD],
             a_stage.r,
             -a_stage.r.tune_range.get(),
             a_stage.r.tune_range.get(),
@@ -246,11 +246,11 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        scaler0.select_channels(["PD_USAXS"])
+        #scaler0.select_channels(["PD_USAXS"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD_SIGNAL, scaler0],
+            [UPD],
             a_stage.r2p,
             -a_stage.r2p.tune_range.get(),
             a_stage.r2p.tune_range.get(),
@@ -319,10 +319,10 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         trim_plot_by_name(5)
-        scaler0.select_channels(["PD_USAXS"])
+        #scaler0.select_channels(["PD_USAXS"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD_SIGNAL, scaler0],
+            [UPD],
             d_stage.x,
             -d_stage.x.tune_range.get(),
             d_stage.x.tune_range.get(),
@@ -394,11 +394,11 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        scaler0.select_channels(["PD_USAXS"])
+        #scaler0.select_channels(["PD_USAXS"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD_SIGNAL, scaler0],
+            [UPD],
             d_stage.y,
             -d_stage.y.tune_range.get(),
             d_stage.y.tune_range.get(),

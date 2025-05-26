@@ -25,6 +25,9 @@ def setup_scalers():
         channel.s.name = key  # channel counts
         oregistry.register(channel.s)  # ... UPD ...
         setattr(main_namespace, key, channel.s)
+        #item=oregistry[key]
+        #item._ophyd_labels_ = set(["channel", "counter",])
+        #item._auto_monitor = False
 
         label = f"{key}_SIGNAL"
         channel.name = label  # ... UPD_SIGNAL ...
