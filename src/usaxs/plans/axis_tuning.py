@@ -82,7 +82,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
     #yield from bps.mv(m_stage.r, m_stage.r.position)
     #yield from bps.trigger_and_read([m_stage.r])
     yield from IfRequestedStopBeforeNextScan()
-
+    success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
@@ -118,6 +118,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
             "auto+background",
         )
         scaler0.select_channels(None)
+        success = stats.analysis.success
         if stats.analysis.success:
             yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
             logger.info(f"final position: {m_stage.r.position}")
@@ -129,6 +130,8 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         raise
     finally:
         yield from bps.mv(usaxs_shutter, "close")
+    
+    #return success
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
@@ -153,7 +156,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
     """
     if md is None:
         md = {}
-
+    success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
@@ -192,6 +195,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
             "auto+background",
         )
         scaler0.select_channels(None)
+        success = stats.analysis.success
         if stats.analysis.success:
             yield from bps.mv(
                 terms.USAXS.ar_val_center,
@@ -206,6 +210,8 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
     except Exception as e:
         logger.error(f"Error in tune_ar: {str(e)}")
         raise
+
+    #return success
 
 
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -229,7 +235,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
     """
     if md is None:
         md = {}
-
+    success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
@@ -269,6 +275,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             "auto+background",
         )
         scaler0.select_channels(None)
+        success = stats.analysis.success
         if stats.analysis.success:
             logger.info(f"final position: {a_stage.r2p.position}")
         else:
@@ -278,6 +285,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         logger.error(f"Error in tune_a2rp: {str(e)}")
         raise
 
+    #return success
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)

@@ -144,8 +144,8 @@ def preUSAXStune(md={}):
     for axis, tune in tuners.items():
         yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
         yield from tune(md=md)
-        if not axis.tuner.tune_ok:
-            logger.warning("!!! tune failed for axis %s !!!", axis.name)
+        #if not axis.tuner.tune_ok:
+        #    logger.warning("!!! tune failed for axis %s !!!", axis.name)
             # if NOTIFY_ON_BADTUNE:
             #     email_notices.send(
             #         f"USAXS tune failed for axis {axis.name}",
