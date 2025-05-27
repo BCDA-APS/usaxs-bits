@@ -90,16 +90,16 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_mr"
         logger.info(f"tuning axis: {m_stage.r.name}")
 
-        yield from bps.mv(m_stage.r, m_stage.r.position)
+        #yield from bps.mv(m_stage.r, m_stage.r.position)
         #yield from bps.trigger_and_read([m_stage.r])
         yield from IfRequestedStopBeforeNextScan()
 
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        #scaler0.select_channels(["I0"])
+        scaler0.select_channels(["I0"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [I0],
+            [I0,scaler0],
             m_stage.r,
             -m_stage.r.tune_range.get(),
             m_stage.r.tune_range.get(),
@@ -117,7 +117,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels(None)
+        scaler0.select_channels()
         success = stats.analysis.success
         if stats.analysis.success:
             yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
@@ -256,7 +256,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD],
+            [UPD,scaler0],
             a_stage.r2p,
             -a_stage.r2p.tune_range.get(),
             a_stage.r2p.tune_range.get(),
@@ -274,7 +274,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels(None)
+        scaler0.select_channels()
         success = stats.analysis.success
         if stats.analysis.success:
             logger.info(f"final position: {a_stage.r2p.position}")
@@ -330,7 +330,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD],
+            [UPD,scaler0],
             d_stage.x,
             -d_stage.x.tune_range.get(),
             d_stage.x.tune_range.get(),
@@ -406,7 +406,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD],
+            [UPD,scaler0],
             d_stage.y,
             -d_stage.y.tune_range.get(),
             d_stage.y.tune_range.get(),
@@ -424,7 +424,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels(None)
+        scaler0.select_channels()
         if stats.analysis.success:
             yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
             logger.info(f"final position: {d_stage.y.position}")
