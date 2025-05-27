@@ -16,23 +16,23 @@ INTERNAL
     ~Group_Specification
     ~Link_Specification
     ~PV_Specification
-    ~_developer
-
 """
 
 import logging
 import os
-
-# ensure we have a location for the libca (& libCom) library
-# os.environ["PYEPICS_LIBCA"] = "/APSshare/epics/base-7.0.3/lib/linux-x86_64/libca.so"
 import socket
 import time
+
+# ensure we have a location for the libca (& libCom) library
+# TODO: Is this still necessary?
+# os.environ["PYEPICS_LIBCA"] = "/local/epics/base-7.0.6.1/lib/linux-x86_64/libca.so"
+# os.environ["PYEPICS_LIBCA"] = "/APSshare/epics/base-7.0.3/lib/linux-x86_64/libca.so"
+# MUST happen before any ophyd library is imported!
 
 from lxml import etree as lxml_etree
 from ophyd import Component
 from ophyd import EpicsSignal
 
-os.environ["PYEPICS_LIBCA"] = "/local/epics/base-7.0.6.1/lib/linux-x86_64/libca.so"
 
 logger = logging.getLogger(os.path.split(__file__)[-1])
 logger.setLevel(logging.INFO)
@@ -48,7 +48,8 @@ manager = None  # singleton instance of NeXus_Structure
 
 
 class EpicsSignalDesc(EpicsSignal):
-    """A specialized EpicsSignal that includes a description component.
+    """
+    A specialized EpicsSignal that includes a description component.
 
     This class extends EpicsSignal to add a description field that can be used
     to store metadata about the signal.
@@ -198,7 +199,11 @@ class NeXus_Structure:
         Returns:
             bool: True if all PVs are connected, False otherwise
         """
-        arr = [pv.ophyd_signal.connected for pv in self.pv_registry.values()]
+        arr = [
+            pv.ophyd_signal.connected
+            # .
+            for pv in self.pv_registry.values()
+        ]
         return False not in arr
 
     @property
@@ -216,49 +221,50 @@ class NeXus_Structure:
         ]
         return disconnects
 
-    def get_hdf5_path(self, xml_node):
-        """Get the HDF5 path for a given XML node.
+    # TODO: Will these be used?
+    # def get_hdf5_path(self, xml_node):
+    #     """Get the HDF5 path for a given XML node.
 
-        Args:
-            xml_node: XML node to get the HDF5 path for
+    #     Args:
+    #         xml_node: XML node to get the HDF5 path for
 
-        Returns:
-            str: The HDF5 path for the given node
-        """
-        for group_spec_obj in self.group_registry.values():
-            if group_spec_obj.xml_node == xml_node:
-                return group_spec_obj.hdf5_path
-        return None
+    #     Returns:
+    #         str: The HDF5 path for the given node
+    #     """
+    #     for group_spec_obj in self.group_registry.values():
+    #         if group_spec_obj.xml_node == xml_node:
+    #             return group_spec_obj.hdf5_path
+    #     return None
 
-    def __getitem__(self, key):
-        """Get a NeXus structure item by key.
+    # def __getitem__(self, key):
+    #     """Get a NeXus structure item by key.
 
-        Args:
-            key: Key to look up in the structure
+    #     Args:
+    #         key: Key to look up in the structure
 
-        Returns:
-            The requested item from the NeXus structure
+    #     Returns:
+    #         The requested item from the NeXus structure
 
-        Raises:
-            KeyError: If the key is not found
-        """
-        return self.get_hdf5_path(key)
+    #     Raises:
+    #         KeyError: If the key is not found
+    #     """
+    #     return self.get_hdf5_path(key)
 
-    def __len__(self):
-        """Get the number of items in the NeXus structure.
+    # def __len__(self):
+    #     """Get the number of items in the NeXus structure.
 
-        Returns:
-            int: Number of items in the structure
-        """
-        return len(self.group_registry)
+    #     Returns:
+    #         int: Number of items in the structure
+    #     """
+    #     return len(self.group_registry)
 
-    def __iter__(self):
-        """Get an iterator over the NeXus structure items.
+    # def __iter__(self):
+    #     """Get an iterator over the NeXus structure items.
 
-        Returns:
-            iterator: Iterator over the structure items
-        """
-        return iter(self.group_registry.values())
+    #     Returns:
+    #         iterator: Iterator over the structure items
+    #     """
+    #     return iter(self.group_registry.values())
 
     def __str__(self):
         """Get a string representation of the NeXus structure.
@@ -266,7 +272,12 @@ class NeXus_Structure:
         Returns:
             str: String representation of the structure
         """
-        return f"NeXus_Structure(config='{self.config_filename}')"
+        try:
+            config = self.config_filename
+            text = f"{config=!r}"
+        except Exception:
+            text = ""
+        return f"{self.__class__.__name__}({text})"
 
 
 def getGroupObjectByXmlNode(xml_node, manager):
@@ -517,52 +528,52 @@ class PV_Specification:
         return f"{self.__class__.__name__}({text})"
 
 
-def _developer():
-    """
-    developer's scratch space
-    """
-    print("basic tests while developing this module")
-    assert manager is None, "starting condition should be None"
+# def _developer():
+#     """
+#     developer's scratch space
+#     """
+#     print("basic tests while developing this module")
+#     assert manager is None, "starting condition should be None"
 
-    config_file = XML_CONFIGURATION_FILE
+#     config_file = XML_CONFIGURATION_FILE
 
-    boss = get_manager(config_file)
-    assert isinstance(boss, NeXus_Structure), "new structure created"
+#     boss = get_manager(config_file)
+#     assert isinstance(boss, NeXus_Structure), "new structure created"
 
-    mgr = get_manager(config_file)
-    assert isinstance(mgr, NeXus_Structure), "existing structure"
-    assert boss == mgr, "identical to first structure"
+#     mgr = get_manager(config_file)
+#     assert isinstance(mgr, NeXus_Structure), "existing structure"
+#     assert boss == mgr, "identical to first structure"
 
-    reset_manager()
-    assert manager is None, "structure reset"
+#     reset_manager()
+#     assert manager is None, "structure reset"
 
-    mgr = get_manager(config_file)
-    assert isinstance(mgr, NeXus_Structure), "new structure created"
-    assert boss != mgr, "new structure different from first structure"
-    del boss
+#     mgr = get_manager(config_file)
+#     assert isinstance(mgr, NeXus_Structure), "new structure created"
+#     assert boss != mgr, "new structure different from first structure"
+#     del boss
 
-    mgr._read_configuration()
-    assert mgr.trigger_poll_interval_s == TRIGGER_POLL_INTERVAL_s
-    assert len(mgr.pv_registry) > 0
+#     mgr._read_configuration()
+#     assert mgr.trigger_poll_interval_s == TRIGGER_POLL_INTERVAL_s
+#     assert len(mgr.pv_registry) > 0
 
-    t0 = time.time()
-    timeout = 2.0
-    mgr._connect_ophyd()
-    for _i in range(500):  # limited wait to connect
-        verdict = mgr.connected
-        t = time.time() - t0
-        logger.debug(f"connected: {verdict}  time:{t}")
-        if verdict or t > timeout:
-            break  # seems to take about 60-70 ms with current XML file
-        time.sleep(0.005)
+#     t0 = time.time()
+#     timeout = 2.0
+#     mgr._connect_ophyd()
+#     for _i in range(500):  # limited wait to connect
+#         verdict = mgr.connected
+#         t = time.time() - t0
+#         logger.debug(f"connected: {verdict}  time:{t}")
+#         if verdict or t > timeout:
+#             break  # seems to take about 60-70 ms with current XML file
+#         time.sleep(0.005)
 
-    workstation = socket.gethostname()
-    if workstation.find("usaxscontrol") >= 0:
-        assert mgr.connected
+#     workstation = socket.gethostname()
+#     if workstation.find("usaxscontrol") >= 0:
+#         assert mgr.connected
 
-    conn = [pv for pv in mgr.pv_registry.values() if pv.ophyd_signal.connected]
-    msg = f"connected {len(conn)} of {len(mgr.pv_registry)} PVs " f"in {time.time()-t0:.04f} s"
-    logger.debug(msg)
+#     conn = [pv for pv in mgr.pv_registry.values() if pv.ophyd_signal.connected]
+#     msg = f"connected {len(conn)} of {len(mgr.pv_registry)} PVs " f"in {time.time()-t0:.04f} s"
+#     logger.debug(msg)
 
 
 # if __name__ == "__main__":
