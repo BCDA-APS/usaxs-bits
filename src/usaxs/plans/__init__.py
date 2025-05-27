@@ -44,8 +44,8 @@ from .plans_tune import preUSAXStune
 from .plans_usaxs import Flyscan
 from .plans_usaxs import USAXSscan
 from .plans_usaxs import USAXSscanStep
-from .plans_user_facing import SAXS
-from .plans_user_facing import WAXS
+from .plans_user_facing import saxsExp
+from .plans_user_facing import waxsExp
 from .amplifiers_plan import autoscale_amplifiers
 from .sample_transmission import measure_USAXS_Transmission
 # from .sample_transmission import sample_transmission

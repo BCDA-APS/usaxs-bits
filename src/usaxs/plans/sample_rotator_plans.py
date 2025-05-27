@@ -94,9 +94,6 @@ def PI_onR(
 def rotate_sample(
     angle: float,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """Rotate sample to a specific angle.
 

@@ -187,9 +187,6 @@ def preUSAXStune(md={}):
 @plan
 def allUSAXStune(
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """
     Tune mr, ar, a2rp, ar, a2rp USAXS optics.
@@ -320,9 +317,6 @@ def allUSAXStune(
 @plan
 def preSWAXStune(
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """
     Tune the SAXS/WAXS optics in any mode, is safe.
@@ -349,76 +343,74 @@ def preSWAXStune(
         md = {}
 
 
-    yield from MONO_FEEDBACK_ON()
-    yield from bps.mv(
-        mono_shutter,
-        "open",
-        usaxs_shutter,
-        "close",
-        timeout=MASTER_TIMEOUT,
-    )
-    yield from IfRequestedStopBeforeNextScan(
-        oregistry=oregistry
-    )  # stop if user chose to do so.
+    # yield from MONO_FEEDBACK_ON()
+    # yield from bps.mv(
+    #     mono_shutter,
+    #     "open",
+    #     usaxs_shutter,
+    #     "close",
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    # yield from IfRequestedStopBeforeNextScan()  # stop if user chose to do so.
 
-    if terms.preUSAXStune.use_specific_location.get() in (1, "yes"):
-        yield from bps.mv(
-            s_stage.x,
-            terms.preUSAXStune.sx.get(),
-            s_stage.y,
-            terms.preUSAXStune.sy.get(),
-            timeout=MASTER_TIMEOUT,
-        )
+    # if terms.preUSAXStune.use_specific_location.get() in (1, "yes"):
+    #     yield from bps.mv(
+    #         s_stage.x,
+    #         terms.preUSAXStune.sx.get(),
+    #         s_stage.y,
+    #         terms.preUSAXStune.sy.get(),
+    #         timeout=MASTER_TIMEOUT,
+    #     )
 
-    yield from bps.mv(
-        user_data.time_stamp,
-        str(datetime.datetime.now()),
-        scaler0.preset_time,
-        0.1,
-        timeout=MASTER_TIMEOUT,
-    )
-    yield from user_data.set_state_plan("pre-SWAXS optics tune")
+    # yield from bps.mv(
+    #     user_data.time_stamp,
+    #     str(datetime.datetime.now()),
+    #     scaler0.preset_time,
+    #     0.1,
+    #     timeout=MASTER_TIMEOUT,
+    # )
+    # yield from user_data.set_state_plan("pre-SWAXS optics tune")
 
-    # when all that is complete, then ...
-    yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
+    # # when all that is complete, then ...
+    # yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
 
-    # TODO: install suspender using usaxs_CheckBeamStandard.get()
+    # # TODO: install suspender using usaxs_CheckBeamStandard.get()
 
-    tuners = OrderedDict()  # list the axes to tune
-    tuners[m_stage.r] = tune_mr  # tune M stage to monochromator
-    # if not m_stage.isChannelCut:
-    #     tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
-    # if terms.USAXS.useMSstage.get():
-    #     tuners[ms_stage.rp] = tune_msrp  # align MSR stage with M stage
+    # tuners = OrderedDict()  # list the axes to tune
+    # tuners[m_stage.r] = tune_mr  # tune M stage to monochromator
+    # # if not m_stage.isChannelCut:
+    # #     tuners[m_stage.r2p] = tune_m2rp  # make M stage crystals parallel
+    # # if terms.USAXS.useMSstage.get():
+    # #     tuners[ms_stage.rp] = tune_msrp  # align MSR stage with M stage
 
-    # now, tune the desired axes, bail out if a tune fails
-    yield from bps.install_suspender(suspend_BeamInHutch)
-    for axis, tune in tuners.items():
-        yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
-        yield from tune(md=md, oregistry=oregistry)
-        if axis.tuner.tune_ok:
-            # If we don't wait, the next tune often fails
-            # intensity stays flat, statistically
-            # We need to wait a short bit to allow EPICS database
-            # to complete processing and report back to us.
-            yield from bps.sleep(1)
-        else:
-            logger.warning("!!! tune failed for axis %s !!!", axis.name)
-            # break
-    yield from bps.remove_suspender(suspend_BeamInHutch)
+    # # now, tune the desired axes, bail out if a tune fails
+    # #yield from bps.install_suspender(suspend_BeamInHutch)
+    # for axis, tune in tuners.items():
+    #     yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
+    #     yield from tune(md=md)
+    #     # if axis.tuner.tune_ok:
+    #     #     # If we don't wait, the next tune often fails
+    #     #     # intensity stays flat, statistically
+    #     #     # We need to wait a short bit to allow EPICS database
+    #     #     # to complete processing and report back to us.
+    #     #     yield from bps.sleep(1)
+    #     # else:
+    #     #     logger.warning("!!! tune failed for axis %s !!!", axis.name)
+    #     #     # break
+    # #yield from bps.remove_suspender(suspend_BeamInHutch)
 
-    logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
-    yield from bps.mv(
-        scaler0.preset_time,
-        terms.USAXS.usaxs_time.get(),
-        user_data.time_stamp,
-        str(datetime.datetime.now()),
-        terms.preUSAXStune.num_scans_last_tune,
-        0,
-        terms.preUSAXStune.run_tune_next,
-        0,
-        terms.preUSAXStune.epoch_last_tune,
-        time.time(),
-        timeout=MASTER_TIMEOUT,
-    )
+    # logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
+    # yield from bps.mv(
+    #     scaler0.preset_time,
+    #     terms.USAXS.usaxs_time.get(),
+    #     user_data.time_stamp,
+    #     str(datetime.datetime.now()),
+    #     terms.preUSAXStune.num_scans_last_tune,
+    #     0,
+    #     terms.preUSAXStune.run_tune_next,
+    #     0,
+    #     terms.preUSAXStune.epoch_last_tune,
+    #     time.time(),
+    #     timeout=MASTER_TIMEOUT,
+    # )
     yield from user_data.set_state_plan("pre-SWAXS optics tune")

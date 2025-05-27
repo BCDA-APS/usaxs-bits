@@ -41,9 +41,6 @@ user_data = oregistry["user_device"]
 @plan
 def reset_instrument(
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """Reset the instrument to its default state.
 

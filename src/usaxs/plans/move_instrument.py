@@ -250,9 +250,7 @@ def move_USAXSIn():
 def move_instrument(
     target_position: float,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
+
 ):
     """Move instrument to a target position.
 

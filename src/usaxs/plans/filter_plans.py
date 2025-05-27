@@ -95,11 +95,7 @@ def insertSaxsFilters():
 
 
 def insertScanFilters(
-    md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
-):
+    md: Optional[Dict[str, Any]] = None,):
     """Insert filters for scanning.
 
     This function inserts the appropriate filters for scanning operations,

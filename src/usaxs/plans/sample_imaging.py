@@ -91,9 +91,6 @@ def record_sample_image_on_demand(
 def image_sample(
     count_time: float = 1.0,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """Image a sample using the detector.
 

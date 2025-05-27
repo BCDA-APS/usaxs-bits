@@ -74,9 +74,6 @@ def USAXSscan(
     thickness_mm: float,
     title: str,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """
     Execute a USAXS scan at the specified position.
@@ -129,9 +126,6 @@ def USAXSscanStep(
     thickness: float,
     scan_title: str,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """
     Execute a step USAXS scan at the specified position.

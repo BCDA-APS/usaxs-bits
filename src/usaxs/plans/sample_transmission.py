@@ -274,9 +274,6 @@ def measure_SAXS_Transmission(
 def measure_transmission(
     count_time: float = 1.0,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """Measure sample transmission.
 

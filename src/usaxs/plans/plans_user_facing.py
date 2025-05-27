@@ -83,15 +83,12 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 
 
 @plan
-def SAXS(
+def saxsExp(
     pos_X: float,
     pos_Y: float,
     thickness: float,
     scan_title: str,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """
     Execute a SAXS scan at the specified position.
@@ -336,15 +333,12 @@ def SAXS(
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
-def WAXS(
+def waxsExp(
     pos_X: float,
     pos_Y: float,
     thickness: float,
     scan_title: str,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """
     Execute a WAXS scan at the specified position.

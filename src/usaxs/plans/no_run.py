@@ -47,9 +47,7 @@ def no_run_trigger_and_wait(
 
 def no_run_operation(
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
+
 ):
     """Perform a no-run operation.
 

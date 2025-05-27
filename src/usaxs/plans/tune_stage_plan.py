@@ -18,9 +18,6 @@ scaler0 = oregistry["scaler0"]
 def tune(
     self,
     md: Optional[Dict[str, Any]] = None,
-    RE: Optional[Any] = None,
-    bec: Optional[Any] = None,
-    specwriter: Optional[Any] = None,
 ):
     """Execute a tuning plan.
 
