@@ -83,7 +83,7 @@ def get_manager(config_file):
     return manager
 
 
-class NeXus_Structure(object):
+class NeXus_Structure:
     """Parse XML configuration, layout structure of HDF5 file, define PVs in ophyd.
 
     This class manages the NeXus structure for HDF5 files, including parsing XML
@@ -275,11 +275,12 @@ def getGroupObjectByXmlNode(xml_node, manager):
     return None
 
 
-class Field_Specification(object):
-    """Specification for a field in the NeXus structure.
+class Field_Specification:
+    """
+    Specification of the "field" element in the XML configuration.
 
-    This class represents a field in the HDF5 file structure, including its
-    attributes and configuration.
+    This class represents a "field" element in the XML configuration and
+    generates appropriate structures in the HDF5 file.
     """
 
     def __init__(self, xml_element_node, manager):
@@ -290,12 +291,19 @@ class Field_Specification(object):
             manager: NeXus_Structure instance managing this field
         """
         self.xml_node = xml_element_node
-        self.manager = manager
-        self.label = xml_element_node.attrib["label"]
-        self.group_parent = getGroupObjectByXmlNode(
-            xml_element_node.getparent(), manager
-        )
-        self.attrib = {k: v for k, v in xml_element_node.attrib.items() if k != "label"}
+        xml_parent_node = xml_element_node.getparent()
+        self.group_parent = getGroupObjectByXmlNode(xml_parent_node, manager)
+        self.name = xml_element_node.attrib['name']
+        self.hdf5_path = self.group_parent.hdf5_path + '/' + self.name
+
+        nodes = xml_element_node.xpath('text')
+        self.text = "" if len(nodes) == 0 else nodes[0].text.strip()
+        self.attrib = {
+            node.attrib['name']: node.attrib['value']
+            for node in xml_element_node.xpath('attribute')
+        }
+
+        manager.field_registry[self.hdf5_path] = self
 
     def __str__(self):
         """Get a string representation of the field specification.
@@ -306,11 +314,12 @@ class Field_Specification(object):
         return f"Field_Specification(label='{self.label}')"
 
 
-class Group_Specification(object):
-    """Specification for a group in the NeXus structure.
+class Group_Specification:
+    """
+    Specification of the "group" element in the XML configuration.
 
-    This class represents a group in the HDF5 file structure, including its
-    path and configuration.
+    This class represents a "group" element in the XML configuration and
+    generates appropriate structures in the HDF5 file.
     """
 
     def __init__(self, xml_element_node, manager):
@@ -321,26 +330,36 @@ class Group_Specification(object):
             manager: NeXus_Structure instance managing this group
         """
         self.xml_node = xml_element_node
-        self.manager = manager
-        try:
-            name = xml_element_node.attrib.get("name")
-            self.label = xml_element_node.attrib["label"]
-        except Exception as exinfo:
-            msg = f"{xml_element_node.tag=} {name=} {exinfo=}"
-            logger.error(msg)
-            print(msg)
-            raise RuntimeError(msg)
-        
-        self.group_parent = getGroupObjectByXmlNode(
-            xml_element_node.getparent(), manager
-        )
-        self.attrib = {k: v for k, v in xml_element_node.attrib.items() if k != "label"}
+        self.hdf5_path = None
         self.hdf5_group = None
+        self.name = xml_element_node.attrib['name']
+        self.nx_class = xml_element_node.attrib['class']
 
-        if self.group_parent is None:
-            self.hdf5_path = "/"
-        else:
-            self.hdf5_path = os.path.join(self.group_parent.hdf5_path, self.label)
+        self.attrib = {
+            node.attrib['name']: node.attrib['value']
+            for node in xml_element_node.xpath('attribute')
+        }
+
+        xml_parent_node = xml_element_node.getparent()
+        self.group_children = {}
+        if xml_parent_node.tag == 'group':
+            # identify our parent
+            self.group_parent = getGroupObjectByXmlNode(xml_parent_node, manager)
+            # next, find our HDF5 path from our parent
+            path = self.group_parent.hdf5_path
+            if not path.endswith('/'):
+                path += '/'
+            self.hdf5_path = path + self.name
+            # finally, declare ourself to be a child of that parent
+            self.group_parent.group_children[self.hdf5_path] = self
+        elif xml_parent_node.tag == 'NX_structure':
+            self.group_parent = None
+            self.hdf5_path = '/'
+
+        if self.hdf5_path in manager.group_registry:
+            msg = "Cannot create duplicate HDF5 path names: path=%s name=%s nx_class=%s" % (
+                self.hdf5_path, self.name, self.nx_class)
+            raise RuntimeError(msg)
 
         manager.group_registry[self.hdf5_path] = self
 
@@ -353,8 +372,9 @@ class Group_Specification(object):
         return f"Group_Specification(label='{self.label}', path='{self.hdf5_path}')"
 
 
-class Link_Specification(object):
-    """Specification for a link in the NeXus structure.
+class Link_Specification:
+    """
+    Specification for a link in the NeXus structure.
 
     This class represents a symbolic link in the HDF5 file structure,
     connecting different parts of the file.
@@ -404,7 +424,7 @@ class Link_Specification(object):
         return f"Link_Specification(label='{self.label}', target='{self.target}')"
 
 
-class PV_Specification(object):
+class PV_Specification:
     """Specification for a Process Variable in the NeXus structure.
 
     This class represents an EPICS Process Variable (PV) in the HDF5 file
