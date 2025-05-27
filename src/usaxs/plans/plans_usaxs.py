@@ -17,6 +17,7 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 from ..startup import RE
+from ..startup import bec
 
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
