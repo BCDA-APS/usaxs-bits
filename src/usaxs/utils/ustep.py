@@ -44,18 +44,18 @@ class Ustep(object):
 
     """
 
-    def __init__(self, filename):
+    def __init__(self, start, center, finish, numPts, exponent, minStep):
         """Initialize the ustep configuration.
 
         Args:
             filename: Path to the configuration file
         """
-        self.start = 10.0
-        self.center = 9.5
-        self.finish = 7
-        self.numPts = 100
-        self.exponent = 1.2
-        self.minStep = 0.0001
+        self.start = start
+        self.center = center
+        self.finish = finish
+        self.numPts = numPts
+        self.exponent = exponent
+        self.minStep = minStep
         self.sign = {True: 1, False: -1}[self.start < self.finish]
         self.factor = self._find_factor_()
 

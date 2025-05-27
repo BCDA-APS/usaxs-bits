@@ -194,7 +194,6 @@ def uascan(
     # do not report the "quiet" detectors/stages during a uascan
     quiet_detectors = [
         I00,
-        I000,
         trd,
     ]
     quiet_stages = [
