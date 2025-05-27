@@ -315,7 +315,7 @@ class NXWriterUascan(OurCustomNXWriterBase):
     # add RE.md["detectors"] = list : first item is for NXdata @signal attribute
     # add RE.md["positioners"] = list : entire list is for NXdata @axes attribute
 
-    nxdata_signal = "PD_USAXS"
+    nxdata_signal = "UPD"
     nxdata_signal_axes = [
         "a_stage_r",
     ]

@@ -604,8 +604,8 @@ def USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None):
         terms.USAXS.finish.get(), monochromator.dcm.wavelength.position
     )
     bec.disable_plots()
-
-    yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+    #TODO fix after we fix BF image collection
+    #yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
     use_dynamic_time = user_override.pick(
         "useDynamicTime", terms.USAXS.useDynamicTime.get()
@@ -911,7 +911,7 @@ def Flyscan(pos_X, pos_Y, thickness, scan_title, md=None):
     #'num_intervals': num_intervals,
     #'hints': {}
 
-    yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+    #yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
     yield from usaxs_flyscan.plan(md=_md)  # DO THE FLY SCAN
 
@@ -1178,7 +1178,7 @@ def SAXS(pos_X, pos_Y, thickness, scan_title, md=None):
             f"SAXS collection for {terms.SAXS.acquire_time.get()} s"
         )
 
-        yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
+        #yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
         yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
 
     yield from _image_acquisition_steps()
@@ -1413,7 +1413,7 @@ def WAXS(pos_X, pos_Y, thickness, scan_title, md=None):
         #     timeout=MASTER_TIMEOUT,
         # )
 
-        yield from record_sample_image_on_demand("waxs", scan_title_clean, _md)
+        #yield from record_sample_image_on_demand("waxs", scan_title_clean, _md)
 
         yield from areaDetectorAcquire(waxs_det, create_directory=-5, md=_md)
 

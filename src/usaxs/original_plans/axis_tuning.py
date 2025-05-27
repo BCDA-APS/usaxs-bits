@@ -102,7 +102,7 @@ def tune_mr(md={}):
         "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-    scaler0.select_channels(["I0_USAXS"])
+    scaler0.select_channels(["I0"])
     trim_plot_by_name(5)  # this trims ALL plots to 5 scans
     stats = SignalStatsCallback()
     yield from lineup2(
@@ -196,7 +196,7 @@ def tune_ar(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     trim_plot_by_name(5)
-    scaler0.select_channels(["PD_USAXS"])
+    scaler0.select_channels(["UPD"])
     stats = SignalStatsCallback()
     yield from lineup2(
         [scaler0],
@@ -279,7 +279,7 @@ def tune_a2rp(md={}):
         "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-    scaler0.select_channels(["PD_USAXS"])
+    scaler0.select_channels(["UPD"])
     trim_plot_by_name(5)
     stats = SignalStatsCallback()
     yield from lineup2(
@@ -330,7 +330,7 @@ def tune_dx(md={}):
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     trim_plot_by_name(5)
-    scaler0.select_channels(["PD_USAXS"])
+    scaler0.select_channels(["UPD"])
     stats = SignalStatsCallback()
     yield from lineup2(
         [scaler0],
@@ -392,7 +392,7 @@ def tune_dy(md={}):
         "open",
     )
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-    scaler0.select_channels(["PD_USAXS"])
+    scaler0.select_channels(["UPD"])
     trim_plot_by_name(5)
     stats = SignalStatsCallback()
     yield from lineup2(

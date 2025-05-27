@@ -307,7 +307,7 @@ def USAXSscanStep(
     )
     bec.disable_plots()
 
-    yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+    #yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
     use_dynamic_time = user_override.pick(
         "useDynamicTime", terms.USAXS.useDynamicTime.get()

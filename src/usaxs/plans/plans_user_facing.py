@@ -16,6 +16,10 @@ from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
+from ..startup import RE
+#from ..startup import bec
+from usaxs.callbacks.spec_data_file_writer import specwriter
+
 
 from ..startup import suspend_BeamInHutch
 from ..startup import suspend_FE_shutter
@@ -294,7 +298,7 @@ def saxsExp(
             f"SAXS collection for {terms.SAXS.acquire_time.get()} s"
         )
 
-        yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
+        #yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
         yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
 
     yield from _image_acquisition_steps()
@@ -531,7 +535,7 @@ def waxsExp(
             f"WAXS collection for {terms.WAXS.acquire_time.get()} s"
         )
 
-        yield from record_sample_image_on_demand("waxs", scan_title_clean, _md)
+        #yield from record_sample_image_on_demand("waxs", scan_title_clean, _md)
 
         yield from areaDetectorAcquire(waxs_det, create_directory=-5, md=_md)
 

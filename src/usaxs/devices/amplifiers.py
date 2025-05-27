@@ -352,7 +352,7 @@ class DetectorAmplifierAutorangeDevice(Device):
                 "'amplifier' should name a 'FemtoAmplifierDevice' type,"
                 f" received type: {type(self.femto)}"
             )
-        if not isinstance(self.auto, AmplifierAutoDevice):          #this fails to for I0_USAXS
+        if not isinstance(self.auto, AmplifierAutoDevice):          #this fails to for I0
             raise ValueError(
                 "'auto' should name a 'AmplifierAutoDevice' type,"
                 f" received type: {type(self.auto)}"

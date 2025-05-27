@@ -176,8 +176,8 @@ def reduce_uascan(root):
     # sds is SPEC Data File Scan: pps = sds.MD.get("scaler_pulses_per_second", 1e-7)
     pps = DEFAULT_SCALER_PULSES_PER_SECOND
     seconds = pps * primary["seconds/value"][()]  # convert from counts
-    pd = primary["PD_USAXS/value"][()]
-    I0 = primary["I0_USAXS/value"][()]
+    pd = primary["UPD/value"][()]
+    I0 = primary["I0/value"][()]
     I0_amplifier_gain = primary["I0_autorange_controls_gain/value"][()]
     ar_center = baseline["terms_USAXS_center_AR/value_start"][()]
 

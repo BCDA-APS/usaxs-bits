@@ -95,7 +95,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         yield from IfRequestedStopBeforeNextScan()
 
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        #scaler0.select_channels(["I0_USAXS"])
+        #scaler0.select_channels(["I0"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
@@ -173,10 +173,10 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         trim_plot_by_name(5)
-        #scaler0.select_channels(["PD_USAXS"])
+        scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD],
+            [UPD,scaler0],
             a_stage.r,
             -a_stage.r.tune_range.get(),
             a_stage.r.tune_range.get(),
@@ -194,7 +194,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels(None)
+        scaler0.select_channels()
         success = stats.analysis.success
         if stats.analysis.success:
             yield from bps.mv(
@@ -252,7 +252,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        #scaler0.select_channels(["PD_USAXS"])
+        scaler0.select_channels(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
@@ -327,7 +327,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
         trim_plot_by_name(5)
-        #scaler0.select_channels(["PD_USAXS"])
+        scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
             [UPD],
@@ -348,7 +348,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels(None)
+        scaler0.select_channels()
         if stats.analysis.success:
             yield from bps.mv(
                 terms.USAXS.DX0,
@@ -402,7 +402,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-        #scaler0.select_channels(["PD_USAXS"])
+        scaler0.select_channels(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(

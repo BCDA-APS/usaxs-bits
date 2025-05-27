@@ -322,7 +322,15 @@ class Group_Specification(object):
         """
         self.xml_node = xml_element_node
         self.manager = manager
-        self.label = xml_element_node.attrib["label"]
+        try:
+            name = xml_element_node.attrib.get("name")
+            self.label = xml_element_node.attrib["label"]
+        except Exception as exinfo:
+            msg = f"{xml_element_node.tag=} {name=} {exinfo=}"
+            logger.error(msg)
+            print(msg)
+            raise RuntimeError(msg)
+        
         self.group_parent = getGroupObjectByXmlNode(
             xml_element_node.getparent(), manager
         )

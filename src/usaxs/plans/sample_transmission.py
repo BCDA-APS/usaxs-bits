@@ -93,13 +93,13 @@ def measure_USAXS_Transmission(
 
             yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
             md["plan_name"] = "measure_USAXS_Transmission"
-            scaler0.select_channels(["I0_USAXS", "TR diode"])
+            scaler0.select_channels(["I0", "TRD"])
             yield from no_run_trigger_and_wait([scaler0])
             scaler0.select_channels(None)
             s = scaler0.read()
             secs = s["scaler0_time"]["value"]
-            _tr_diode = s["TR diode"]["value"]
-            _I0 = s["I0_USAXS"]["value"]
+            _tr_diode = s["TRD"]["value"]
+            _I0 = s["I0"]["value"]
 
             if (
                 _tr_diode > secs * constants["TR_MAX_ALLOWED_COUNTS"]
@@ -108,7 +108,7 @@ def measure_USAXS_Transmission(
                 #yield from autoscale_amplifiers([I0_controls, trd_controls])
 
                 yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
-                scaler0.select_channels(["I0_USAXS", "TR diode"])
+                scaler0.select_channels(["I0", "TRD"])
                 yield from no_run_trigger_and_wait([scaler0])
                 scaler0.select_channels(None)
                 s = scaler0.read()
@@ -122,11 +122,11 @@ def measure_USAXS_Transmission(
             yield from insertScanFilters()
             yield from bps.mv(
                 trmssn.diode_counts,
-                s["TR diode"]["value"],
+                s["TRD"]["value"],
                 trmssn.diode_gain,
                 trd_controls.femto.gain.get(),
                 trmssn.I0_counts,
-                s["I0_USAXS"]["value"],
+                s["I0"]["value"],
                 #trmssn.I0_gain,
                 #I0_controls.femto.gain.get(),
             )
@@ -213,13 +213,13 @@ def measure_SAXS_Transmission(
             constants["SAXS_TR_TIME"],
         )
         md["plan_name"] = "measure_SAXS_Transmission"
-        scaler0.select_channels(["I0_USAXS", "TR diode"])
+        scaler0.select_channels(["I0", "TRD"])
         yield from no_run_trigger_and_wait([scaler0])
         scaler0.select_channels(None)
         s = scaler0.read()
         secs = s["scaler0_time"]["value"]
-        _tr_diode = s["TR diode"]["value"]
-        _I0 = s["I0_USAXS"]["value"]
+        _tr_diode = s["TRD"]["value"]
+        _I0 = s["I0"]["value"]
 
         if (
             _tr_diode > secs * constants["TR_MAX_ALLOWED_COUNTS"]
@@ -247,11 +247,11 @@ def measure_SAXS_Transmission(
         yield from insertScanFilters()
         yield from bps.mv(
             terms.SAXS_WAXS.diode_transmission,
-            s["TR diode"]["value"],
+            s["TRD"]["value"],
             terms.SAXS_WAXS.diode_gain,
             trd_controls.femto.gain.get(),
             terms.SAXS_WAXS.I0_transmission,
-            s["I0_USAXS"]["value"],
+            s["I0"]["value"],
             #terms.SAXS_WAXS.I0_gain,
             #I0_controls.femto.gain.get(),
         )

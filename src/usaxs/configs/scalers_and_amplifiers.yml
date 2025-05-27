@@ -53,23 +53,23 @@ usaxs.devices.amplifiers.AmplifierAutoDevice:
 
 # usaxs.devices.amplifiers.DetectorAmplifierAutorangeDevice:
 #   - name: I0_controls
-#     nickname: I0_USAXS
+#     nickname: I0
 #     scaler: scaler0
 #     det: I0
 
 #   - name: I00_controls
-#     nickname: I00_USAXS
+#     nickname: I00
 #     scaler: scaler0
 #     det: I00
 
 #   # Nothing for I000
 
 #   - name: trd_controls
-#     nickname: "TR diode"
+#     nickname: "TRD"
 #     scaler: scaler0
 #     det: trd
 
 #   - name: upd_controls
-#     nickname: PD_USAXS
+#     nickname: UPD
 #     scaler: scaler0
 #     det: upd

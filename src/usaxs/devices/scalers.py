@@ -12,7 +12,7 @@ def setup_scalers():
 
     scaler0.stage_sigs["count_mode"] = "OneShot"
     # scaler0.wait_for_connection()
-    # scaler0.select_channels()
+    scaler0.select_channels()
 
     channels = {
         "I0": scaler0.channels.chan02,
