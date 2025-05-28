@@ -16,27 +16,18 @@ INTERNAL
     ~Group_Specification
     ~Link_Specification
     ~PV_Specification
-    ~_developer
-
 """
 
 import logging
 import os
 
-# ensure we have a location for the libca (& libCom) library
-# os.environ["PYEPICS_LIBCA"] = "/APSshare/epics/base-7.0.3/lib/linux-x86_64/libca.so"
-import socket
-import time
-
 from lxml import etree as lxml_etree
 from ophyd import Component
 from ophyd import EpicsSignal
 
-os.environ["PYEPICS_LIBCA"] = "/local/epics/base-7.0.6.1/lib/linux-x86_64/libca.so"
 
 logger = logging.getLogger(os.path.split(__file__)[-1])
 logger.setLevel(logging.INFO)
-# logger.addHandler(logging.NullHandler())
 
 COMMON_AD_CONFIG_DIR = "/share1/AreaDetectorConfig/FlyScan_config/"
 path = os.path.dirname(__file__)
@@ -48,7 +39,8 @@ manager = None  # singleton instance of NeXus_Structure
 
 
 class EpicsSignalDesc(EpicsSignal):
-    """A specialized EpicsSignal that includes a description component.
+    """
+    A specialized EpicsSignal that includes a description component.
 
     This class extends EpicsSignal to add a description field that can be used
     to store metadata about the signal.
@@ -83,8 +75,9 @@ def get_manager(config_file):
     return manager
 
 
-class NeXus_Structure(object):
-    """Parse XML configuration, layout structure of HDF5 file, define PVs in ophyd.
+class NeXus_Structure:
+    """
+    Parse XML configuration, layout structure of HDF5 file, define PVs in ophyd.
 
     This class manages the NeXus structure for HDF5 files, including parsing XML
     configuration files and managing PV connections.
@@ -124,9 +117,7 @@ class NeXus_Structure(object):
             try:
                 xmlschema.assertValid(config)  # basic exception report
             except Exception as err:
-                raise RuntimeError(
-                    f"XML validation failed: file='{self.config_filename}' {err=}"
-                ) from err
+                raise RuntimeError(f"XML validation failed: file='{self.config_filename}' {err=}") from err
 
         # safe to proceed parsing the file
         root = config.getroot()
@@ -199,7 +190,11 @@ class NeXus_Structure(object):
         Returns:
             bool: True if all PVs are connected, False otherwise
         """
-        arr = [pv.ophyd_signal.connected for pv in self.pv_registry.values()]
+        arr = [
+            pv.ophyd_signal.connected
+            # .
+            for pv in self.pv_registry.values()
+        ]
         return False not in arr
 
     @property
@@ -210,53 +205,12 @@ class NeXus_Structure(object):
             list: List of PV_Specification objects for unconnected signals
         """
         disconnects = [
-            pv for pv in self.pv_registry.values() if not pv.ophyd_signal.connected
+            pv
+            # .
+            for pv in self.pv_registry.values()
+            if not pv.ophyd_signal.connected
         ]
         return disconnects
-
-    def get_hdf5_path(self, xml_node):
-        """Get the HDF5 path for a given XML node.
-
-        Args:
-            xml_node: XML node to get the HDF5 path for
-
-        Returns:
-            str: The HDF5 path for the given node
-        """
-        for group_spec_obj in self.group_registry.values():
-            if group_spec_obj.xml_node == xml_node:
-                return group_spec_obj.hdf5_path
-        return None
-
-    def __getitem__(self, key):
-        """Get a NeXus structure item by key.
-
-        Args:
-            key: Key to look up in the structure
-
-        Returns:
-            The requested item from the NeXus structure
-
-        Raises:
-            KeyError: If the key is not found
-        """
-        return self.get_hdf5_path(key)
-
-    def __len__(self):
-        """Get the number of items in the NeXus structure.
-
-        Returns:
-            int: Number of items in the structure
-        """
-        return len(self.group_registry)
-
-    def __iter__(self):
-        """Get an iterator over the NeXus structure items.
-
-        Returns:
-            iterator: Iterator over the structure items
-        """
-        return iter(self.group_registry.values())
 
     def __str__(self):
         """Get a string representation of the NeXus structure.
@@ -264,7 +218,12 @@ class NeXus_Structure(object):
         Returns:
             str: String representation of the structure
         """
-        return f"NeXus_Structure(config='{self.config_filename}')"
+        try:
+            config = self.config_filename
+            text = f"{config=!r}"
+        except Exception:
+            text = ""
+        return f"{self.__class__.__name__}({text})"
 
 
 def getGroupObjectByXmlNode(xml_node, manager):
@@ -275,11 +234,12 @@ def getGroupObjectByXmlNode(xml_node, manager):
     return None
 
 
-class Field_Specification(object):
-    """Specification for a field in the NeXus structure.
+class Field_Specification:
+    """
+    Specification of the "field" element in the XML configuration.
 
-    This class represents a field in the HDF5 file structure, including its
-    attributes and configuration.
+    This class represents a "field" element in the XML configuration and
+    generates appropriate structures in the HDF5 file.
     """
 
     def __init__(self, xml_element_node, manager):
@@ -290,12 +250,20 @@ class Field_Specification(object):
             manager: NeXus_Structure instance managing this field
         """
         self.xml_node = xml_element_node
-        self.manager = manager
-        self.label = xml_element_node.attrib["label"]
-        self.group_parent = getGroupObjectByXmlNode(
-            xml_element_node.getparent(), manager
-        )
-        self.attrib = {k: v for k, v in xml_element_node.attrib.items() if k != "label"}
+        xml_parent_node = xml_element_node.getparent()
+        self.group_parent = getGroupObjectByXmlNode(xml_parent_node, manager)
+        self.name = xml_element_node.attrib["name"]
+        self.hdf5_path = self.group_parent.hdf5_path + "/" + self.name
+
+        nodes = xml_element_node.xpath("text")
+        self.text = "" if len(nodes) == 0 else nodes[0].text.strip()
+        self.attrib = {
+            node.attrib["name"]: node.attrib["value"]
+            # .
+            for node in xml_element_node.xpath("attribute")
+        }
+
+        manager.field_registry[self.hdf5_path] = self
 
     def __str__(self):
         """Get a string representation of the field specification.
@@ -303,14 +271,20 @@ class Field_Specification(object):
         Returns:
             str: String representation of the field
         """
-        return f"Field_Specification(label='{self.label}')"
+        try:
+            address = self.hdf5_path
+            text = f"{address=!r}"
+        except Exception:
+            text = ""
+        return f"{self.__class__.__name__}({text})"
 
 
-class Group_Specification(object):
-    """Specification for a group in the NeXus structure.
+class Group_Specification:
+    """
+    Specification of the "group" element in the XML configuration.
 
-    This class represents a group in the HDF5 file structure, including its
-    path and configuration.
+    This class represents a "group" element in the XML configuration and
+    generates appropriate structures in the HDF5 file.
     """
 
     def __init__(self, xml_element_node, manager):
@@ -321,26 +295,40 @@ class Group_Specification(object):
             manager: NeXus_Structure instance managing this group
         """
         self.xml_node = xml_element_node
-        self.manager = manager
-        try:
-            name = xml_element_node.attrib.get("name")
-            self.label = xml_element_node.attrib["label"]
-        except Exception as exinfo:
-            msg = f"{xml_element_node.tag=} {name=} {exinfo=}"
-            logger.error(msg)
-            print(msg)
-            raise RuntimeError(msg)
-        
-        self.group_parent = getGroupObjectByXmlNode(
-            xml_element_node.getparent(), manager
-        )
-        self.attrib = {k: v for k, v in xml_element_node.attrib.items() if k != "label"}
+        self.hdf5_path = None
         self.hdf5_group = None
+        self.name = xml_element_node.attrib["name"]
+        self.nx_class = xml_element_node.attrib["class"]
 
-        if self.group_parent is None:
+        self.attrib = {
+            node.attrib["name"]: node.attrib["value"]
+            # .
+            for node in xml_element_node.xpath("attribute")
+        }
+
+        xml_parent_node = xml_element_node.getparent()
+        self.group_children = {}
+        if xml_parent_node.tag == "group":
+            # identify our parent
+            self.group_parent = getGroupObjectByXmlNode(xml_parent_node, manager)
+            # next, find our HDF5 path from our parent
+            path = self.group_parent.hdf5_path
+            if not path.endswith("/"):
+                path += "/"
+            self.hdf5_path = path + self.name
+            # finally, declare ourself to be a child of that parent
+            self.group_parent.group_children[self.hdf5_path] = self
+        elif xml_parent_node.tag == "NX_structure":
+            self.group_parent = None
             self.hdf5_path = "/"
-        else:
-            self.hdf5_path = os.path.join(self.group_parent.hdf5_path, self.label)
+
+        if self.hdf5_path in manager.group_registry:
+            msg = "Cannot create duplicate HDF5 path names: path=%s name=%s nx_class=%s" % (
+                self.hdf5_path,
+                self.name,
+                self.nx_class,
+            )
+            raise RuntimeError(msg)
 
         manager.group_registry[self.hdf5_path] = self
 
@@ -350,14 +338,20 @@ class Group_Specification(object):
         Returns:
             str: String representation of the group
         """
-        return f"Group_Specification(label='{self.label}', path='{self.hdf5_path}')"
+        try:
+            address = self.hdf5_path
+            text = f"{address=!r}"
+        except Exception:
+            text = ""
+        return f"{self.__class__.__name__}({text})"
 
 
-class Link_Specification(object):
-    """Specification for a link in the NeXus structure.
+class Link_Specification:
+    """
+    Specification of the "link" element in the XML configuration.
 
-    This class represents a symbolic link in the HDF5 file structure,
-    connecting different parts of the file.
+    This class represents a "link" element in the XML configuration and
+    generates appropriate structures in the HDF5 file.
     """
 
     def __init__(self, xml_element_node, manager):
@@ -368,32 +362,40 @@ class Link_Specification(object):
             manager: NeXus_Structure instance managing this link
         """
         self.xml_node = xml_element_node
-        self.manager = manager
-        self.label = xml_element_node.attrib["label"]
-        self.group_parent = getGroupObjectByXmlNode(
-            xml_element_node.getparent(), manager
-        )
-        self.target = xml_element_node.attrib["target"]
-        self.attrib = {
-            k: v
-            for k, v in xml_element_node.attrib.items()
-            if k not in ("label", "target")
-        }
+
+        self.name = xml_element_node.attrib["name"]
+        self.source_hdf5_path = xml_element_node.attrib["source"]  # path to existing object
+        self.linktype = xml_element_node.get("linktype", "NeXus")
+        if self.linktype not in ("NeXus",):
+            msg = "Cannot create HDF5 " + self.linktype + " link: " + self.hdf5_path
+            raise RuntimeError(msg)
+
+        xml_parent_node = xml_element_node.getparent()
+        self.group_parent = getGroupObjectByXmlNode(xml_parent_node, manager)
+        self.name = xml_element_node.attrib["name"]
+        self.hdf5_path = self.group_parent.hdf5_path + "/" + self.name
+
+        manager.link_registry[self.hdf5_path] = self
 
     def make_link(self, hdf_file_object):
-        """Create the HDF5 link in the file.
+        """
+        Create a NeXus-style HDF5 link within the file.
 
         Args:
             hdf_file_object: HDF5 file object to create the link in
         """
-        target = self.manager.get_hdf5_path(self.target)
-        if target is None:
-            msg = f"target not found: {self.target}"
-            raise KeyError(msg)
-        source = os.path.join(self.group_parent.hdf5_path, self.label)
-        if source in hdf_file_object:
-            del hdf_file_object[source]
-        hdf_file_object[source] = hdf_file_object[target]
+        source = self.source_hdf5_path  # source: existing HDF5 object
+        parent = "/".join(source.split("/")[0:-1])  # parent: parent HDF5 path of source
+        target = self.hdf5_path  # target: HDF5 node path to be created
+        parent_obj = hdf_file_object[parent]
+        source_obj = hdf_file_object[source]
+
+        str_source = str(source_obj.name).encode("utf-8")
+        str_target = target.encode("utf-8")
+        if "target" not in source_obj.attrs:
+            # NeXus link, NOT an HDF5 link!
+            source_obj.attrs["target"] = str_source
+        parent_obj[str_target] = parent_obj[str_source]
 
     def __str__(self):
         """Get a string representation of the link specification.
@@ -401,14 +403,22 @@ class Link_Specification(object):
         Returns:
             str: String representation of the link
         """
-        return f"Link_Specification(label='{self.label}', target='{self.target}')"
+        try:
+            source = self.source_hdf5_path
+            target = self.hdf5_path
+            text = f"{source=!r}, {target=!r}"
+        except Exception:
+            text = ""
+        return f"{self.__class__.__name__}({text})"
 
 
-class PV_Specification(object):
-    """Specification for a Process Variable in the NeXus structure.
+class PV_Specification:
+    """
+    Specification of the "PV" element in the XML configuration.
 
-    This class represents an EPICS Process Variable (PV) in the HDF5 file
-    structure, including its connection and configuration.
+    This class represents a "PV" (EPICS Process Variable) element in the XML
+    configuration and generates appropriate ophyd and other structures so its
+    data may be recorded properly in the HDF5 file.
     """
 
     def __init__(self, xml_element_node, manager):
@@ -419,25 +429,37 @@ class PV_Specification(object):
             manager: NeXus_Structure instance managing this PV
         """
         self.xml_node = xml_element_node
-        self.manager = manager
+
         self.label = xml_element_node.attrib["label"]
+        if self.label in manager.pv_registry:
+            msg = "Cannot use PV label more than once: " + self.label
+            raise RuntimeError(msg)
         self.pvname = xml_element_node.attrib["pvname"]
-        self.group_parent = getGroupObjectByXmlNode(
-            xml_element_node.getparent(), manager
-        )
-        self.attrib = {
-            k: v
-            for k, v in xml_element_node.attrib.items()
-            if k not in ("label", "pvname")
-        }
+        self.as_string = xml_element_node.attrib.get("string", "false").lower() in ("t", "true")
+        # _s = xml_element_node.attrib.get('string', "false")
+        # print(f"PV: {self.pvname}  string:{self.as_string}  node:{_s}")
+        self.pv = None
         self.ophyd_signal = None
-        self.as_string = (
-            xml_element_node.attrib.get("as_string", "false").lower() == "true"
-        )
-        self.length_limit = xml_element_node.attrib.get("length_limit", None)
-        self.acquire_after_scan = (
-            xml_element_node.attrib.get("acquire_after_scan", "false").lower() == "true"
-        )
+        aas = xml_element_node.attrib.get("acquire_after_scan", "false")
+        self.acquire_after_scan = aas.lower() in ("t", "true")
+
+        self.attrib = {node.attrib["name"]: node.attrib["value"] for node in xml_element_node.xpath("attribute")}
+
+        # identify our parent
+        xml_parent_node = xml_element_node.getparent()
+        self.group_parent = getGroupObjectByXmlNode(xml_parent_node, manager)
+
+        self.length_limit = xml_element_node.get("length_limit", None)
+        if self.length_limit is not None:
+            if not self.length_limit.startswith("/"):
+                # convert local to absolute reference
+                self.length_limit = self.group_parent.hdf5_path + "/" + self.length_limit
+
+        # finally, declare ourself to be a child of that parent
+        self.hdf5_path = self.group_parent.hdf5_path + "/" + self.label
+        self.group_parent.group_children[self.hdf5_path] = self
+
+        manager.pv_registry[self.hdf5_path] = self
 
     def __str__(self):
         """Get a string representation of the PV specification.
@@ -445,60 +467,8 @@ class PV_Specification(object):
         Returns:
             str: String representation of the PV
         """
-        return f"PV_Specification(label='{self.label}', pvname='{self.pvname}')"
-
-
-def _developer():
-    """
-    developer's scratch space
-    """
-    print("basic tests while developing this module")
-    assert manager is None, "starting condition should be None"
-
-    config_file = XML_CONFIGURATION_FILE
-
-    boss = get_manager(config_file)
-    assert isinstance(boss, NeXus_Structure), "new structure created"
-
-    mgr = get_manager(config_file)
-    assert isinstance(mgr, NeXus_Structure), "existing structure"
-    assert boss == mgr, "identical to first structure"
-
-    reset_manager()
-    assert manager is None, "structure reset"
-
-    mgr = get_manager(config_file)
-    assert isinstance(mgr, NeXus_Structure), "new structure created"
-    assert boss != mgr, "new structure different from first structure"
-    del boss
-
-    mgr._read_configuration()
-    assert mgr.trigger_poll_interval_s == TRIGGER_POLL_INTERVAL_s
-    assert len(mgr.pv_registry) > 0
-
-    t0 = time.time()
-    timeout = 2.0
-    mgr._connect_ophyd()
-    for _i in range(500):  # limited wait to connect
-        verdict = mgr.connected
-        t = time.time() - t0
-        logger.debug(f"connected: {verdict}  time:{t}")
-        if verdict or t > timeout:
-            break  # seems to take about 60-70 ms with current XML file
-        time.sleep(0.005)
-
-    workstation = socket.gethostname()
-    if workstation.find("usaxscontrol") >= 0:
-        assert mgr.connected
-
-    conn = [pv for pv in mgr.pv_registry.values() if pv.ophyd_signal.connected]
-    msg = (
-        f"connected {len(conn)} of {len(mgr.pv_registry)} PVs "
-        f"in {time.time()-t0:.04f} s"
-    )
-    logger.debug(msg)
-
-
-# if __name__ == "__main__":
-#    logging.basicConfig(level=logging.DEBUG)
-#    _developer()
+        try:
+            text = f"label={self.label!r}, PV={self.pvname!r}"
+        except Exception:
+            text = ""
+        return f"{self.__class__.__name__}({text})"
