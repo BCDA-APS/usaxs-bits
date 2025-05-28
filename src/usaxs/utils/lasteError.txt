@@ -1,218 +1,35 @@
 
-
-
-f.label = xml_element_node.attrib["label"]
-                 ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "src/lxml/etree.pyx", line 2548, in lxml.etree._Attrib.__getitem__
-KeyError: 'label'
-Transient Scan ID: 5     Time: 2025-05-27 10:50:26
-Persistent Unique Scan ID: '70645a9c-7302-4d57-a7de-5a74042cb634'
-New stream: 'label_start_motor'
-I Tue-10:50:26.988: HDF5 config: /share1/AreaDetectorConfig/FlyScan_config/saveFlyData.xml
-I Tue-10:50:26.988: HDF5 output: /share1/USAXS_data/2025-05/05_27_test/05_27_test_usaxs/Test_0004.h5
-E Tue-10:50:26.992: xml_element_node.tag='group' exinfo=KeyError('label')
-xml_element_node.tag='group' exinfo=KeyError('label')
-Exception in thread Thread-129 (prepare_HDF5_file):
-Traceback (most recent call last):
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/nexus_flyscan.py", line 326, in __init__
-    self.label = xml_element_node.attrib["label"]
-                 ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-  File "src/lxml/etree.pyx", line 2548, in lxml.etree._Attrib.__getitem__
-I Tue-10:50:27.006: flying, s    ar, deg      ax, mm       dx, mm       channel      elapsed, s 
-KeyError: 'label'
-
-During handling of the above exception, another exception occurred:
-
+Exception in thread Thread-164 (_threaded_writer):
 Traceback (most recent call last):
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
     self.run()
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 982, in run
     self._target(*self._args, **self._kwargs)
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/plans/usaxs_fly_scan_plan.py", line 164, in prepare_HDF5_file
-    usaxs_flyscan.saveFlyData = SaveFlyScan(fname, config_file=usaxs_flyscan.saveFlyData_config)
-                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/saveFlyData.py", line 93, in __init__
-    self._prepare_to_acquire()
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/saveFlyData.py", line 241, in _prepare_to_acquire
-    self.mgr._read_configuration()
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/nexus_flyscan.py", line 167, in _read_configuration
-    Group_Specification(node, self)
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/usaxs_flyscan_support/nexus_flyscan.py", line 331, in __init__
-    raise RuntimeError(msg)
-RuntimeError: xml_element_node.tag='group' exinfo=KeyError('label')
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 324, in _threaded_writer
+    self.write_root(fname)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 581, in write_root
+    self.write_entry()
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 352, in write_entry
+    super().write_entry()  # write the raw data
+    ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 72, in write_entry
+    nxentry = super().write_entry()  # default technique
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 428, in write_entry
+    self.write_instrument(nxentry)  # also writes streams and metadata
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 892, in write_instrument
+    nxinstrument = super().write_instrument(parent)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 478, in write_instrument
+    self.write_slits(nxinstrument)
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 383, in write_slits
+    slit["x_gap"] = self.get_stream_link(f"{pre}_h_size")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 244, in get_stream_link
+    raise KeyError(f"HDF5 address {h5_addr} not found.")
+KeyError: 'HDF5 address /entry/instrument/bluesky/streams/baseline/guard_slit_h_size/value_start not found.'
+Out[2]: 
+('c200d80c-aeaa-4378-a23d-0f5acfaa3fb7',
+ 'caa4f09c-9fbf-413b-a62c-112072b9993a')
 
-
-
-
-xceptions = self.cb_registry.process(name, name.name, doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:422 in process
-    func(*args, **kwargs)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:512 in __call__
-    return mtd(*args, **kwargs)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/callback_base.py:95 in receiver
-    handler(doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/spec_file_writer.py:812 in event
-    self.write_scan_data_row(doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/spec_file_writer.py:992 in write_scan_data_row
-    for label in self.data_labels:
-AttributeError: 'SpecWriterCallback2' object has no attribute 'data_labels'
-
-\
-
-
-
-
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/callback_base.py", line 95, in receiver
-    handler(doc)
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/spec_file_writer.py", line 812, in event
-    self.write_scan_data_row(doc)
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/spec_file_writer.py", line 992, in write_scan_data_row
-    for label in self.data_labels:
-                 ^^^^^^^^^^^^^^^^
-AttributeError: 'SpecWriterCallback2' object has no attribute 'data_labels'
-
-
-
-Traceback (most recent call last):
-  Cell In[2], line 1
-    RE(USAXSscan(-140,20,1,"Test"))
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:973 in __call__
-    plan_return = self._resume_task(init_func=_build_task)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1120 in _resume_task
-    raise exc
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1755 in _run
-    raise err
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1609 in _run
-    msg = self._plan_stack[-1].send(resp)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/labels_to_streams.py:231 in label_stream_wrapper
-    return (yield from bpp.plan_mutator(plan, action[when.value]))
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1375 in __call__
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1226 in baseline_wrapper
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:845 in monitor_during_wrapper
-    return (yield from plan2)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:907 in fly_during_wrapper
-    return (yield from plan2)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1375 in __call__
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1226 in baseline_wrapper
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:845 in monitor_during_wrapper
-    return (yield from plan2)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:907 in fly_during_wrapper
-    return (yield from plan2)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
-    raise ex
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
-    msg = plan_stack[-1].send(ret)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:448 in suspend_wrapper
-    return (yield from finalize_wrapper(_inner_plan(), _remove()))
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
-    ret = yield from plan
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:446 in _inner_plan
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:448 in suspend_wrapper
-    return (yield from finalize_wrapper(_inner_plan(), _remove()))
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
-    ret = yield from plan
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:446 in _inner_plan
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py:115 in USAXSscan
-    yield from Flyscan(x, y, thickness_mm, title, md=_md)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py:614 in Flyscan
-    yield from Flyscan_internal_plan(md=_md)   #this needs to change
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/usaxs_fly_scan_plan.py:268 in Flyscan_internal_plan
-    yield from write_stream([struck.mca1, struck.mca2, struck.mca3], "mca")
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/doc_run.py:114 in write_stream
-    yield from bps.save()
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py:128 in save
-    return (yield Msg("save"))
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
-    inner_ret = yield msg
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1676 in _run
-    new_response = await coro(msg)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2076 in _save
-    await current_run.save(msg)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/bundlers.py:570 in save
-    await self.emit(DocumentNames.event, event_doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2679 in emit
-    self.emit_sync(name, doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2676 in emit_sync
-    self.dispatcher.process(name, doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2699 in process
-    exceptions = self.cb_registry.process(name, name.name, doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:422 in process
-    func(*args, **kwargs)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:512 in __call__
-    return mtd(*args, **kwargs)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/callback_base.py:95 in receiver
-    handler(doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/spec_file_writer.py:812 in event
-    self.write_scan_data_row(doc)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/spec_file_writer.py:992 in write_scan_data_row
-    for label in self.data_labels:
-AttributeError: 'SpecWriterCallback2' object has no attribute 'data_labels'
-
-
-In [3]: 
