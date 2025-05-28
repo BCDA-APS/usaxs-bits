@@ -20,14 +20,8 @@ INTERNAL
 
 import logging
 import os
-import socket
-import time
-
-# ensure we have a location for the libca (& libCom) library
-# TODO: Is this still necessary?
-# os.environ["PYEPICS_LIBCA"] = "/local/epics/base-7.0.6.1/lib/linux-x86_64/libca.so"
-# os.environ["PYEPICS_LIBCA"] = "/APSshare/epics/base-7.0.3/lib/linux-x86_64/libca.so"
-# MUST happen before any ophyd library is imported!
+# import socket
+# import time
 
 from lxml import etree as lxml_etree
 from ophyd import Component
@@ -36,7 +30,6 @@ from ophyd import EpicsSignal
 
 logger = logging.getLogger(os.path.split(__file__)[-1])
 logger.setLevel(logging.INFO)
-# logger.addHandler(logging.NullHandler())
 
 COMMON_AD_CONFIG_DIR = "/share1/AreaDetectorConfig/FlyScan_config/"
 path = os.path.dirname(__file__)
@@ -220,51 +213,6 @@ class NeXus_Structure:
             if not pv.ophyd_signal.connected
         ]
         return disconnects
-
-    # TODO: Will these be used?
-    # def get_hdf5_path(self, xml_node):
-    #     """Get the HDF5 path for a given XML node.
-
-    #     Args:
-    #         xml_node: XML node to get the HDF5 path for
-
-    #     Returns:
-    #         str: The HDF5 path for the given node
-    #     """
-    #     for group_spec_obj in self.group_registry.values():
-    #         if group_spec_obj.xml_node == xml_node:
-    #             return group_spec_obj.hdf5_path
-    #     return None
-
-    # def __getitem__(self, key):
-    #     """Get a NeXus structure item by key.
-
-    #     Args:
-    #         key: Key to look up in the structure
-
-    #     Returns:
-    #         The requested item from the NeXus structure
-
-    #     Raises:
-    #         KeyError: If the key is not found
-    #     """
-    #     return self.get_hdf5_path(key)
-
-    # def __len__(self):
-    #     """Get the number of items in the NeXus structure.
-
-    #     Returns:
-    #         int: Number of items in the structure
-    #     """
-    #     return len(self.group_registry)
-
-    # def __iter__(self):
-    #     """Get an iterator over the NeXus structure items.
-
-    #     Returns:
-    #         iterator: Iterator over the structure items
-    #     """
-    #     return iter(self.group_registry.values())
 
     def __str__(self):
         """Get a string representation of the NeXus structure.
@@ -526,56 +474,3 @@ class PV_Specification:
         except Exception:
             text = ""
         return f"{self.__class__.__name__}({text})"
-
-
-# def _developer():
-#     """
-#     developer's scratch space
-#     """
-#     print("basic tests while developing this module")
-#     assert manager is None, "starting condition should be None"
-
-#     config_file = XML_CONFIGURATION_FILE
-
-#     boss = get_manager(config_file)
-#     assert isinstance(boss, NeXus_Structure), "new structure created"
-
-#     mgr = get_manager(config_file)
-#     assert isinstance(mgr, NeXus_Structure), "existing structure"
-#     assert boss == mgr, "identical to first structure"
-
-#     reset_manager()
-#     assert manager is None, "structure reset"
-
-#     mgr = get_manager(config_file)
-#     assert isinstance(mgr, NeXus_Structure), "new structure created"
-#     assert boss != mgr, "new structure different from first structure"
-#     del boss
-
-#     mgr._read_configuration()
-#     assert mgr.trigger_poll_interval_s == TRIGGER_POLL_INTERVAL_s
-#     assert len(mgr.pv_registry) > 0
-
-#     t0 = time.time()
-#     timeout = 2.0
-#     mgr._connect_ophyd()
-#     for _i in range(500):  # limited wait to connect
-#         verdict = mgr.connected
-#         t = time.time() - t0
-#         logger.debug(f"connected: {verdict}  time:{t}")
-#         if verdict or t > timeout:
-#             break  # seems to take about 60-70 ms with current XML file
-#         time.sleep(0.005)
-
-#     workstation = socket.gethostname()
-#     if workstation.find("usaxscontrol") >= 0:
-#         assert mgr.connected
-
-#     conn = [pv for pv in mgr.pv_registry.values() if pv.ophyd_signal.connected]
-#     msg = f"connected {len(conn)} of {len(mgr.pv_registry)} PVs " f"in {time.time()-t0:.04f} s"
-#     logger.debug(msg)
-
-
-# if __name__ == "__main__":
-#    logging.basicConfig(level=logging.DEBUG)
-#    _developer()
