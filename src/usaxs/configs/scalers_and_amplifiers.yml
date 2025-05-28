@@ -26,50 +26,21 @@ usaxs.devices.amplifiers.FemtoAmplifierDevice:
 usaxs.devices.amplifiers.AmplifierAutoDevice:
   - name: I0_autorange_controls
     prefix: "usxLAX:pd02:seq01:"
-    labels: ["baseline"]
+    labels: [baseline]
 
   - name: I00_autorange_controls
     prefix: "usxLAX:pd03:seq01:"
-    labels: ["baseline"]
+    labels: [baseline]
 
   - name: trd_autorange_controls
     prefix: "usxLAX:pd05:seq01:"
-    labels: ["baseline"]
+    labels: [baseline]
 
   # Nothing for I000
 
-  # DLCPA200
-  # - name: upd_autorange_controls
-  #   prefix: "usxLAX:pd01:seq01:"
-  #   labels: ["baseline"]
-
-  # DDPCA300
   - name: upd_autorange_controls
-    prefix: "usxLAX:pd01:seq02:"
-    labels: ["baseline"]
+    prefix: "usxLAX:pd01:seq02:"  # DDPCA300
+    # prefix: "usxLAX:pd01:seq01:"  # DLCPA200
+    labels: [baseline]
 
-# ----------------------
-# MUST come __after__ above devices.
-
-# usaxs.devices.amplifiers.DetectorAmplifierAutorangeDevice:
-#   - name: I0_controls
-#     nickname: I0
-#     scaler: scaler0
-#     det: I0
-
-#   - name: I00_controls
-#     nickname: I00
-#     scaler: scaler0
-#     det: I00
-
-#   # Nothing for I000
-
-#   - name: trd_controls
-#     nickname: "TRD"
-#     scaler: scaler0
-#     det: trd
-
-#   - name: upd_controls
-#     nickname: UPD
-#     scaler: scaler0
-#     det: upd
+# Autorange devices are loaded _after_ the above devices.

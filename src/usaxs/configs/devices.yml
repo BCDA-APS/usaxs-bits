@@ -14,9 +14,13 @@ usaxs.devices.autocollect.AutoCollectDataDevice:
 
 usaxs.devices.diagnostics.DiagnosticsParameters:
 - name: diagnostics
+  labels:
+    - baseline
 
 usaxs.devices.general_terms.GeneralParameters:
 - name: terms
+  labels:
+    - baseline
 
 usaxs.devices.autosave.Autosave:
 - name: lax_autosave
@@ -26,6 +30,8 @@ usaxs.devices.filters.FilterBank:
 - name: Filter_AlTi
   prefix: "12idPyFilter:"
   bank: FL1
+  labels:
+    - baseline
 
 usaxs.devices.linkam.My_Linkam_T96_Device:
 - name: linkam_tc1
@@ -33,6 +39,8 @@ usaxs.devices.linkam.My_Linkam_T96_Device:
 
 usaxs.devices.monochromator.MyMonochromator:
 - name: monochromator
+  labels:
+  - baseline
 
 apstools.synApps.swait.SwaitRecord:
 - name: usaxs_q_calc
@@ -71,7 +79,7 @@ ophyd.EpicsMotor:
   labels: ["LAXm4"]
 - name: LAXm5
   prefix: usxLAX:m58:c0:m5
-  labels: ["LAXtcam"]
+  labels: ["LAXtcam", "baseline"]
 - name: LAXm6
   prefix: usxLAX:m58:c0:m6
   labels: ["LAXgsy"]
@@ -83,10 +91,10 @@ ophyd.EpicsMotor:
   labels: ["LAXm8"]
 - name: waxsx
   prefix: usxAERO:m3
-  labels: ["wasxs", "motor"]
+  labels: ["wasxs", "motor", "baseline"]
 - name: waxs2x
   prefix: usxAERO:m7
-  labels: ["waxs2x", "motor"]
+  labels: ["waxs2x", "motor", "baseline"]
 
 usaxs.devices.ptc10_controller.USAXS_PTC10: #TODO: Go into source and fix
 - name: ptc10
@@ -94,6 +102,8 @@ usaxs.devices.ptc10_controller.USAXS_PTC10: #TODO: Go into source and fix
 
 usaxs.devices.sample_data.SampleDataDevice:
 - name: sample_data_device
+  labels:
+  - baseline
 
 usaxs.devices.sample_rotator.SampleRotator:
 - name: pi_c867
@@ -106,10 +116,14 @@ apstools.devices.Struck3820:
 usaxs.devices.slits.GSlitDevice:
 - name: guard_slit
   prefix: ""
+  labels:
+  - baseline
 
 usaxs.devices.slits.UsaxsSlitDevice:
 - name: usaxs_slit
   prefix: ""
+  labels:
+  - baseline
 
 usaxs.devices.trajectories.Trajectories:
 - name: "flyscan_trajectories"
