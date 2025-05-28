@@ -458,8 +458,8 @@ def execute_command_list(filename, commands, md=None):
         ``SAXS 0 0 0 blank``
     """
     from .plans_usaxs import USAXSscan
-    from .plans_user_facing import SAXS
-    from .plans_user_facing import WAXS
+    from .plans_user_facing import saxsExp
+    from .plans_user_facing import waxsExp
 
     if md is None:
         md = {}
@@ -536,14 +536,14 @@ def execute_command_list(filename, commands, md=None):
                 sy = float(args[1])
                 sth = float(args[2])
                 _md.update(dict(sx=sx, sy=sy, thickness=sth, title=args[3]))
-                yield from SAXS(sx, sy, sth, args[3], md=_md)
+                yield from saxsExp(sx, sy, sth, args[3], md=_md)
 
             elif action in ("waxs", "waxsexp"):
                 sx = float(args[0])
                 sy = float(args[1])
                 sth = float(args[2])
                 _md.update(dict(sx=sx, sy=sy, thickness=sth, title=args[3]))
-                yield from WAXS(sx, sy, sth, args[3], md=_md)
+                yield from waxsExp(sx, sy, sth, args[3], md=_md)
 
             # elif action in ("run_python", "run"):
             #     filename = args[0]

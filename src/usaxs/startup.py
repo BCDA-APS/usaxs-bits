@@ -22,7 +22,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
-from usaxs.devices.scalers import setup_scalers
+from usaxs.utils.scalers_setup import setup_scalers
 
 logger = logging.getLogger(__name__)
 
@@ -109,3 +109,8 @@ if not in_operation:
 ##load devices
 
 from .plans import *  # noqa: F401
+
+from usaxs.utils.setup_new_user import newUser
+
+print("You must now run newUser() first")
+#newUser()

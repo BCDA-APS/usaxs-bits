@@ -6,6 +6,7 @@
 from ..utils.setup_new_user import newUser
 from .area_detector_plans import areaDetectorAcquire
 from .autocollect_plan import remote_ops
+from .command_list import run_command_file
 #these are all tuning plans facing users and staff
 from .axis_tuning import tune_a2rp
 from .axis_tuning import tune_ar
