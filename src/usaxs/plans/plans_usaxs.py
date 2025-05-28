@@ -308,7 +308,7 @@ def USAXSscanStep(
     )
     bec.disable_plots()
 
-    #yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+    yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
     use_dynamic_time = user_override.pick(
         "useDynamicTime", terms.USAXS.useDynamicTime.get()
@@ -608,8 +608,8 @@ def Flyscan(
         scan_title=scan_title,
     )
     _md["fly_scan_time"] = usaxs_flyscan.scan_time.get()
-    # TODO fix me later after we fix the blackfly cameras taking images. 
-    #yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+
+    yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
     #yield from usaxs_flyscan.plan(md=_md)   #this needs to change 
     yield from Flyscan_internal_plan(md=_md)   #this needs to change 

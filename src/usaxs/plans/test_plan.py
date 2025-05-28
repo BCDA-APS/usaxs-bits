@@ -170,7 +170,7 @@ def test_plan(md=None, thickness=0.0):
             timeout=60,
         )
 
-        # yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
+        yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
         yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
 
     yield from _image_acquisition_steps()
