@@ -20,8 +20,6 @@ INTERNAL
 
 import logging
 import os
-# import socket
-# import time
 
 from lxml import etree as lxml_etree
 from ophyd import Component
