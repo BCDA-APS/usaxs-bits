@@ -81,12 +81,14 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
+### Load devices
+
 RE(make_devices(file="scalers_and_amplifiers.yml", clear=False))
 setup_scalers()
 
 
 ##operation variables
-# in_operation = caget("usxLAX:blCalc:userCalc2.VAL")  # should be a caget?
+# in_operation = caget("usxLAX:blCalc:userCalc2.VAL") == 1  # should be a caget?
 in_operation = False
 
 RE(make_devices(file="devices.yml", clear=False))
@@ -106,7 +108,23 @@ if not in_operation:
 
     suspend_FE_shutter, suspend_BeamInHutch = suspender_in_sim()
 
-##load devices
+### Baseline stream
+# Beamline configuration stored before/after experiment
+# uses baseline label to add to baseline data
+if iconfig.get("BASELINE_LABEL", {}).get("ENABLE", False):
+    _label = iconfig.get("BASELINE_LABEL", {}).get("LABEL", "baseline")
+    logger.info(
+        "Adding objects with %r label to 'baseline' stream.",
+        _label,
+    )
+    try:
+        sd.baseline.extend(oregistry.findall(_label, allow_none=True) or [])
+    except Exception:
+        logger.warning(
+            "Could not add objects with %r label to 'baseline' stream",
+            _label,
+        )
+    del _label
 
 from .plans import *  # noqa: F401
 
