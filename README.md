@@ -10,7 +10,7 @@ New USAXS instrument is located at APS 12ID beamline, hutch E. This is code used
 ## Installing your own BITS instrument
 
 ```bash
-export ENV_NAME=usaxs-bits
+export ENV_NAME=bits_usaxs
 conda create -y -n $ENV_NAME python=3.11
 conda activate $ENV_NAME
 pip install apsbits
