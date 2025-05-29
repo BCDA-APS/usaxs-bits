@@ -80,6 +80,7 @@ def summarize_command_file(filename):
 
 ## Internal functions
 
+
 @plan
 def beforeScanComputeOtherStuff():
     """Actions before each data collection starts."""

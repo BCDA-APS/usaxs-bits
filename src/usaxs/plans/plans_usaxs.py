@@ -16,17 +16,17 @@ from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
-from ..startup import RE
-from ..startup import bec
 
+from usaxs.callbacks.spec_data_file_writer import specwriter
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.emails import email_notices
 from usaxs.utils.override import user_override
 from usaxs.utils.setup_new_user import techniqueSubdirectory
 from usaxs.utils.user_sample_title import getSampleTitle
-from usaxs.callbacks.spec_data_file_writer import specwriter
 
+from ..startup import RE
+from ..startup import bec
 from ..utils.a2q_q2a import q2angle
 from ..utils.emails import NOTIFY_ON_BAD_FLY_SCAN
 from .amplifiers_plan import autoscale_amplifiers
@@ -65,6 +65,7 @@ usaxs_q_calc = oregistry["usaxs_q_calc"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_device"]
+
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -107,7 +108,6 @@ def USAXSscan(
     """
     if md is None:
         md = {}
-
 
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness_mm
@@ -160,7 +160,6 @@ def USAXSscanStep(
     if md is None:
         md = {}
 
-
     yield from IfRequestedStopBeforeNextScan()
 
     yield from mode_USAXS()
@@ -197,7 +196,7 @@ def USAXSscanStep(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     SCAN_N = RE.md["scan_id"] + 1  # update with next number
 
     ts = str(datetime.datetime.now())
@@ -255,24 +254,24 @@ def USAXSscanStep(
             timeout=MASTER_TIMEOUT,
         )
 
-    #old_femto_change_gain_up = upd_controls.auto.gainU.get()
-   #old_femto_change_gain_down = upd_controls.auto.gainD.get()
+    # old_femto_change_gain_up = upd_controls.auto.gainU.get()
+    # old_femto_change_gain_down = upd_controls.auto.gainD.get()
 
     yield from bps.mv(
-        #upd_controls.auto.gainU,
-        #terms.USAXS.setpoint_up.get(),
-        #upd_controls.auto.gainD,
-        #terms.USAXS.setpoint_down.get(),
+        # upd_controls.auto.gainU,
+        # terms.USAXS.setpoint_up.get(),
+        # upd_controls.auto.gainD,
+        # terms.USAXS.setpoint_down.get(),
         usaxs_shutter,
         "open",
         timeout=MASTER_TIMEOUT,
     )
-    #yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    # yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
 
     yield from user_data.set_state_plan("Running USAXS step scan")
 
     # SPEC-compatibility
-    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     SCAN_N = RE.md["scan_id"] + 1  # update with next number
     yield from bps.mv(
         user_data.scanning,
@@ -342,8 +341,8 @@ def USAXSscanStep(
     yield from bps.mv(
         usaxs_shutter,
         "close",
-        #monochromator.feedback.on,
-        #MONO_FEEDBACK_ON,
+        # monochromator.feedback.on,
+        # MONO_FEEDBACK_ON,
         scaler0.update_rate,
         5,
         scaler0.auto_count_delay,
@@ -354,10 +353,10 @@ def USAXSscanStep(
         1,
         scaler0.auto_count_time,
         1,
-        #upd_controls.auto.gainU,
-        #old_femto_change_gain_up,
-        #upd_controls.auto.gainD,
-        #old_femto_change_gain_down,
+        # upd_controls.auto.gainU,
+        # old_femto_change_gain_up,
+        # upd_controls.auto.gainD,
+        # old_femto_change_gain_down,
         timeout=MASTER_TIMEOUT,
     )
     yield from MONO_FEEDBACK_ON()
@@ -383,9 +382,9 @@ def Flyscan(
     thickness: float,
     scan_title: str,
     md: Optional[Dict[str, Any]] = None,
-    #RE: Optional[Any] = None,
-    #bec: Optional[Any] = None,
-    #specwriter: Optional[Any] = None,
+    # RE: Optional[Any] = None,
+    # bec: Optional[Any] = None,
+    # specwriter: Optional[Any] = None,
 ):
     """
     Execute a fly scan at the specified position.
@@ -418,7 +417,6 @@ def Flyscan(
     """
     if md is None:
         md = {}
-
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -460,9 +458,9 @@ def Flyscan(
     print("scan_title_clean:", scan_title_clean)
 
     # SPEC-compatibility
-    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     SCAN_N = RE.md["scan_id"] + 1
-    
+
     flyscan_path = techniqueSubdirectory("usaxs")
     if not os.path.exists(flyscan_path) and RE.state != "idle":
         os.mkdir(flyscan_path)
@@ -520,7 +518,7 @@ def Flyscan(
     #     MONO_FEEDBACK_OFF,
     #     timeout=MASTER_TIMEOUT,
     # )
-    #yield from bps.mv(MONO_FEEDBACK_OFF)
+    # yield from bps.mv(MONO_FEEDBACK_OFF)
     yield from MONO_FEEDBACK_OFF()
     # if terms.USAXS.is2DUSAXSscan.get():
     #     RECORD_SCAN_INDEX_10x_per_second = 9
@@ -588,7 +586,7 @@ def Flyscan(
     )
 
     # SPEC-compatibility
-    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     SCAN_N = RE.md["scan_id"] + 1
     yield from bps.mv(
         user_data.scanning,
@@ -611,8 +609,8 @@ def Flyscan(
 
     yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
-    #yield from usaxs_flyscan.plan(md=_md)   #this needs to change 
-    yield from Flyscan_internal_plan(md=_md)   #this needs to change 
+    # yield from usaxs_flyscan.plan(md=_md)   #this needs to change
+    yield from Flyscan_internal_plan(md=_md)  # this needs to change
 
     yield from bps.mv(
         user_data.scanning,
@@ -641,7 +639,7 @@ def Flyscan(
         usaxs_shutter,
         "close",
         monochromator.feedback.on,
-        #MONO_FEEDBACK_ON,
+        # MONO_FEEDBACK_ON,
         1,
         scaler0.update_rate,
         5,

@@ -30,7 +30,7 @@ from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import Signal
 
-from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import saxsExp
 from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list

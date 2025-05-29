@@ -14,7 +14,6 @@ from collections import OrderedDict
 from typing import Any
 from typing import Dict
 from typing import Optional
-from ..startup import RE
 
 # Get devices from oregistry
 from apsbits.core.instrument_init import oregistry
@@ -23,9 +22,11 @@ from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
-from ..devices.amplifiers import AutorangeSettings
-from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 from usaxs.callbacks.spec_data_file_writer import specwriter
+
+from ..devices.amplifiers import AutorangeSettings
+from ..startup import RE
+from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,6 @@ def Flyscan_internal_plan(
     if md is None:
         md = {}
 
-
     bluesky_runengine_running = RE.state != "idle"
 
     def _report_(t):
@@ -104,9 +104,13 @@ def Flyscan_internal_plan(
     def progress_reporting():
         # logger.debug("progress_reporting has arrived")
         t = time.time()
-        timeout = t + usaxs_flyscan.scan_time.get() + usaxs_flyscan.timeout_s  # extra padded time
+        timeout = (
+            t + usaxs_flyscan.scan_time.get() + usaxs_flyscan.timeout_s
+        )  # extra padded time
         startup = t + usaxs_flyscan.update_interval_s / 2
-        while t < startup and not usaxs_flyscan.flying.get():  # wait for flyscan to start
+        while (
+            t < startup and not usaxs_flyscan.flying.get()
+        ):  # wait for flyscan to start
             time.sleep(0.01)
         labels = (
             "flying, s",
@@ -128,9 +132,13 @@ def Flyscan_internal_plan(
         logger.info(msg)
         # user_data.set_state_blocking(msg.split()[0])
         if t > timeout:
-            logger.error(f"{time.time()-usaxs_flyscan.t0}s - progress_reporting timeout!!")
+            logger.error(
+                f"{time.time()-usaxs_flyscan.t0}s - progress_reporting timeout!!"
+            )
         else:
-            logger.debug(f"{time.time()-usaxs_flyscan.t0}s - progress_reporting is done")
+            logger.debug(
+                f"{time.time()-usaxs_flyscan.t0}s - progress_reporting is done"
+            )
 
     @run_in_thread
     def prepare_HDF5_file():
@@ -161,7 +169,9 @@ def Flyscan_internal_plan(
         user_data.set_state_blocking("FlyScanning: " + os.path.split(fname)[-1])
 
         # logger.debug(resource_usage("before SaveFlyScan()"))
-        usaxs_flyscan.saveFlyData = SaveFlyScan(fname, config_file=usaxs_flyscan.saveFlyData_config)
+        usaxs_flyscan.saveFlyData = SaveFlyScan(
+            fname, config_file=usaxs_flyscan.saveFlyData_config
+        )
         # logger.debug(resource_usage("before saveFlyData.preliminaryWriteFile()"))
         usaxs_flyscan.saveFlyData.preliminaryWriteFile()
         # logger.debug(resource_usage("after saveFlyData.preliminaryWriteFile()"))
@@ -188,7 +198,7 @@ def Flyscan_internal_plan(
     _md["hdf5_path"] = usaxs_flyscan.saveFlyData_HDF5_dir
 
     yield from bps.open_run(md=_md)
-    #specwriter._cmt("start", "start USAXS Fly scan")
+    # specwriter._cmt("start", "start USAXS Fly scan")
     specwriter._cmt("start USAXS Fly scan")
     yield from bps.mv(
         upd_controls.auto.mode,
@@ -205,7 +215,7 @@ def Flyscan_internal_plan(
         # prepare HDF5 file to save fly scan data (background thread)
         prepare_HDF5_file()
     # path = os.path.abspath(usaxs_flyscan.saveFlyData_HDF5_dir)
-    #specwriter._cmt("start", f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
+    # specwriter._cmt("start", f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
     specwriter._cmt(f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
 
     g = uuid.uuid4()
@@ -219,7 +229,10 @@ def Flyscan_internal_plan(
     if bluesky_runengine_running:
         progress_reporting()
 
-    if usaxs_flyscan.flying._status is not None and not usaxs_flyscan.flying._status.done:
+    if (
+        usaxs_flyscan.flying._status is not None
+        and not usaxs_flyscan.flying._status.done
+    ):
         # per https://github.com/APS-USAXS/ipython-usaxs/issues/499
         logger.warning("Clearing unfinished status object on 'usaxs_flyscan/flying'")
         usaxs_flyscan.flying._status.set_finished()
@@ -231,7 +244,7 @@ def Flyscan_internal_plan(
     yield from bps.wait(group=g)
     yield from bps.abs_set(usaxs_flyscan.flying, False)
     elapsed = time.time() - usaxs_flyscan.t0
-    #specwriter._cmt("stop", f"fly scan completed in {elapsed} s")
+    # specwriter._cmt("stop", f"fly scan completed in {elapsed} s")
     specwriter._cmt(f"fly scan completed in {elapsed} s")
 
     if bluesky_runengine_running:
@@ -248,7 +261,7 @@ def Flyscan_internal_plan(
         # logger.debug(resource_usage("before saveFlyData.finish_HDF5_file()"))
         finish_HDF5_file()  # finish saving data to HDF5 file (background thread)
         # logger.debug(resource_usage("after saveFlyData.finish_HDF5_file()"))
-        #specwriter._cmt("stop", f"finished {msg}")
+        # specwriter._cmt("stop", f"finished {msg}")
         specwriter._cmt(f"finished {msg}")
         logger.info(f"finished {msg}")
 

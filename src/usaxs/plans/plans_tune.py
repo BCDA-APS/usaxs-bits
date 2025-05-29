@@ -17,14 +17,12 @@ from bluesky.utils import plan
 
 from ..startup import suspend_BeamInHutch
 from ..startup import suspend_FE_shutter
-from ..utils.emails import email_notices
 from .axis_tuning import tune_a2rp
 from .axis_tuning import tune_ar
 from .axis_tuning import tune_mr
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
-from .amplifiers_plan import autoscale_amplifiers
 
 logger = logging.getLogger(__name__)
 
@@ -58,12 +56,6 @@ def preUSAXStune(md={}):
     ----------
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -144,13 +136,13 @@ def preUSAXStune(md={}):
     for axis, tune in tuners.items():
         yield from bps.mv(usaxs_shutter, "open", timeout=MASTER_TIMEOUT)
         yield from tune(md=md)
-        #if not axis.tuner.tune_ok:
+        # if not axis.tuner.tune_ok:
         #    logger.warning("!!! tune failed for axis %s !!!", axis.name)
-            # if NOTIFY_ON_BADTUNE:
-            #     email_notices.send(
-            #         f"USAXS tune failed for axis {axis.name}",
-            #         f"USAXS tune failed for axis {axis.name}",
-            #     )
+        # if NOTIFY_ON_BADTUNE:
+        #     email_notices.send(
+        #         f"USAXS tune failed for axis {axis.name}",
+        #         f"USAXS tune failed for axis {axis.name}",
+        #     )
 
         # If we don't wait, the next tune often fails
         # intensity stays flat, statistically
@@ -341,7 +333,6 @@ def preSWAXStune(
     """
     if md is None:
         md = {}
-
 
     # yield from MONO_FEEDBACK_ON()
     # yield from bps.mv(

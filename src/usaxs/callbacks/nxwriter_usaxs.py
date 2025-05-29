@@ -18,7 +18,6 @@ from apstools.utils import cleanupText
 from ..startup import RE
 from ..utils.utils import techniqueSubdirectory
 
-
 terms = oregistry["terms"]
 user_data = oregistry["user_device"]
 
@@ -377,7 +376,7 @@ class NXWriterUascan(OurCustomNXWriterBase):
         parent : h5py.Group
             The parent HDF5 group.
         """
-        group = self.create_NX_group(parent, f"slits:NXnote")
+        group = self.create_NX_group(parent, "slits:NXnote")
         for pre in "guard_slit usaxs_slit".split():
             slit = self.create_NX_group(group, f"{pre}:NXslit")
             slit["x_gap"] = self.get_stream_link(f"{pre}_h_size")

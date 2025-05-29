@@ -22,6 +22,7 @@ link that configures the IOC.
 import logging
 from collections import OrderedDict
 
+from apsbits.core.instrument_init import oregistry
 from apstools.synApps import SwaitRecord
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
@@ -34,8 +35,6 @@ from ophyd import FormattedComponent
 from ophyd import Signal
 from ophyd.scaler import ScalerCH
 from ophyd.scaler import ScalerChannel
-
-from apsbits.core.instrument_init import oregistry
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +55,7 @@ def _gain_to_str_(gain):  # convenience function
 
 class AutoscaleError(RuntimeError):
     """Raised when autoscale fails to converge."""
+
 
 class AutorangeSettings:
     """Values allowed for sequence program's ``reqrange`` PV."""
@@ -311,7 +311,7 @@ class DetectorAmplifierAutorangeDevice(Device):
     This is a convenience intended to simplify tasks such as measuring the
     backgrounds of all channels simultaneously.
     """
-    
+
     def __init__(self, nickname, scaler, det, **kwargs):
         """
         Initialize DetectorAmplifierAutorangeDevice.
@@ -334,8 +334,10 @@ class DetectorAmplifierAutorangeDevice(Device):
         self.nickname = nickname
         self.scaler = oregistry[scaler]
         self.signal = oregistry[f"{det.upper()}_SIGNAL"]
-        self.femto = oregistry[f"{det}_femto_amplifier"]    #changed from .femto, I assume amplfier is correct? 
-        self.auto = oregistry[f"{det}_autorange_controls"]       
+        self.femto = oregistry[
+            f"{det}_femto_amplifier"
+        ]  # changed from .femto, I assume amplfier is correct?
+        self.auto = oregistry[f"{det}_autorange_controls"]
 
         if not isinstance(self.scaler, ScalerCH):
             raise ValueError(
@@ -352,7 +354,7 @@ class DetectorAmplifierAutorangeDevice(Device):
                 "'amplifier' should name a 'FemtoAmplifierDevice' type,"
                 f" received type: {type(self.femto)}"
             )
-        if not isinstance(self.auto, AmplifierAutoDevice):          #this fails to for I0
+        if not isinstance(self.auto, AmplifierAutoDevice):  # this fails to for I0
             raise ValueError(
                 "'auto' should name a 'AmplifierAutoDevice' type,"
                 f" received type: {type(self.auto)}"

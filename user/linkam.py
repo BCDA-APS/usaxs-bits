@@ -29,7 +29,7 @@ from bluesky import plan_stubs as bps
 from apsbits.core.instrument_init import oregistry
 
 
-from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import saxsExp
 from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list
@@ -37,7 +37,7 @@ from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
 from usaxs.plans.command_list import sync_order_numbers
 
-linkam_tc1 = oregistry['linkam_tc1']
+linkam_tc1 = oregistry["linkam_tc1"]
 
 SECOND = 1
 MINUTE = 60 * SECOND

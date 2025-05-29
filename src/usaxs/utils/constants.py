@@ -1,4 +1,4 @@
-'''
+"""
 
 # Instrument Constants
 CONSTANTS:
@@ -10,8 +10,7 @@ CONSTANTS:
     MEASURE_DARK_CURRENTS: true  # MEASURE dark currents on start of data collection
     SYNC_ORDER_NUMBERS: true  # sync order numbers among devices on start of collect data sequence
 
-'''
-
+"""
 
 constants = {
     "SAXS_TR_PINY_OFFSET": 10.5,  # measured on 1-31-2025 JIL on 12ID...

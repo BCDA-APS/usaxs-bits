@@ -10,8 +10,8 @@ from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import MotorBundle
 
-from .usaxs_motor_devices import TunableEpicsMotor2WTolerance
 from .usaxs_motor_devices import TunableEpicsMotor2
+from .usaxs_motor_devices import TunableEpicsMotor2WTolerance
 
 # this is for tuning part of the code.
 # 2024-06-28 we need to merge stages.py with axis_tuning.py since the new tunable motor
@@ -86,7 +86,7 @@ class UsaxsCollimatorStageDevice(MotorBundle):
             "tunable",
         ),
         tune_range=axis_tune_range.m2rp,
-   )
+    )
     isChannelCut: bool = True
 
 

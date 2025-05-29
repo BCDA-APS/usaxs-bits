@@ -19,17 +19,16 @@ from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
-from ..startup import RE
 
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
+
 # Add these imports at the top of the file
 from ..utils.ustep import Ustep
-from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
-#I0 = oregistry["I0"]
+# I0 = oregistry["I0"]
 I00 = oregistry["I00"]
 trd = oregistry["TRD"]
 upd = oregistry["UPD"]
@@ -318,8 +317,8 @@ def uascan(
             # indicate USAXS scan is not running
             terms.USAXS.scanning,
             0,
-            #monochromator.feedback.on,
-            #MONO_FEEDBACK_ON,
+            # monochromator.feedback.on,
+            # MONO_FEEDBACK_ON,
             scaler0.count_mode,
             "AutoCount",
             upd_controls.auto.mode,

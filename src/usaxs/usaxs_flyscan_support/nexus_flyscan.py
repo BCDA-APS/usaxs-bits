@@ -25,7 +25,6 @@ from lxml import etree as lxml_etree
 from ophyd import Component
 from ophyd import EpicsSignal
 
-
 logger = logging.getLogger(os.path.split(__file__)[-1])
 logger.setLevel(logging.INFO)
 
@@ -117,7 +116,9 @@ class NeXus_Structure:
             try:
                 xmlschema.assertValid(config)  # basic exception report
             except Exception as err:
-                raise RuntimeError(f"XML validation failed: file='{self.config_filename}' {err=}") from err
+                raise RuntimeError(
+                    f"XML validation failed: file='{self.config_filename}' {err=}"
+                ) from err
 
         # safe to proceed parsing the file
         root = config.getroot()
@@ -323,10 +324,13 @@ class Group_Specification:
             self.hdf5_path = "/"
 
         if self.hdf5_path in manager.group_registry:
-            msg = "Cannot create duplicate HDF5 path names: path=%s name=%s nx_class=%s" % (
-                self.hdf5_path,
-                self.name,
-                self.nx_class,
+            msg = (
+                "Cannot create duplicate HDF5 path names: path=%s name=%s nx_class=%s"
+                % (
+                    self.hdf5_path,
+                    self.name,
+                    self.nx_class,
+                )
             )
             raise RuntimeError(msg)
 
@@ -364,7 +368,9 @@ class Link_Specification:
         self.xml_node = xml_element_node
 
         self.name = xml_element_node.attrib["name"]
-        self.source_hdf5_path = xml_element_node.attrib["source"]  # path to existing object
+        self.source_hdf5_path = xml_element_node.attrib[
+            "source"
+        ]  # path to existing object
         self.linktype = xml_element_node.get("linktype", "NeXus")
         if self.linktype not in ("NeXus",):
             msg = "Cannot create HDF5 " + self.linktype + " link: " + self.hdf5_path
@@ -435,7 +441,10 @@ class PV_Specification:
             msg = "Cannot use PV label more than once: " + self.label
             raise RuntimeError(msg)
         self.pvname = xml_element_node.attrib["pvname"]
-        self.as_string = xml_element_node.attrib.get("string", "false").lower() in ("t", "true")
+        self.as_string = xml_element_node.attrib.get("string", "false").lower() in (
+            "t",
+            "true",
+        )
         # _s = xml_element_node.attrib.get('string', "false")
         # print(f"PV: {self.pvname}  string:{self.as_string}  node:{_s}")
         self.pv = None
@@ -443,7 +452,10 @@ class PV_Specification:
         aas = xml_element_node.attrib.get("acquire_after_scan", "false")
         self.acquire_after_scan = aas.lower() in ("t", "true")
 
-        self.attrib = {node.attrib["name"]: node.attrib["value"] for node in xml_element_node.xpath("attribute")}
+        self.attrib = {
+            node.attrib["name"]: node.attrib["value"]
+            for node in xml_element_node.xpath("attribute")
+        }
 
         # identify our parent
         xml_parent_node = xml_element_node.getparent()
@@ -453,7 +465,9 @@ class PV_Specification:
         if self.length_limit is not None:
             if not self.length_limit.startswith("/"):
                 # convert local to absolute reference
-                self.length_limit = self.group_parent.hdf5_path + "/" + self.length_limit
+                self.length_limit = (
+                    self.group_parent.hdf5_path + "/" + self.length_limit
+                )
 
         # finally, declare ourself to be a child of that parent
         self.hdf5_path = self.group_parent.hdf5_path + "/" + self.label

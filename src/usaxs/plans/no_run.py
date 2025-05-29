@@ -47,7 +47,6 @@ def no_run_trigger_and_wait(
 
 def no_run_operation(
     md: Optional[Dict[str, Any]] = None,
-
 ):
     """Perform a no-run operation.
 
@@ -74,7 +73,6 @@ def no_run_operation(
     """
     if md is None:
         md = {}
-
 
     _md = {}
     _md.update(md or {})

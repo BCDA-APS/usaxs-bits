@@ -16,15 +16,14 @@ from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
-from ..startup import RE
-#from ..startup import bec
+
+# from ..startup import bec
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
-
+from ..startup import RE
 from ..startup import suspend_BeamInHutch
 from ..startup import suspend_FE_shutter
 from ..utils.constants import constants
-from ..utils.emails import NOTIFY_ON_BAD_FLY_SCAN
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
 from ..utils.utils import techniqueSubdirectory
@@ -126,7 +125,6 @@ def saxsExp(
     if md is None:
         md = {}
 
-
     yield from IfRequestedStopBeforeNextScan()
 
     yield from before_plan()
@@ -170,7 +168,7 @@ def saxsExp(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
@@ -238,8 +236,8 @@ def saxsExp(
         yield from bps.mv(
             mono_shutter,
             "open",
-            #monochromator.feedback.on,
-            #MONO_FEEDBACK_OFF,
+            # monochromator.feedback.on,
+            # MONO_FEEDBACK_OFF,
             usaxs_shutter,
             "open",
             saxs_det.cam.num_images,
@@ -269,7 +267,7 @@ def saxsExp(
         )
 
         # SPEC-compatibility
-        #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+        # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
         SCAN_N = RE.md["scan_id"] + 1
         yield from bps.mv(
             scaler1.preset_time,
@@ -319,8 +317,8 @@ def saxsExp(
         ts,
         scaler0.delay,
         old_delay,
-        #monochromator.feedback.on,
-        #MONO_FEEDBACK_ON,
+        # monochromator.feedback.on,
+        # MONO_FEEDBACK_ON,
         terms.SAXS.collecting,
         0,
         user_data.time_stamp,
@@ -376,7 +374,6 @@ def waxsExp(
     if md is None:
         md = {}
 
-
     yield from IfRequestedStopBeforeNextScan()
 
     yield from before_plan()
@@ -416,7 +413,7 @@ def waxsExp(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    #SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
+    # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
@@ -481,8 +478,8 @@ def waxsExp(
         yield from bps.mv(
             mono_shutter,
             "open",
-            #monochromator.feedback.on,
-            #MONO_FEEDBACK_OFF,
+            # monochromator.feedback.on,
+            # MONO_FEEDBACK_OFF,
             usaxs_shutter,
             "open",
             waxs_det.cam.num_images,
@@ -565,8 +562,8 @@ def waxsExp(
         ts,
         scaler0.delay,
         old_delay,
-        #monochromator.feedback.on,
-        #MONO_FEEDBACK_ON,
+        # monochromator.feedback.on,
+        # MONO_FEEDBACK_ON,
         terms.WAXS.collecting,
         0,
         user_data.time_stamp,

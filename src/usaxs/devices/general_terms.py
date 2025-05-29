@@ -117,7 +117,6 @@ class Parameters_transmission(Device):
     I0_gain = Component(EpicsSignal, "usxLAX:USAXS:TR_I0Gain")
 
 
-
 class Parameters_USAXS(Device):
     """Internal values shared with EPICS for USAXS operations."""
 
@@ -283,7 +282,7 @@ class Parameters_Imaging(Device):
     guard_v_size = Component(EpicsSignal, "usxLAX:USAXS_Img:ImgGuardVertApperture")
 
     filters = Component(Parameters_Al_Ti_Filters_Imaging, "usxLAX:USAXS_Img:Img_")
-    #filter_transmission = Component(EpicsSignal, "usxLAX:USAXS_Img:Img_FilterTrans")
+    # filter_transmission = Component(EpicsSignal, "usxLAX:USAXS_Img:Img_FilterTrans")
 
 
 class Parameters_OutOfBeam(Device):

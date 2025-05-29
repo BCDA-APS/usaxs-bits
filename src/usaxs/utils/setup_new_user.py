@@ -9,13 +9,11 @@ import pathlib
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
-from ..startup import RE
-
-
-from ..callbacks.nxwriter_usaxs import nxwriter
-from .utils import techniqueSubdirectory
 
 from usaxs.callbacks.spec_data_file_writer import specwriter
+
+from ..callbacks.nxwriter_usaxs import nxwriter
+from ..startup import RE
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
@@ -82,7 +80,7 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     global specwriter
 
     user_data.user_name.put(user)  # set in the PV
-    #user_data.spec_scan.put(scan_id)  # set in the PV
+    # user_data.spec_scan.put(scan_id)  # set in the PV
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]

@@ -19,16 +19,14 @@ from apsbits.core.instrument_init import oregistry
 from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name
-from ..utils.override import user_override
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
 from ..startup import suspend_BeamInHutch
 from ..startup import suspend_FE_shutter
+from .amplifiers_plan import autoscale_amplifiers
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
-from .amplifiers_plan import autoscale_amplifiers
-
 
 # Device instances
 I0_controls = oregistry["I0_controls"]
@@ -79,8 +77,8 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
     if md is None:
         md = {}
 
-    #yield from bps.mv(m_stage.r, m_stage.r.position)
-    #yield from bps.trigger_and_read([m_stage.r])
+    # yield from bps.mv(m_stage.r, m_stage.r.position)
+    # yield from bps.trigger_and_read([m_stage.r])
     yield from IfRequestedStopBeforeNextScan()
     success = False
     try:
@@ -90,8 +88,8 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_mr"
         logger.info(f"tuning axis: {m_stage.r.name}")
 
-        #yield from bps.mv(m_stage.r, m_stage.r.position)
-        #yield from bps.trigger_and_read([m_stage.r])
+        # yield from bps.mv(m_stage.r, m_stage.r.position)
+        # yield from bps.trigger_and_read([m_stage.r])
         yield from IfRequestedStopBeforeNextScan()
 
         yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -99,7 +97,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [I0,scaler0],
+            [I0, scaler0],
             m_stage.r,
             -m_stage.r.tune_range.get(),
             m_stage.r.tune_range.get(),
@@ -130,8 +128,8 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         raise
     finally:
         yield from bps.mv(usaxs_shutter, "close")
-    
-    #return success
+
+    # return success
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)
@@ -176,7 +174,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD,scaler0],
+            [UPD, scaler0],
             a_stage.r,
             -a_stage.r.tune_range.get(),
             a_stage.r.tune_range.get(),
@@ -211,7 +209,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         logger.error(f"Error in tune_ar: {str(e)}")
         raise
 
-    #return success
+    # return success
 
 
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -256,7 +254,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD,scaler0],
+            [UPD, scaler0],
             a_stage.r2p,
             -a_stage.r2p.tune_range.get(),
             a_stage.r2p.tune_range.get(),
@@ -285,7 +283,8 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         logger.error(f"Error in tune_a2rp: {str(e)}")
         raise
 
-    #return success
+    # return success
+
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -330,7 +329,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD,scaler0],
+            [UPD, scaler0],
             d_stage.x,
             -d_stage.x.tune_range.get(),
             d_stage.x.tune_range.get(),
@@ -406,7 +405,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD,scaler0],
+            [UPD, scaler0],
             d_stage.y,
             -d_stage.y.tune_range.get(),
             d_stage.y.tune_range.get(),

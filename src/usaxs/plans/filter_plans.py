@@ -45,7 +45,7 @@ def _insertFilters_(a: Union[int, float]):
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    yield from bps.mv(Filter_AlTi.fPos,int(a))  # set filter position
+    yield from bps.mv(Filter_AlTi.fPos, int(a))  # set filter position
     yield from bps.sleep(0.5)  # allow all blades to re-position
 
 
@@ -95,7 +95,8 @@ def insertSaxsFilters():
 
 
 def insertScanFilters(
-    md: Optional[Dict[str, Any]] = None,):
+    md: Optional[Dict[str, Any]] = None,
+):
     """Insert filters for scanning.
 
     This function inserts the appropriate filters for scanning operations,

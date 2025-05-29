@@ -68,7 +68,6 @@ def reset_instrument(
     if md is None:
         md = {}
 
-
     _md = {}
     _md.update(md or {})
 

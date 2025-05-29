@@ -1,13 +1,13 @@
 # flake8: noqa: F401
 """Bluesky plans."""
 
-
 # from .resets import resets
 from ..utils.setup_new_user import newUser
+from .amplifiers_plan import autoscale_amplifiers
 from .area_detector_plans import areaDetectorAcquire
 from .autocollect_plan import remote_ops
-from .command_list import run_command_file
-#these are all tuning plans facing users and staff
+
+# these are all tuning plans facing users and staff
 from .axis_tuning import tune_a2rp
 from .axis_tuning import tune_ar
 from .axis_tuning import tune_diode
@@ -16,6 +16,8 @@ from .axis_tuning import tune_dy
 from .axis_tuning import tune_mr
 from .axis_tuning import tune_saxs_optics
 from .axis_tuning import tune_usaxs_optics
+from .command_list import run_command_file
+
 # from .command_list import execute_command_list
 # from .command_list import run_command_file
 # from .command_list import run_python_file
@@ -25,6 +27,7 @@ from .filter_plans import insertRadiographyFilters
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertScanFilters
 from .filter_plans import insertWaxsFilters
+
 # from .mode_changes import mode_BlackFly
 from .mode_changes import mode_OpenBeamPath
 from .mode_changes import mode_Radiography
@@ -47,8 +50,8 @@ from .plans_usaxs import USAXSscan
 from .plans_usaxs import USAXSscanStep
 from .plans_user_facing import saxsExp
 from .plans_user_facing import waxsExp
-from .amplifiers_plan import autoscale_amplifiers
 from .sample_transmission import measure_USAXS_Transmission
+
 # from .sample_transmission import sample_transmission
 # from .scans import scans
 from .sim_plans import sim_count_plan

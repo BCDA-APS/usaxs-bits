@@ -123,7 +123,6 @@ def rotate_sample(
     if md is None:
         md = {}
 
-
     _md = {}
     _md.update(md or {})
 

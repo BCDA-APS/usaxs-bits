@@ -250,7 +250,6 @@ def move_USAXSIn():
 def move_instrument(
     target_position: float,
     md: Optional[Dict[str, Any]] = None,
-
 ):
     """Move instrument to a target position.
 
@@ -279,7 +278,6 @@ def move_instrument(
     """
     if md is None:
         md = {}
-
 
     _md = {}
     _md.update(md or {})

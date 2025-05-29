@@ -105,7 +105,7 @@ def measure_USAXS_Transmission(
                 _tr_diode > secs * constants["TR_MAX_ALLOWED_COUNTS"]
                 or _I0 > secs * constants["TR_MAX_ALLOWED_COUNTS"]
             ):
-                #yield from autoscale_amplifiers([I0_controls, trd_controls])
+                # yield from autoscale_amplifiers([I0_controls, trd_controls])
 
                 yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
                 scaler0.select_channels(["I0", "TRD"])
@@ -127,8 +127,8 @@ def measure_USAXS_Transmission(
                 trd_controls.femto.gain.get(),
                 trmssn.I0_counts,
                 s["I0"]["value"],
-                #trmssn.I0_gain,
-                #I0_controls.femto.gain.get(),
+                # trmssn.I0_gain,
+                # I0_controls.femto.gain.get(),
             )
             tbl = pyRestTable.Table()
             tbl.addLabel("detector")
@@ -207,7 +207,7 @@ def measure_SAXS_Transmission(
             "open",
         )
 
-        #yield from autoscale_amplifiers([I0_controls, trd_controls])
+        # yield from autoscale_amplifiers([I0_controls, trd_controls])
         yield from bps.mv(
             scaler0.preset_time,
             constants["SAXS_TR_TIME"],
@@ -252,8 +252,8 @@ def measure_SAXS_Transmission(
             trd_controls.femto.gain.get(),
             terms.SAXS_WAXS.I0_transmission,
             s["I0"]["value"],
-            #terms.SAXS_WAXS.I0_gain,
-            #I0_controls.femto.gain.get(),
+            # terms.SAXS_WAXS.I0_gain,
+            # I0_controls.femto.gain.get(),
         )
         logger.info(
             (
@@ -302,7 +302,6 @@ def measure_transmission(
     """
     if md is None:
         md = {}
-
 
     _md = {}
     _md.update(md or {})

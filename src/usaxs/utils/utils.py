@@ -2,10 +2,9 @@
 return a clean version of input text
 """
 
-import datetime
+import logging
 import os
 import pathlib
-import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
@@ -31,7 +30,6 @@ user_data = oregistry["user_device"]
 #         return "_"
 
 #     return "".join([mapper(c) for c in text])
-
 
 
 def get_data_dir():
@@ -61,4 +59,3 @@ def techniqueSubdirectory(technique):
         os.mkdir(path)
 
     return os.path.abspath(path)
-
