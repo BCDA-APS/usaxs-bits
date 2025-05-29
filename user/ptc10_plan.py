@@ -2,6 +2,8 @@
 this is a PTC10 plan
 reload by
 # %run -im user.ptc10_plan
+
+* 2025-5-28 : JIL : fix for BITS
 """
 
 import logging
@@ -12,13 +14,17 @@ logger.info(__file__)
 import time
 
 from bluesky import plan_stubs as bps
-from instrument.devices.ptc10_controller import ptc10
-from instrument.plans import SAXS
-from instrument.plans import WAXS
-from instrument.plans import USAXSscan
-from instrument.plans import after_command_list
-from instrument.plans import before_command_list
+from apsbits.core.instrument_init import oregistry
 from ophyd import Signal
+
+
+from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import waxsExp
+from usaxs.plans.plans_usaxs import USAXSscan
+from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import before_command_list
+
+ptc10 = oregistry["ptc10"]
 
 ptc10_debug = Signal(name="ptc10_debug", value=False)
 #   In order to run as debug (without collecting data, only control Linkam) in command line run:
@@ -102,10 +108,10 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     yield from before_command_list()  # this will run usual startup scripts for scans
 
@@ -158,10 +164,10 @@ def myPTC10Plan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def collectWAXS(debug=False):
         """
@@ -174,7 +180,7 @@ def myPTC10Plan(
             yield from bps.sleep(20)
         else:
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     yield from before_command_list()  # this will run usual startup scripts for scans
     t0 = time.time()
@@ -253,10 +259,10 @@ def myPTC10List(rate1Cmin, md={}):
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = ptc10_debug.get()
 
@@ -340,10 +346,10 @@ def myPTC10List2(rate1Cmin, delay1min, md={}):
             # yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            # yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            # yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = ptc10_debug.get()
 
@@ -433,10 +439,10 @@ def FanPTC10Plan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def collectWAXS(debug=False):
         """
@@ -449,7 +455,7 @@ def FanPTC10Plan(
             yield from bps.sleep(20)
         else:
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     yield from before_command_list()  # this will run usual startup scripts for scans
     t0 = time.time()
@@ -540,10 +546,10 @@ def FanPTC10OvernightPlan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def collectWAXS(debug=False):
         """
@@ -556,7 +562,7 @@ def FanPTC10OvernightPlan(
             yield from bps.sleep(20)
         else:
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     # run #1
     yield from before_command_list()  # this will run usual startup scripts for scans

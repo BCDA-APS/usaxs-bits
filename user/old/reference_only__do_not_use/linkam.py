@@ -47,10 +47,10 @@ def myLinkamPlan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     # linkam = linkam_tc1
     linkam = linkam_ci94

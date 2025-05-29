@@ -24,17 +24,19 @@ logger.info(__file__)
 import time
 
 from bluesky import plan_stubs as bps
-from instrument.plans import SAXS
-from instrument.plans import WAXS
-from instrument.plans import USAXSscan
-from instrument.plans import after_command_list
-from instrument.plans import before_command_list
-from instrument.plans import preUSAXStune
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import Signal
+
+from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import waxsExp
+from usaxs.plans.plans_usaxs import USAXSscan
+from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import before_command_list
+from usaxs.plans.plans_tune import preUSAXStune
+
 
 # define conversions from seconds
 SECOND = 1
@@ -120,10 +122,10 @@ def myEscoPlan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     # logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = esco_debug.get()

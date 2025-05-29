@@ -12,6 +12,7 @@ load this way:
 * JIL, 2021-11-12 : modified to use updated before_command_list(), verify operations
 * JIL, 2022-11-05 : 20ID test
 * JIL, 2024-12-03 : 12ID check and fix. Needs testing
+* JIL, 2025-05-28 : fixs for BITS
 
 limitations: uses new Linkam support only for tc1 with linux ioc
 
@@ -25,14 +26,18 @@ logger.info(__file__)
 import time
 
 from bluesky import plan_stubs as bps
-from instrument.devices import linkam_tc1
-from instrument.plans import SAXS
-from instrument.plans import WAXS
-from instrument.plans import USAXSscan
-from instrument.plans import after_command_list
-from instrument.plans import before_command_list
+from apsbits.core.instrument_init import oregistry
+
+
+from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import waxsExp
+from usaxs.plans.plans_usaxs import USAXSscan
+from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
-from plans.command_list import sync_order_numbers
+from usaxs.plans.command_list import sync_order_numbers
+
+linkam_tc1 = oregistry['linkam_tc1']
 
 SECOND = 1
 MINUTE = 60 * SECOND
@@ -84,10 +89,10 @@ def myLinkamPlan_template(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def change_rate_and_temperature(rate, t, wait=False):
         yield from bps.mv(
@@ -218,10 +223,10 @@ def fanLinkamPlan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def change_rate_and_temperature(rate, t, wait=False):
         yield from bps.mv(
@@ -346,10 +351,10 @@ def Fan718LinkamPlan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def change_rate_and_temperature(rate, t, wait=False):
         yield from bps.mv(
@@ -472,29 +477,29 @@ def Fan174Plan(
     def collectAllThree(debug=False):
         sampleMod = setSampleName()
         md["title"] = sampleMod
-        yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = setSampleName()
         md["title"] = sampleMod
-        yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = setSampleName()
         md["title"] = sampleMod
-        yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = setSampleName()
         md["title"] = sampleMod
-        yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = setSampleName()
         md["title"] = sampleMod
-        yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
         md["title"] = sampleMod
         yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = setSampleName()
         md["title"] = sampleMod
-        yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def collectWAXSOnly(debug=False):
         sampleMod = setSampleName()
         md["title"] = sampleMod
-        yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def change_rate_and_temperature(rate, t, wait=False):
         yield from bps.mv(
@@ -603,10 +608,10 @@ def mooreLinkamPlan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def change_rate_and_temperature(rate, t, wait=False):
         yield from bps.mv(

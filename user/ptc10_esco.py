@@ -12,18 +12,21 @@ logger.info(__file__)
 import time
 
 from bluesky import plan_stubs as bps
-from instrument.devices.ptc10_controller import ptc10
-from instrument.plans import SAXS
-from instrument.plans import WAXS
-from instrument.plans import USAXSscan
-from instrument.plans import after_command_list
-from instrument.plans import before_command_list
-from instrument.plans import preUSAXStune
+from apsbits.core.instrument_init import oregistry
+
+from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import waxsExp
+from usaxs.plans.plans_usaxs import USAXSscan
+from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import before_command_list
+from usaxs.plans.plans_tune import preUSAXStune
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import Signal
+
+ptc10  = oregistry[]"ptc10"]
 
 # define conversions from seconds
 SECOND = 1
@@ -135,10 +138,10 @@ def myPTC10EscoPlan(pos_X, pos_Y, thickness, scan_title, delay_minutes=10, md={}
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def _ramp_and_hold_measurement(pr, tc):
         """
@@ -252,10 +255,10 @@ def myPTC10EscoPlan(pos_X, pos_Y, thickness, scan_title, delay_minutes=10, md={}
 #             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
 #             sampleMod = getSampleName()
 #             md["title"]=sampleMod
-#             yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+#             yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 #             sampleMod = getSampleName()
 #             md["title"]=sampleMod
-#             yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+#             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
 #     yield from before_command_list()                #this will run usual startup scripts for scans
 
@@ -305,10 +308,10 @@ def myPTC10EscoPlan(pos_X, pos_Y, thickness, scan_title, delay_minutes=10, md={}
 #             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
 #             sampleMod = getSampleName()
 #             md["title"]=sampleMod
-#             yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+#             yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 #             sampleMod = getSampleName()
 #             md["title"]=sampleMod
-#             yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+#             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
 #     yield from before_command_list()                #this will run usual startup scripts for scans
 #     t0 = time.time()

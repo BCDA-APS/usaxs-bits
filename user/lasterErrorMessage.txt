@@ -60,7 +60,7 @@ Traceback (most recent call last):
   File "/home/beams/USAXS/bluesky/user/linkam.py", line 212, in fanLinkamPlan
     yield from collectAllThree(isDebugMode)
   File "/home/beams/USAXS/bluesky/user/linkam.py", line 186, in collectAllThree
-    yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+    yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
   File "/home/beams/USAXS/bluesky/instrument/plans/scans.py", line 1035, in WAXS
     yield from mode_WAXS()
   File "/home/beams/USAXS/bluesky/instrument/plans/mode_changes.py", line 237, in mode_WAXS

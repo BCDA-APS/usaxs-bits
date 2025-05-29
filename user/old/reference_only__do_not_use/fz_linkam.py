@@ -74,14 +74,14 @@ def fzLinkamPlan(
             try:
                 sampleMod = setSampleName()
                 md["title"] = sampleMod
-                yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+                yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             except Exception as exc:
                 logger.error(exc)
 
             try:
                 sampleMod = setSampleName()
                 md["title"] = sampleMod
-                yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+                yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             except Exception as exc:
                 logger.error(exc)
 

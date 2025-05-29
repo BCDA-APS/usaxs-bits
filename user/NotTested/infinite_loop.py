@@ -17,23 +17,30 @@ load this way:
 
 import logging
 
-from user.old.reference_only__do_not_use.heater_profile import MINUTE
-from user.old.reference_only__do_not_use.heater_profile import change_ramp_rate
-from user.old.reference_only__do_not_use.heater_profile import linkam_change_setpoint
-
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 import time
 
 from bluesky import plan_stubs as bps
-from instrument.devices import linkam_tc1
-from instrument.plans import SAXS
-from instrument.plans import WAXS
-from instrument.plans import USAXSscan
-from instrument.plans import after_command_list
-from instrument.plans import before_command_list
+from apsbits.core.instrument_init import oregistry
 from ophyd import Signal
+
+
+from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import waxsExp
+from usaxs.plans.plans_usaxs import USAXSscan
+from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import before_command_list
+from usaxs.plans.plans_tune import preUSAXStune
+
+SECOND = 1
+MINUTE = 60 * SECOND
+HOUR = 60 * MINUTE
+DAY = 24 * HOUR
+WEEK = 7 * DAY
+
+linkam_tc1 = oregistry["linkam_tc1"]
 
 linkam_debug = Signal(name="linkam_debug", value=False)
 #   In order to run as debug (without collecting data, only control Linkam) in command line run:
@@ -78,10 +85,10 @@ def myLinkamPlan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     # linkam = linkam_ci94   #this is old TS1500 NIST from LAX
@@ -197,10 +204,10 @@ def fanLinkamPlan(
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def change_rate_and_temperature(rate, t, wait=False):
         yield from change_ramp_rate(rate)

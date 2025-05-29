@@ -10,6 +10,7 @@ load this way:
 
 * JIL, 2022-11-17 : first release
 * JIL, 2022-11-18 : added different modes
+* JIL, 2025-5-28 : fixs for BITS
 """
 
 import logging
@@ -20,11 +21,11 @@ logger.info(__file__)
 import time
 
 from bluesky import plan_stubs as bps
-from instrument.plans import SAXS
-from instrument.plans import WAXS
-from instrument.plans import USAXSscan
-from instrument.plans import after_command_list
-from instrument.plans import before_command_list
+from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import waxsExp
+from usaxs.plans.plans_usaxs import USAXSscan
+from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
 
 # define conversions from seconds
@@ -66,10 +67,10 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             # sampleMod = setSampleName()
             # md["title"]=sampleMod
-            # yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            # yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             # sampleMod = setSampleName()
             # md["title"]=sampleMod
-            # yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            # yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = loop_debug.get()
     # isDebugMode = False
@@ -133,10 +134,10 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
             md["title"] = sampleMod
-            yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = loop_debug.get()
     # isDebugMode = False
@@ -209,12 +210,12 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
             for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
                 sampleMod = setSampleName(sampleName)
                 md["title"] = sampleMod
-                yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+                yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
             # for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
             #     sampleMod = setSampleName(sampleName)
             #     md["title"]=sampleMod
-            #     yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            #     yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = loop_debug.get()
     # isDebugMode = False

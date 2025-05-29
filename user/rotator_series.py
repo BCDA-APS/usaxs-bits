@@ -21,10 +21,14 @@ import numpy as np
 from bluesky import plan_stubs as bps
 from epics import caget
 from epics import caput
-from instrument.plans import USAXSscan
-from instrument.plans import after_command_list
-from instrument.plans import before_command_list
 from ophyd import Signal
+
+
+from usaxs.plans.plans_user_facing import saxsExp 
+from usaxs.plans.plans_user_facing import waxsExp
+from usaxs.plans.plans_usaxs import USAXSscan
+from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import before_command_list
 
 # define conversions from seconds
 SECOND = 1
@@ -66,10 +70,10 @@ def rel_angle_series(pos_X, pos_Y, thickness, scan_title, angles, md={}):
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             # sampleMod = setSampleName()
             # md["title"]=sampleMod
-            # yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            # yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             # sampleMod = setSampleName()
             # md["title"]=sampleMod
-            # yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+            # yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = loop_debug.get()
     # isDebugMode = False

@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-from instrument.plans.command_list import run_command_file
+from usaxs.plans.command_list import run_command_file
 
 
 def cycle_command_file(filename, md=None):
