@@ -26,7 +26,7 @@ from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import Signal
 
-ptc10  = oregistry[]"ptc10"]
+ptc10  = oregistry["ptc10"]
 
 # define conversions from seconds
 SECOND = 1
