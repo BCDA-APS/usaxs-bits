@@ -12,7 +12,7 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from ..utils.setup_new_user import techniqueSubdirectory
+from usaxs.utils.utils import techniqueSubdirectory
 
 logger = logging.getLogger(__name__)
 

@@ -11,7 +11,7 @@ from apstools.plans import restorable_stage_sigs
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
-from ..utils.setup_new_user import techniqueSubdirectory
+from usaxs.utils.utils import techniqueSubdirectory
 from .amplifiers_plan import autoscale_amplifiers
 from .area_detector_plans import areaDetectorAcquire
 from .sample_imaging import record_sample_image_on_demand
