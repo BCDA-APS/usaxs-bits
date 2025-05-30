@@ -134,9 +134,9 @@ def measure_USAXS_Transmission():
             # msg += str(tbl.reST())
             logger.info(
                 "Measured USAXS transmission values :"
-                f" Diode = {terms.USAXS.transmission.diode_counts.get():f}"
+                f" Diode = {terms.USAXS.transmission.diode_counts.get():.0f}"
                 f" with gain {terms.USAXS.transmission.diode_gain.get():g}"
-                f" and I0 = {terms.USAXS.transmission.I0_counts.get():f}"
+                f" and I0 = {terms.USAXS.transmission.I0_counts.get():.0f}"
                 f" with gain {terms.USAXS.transmission.I0_gain.get():g}"
             )
             #logger.info(msg)
@@ -240,9 +240,9 @@ def measure_SAXS_Transmission():
         logger.info(
             (
                 "Measured SAXS transmission values :"
-                f" Diode = {terms.USAXS.transmission.diode_counts.get():f}"
+                f" Diode = {terms.USAXS.transmission.diode_counts.get():.0f}"
                 f" with gain {terms.USAXS.transmission.diode_gain.get():g}"
-                f" and I0 = {terms.USAXS.transmission.I0_counts.get():f}"
+                f" and I0 = {terms.USAXS.transmission.I0_counts.get():.0f}"
                 f" with gain {terms.USAXS.transmission.I0_gain.get():g}"
             )
         )

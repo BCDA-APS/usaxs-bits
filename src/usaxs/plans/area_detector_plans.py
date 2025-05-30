@@ -76,4 +76,4 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
         "no",
     )  # we are done
     elapsed = time.time() - t0
-    logger.info(f"Finished SAXS/WAXS data collection in {elapsed} seconds.")
+    logger.info(f"Finished SAXS/WAXS data collection in {elapsed:.2f} seconds.")

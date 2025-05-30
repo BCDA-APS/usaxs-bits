@@ -140,8 +140,6 @@ def mode_USAXS(md=None):
     """
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
 
-    logger.info("Moving to USAXS mode ... please wait ...")
-
     yield from bps.mv(
         # fmt: off  
         usaxs_shutter,         "close",
@@ -153,9 +151,9 @@ def mode_USAXS(md=None):
     #retune_needed = False
 
     if not confirm_instrument_mode("USAXS in beam"):
-        #mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
-        #logger.info(f"Found UsaxsSaxsMode = {mode_now}")
-        #logger.info("Moving to proper USAXS mode")
+        mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
+        logger.debug(f"Found UsaxsSaxsMode = {mode_now}")
+        logger.info("Moving to USAXS mode ... please wait ...")
         yield from move_WAXSOut()
         yield from move_SAXSOut()
         yield from move_USAXSIn()
@@ -211,9 +209,7 @@ def mode_SAXS(md=None):
         Metadata dictionary for the scan.
     """
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
-     
-    logger.info("Moving to SAXS mode ... please wait ...")
-    
+         
     yield from bps.mv(
         # fmt: off
         usaxs_shutter,         "close",
@@ -225,8 +221,8 @@ def mode_SAXS(md=None):
 
     if not confirm_instrument_mode("SAXS in beam"):
         mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
-        #logger.info(f"Found UsaxsSaxsMode = {mode_now}")
-        #logger.info("Moving to proper SAXS mode")
+        logger.debug(f"Found UsaxsSaxsMode = {mode_now}")
+        logger.info("Moving to SAXS mode ... please wait ...")
         yield from move_WAXSOut()
         yield from move_USAXSOut()
         yield from move_SAXSIn()
@@ -255,8 +251,6 @@ def mode_WAXS(md=None):
     """
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
 
-    logger.info("Moving to WAXS mode ... please wait ...")
-
     yield from bps.mv(
         # fmt: off
         usaxs_shutter,         "close",
@@ -269,14 +263,9 @@ def mode_WAXS(md=None):
     if confirm_instrument_mode("WAXS in beam"):
         logger.debug("WAXS is in beam")
     else:
-        #mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
-        #mode_change_msg = "Mode change: %s -> %s (reason: opening beam path)"
-        #logger.info(
-        #    mode_change_msg,
-        #    mode_now,
-        #    terms.SAXS.UsaxsSaxsMode.get(as_string=True),
-        #)
-        #logger.info("Moving to proper WAXS mode")
+        mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
+        logger.debug(f"Found UsaxsSaxsMode = {mode_now}")
+        logger.info("Moving to WAXS mode ... please wait ...")
         yield from move_SAXSOut()
         yield from move_USAXSOut()
         yield from move_WAXSIn()
