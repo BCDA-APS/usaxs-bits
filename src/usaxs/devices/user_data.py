@@ -47,7 +47,7 @@ class EpicsSampleNameDevice(EpicsSignal):
 
     def set(self, value: str, **kwargs: Any) -> Any:
         """Modify value per user function before setting the PV"""
-        logger.info("self._handler: %s", self._handler)
+        logger.debug("self._handler: %s", self._handler)
         if self._handler is not None:
             value = self._handler(value)
         return super().set(value, **kwargs)
@@ -141,7 +141,7 @@ class UserDataDevice(Device):
         msg = trim_string_for_EPICS(msg)
         try:
             if len(msg) > 39:
-                logger.info("truncating long status message: %s", msg)
+                logger.debug("truncating long status message: %s", msg)
                 msg = msg[:35] + " ..."
             self.state.put(msg)
         except Exception as exc:

@@ -13,9 +13,9 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from ..devices import AutorangeSettings
-from ..utils.emails import NOTIFY_ON_RESET
-from ..utils.emails import send_notification
+from usaxs.devices.amplifiers import AutorangeSettings
+#from ..utils.emails import NOTIFY_ON_RESET
+#from ..utils.emails import send_notification
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 
