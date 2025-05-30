@@ -353,6 +353,8 @@ def measure_background(controls, shutter=None, count_time=0.2, num_readings=5):
     assert isinstance(controls, (tuple, list)), "controls must be a list"
     scaler_dict = group_controls_by_scaler(controls)
 
+    logger.info("Measuring dark currents")
+
     if shutter is not None:
         yield from bps.mv(shutter, "close")
 
