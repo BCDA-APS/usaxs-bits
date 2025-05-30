@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 guard_slit = oregistry["guard_slit"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 # Get devices from oregistry
 UPD_SIGNAL = oregistry["UPD_SIGNAL"]
 I0_controls = oregistry["I0_controls"]
@@ -198,7 +198,7 @@ def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
     guard_slit = oregistry["guard_slit"]
     scaler0 = oregistry["scaler0"]
     upd_controls = oregistry["upd_controls"]
-    user_data = oregistry["user_device"]
+    user_data = oregistry["user_data"]
 
     # remember original motor positons
     original_position = dict(
@@ -495,7 +495,7 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
     usaxs_shutter = oregistry["usaxs_shutter"]
     upd_controls = oregistry["upd_controls"]
     usaxs_slit = oregistry["usaxs_slit"]
-    user_data = oregistry["user_device"]
+    user_data = oregistry["user_data"]
 
     yield from tune_GslitsCenter(oregistry)
     yield from mode_USAXS(oregistry)
@@ -556,7 +556,7 @@ def tune_Gslits(oregistry: Optional[Dict[str, Any]] = None):
         A generator that yields plan steps
     """
     # Get devices from oregistry
-    user_data = oregistry["user_device"]
+    user_data = oregistry["user_data"]
 
     yield from tune_GslitsCenter(oregistry)
     yield from tune_GslitsSize(oregistry)

@@ -35,7 +35,7 @@ terms = oregistry["terms"]
 trd = oregistry["trd"]
 upd_controls = oregistry["upd_controls"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 
 @plan

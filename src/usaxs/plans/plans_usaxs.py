@@ -64,7 +64,7 @@ usaxs_flyscan = oregistry["usaxs_flyscan"]
 usaxs_q_calc = oregistry["usaxs_q_calc"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 
 @bpp.suspend_decorator(suspend_FE_shutter)

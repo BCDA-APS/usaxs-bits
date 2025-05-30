@@ -51,7 +51,7 @@ I0_SIGNAL = oregistry["I0_SIGNAL"]
 I0 = oregistry["I0"]
 scaler0 = oregistry["scaler0"]
 
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 monochromator = oregistry["monochromator"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 

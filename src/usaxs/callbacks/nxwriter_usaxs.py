@@ -19,7 +19,7 @@ from ..startup import RE
 from ..utils.utils import techniqueSubdirectory
 
 terms = oregistry["terms"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 
 logger = logging.getLogger(__name__)
@@ -72,8 +72,8 @@ class OurCustomNXWriterBase(NXWriterAPS):
         logger.debug("write_entry of file: %s", self.root.attrs["file_name"])
 
         nxentry["program_name"].attrs["config_version"] = self.config_version
-        nxentry["SPEC_data_file"] = self.get_stream_link("user_device_spec_file")
-        nxentry["sample/thickness"] = self.get_stream_link("user_device_sample_thickness")
+        nxentry["SPEC_data_file"] = self.get_stream_link("user_data_spec_file")
+        nxentry["sample/thickness"] = self.get_stream_link("user_data_sample_thickness")
         nxentry["sample/name"] = self.get_sample_title()
         self.root.attrs["creator_version"] = apstools.__version__
 
@@ -130,7 +130,7 @@ class OurCustomNXWriterBase(NXWriterAPS):
         str
             The sample title.
         """
-        return self.get_stream_link("user_device_sample_title")
+        return self.get_stream_link("user_data_sample_title")
 
     def start(self, doc):
         """

@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 terms = oregistry["terms"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]

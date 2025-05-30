@@ -39,7 +39,7 @@ saxs_stage = oregistry["saxs_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 
 @plan

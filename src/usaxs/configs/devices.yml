@@ -129,7 +129,7 @@ usaxs.devices.trajectories.Trajectories:
 - name: "flyscan_trajectories"
 
 usaxs.devices.user_data.UserDataDevice:
-- name: user_device
+- name: user_data
 
 usaxs.devices.white_beam_ready_calc.WhiteBeamReadyCalc:
 - name: white_beam_ready
