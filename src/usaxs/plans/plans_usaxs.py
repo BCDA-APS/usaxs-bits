@@ -552,7 +552,7 @@ def Flyscan(
         scaler0.auto_count_delay,   0.25,
         scaler0.delay,              0.05,
         scaler0.preset_time,           1,
-        scaler0.auto_count_time        1,
+        scaler0.auto_count_time,        1,
         upd_controls.auto.gainU,         old_femto_change_gain_up,
         upd_controls.auto.gainD,         old_femto_change_gain_down,
         a_stage.r,                      terms.USAXS.ar_val_center.get(),
