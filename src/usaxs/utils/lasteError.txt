@@ -1,66 +1,19 @@
-
-
-[I 2025-05-28 12:17:27,724 bluesky_queueserver.manager.start_manager] RE Manager configuration:
-    zmq_control_addr: 'tcp://*:60615'
-    zmq_private_key: None
-    zmq_info_addr: 'tcp://*:60625'
-    zmq_publish_console: True
-    redis_addr: 'localhost:6379'
-    redis_name_prefix: 'qs_default'
-    keep_re: True
-    device_max_depth: 0
-    ignore_invalid_plans: False
-    use_ipython_kernel: True
-    ipython_kernel_ip: 'localhost'
-    ipython_matplotlib: 'qt5'
-    existing_plans_and_devices_path: '/home/beams11/USAXS/bits_usaxs/src/usaxs_qserver/existing_plans_and_devices.yaml'
-    user_group_permissions_path: '/home/beams11/USAXS/bits_usaxs/src/usaxs_qserver/user_group_permissions.yaml'
-    startup_dir: None
-    startup_module: 'usaxs.startup'
-    startup_script: None
-    startup_profile: None
-    ipython_dir: None
-    demo_mode: False
-    print_console_output: True
-    console_logging_level: 20
-    update_existing_plans_devices: 'ENVIRONMENT_OPEN'
-    user_group_permissions_reload: 'ON_STARTUP'
-    emergency_lock_key: None
-    use_persistent_metadata: True
-    kafka_server: '127.0.0.1:9092'
-    kafka_topic: None
-    zmq_data_proxy_addr: 'localhost:5567'
-    databroker_config: None
-
-[W 2025-05-28 12:17:27,725 bluesky_queueserver.manager.start_manager] The file with the list of allowed plans and devices ('/home/beams11/USAXS/bits_usaxs/src/usaxs_qserver/existing_plans_and_devices.yaml') does not exist. The manager will be started with empty list. The list will be populated after RE worker environment is opened the first time.
-[I 2025-05-28 12:17:27,726 bluesky_queueserver.manager.manager] Starting ZMQ server at 'tcp://*:60615'
-[I 2025-05-28 12:17:27,726 bluesky_queueserver.manager.manager] ZMQ control channels: encryption disabled
-[I 2025-05-28 12:17:27,730 bluesky_queueserver.manager.manager] Starting RE Manager process
-[I 2025-05-28 12:17:27,750 bluesky_queueserver.manager.manager] Loading the lists of allowed plans and devices ...
-[W 2025-05-28 12:17:27,750 bluesky_queueserver.manager.profile_ops] List of plans and devices is not loaded. File '/home/beams11/USAXS/bits_usaxs/src/usaxs_qserver/existing_plans_and_devices.yaml' does not exist.
-[I 2025-05-28 12:17:27,751 bluesky_queueserver.manager.manager] Starting ZeroMQ server ...
-[I 2025-05-28 12:17:27,751 bluesky_queueserver.manager.manager] ZeroMQ server is waiting on tcp://*:60615
-
-
-tart-of-run baseline readings:
-+--------------------------------+--------------------------------+
-|                          waxsx | -10.000105                     |
-|              usaxs_slit_h_size | 0.9999602999999979             |
-|                   usaxs_slit_x | -0.15006599999999537           |
-|              usaxs_slit_v_size | 1.0001180000000005             |
-|                   usaxs_slit_y | -0.4250299999999996            |
-|                          LAXm5 | 35.0                           |
-|                         waxs2x | -3.185178                      |
-|                 guard_slit_bot | -0.6001999999999992            |
-|                 guard_slit_inb | -0.5000999999999962            |
-|                guard_slit_outb | 0.70049999999992               |
-|                 guard_slit_top | 0.6002                         |
-|                   guard_slit_x | 14.649000000000001             |
-|                   guard_slit_y | 0.0                            |
-|       monochromator_dcm_energy | 18.000008541130047             |
-|        monochromator_dcm_theta | 6.305826388386997              |
-+--------------------------------+--------------------------------+
-Exception in thread Thread-823 (_threaded_writer):
+lan uascan ['6e81bd44'] (scan num: 10)
+W Thu-19:21:45.111: 'HDF5 address /entry/instrument/bluesky/streams/baseline/undulator_downstream_device/value_start not found.' -- not creating undulator group
+W Thu-19:21:45.114: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_chemical_formula/value_start not found.'
+W Thu-19:21:45.114: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_concentration/value_start not found.'
+W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_description/value_start not found.'
+W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_electric_field/value_start not found.'
+W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_magnetic_field/value_start not found.'
+W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_rotation_angle/value_start not found.'
+W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_scattering_length_density/value_start not found.'
+W Thu-19:21:45.116: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_stress_field/value_start not found.'
+W Thu-19:21:45.116: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_temperature/value_start not found.'
+W Thu-19:21:45.116: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_volume_fraction/value_start not found.'
+W Thu-19:21:45.116: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_x_translation/value_start not found.'
+W Thu-19:21:45.116: no sample data found, not creating sample group
+W Thu-19:21:45.117: 'HDF5 address /entry/instrument/bluesky/streams/baseline/bss_user_info_contact/value_start not found.' -- not creating source group
+Exception in thread Thread-2017 (_threaded_writer):
 Traceback (most recent call last):
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
     self.run()
@@ -70,68 +23,29 @@ Traceback (most recent call last):
     self.write_root(fname)
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 581, in write_root
     self.write_entry()
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 352, in write_entry
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 351, in write_entry
     super().write_entry()  # write the raw data
     ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 72, in write_entry
-    nxentry = super().write_entry()  # default technique
-              ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 428, in write_entry
-    self.write_instrument(nxentry)  # also writes streams and metadata
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 892, in write_instrument
-    nxinstrument = super().write_instrument(parent)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 467, in write_instrument
-    self.write_streams(bluesky_group)
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 755, in write_streams
-    raise ValueError(
-ValueError: stream 2 has descriptors, expecting only 1
-+-----------+------------+------------+------------+------------+------------+------------+------------+
-generator uascan ['85914ee8'] (scan num: 34)
-End-of-run baseline readings:
-+--------------------------------+--------------------------------+
-|                          waxsx | -9.999978                      |
-|              usaxs_slit_h_size | 0.9999602999999979             |
-|                   usaxs_slit_x | -0.15006599999999537           |
-|              usaxs_slit_v_size | 1.0001180000000005             |
-|                   usaxs_slit_y | -0.4250299999999996            |
-|                          LAXm5 | 35.0                           |
-|                         waxs2x | -3.185178                      |
-|                 guard_slit_bot | -0.6001999999999992            |
-|                 guard_slit_inb | -0.5000999999999962            |
-|                guard_slit_outb | 0.70049999999992               |
-|                 guard_slit_top | 0.6002                         |
-|                   guard_slit_x | 14.649000000000001             |
-|                   guard_slit_y | 0.0                            |
-|       monochromator_dcm_energy | 18.000008541130047             |
-|        monochromator_dcm_theta | 6.305826388386997              |
-+--------------------------------+--------------------------------+
-End-of-run baseline readings:
-+--------------------------------+--------------------------------+
-|                          waxsx | -10.000105                     |
-|              usaxs_slit_h_size | 0.9999602999999979             |
-|                   usaxs_slit_x | -0.15006599999999537           |
-|              usaxs_slit_v_size | 1.0001180000000005             |
-|                   usaxs_slit_y | -0.4250299999999996            |
-|                          LAXm5 | 35.0                           |
-|                         waxs2x | -3.185178                      |
-|                 guard_slit_bot | -0.6001999999999992            |
-|                 guard_slit_inb | -0.5000999999999962            |
-|                guard_slit_outb | 0.70049999999992               |
-|                 guard_slit_top | 0.6002                         |
-|                   guard_slit_x | 14.649000000000001             |
-|                   guard_slit_y | 0.0                            |
-|       monochromator_dcm_energy | 18.000008541130047             |
-|        monochromator_dcm_theta | 6.305826388386997              |
-+--------------------------------+--------------------------------+
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 75, in write_entry
+    nxentry["SPEC_data_file"] = self.get_stream_link("user_data_spec_file")
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 244, in get_stream_link
+    raise KeyError(f"HDF5 address {h5_addr} not found.")
+KeyError: 'HDF5 address /entry/instrument/bluesky/streams/baseline/user_data_spec_file/value_start not found.'
+I Thu-19:21:45.974: memory report: pmem(rss=561414144, vms=5075120128, shared=165642240, text=3293184, lib=0, data=1336324096, dirty=0)
+I Thu-19:21:45.974: Command ('USAXSscan', ['-140', '20', '1', 'test'], 31, '      USAXSscan        -140      20      1      "test"') executed successfully.
+I Thu-19:21:45.974: file line 34:       saxsExp        -140      20      1      "test"
+I Thu-19:21:45.999: Found UsaxsSaxsMode = USAXS in beam
+I Thu-19:21:45.999: Moving to proper SAXS mode
+I Thu-19:21:46.001: Moving WAXS out of beam
+I Thu-19:21:46.006: Removed WAXS from beam position
+I Thu-19:21:46.015: Moving USAXS out of beam
+I Thu-19:21:49.704: Removed USAXS from beam position
+I Thu-19:21:49.709: Moving to Pinhole SAXS mode
+I Thu-19:21:55.151: SAXS is in position
+I Thu-19:21:55.154: Prepared for SAXS mode
+I Thu-19:21:55.496: Area Detector HDF5 file: /share1/USAXS_data/2025-05/05_29_Eric/05_29_Eric_saxs/test_0002.hdf
+I Thu-19:21:55.496: Pilatus computer Area Detector HDF5 file: /mnt/usaxscontrol/USAXS_data/2025-05/05_29_Eric/05_29_Eric_saxs/test_0002.hdf
+I Thu-19:21:55.499: self._handler: None
+I Thu-19:21:55.561: Prepared for SAXS mode
 
-
-
-Out[2]:
-('00c170c0-26d2-4ffb-8d8f-98f4cbb3819c',
- '03381467-0a15-4ca5-bed5-67cd95a8bedf',
- 'adce4d34-0549-41a9-a6ac-c3312195bb9f',
- '85914ee8-8c6a-48b2-a0c6-b11e698626a6')
-
-In [3]:
