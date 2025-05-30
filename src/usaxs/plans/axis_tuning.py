@@ -77,8 +77,6 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
     if md is None:
         md = {}
 
-    # yield from bps.mv(m_stage.r, m_stage.r.position)
-    # yield from bps.trigger_and_read([m_stage.r])
     yield from IfRequestedStopBeforeNextScan()
     success = False
     try:
@@ -88,11 +86,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_mr"
         logger.info(f"tuning axis: {m_stage.r.name}")
 
-        # yield from bps.mv(m_stage.r, m_stage.r.position)
-        # yield from bps.trigger_and_read([m_stage.r])
-        yield from IfRequestedStopBeforeNextScan()
-
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
         scaler0.select_channels(["I0"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -169,7 +163,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
         scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
@@ -249,7 +243,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
         scaler0.select_channels(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -324,7 +318,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
         scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
@@ -400,7 +394,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
         scaler0.select_channels(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
