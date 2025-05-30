@@ -475,7 +475,7 @@ def execute_command_list(filename, commands, md=None):
     text = f"Command file: {filename}\n"
     text += str(command_list_as_table(commands))
     logger.info(text)
-    logger.info("memory report: %s", rss_mem())
+    #logger.info("memory report: %s", rss_mem())
 
     # save the command list as a separate Bluesky run for documentation purposes
     # yield from documentation_run(text)
@@ -560,7 +560,7 @@ def execute_command_list(filename, commands, md=None):
             else:
                 logger.info("no handling for line %d: %s", i, raw_command)
                 yield from bps.null()
-            logger.info("memory report: %s", rss_mem())
+            #logger.info("memory report: %s", rss_mem())
 
         attempt = 0  # count the number of attempts
         maximum_attempts = MAXIMUM_ATTEMPTS  # set an upper limit
@@ -601,7 +601,7 @@ def execute_command_list(filename, commands, md=None):
             break
 
     yield from after_command_list(md=md)
-    logger.info("memory report: %s", rss_mem())
+    #logger.info("memory report: %s", rss_mem())
 
 
 @plan

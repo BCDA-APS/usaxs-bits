@@ -384,7 +384,7 @@ def waxsExp(
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(WAXSscan_path, WAXS_file_name)
-    logger.infor(f"Collecting WAXS with HDF5 file: {local_name}")
+    logger.info(f"Collecting WAXS with HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, WAXS_file_name)
     logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
