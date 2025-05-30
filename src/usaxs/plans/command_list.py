@@ -163,7 +163,7 @@ def before_command_list(md=None, commands=None):
     yield from beforeScanComputeOtherStuff()  # 41-commands.py
 
     if terms.preUSAXStune.run_tune_on_qdo.get():
-        logger.info("Running preUSAXStune as requested at start of measurements")
+        logger.debug("Running preUSAXStune as requested at start of measurements")
         yield from preUSAXStune(md=md)
 
     if constants["SYNC_ORDER_NUMBERS"]:
@@ -617,7 +617,7 @@ def sync_order_numbers():
         saxs_det.hdf1.file_number.get(),
         waxs_det.hdf1.file_number.get(),
     )
-    logger.info("Synchronizing detector order numbers to %d", order_number)
+    logger.debug("Synchronizing detector order numbers to %d", order_number)
     yield from bps.mv(
         terms.FlyScan.order_number,
         order_number,

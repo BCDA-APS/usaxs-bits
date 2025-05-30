@@ -113,7 +113,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         success = stats.analysis.success
         if stats.analysis.success:
             yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
-            logger.info(f"final position: {m_stage.r.position}")
+            logger.debug(f"final position: {m_stage.r.position}")
         else:
             print(f"tune_mr failed for {stats.analysis.reasons}")
 
@@ -195,7 +195,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
                 usaxs_q_calc.channels.B.input_value,
                 a_stage.r.position,
             )
-            logger.info(f"final position: {a_stage.r.position}")
+            logger.debug(f"final position: {a_stage.r.position}")
         else:
             print(f"tune_ar failed for {stats.analysis.reasons}")
 
@@ -269,7 +269,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         scaler0.select_channels()
         success = stats.analysis.success
         if stats.analysis.success:
-            logger.info(f"final position: {a_stage.r2p.position}")
+            logger.debug(f"final position: {a_stage.r2p.position}")
         else:
             print(f"tune_a2rp failed for {stats.analysis.reasons}")
 
@@ -349,7 +349,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
             )
             logger.info(f"final position: {d_stage.x.position}")
         else:
-            print(f"tune_dx failed for {stats.analysis.reasons}")
+            logger.info(f"tune_dx failed for {stats.analysis.reasons}")
 
     except Exception as e:
         logger.error(f"Error in tune_dx: {str(e)}")
@@ -422,7 +422,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
             yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
             logger.info(f"final position: {d_stage.y.position}")
         else:
-            print(f"tune_dy failed for {stats.analysis.reasons}")
+            logger.info(f"tune_dy failed for {stats.analysis.reasons}")
 
     except Exception as e:
         logger.error(f"Error in tune_dy: {str(e)}")

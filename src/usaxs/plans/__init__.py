@@ -51,6 +51,9 @@ from .plans_usaxs import USAXSscan
 from .plans_usaxs import USAXSscanStep
 from .plans_user_facing import saxsExp
 from .plans_user_facing import waxsExp
+
+from .resets import reset_USAXS
+
 from .sample_transmission import measure_USAXS_Transmission
 
 # from .sample_transmission import sample_transmission

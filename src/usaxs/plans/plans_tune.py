@@ -141,7 +141,7 @@ def preUSAXStune(md={}):
         # to complete processing and report back to us.
         yield from bps.sleep(0.5)
    
-    logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
+    logger.debug("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
     yield from bps.mv(
         # fmt:off
         scaler0.preset_time,         terms.USAXS.usaxs_time.get(),
@@ -249,7 +249,7 @@ def allUSAXStune(
         # to complete processing and report back to us.
         yield from bps.sleep(0.5)
 
-    logger.info("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
+    logger.debug("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
     yield from bps.mv(
         # fmt:off
         scaler0.preset_time,  terms.USAXS.usaxs_time.get(),
