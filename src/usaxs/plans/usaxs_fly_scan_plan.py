@@ -163,8 +163,8 @@ def Flyscan_internal_plan(
             logger.error(msg)
         fname = os.path.join(fname, s)
 
-        logger.info(f"HDF5 config: {usaxs_flyscan.saveFlyData_config}")
-        logger.info(f"HDF5 output: {fname}")
+        logger.debug(f"HDF5 config: {usaxs_flyscan.saveFlyData_config}")
+        logger.info(f"HDF5 file : {fname}")
         usaxs_flyscan._output_HDF5_file_ = fname
         user_data.set_state_blocking("FlyScanning: " + os.path.split(fname)[-1])
 
@@ -182,7 +182,7 @@ def Flyscan_internal_plan(
             raise RuntimeError("Must first call prepare_HDF5_file()")
         usaxs_flyscan.saveFlyData.saveFile()
 
-        logger.info(f"HDF5 output complete: {usaxs_flyscan._output_HDF5_file_}")
+        logger.info(f"HDF5 file complete: {usaxs_flyscan._output_HDF5_file_}")
         usaxs_flyscan.saveFlyData = None
 
     ######################################################################
@@ -208,7 +208,7 @@ def Flyscan_internal_plan(
     usaxs_flyscan.t0 = time.time()
     usaxs_flyscan.update_time = usaxs_flyscan.t0 + usaxs_flyscan.update_interval_s
     if usaxs_flyscan.flying.get():
-        logger.warning("Was flying.  Setting that signal to False now.")
+        logger.warning("Was flying. Setting that signal to False now.")
         yield from bps.abs_set(usaxs_flyscan.flying, False)
 
     if bluesky_runengine_running:
@@ -263,19 +263,16 @@ def Flyscan_internal_plan(
         # logger.debug(resource_usage("after saveFlyData.finish_HDF5_file()"))
         # specwriter._cmt("stop", f"finished {msg}")
         specwriter._cmt(f"finished {msg}")
-        logger.info(f"finished {msg}")
+        logger.debug(f"finished {msg}")
 
     yield from bps.mv(
-        a_stage.r.user_setpoint,
-        usaxs_flyscan.ar0,
-        a_stage.x.user_setpoint,
-        usaxs_flyscan.ax0,
-        d_stage.x.user_setpoint,
-        usaxs_flyscan.dx0,
-        upd_controls.auto.mode,
-        AutorangeSettings.auto_background,
-        usaxs_shutter,
-        "close",
+        # fmt: off
+        a_stage.r.user_setpoint,         usaxs_flyscan.ar0,
+        a_stage.x.user_setpoint,         usaxs_flyscan.ax0,
+        d_stage.x.user_setpoint,         usaxs_flyscan.dx0,
+        upd_controls.auto.mode,         AutorangeSettings.auto_background,
+        usaxs_shutter,         "close",
+        #fmt: on
     )
 
     yield from write_stream([struck.mca1, struck.mca2, struck.mca3], "mca")

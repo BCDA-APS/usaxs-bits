@@ -75,7 +75,7 @@ def record_sample_image_on_demand(
             if os.path.exists(image_name):
                 # update the provided dictionary
                 _md["sample_image_name"] = image_name
-                logger.info("sample image file: %s", image_name)
+                logger.debug("Sample optical image file: %s", image_name)
         except Exception as exc:
             logger.warning(
                 ("Could not take sample image:" "path=%s, file=%s, order#=%d, exc=%s"),

@@ -105,10 +105,10 @@ def postCommandsListfile2WWW(commands):
 
     # post to EPICS
     yield from bps.mv(
-        user_data.macro_file,
-        os.path.split(tbl_file)[-1],
-        user_data.macro_file_time,
-        timestamp,
+        # fmt: off
+        user_data.macro_file,         os.path.split(tbl_file)[-1],
+        user_data.macro_file_time,    timestamp,
+        # fmt: on
     )
 
     # keep this list for posterity
@@ -130,23 +130,21 @@ def before_command_list(md=None, commands=None):
         md = {}
 
     yield from bps.mv(
-        user_data.time_stamp,
-        str(datetime.datetime.now()),
-        user_data.collection_in_progress,
-        1,
+        # fmt: off
+        user_data.time_stamp,         str(datetime.datetime.now()),
+        user_data.collection_in_progress,         1,
+        # fmt: on
     )
 
     yield from user_data.set_state_plan("Starting data collection")
 
     yield from bps.mv(
-        usaxs_shutter,
-        "close",
-        terms.SAXS.collecting,
-        0,
-        terms.WAXS.collecting,
-        0,
-        a_shutter_autoopen,
-        1,
+        # fmt: off
+        usaxs_shutter,         "close",
+        terms.SAXS.collecting,         0,
+        terms.WAXS.collecting,         0,
+        a_shutter_autoopen,            1,
+        # fmt: on
     )
 
     if constants["MEASURE_DARK_CURRENTS"]:
@@ -243,12 +241,11 @@ def after_command_list(md=None):
     # if md is None:
     #     md = {}
     yield from bps.mv(
-        user_data.time_stamp,
-        str(datetime.datetime.now()),
-        user_data.collection_in_progress,
-        0,
-        usaxs_shutter,
-        "close",
+        # fmt: off
+        user_data.time_stamp,         str(datetime.datetime.now()),
+        user_data.collection_in_progress,         0,
+        usaxs_shutter,              "close",
+        # fmt: on
     )
     yield from user_data.set_state_plan("USAXS macro file done")
 
@@ -486,7 +483,7 @@ def execute_command_list(filename, commands, md=None):
     yield from before_command_list(md=md, commands=commands)
     for command in commands:
         action, args, i, raw_command = command
-        logger.info("file line %d: %s", i, raw_command)
+        logger.debug("file line %d: %s", i, raw_command)
         yield from bps.checkpoint()
 
         _md = {}
@@ -558,7 +555,7 @@ def execute_command_list(filename, commands, md=None):
                 yield from simple_actions[action](md=_md)
 
             else:
-                logger.info("no handling for line %d: %s", i, raw_command)
+                logger.debug("no handling for line %d: %s", i, raw_command)
                 yield from bps.null()
             #logger.info("memory report: %s", rss_mem())
 
@@ -571,7 +568,7 @@ def execute_command_list(filename, commands, md=None):
             try:
                 # call the inner function (above)
                 yield from _handle_actions_()
-                logger.info("Command %s executed successfully.", command)
+                logger.debug("Command %s executed successfully.", command)
                 break  # leave the while loop
             # TODO: need to handle some Exceptions, fail on others
             except Exception as exc:
@@ -619,12 +616,11 @@ def sync_order_numbers():
     )
     logger.debug("Synchronizing detector order numbers to %d", order_number)
     yield from bps.mv(
-        terms.FlyScan.order_number,
-        order_number,
-        saxs_det.hdf1.file_number,
-        order_number,
-        waxs_det.hdf1.file_number,
-        order_number,
+        # fmt: off
+        terms.FlyScan.order_number,         order_number,
+        saxs_det.hdf1.file_number,          order_number,
+        waxs_det.hdf1.file_number,          order_number,
+        # fmt: on
     )
 
 
@@ -683,7 +679,7 @@ def run_set_command(*args):
             % term
         )
         return
-    # logger.info("type(value) = %s", type(value))
+    logger.debug("type(value) = %s", type(value))
 
     # get the python object
     pyobj = terms  # dig down to the term
