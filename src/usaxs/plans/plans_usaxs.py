@@ -101,6 +101,8 @@ def USAXSscan(
     if md is None:
         md = {}
 
+    logger.info(f"Collecting USAXS for {title}")
+
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness_mm
     _md["title"] = title

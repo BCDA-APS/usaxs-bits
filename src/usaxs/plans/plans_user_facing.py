@@ -119,6 +119,8 @@ def saxsExp(
     if md is None:
         md = {}
 
+    logger.info(f"Collecting SAXS for {scan_title}")
+
     yield from IfRequestedStopBeforeNextScan()
 
     yield from before_plan()
@@ -338,6 +340,8 @@ def waxsExp(
     """
     if md is None:
         md = {}
+
+    logger.info(f"Collecting WAXS for {scan_title}")
 
     yield from IfRequestedStopBeforeNextScan()
 
