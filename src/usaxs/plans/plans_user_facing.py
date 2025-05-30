@@ -108,12 +108,6 @@ def saxsExp(
         Title for the scan
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -130,34 +124,31 @@ def saxsExp(
     yield from before_plan()
 
     yield from mode_SAXS()
-
+    
     pinz_target = terms.SAXS.z_in.get() + constants["SAXS_PINZ_OFFSET"]
-    yield from bps.mv(
-        usaxs_slit.v_size,
-        terms.SAXS.v_size.get(),
-        usaxs_slit.h_size,
-        terms.SAXS.h_size.get(),
-        guard_slit.v_size,
-        terms.SAXS.guard_v_size.get(),
-        guard_slit.h_size,
-        terms.SAXS.guard_h_size.get(),
-        saxs_stage.z,
-        pinz_target,
-        user_data.sample_thickness,
-        thickness,
-        terms.SAXS.collecting,
-        1,
+
+    yield from bps.mv(      # move saxs_z out for sample move, other is unimportant check here. 
+        # fmt: off
+        usaxs_slit.v_size,         terms.SAXS.v_size.get(),
+        usaxs_slit.h_size,         terms.SAXS.h_size.get(),
+        guard_slit.v_size,         terms.SAXS.guard_v_size.get(),
+        guard_slit.h_size,         terms.SAXS.guard_h_size.get(),
+        saxs_stage.z,              pinz_target,
+        user_data.sample_thickness, thickness,
+        terms.SAXS.collecting,         1,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
-    yield from bps.mv(
-        s_stage.x,
-        pos_X,
-        s_stage.y,
-        pos_Y,
+    yield from bps.mv(      #move sampel in position
+        # fmt: off
+        s_stage.x,         pos_X,
+        s_stage.y,         pos_Y,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
+    # setup AD names, paths and set metadata 
     scan_title = getSampleTitle(scan_title)
     _md = md or OrderedDict()
     _md.update(md or {})
@@ -168,7 +159,6 @@ def saxsExp(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
@@ -188,43 +178,42 @@ def saxsExp(
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(SAXSscan_path, SAXS_file_name)
-    logger.info(f"Area Detector HDF5 file: {local_name}")
+    logger.info(f"Collecting SAXS with HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
-    logger.info(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
+    logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
     saxs_det.hdf1.file_path._auto_monitor = False
     saxs_det.hdf1.file_template._auto_monitor = False
     yield from bps.mv(
-        saxs_det.hdf1.file_name,
-        scan_title_clean,
-        saxs_det.hdf1.file_path,
-        pilatus_path,
-        saxs_det.hdf1.file_template,
-        ad_file_template,
+        # fmt: off
+        saxs_det.hdf1.file_name,         scan_title_clean,
+        saxs_det.hdf1.file_path,         pilatus_path,
+        saxs_det.hdf1.file_template,     ad_file_template,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
     saxs_det.hdf1.file_path._auto_monitor = True
     saxs_det.hdf1.file_template._auto_monitor = True
+    #done with names and paths for AD by now...
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        user_data.sample_title,
-        scan_title,
-        user_data.sample_thickness,
-        thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
-        user_data.time_stamp,
-        ts,
-        user_data.scan_macro,
-        "SAXS",
+        # fmt: off
+        user_data.sample_title,         scan_title,
+        user_data.sample_thickness,     thickness,
+        user_data.spec_scan,            str(SCAN_N),
+        user_data.time_stamp,           ts,
+        user_data.scan_macro,           "SAXS",
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
+
     yield from user_data.set_state_plan("starting SAXS collection")
     yield from bps.mv(
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
+        # fmt: off
+        user_data.spec_file, os.path.split(specwriter.spec_filename)[-1],
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
     old_delay = scaler0.delay.get()
 
@@ -234,19 +223,14 @@ def saxsExp(
         yield from insertSaxsFilters()
 
         yield from bps.mv(
-            mono_shutter,
-            "open",
-            # monochromator.feedback.on,
-            # MONO_FEEDBACK_OFF,
-            usaxs_shutter,
-            "open",
-            saxs_det.cam.num_images,
-            terms.SAXS.num_images.get(),
-            saxs_det.cam.acquire_time,
-            terms.SAXS.acquire_time.get(),
-            saxs_det.cam.acquire_period,
-            terms.SAXS.acquire_time.get() + 0.004,
+            # fmt: off
+            mono_shutter,             "open",
+            usaxs_shutter,            "open",
+            saxs_det.cam.num_images,  terms.SAXS.num_images.get(),
+            saxs_det.cam.acquire_time, terms.SAXS.acquire_time.get(),
+            saxs_det.cam.acquire_period, terms.SAXS.acquire_time.get() + 0.004,
             timeout=MASTER_TIMEOUT,
+            # fmt: on
         )
         yield from MONO_FEEDBACK_OFF()
 
@@ -261,36 +245,28 @@ def saxsExp(
         yield from autoscale_amplifiers([I0_controls])
 
         yield from bps.mv(
-            usaxs_shutter,
-            "close",
+            # fmt: off
+            usaxs_shutter,            "close",
             timeout=MASTER_TIMEOUT,
+            # fmt: on
         )
 
         # SPEC-compatibility
-        # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
         SCAN_N = RE.md["scan_id"] + 1
         yield from bps.mv(
-            scaler1.preset_time,
-            terms.SAXS.acquire_time.get() + 1,
-            scaler0.preset_time,
-            1.2 * terms.SAXS.acquire_time.get() + 1,
-            scaler0.count_mode,
-            "OneShot",
-            scaler1.count_mode,
-            "OneShot",
-            scaler0.update_rate,
-            60,
-            scaler1.update_rate,
-            60,
-            scaler0.count,
-            0,
-            scaler0.delay,
-            0,
-            terms.SAXS_WAXS.start_exposure_time,
-            ts,
-            user_data.spec_scan,
-            str(SCAN_N),
+            # fmt: off
+            scaler1.preset_time,            terms.SAXS.acquire_time.get() + 1,
+            scaler0.preset_time,      1.2 * terms.SAXS.acquire_time.get() + 1,
+            scaler0.count_mode,             "OneShot",
+            scaler1.count_mode,             "OneShot",
+            scaler0.update_rate,             60,
+            scaler1.update_rate,             60,
+            scaler0.count,                    0,
+            scaler0.delay,                    0,
+            terms.SAXS_WAXS.start_exposure_time,             ts,
+            user_data.spec_scan,                    str(SCAN_N),
             timeout=MASTER_TIMEOUT,
+            # fmt: on
         )
         yield from user_data.set_state_plan(
             f"SAXS collection for {terms.SAXS.acquire_time.get()} s"
@@ -303,32 +279,24 @@ def saxsExp(
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        scaler0.count,
-        0,
-        scaler1.count,
-        0,
-        terms.SAXS_WAXS.I0_gated,
-        scaler1.channels.chan02.s.get(),
-        scaler0.update_rate,
-        5,
-        scaler1.update_rate,
-        5,
-        terms.SAXS_WAXS.end_exposure_time,
-        ts,
-        scaler0.delay,
-        old_delay,
-        # monochromator.feedback.on,
-        # MONO_FEEDBACK_ON,
-        terms.SAXS.collecting,
-        0,
-        user_data.time_stamp,
-        ts,
+        # fmt: off
+        scaler0.count,                      0,
+        scaler1.count,                      0,
+        terms.SAXS_WAXS.I0_gated,  scaler1.channels.chan02.s.get(),
+        scaler0.update_rate,                5,
+        scaler1.update_rate,                5,
+        terms.SAXS_WAXS.end_exposure_time, ts,
+        scaler0.delay,              old_delay,
+        terms.SAXS.collecting,              0,
+        user_data.time_stamp,               ts,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
+
     yield from MONO_FEEDBACK_ON()
 
     yield from user_data.set_state_plan("Done SAXS")
-    logger.info(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
+    logger.debug(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
     yield from after_plan()
 
 
@@ -357,12 +325,6 @@ def waxsExp(
         Title for the scan
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -380,30 +342,22 @@ def waxsExp(
 
     yield from mode_WAXS()
 
+    #move all in place. 
     yield from bps.mv(
-        usaxs_slit.v_size,
-        terms.SAXS.v_size.get(),
-        usaxs_slit.h_size,
-        terms.SAXS.h_size.get(),
-        guard_slit.v_size,
-        terms.SAXS.guard_v_size.get(),
-        guard_slit.h_size,
-        terms.SAXS.guard_h_size.get(),
-        user_data.sample_thickness,
-        thickness,
-        terms.WAXS.collecting,
-        1,
+        # fmt: off
+        s_stage.x,         pos_X,
+        s_stage.y,         pos_Y,
+        usaxs_slit.v_size,         terms.SAXS.v_size.get(),
+        usaxs_slit.h_size,         terms.SAXS.h_size.get(),
+        guard_slit.v_size,         terms.SAXS.guard_v_size.get(),
+        guard_slit.h_size,         terms.SAXS.guard_h_size.get(),
+        user_data.sample_thickness, thickness,
+        terms.WAXS.collecting,              1,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
-    yield from bps.mv(
-        s_stage.x,
-        pos_X,
-        s_stage.y,
-        pos_Y,
-        timeout=MASTER_TIMEOUT,
-    )
-
+    # setup names and paths here... 
     scan_title = getSampleTitle(scan_title)
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
@@ -413,7 +367,6 @@ def waxsExp(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    # SCAN_N = int(user_data.spec_scan.get()) + 1  # RE.md["scan_id"] + 1  # the next scan number (user-controllable)
     SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
@@ -431,43 +384,41 @@ def waxsExp(
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(WAXSscan_path, WAXS_file_name)
-    logger.info(f"Area Detector HDF5 file: {local_name}")
+    logger.infor(f"Collecting WAXS with HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, WAXS_file_name)
-    logger.info(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
+    logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
     waxs_det.hdf1.file_path._auto_monitor = False
     waxs_det.hdf1.file_template._auto_monitor = False
     yield from bps.mv(
-        waxs_det.hdf1.file_name,
-        scan_title_clean,
-        waxs_det.hdf1.file_path,
-        pilatus_path,
-        waxs_det.hdf1.file_template,
-        ad_file_template,
+        # fmt: off
+        waxs_det.hdf1.file_name,         scan_title_clean,
+        waxs_det.hdf1.file_path,         pilatus_path,
+        waxs_det.hdf1.file_template,    ad_file_template,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
     waxs_det.hdf1.file_path._auto_monitor = True
     waxs_det.hdf1.file_template._auto_monitor = True
+    # paths and names done by now
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        user_data.sample_title,
-        scan_title,
-        user_data.sample_thickness,
-        thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
-        user_data.time_stamp,
-        ts,
-        user_data.scan_macro,
-        "WAXS",
+        # fmt: off
+        user_data.sample_title,         scan_title,
+        user_data.sample_thickness,     thickness,
+        user_data.spec_scan,           str(SCAN_N),
+        user_data.time_stamp,           ts,
+        user_data.scan_macro,           "WAXS",
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
     yield from user_data.set_state_plan("starting WAXS collection")
     yield from bps.mv(
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
+        # fmt: off
+        user_data.spec_file,  os.path.split(specwriter.spec_filename)[-1],
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
     old_delay = scaler0.delay.get()
 
@@ -476,21 +427,17 @@ def waxsExp(
         yield from insertWaxsFilters()
 
         yield from bps.mv(
-            mono_shutter,
-            "open",
-            # monochromator.feedback.on,
-            # MONO_FEEDBACK_OFF,
-            usaxs_shutter,
-            "open",
-            waxs_det.cam.num_images,
-            terms.WAXS.num_images.get(),
-            waxs_det.cam.acquire_time,
-            terms.WAXS.acquire_time.get(),
-            waxs_det.cam.acquire_period,
-            terms.WAXS.acquire_time.get() + 0.004,
+            # fmt: off
+            mono_shutter,              "open",
+            usaxs_shutter,             "open",
+            waxs_det.cam.num_images,   terms.WAXS.num_images.get(),
+            waxs_det.cam.acquire_time, terms.WAXS.acquire_time.get(),
+            waxs_det.cam.acquire_period, terms.WAXS.acquire_time.get() + 0.004,
             timeout=MASTER_TIMEOUT,
+            # fmt: on
         )
         yield from MONO_FEEDBACK_OFF()
+
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in waxs_det.cam.stage_sigs:
                 waxs_det.cam.stage_sigs.pop(k)
@@ -502,31 +449,25 @@ def waxsExp(
         yield from autoscale_amplifiers([I0_controls, trd_controls])
 
         yield from bps.mv(
-            usaxs_shutter,
-            "close",
+            # fmt: off
+            usaxs_shutter,             "close",
             timeout=MASTER_TIMEOUT,
+            # fmt: on
         )
 
         yield from bps.mv(
-            scaler1.preset_time,
-            terms.WAXS.acquire_time.get() + 1,
-            scaler0.preset_time,
-            1.2 * terms.WAXS.acquire_time.get() + 1,
-            scaler0.count_mode,
-            "OneShot",
-            scaler1.count_mode,
-            "OneShot",
-            scaler0.update_rate,
-            60,
-            scaler1.update_rate,
-            60,
-            scaler0.count,
-            0,
-            scaler0.delay,
-            0,
-            terms.SAXS_WAXS.start_exposure_time,
-            ts,
+            # fmt: off
+            scaler1.preset_time,    terms.WAXS.acquire_time.get() + 1,
+            scaler0.preset_time, 1.2 * terms.WAXS.acquire_time.get() + 1,
+            scaler0.count_mode,            "OneShot",
+            scaler1.count_mode,            "OneShot",
+            scaler0.update_rate,                    60,
+            scaler1.update_rate,                    60,
+            scaler0.count,                          0,
+            scaler0.delay,                          0,
+            terms.SAXS_WAXS.start_exposure_time,    ts,
             timeout=MASTER_TIMEOUT,
+            # fmt: on
         )
         yield from user_data.set_state_plan(
             f"WAXS collection for {terms.WAXS.acquire_time.get()} s"
@@ -540,38 +481,25 @@ def waxsExp(
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        scaler0.count,
-        0,
-        scaler1.count,
-        0,
-        terms.SAXS_WAXS.I0_gated,
-        scaler1.channels.chan02.s.get(),
-        terms.SAXS_WAXS.diode_transmission,
-        scaler0.channels.chan05.s.get(),
-        terms.SAXS_WAXS.diode_gain,
-        trd_controls.femto.gain.get(),
-        terms.SAXS_WAXS.I0_transmission,
-        scaler0.channels.chan02.s.get(),
-        terms.SAXS_WAXS.I0_gain,
-        I0_controls.femto.gain.get(),
-        scaler0.update_rate,
-        5,
-        scaler1.update_rate,
-        5,
-        terms.SAXS_WAXS.end_exposure_time,
-        ts,
-        scaler0.delay,
-        old_delay,
-        # monochromator.feedback.on,
-        # MONO_FEEDBACK_ON,
-        terms.WAXS.collecting,
-        0,
-        user_data.time_stamp,
-        ts,
+        # fmt: off
+        scaler0.count,                          0,
+        scaler1.count,                          0,
+        terms.SAXS_WAXS.I0_gated,               scaler1.channels.chan02.s.get(),
+        terms.SAXS_WAXS.diode_transmission,     scaler0.channels.chan05.s.get(),
+        terms.SAXS_WAXS.diode_gain,             trd_controls.femto.gain.get(),
+        terms.SAXS_WAXS.I0_transmission,        scaler0.channels.chan02.s.get(),
+        terms.SAXS_WAXS.I0_gain,                I0_controls.femto.gain.get(),
+        scaler0.update_rate,                    5,
+        scaler1.update_rate,                    5,
+        terms.SAXS_WAXS.end_exposure_time,      ts,
+        scaler0.delay,                          old_delay,
+        terms.WAXS.collecting,                  0,
+        user_data.time_stamp,                   ts,
         timeout=MASTER_TIMEOUT,
     )
     yield from MONO_FEEDBACK_ON()
+
     yield from user_data.set_state_plan("Done WAXS")
 
-    logger.info(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
+    logger.debug(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
     yield from after_plan()

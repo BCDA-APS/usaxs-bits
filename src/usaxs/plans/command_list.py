@@ -278,8 +278,9 @@ def after_plan(weight=1, md=None):
     #     md = {}
 
     yield from bps.mv(  # increment it
-        terms.preUSAXStune.num_scans_last_tune,
-        terms.preUSAXStune.num_scans_last_tune.get() + weight,
+        # fmt: off
+        terms.preUSAXStune.num_scans_last_tune, terms.preUSAXStune.num_scans_last_tune.get() + weight,
+        # fmt: on
     )
 
 
