@@ -46,6 +46,10 @@ def _insertFilters_(a: Union[int, float]):
     Generator[Any, None, None]
         A generator that yields plan steps
     """
+    current_filter = Filter_AlTi.fPos.get()
+    if current_filter == a:
+        # logger.info(f"Filter already set to {a}, no action taken.")
+        return
     yield from bps.mv(Filter_AlTi.fPos, int(a))  # set filter position
     yield from bps.sleep(0.5)  # allow all blades to re-position
 

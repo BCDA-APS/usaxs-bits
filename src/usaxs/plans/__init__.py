@@ -27,6 +27,7 @@ from .filter_plans import insertRadiographyFilters
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertScanFilters
 from .filter_plans import insertWaxsFilters
+from .filter_plans import insertTransmissionFilters
 
 # from .mode_changes import mode_BlackFly
 from .mode_changes import mode_OpenBeamPath

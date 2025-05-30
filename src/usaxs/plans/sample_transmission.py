@@ -95,7 +95,7 @@ def measure_USAXS_Transmission():
                 _tr_diode > secs * constants["TR_MAX_ALLOWED_COUNTS"]
                 or _I0 > secs * constants["TR_MAX_ALLOWED_COUNTS"]
             ):
-                # yield from autoscale_amplifiers([I0_controls, trd_controls])
+                yield from autoscale_amplifiers([I0_controls, trd_controls])
 
                 yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
                 scaler0.select_channels(["I0", "TRD"])
@@ -227,7 +227,7 @@ def measure_SAXS_Transmission():
             terms.SAXS_WAXS.diode_transmission, s["TRD"]["value"],
             terms.SAXS_WAXS.diode_gain, trd_controls.femto.gain.get(),
             terms.SAXS_WAXS.I0_transmission, s["I0"]["value"],
-            # terms.SAXS_WAXS.I0_gain, I0_controls.femto.gain.get(),
+            terms.SAXS_WAXS.I0_gain, I0_controls.femto.gain.get(),
             # fmt: on
         )
         logger.info(
