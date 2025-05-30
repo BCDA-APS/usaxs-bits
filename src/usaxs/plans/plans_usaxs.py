@@ -150,25 +150,23 @@ def USAXSscanStep(
 
     yield from mode_USAXS()
 
-    yield from bps.mv(
-        usaxs_slit.v_size,
-        terms.SAXS.usaxs_v_size.get(),
-        usaxs_slit.h_size,
-        terms.SAXS.usaxs_h_size.get(),
-        guard_slit.v_size,
-        terms.SAXS.usaxs_guard_v_size.get(),
-        guard_slit.h_size,
-        terms.SAXS.usaxs_guard_h_size.get(),
+    yield from bps.mv(          # this should be just check if user changed slit sizes during radiography.  
+        # fmt: off
+        usaxs_slit.v_size,         terms.SAXS.usaxs_v_size.get(),
+        usaxs_slit.h_size,         terms.SAXS.usaxs_h_size.get(),
+        guard_slit.v_size,         terms.SAXS.usaxs_guard_v_size.get(),
+        guard_slit.h_size,         terms.SAXS.usaxs_guard_h_size.get(),
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
-    yield from before_plan()
+    yield from before_plan()        # this will tune if needed. 
 
-    yield from bps.mv(
-        s_stage.x,
-        pos_X,
-        s_stage.y,
-        pos_Y,
+    yield from bps.mv(              # sample in place. 
+        # fmt: off
+        s_stage.x,         pos_X,
+        s_stage.y,         pos_Y,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
     # Update Sample name. getSampleTitle is used to create proper sample name.
@@ -186,78 +184,64 @@ def USAXSscanStep(
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        user_data.sample_title,
-        scan_title,
-        user_data.sample_thickness,
-        thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
-        user_data.time_stamp,
-        ts,
-        user_data.scan_macro,
-        "uascan",
+        # fmt: off
+        user_data.sample_title,         scan_title,
+        user_data.sample_thickness,      thickness,
+        user_data.spec_scan,           str(SCAN_N),
+        user_data.time_stamp,                   ts,
+        user_data.scan_macro,             "uascan",
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
     yield from user_data.set_state_plan("starting USAXS step scan")
-
-    yield from bps.mv(
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
-        timeout=MASTER_TIMEOUT,
-    )
-
-    yield from bps.mv(
-        a_stage.r,
-        terms.USAXS.ar_val_center.get(),
-        d_stage.x,
-        terms.USAXS.DX0.get(),
-        a_stage.x,
-        terms.USAXS.AX0.get(),
-        timeout=MASTER_TIMEOUT,
-    )
     yield from user_data.set_state_plan("Moving to Q=0")
-    yield from bps.mv(
-        usaxs_q_calc.channels.B.input_value,
-        terms.USAXS.ar_val_center.get(),
+
+    yield from bps.mv(          # set spec file and move to Q=0 position, if needed. 
+        # fmt: off
+        user_data.spec_file,        os.path.split(specwriter.spec_filename)[-1],
+        a_stage.r,                  terms.USAXS.ar_val_center.get(),
+        d_stage.x,                  terms.USAXS.DX0.get(),
+        a_stage.x,                  terms.USAXS.AX0.get(),
+        usaxs_q_calc.channels.B.input_value,  terms.USAXS.ar_val_center.get(),
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
     yield from measure_USAXS_Transmission()
 
     yield from MONO_FEEDBACK_OFF()
 
-    if terms.USAXS.is2DUSAXSscan.get():
-        RECORD_SCAN_INDEX_10x_per_second = 9
-        yield from bps.mv(
-            terms.FlyScan.asrp_calc_SCAN,
-            RECORD_SCAN_INDEX_10x_per_second,
-            timeout=MASTER_TIMEOUT,
-        )
+    # if terms.USAXS.is2DUSAXSscan.get():
+    #     RECORD_SCAN_INDEX_10x_per_second = 9
+    #     yield from bps.mv(
+    #         terms.FlyScan.asrp_calc_SCAN,
+    #         RECORD_SCAN_INDEX_10x_per_second,
+    #         timeout=MASTER_TIMEOUT,
+    #     )
 
     old_femto_change_gain_up = upd_controls.auto.gainU.get()
     old_femto_change_gain_down = upd_controls.auto.gainD.get()
 
     yield from bps.mv(
-        upd_controls.auto.gainU,
-        terms.USAXS.setpoint_up.get(),
-        upd_controls.auto.gainD,
-        terms.USAXS.setpoint_down.get(),
-        usaxs_shutter,
-        "open",
+        # fmt: off
+        upd_controls.auto.gainU,         terms.USAXS.setpoint_up.get(),
+        upd_controls.auto.gainD,         terms.USAXS.setpoint_down.get(),
+        usaxs_shutter,                   "open",
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
-    yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    yield from autoscale_amplifiers([upd_controls, I0_controls])
 
     yield from user_data.set_state_plan("Running USAXS step scan")
 
     # SPEC-compatibility
     SCAN_N = RE.md["scan_id"] + 1  # update with next number
     yield from bps.mv(
-        user_data.scanning,
-        "scanning",
-        user_data.spec_scan,
-        str(SCAN_N),
+        # fmt: off
+        user_data.scanning,         "scanning",
+        user_data.spec_scan,         str(SCAN_N),
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
     _md["plan_name"] = "uascan"
@@ -267,16 +251,17 @@ def USAXSscanStep(
         thickness=thickness,
         scan_title=scan_title,
     )
-
+    
+    #setup names and paths as needed. 
     uascan_path = techniqueSubdirectory("usaxs")
     uascan_file_name = (
         f"{scan_title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
     )
     _md["hdf5_path"] = uascan_path
     _md["hdf5_file"] = uascan_file_name
-    logger.info("USAXSscan HDF5 data path: %s", _md["hdf5_path"])
-    logger.info("USAXSscan HDF5 data file: %s", _md["hdf5_file"])
-    logger.info("*" * 10)
+    logger.debug("USAXSscan HDF5 data path: %s", _md["hdf5_path"])
+    logger.info("USAXSscan HDF5 data file: %s %s", _md["hdf5_path"], _md["hdf5_file"])
+    logger.debug("*" * 10)
 
     startAngle = terms.USAXS.ar_val_center.get() - q2angle(
         terms.USAXS.start_offset.get(), monochromator.dcm.wavelength.position
@@ -309,45 +294,35 @@ def USAXSscanStep(
     bec.enable_plots()
 
     yield from bps.mv(
-        user_data.scanning,
-        "no",
+        # fmt: off
+        user_data.scanning,         "no",
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
     yield from user_data.set_state_plan("USAXS step scan finished")
 
     yield from bps.mvr(terms.FlyScan.order_number, 1)
-    yield from bps.mv(
-        usaxs_shutter,
-        "close",
-        scaler0.update_rate,
-        5,
-        scaler0.auto_count_delay,
-        0.25,
-        scaler0.delay,
-        0.05,
-        scaler0.preset_time,
-        1,
-        scaler0.auto_count_time,
-        1,
-        upd_controls.auto.gainU,
-        old_femto_change_gain_up,
-        upd_controls.auto.gainD,
-        old_femto_change_gain_down,
-        timeout=MASTER_TIMEOUT,
-    )
+
     yield from MONO_FEEDBACK_ON()
 
     yield from user_data.set_state_plan("Moving USAXS back and saving data")
 
     yield from bps.mv(
-        a_stage.r,
-        terms.USAXS.ar_val_center.get(),
-        a_stage.x,
-        terms.USAXS.AX0.get(),
-        d_stage.x,
-        terms.USAXS.DX0.get(),
+        # fmt: off
+        usaxs_shutter,         "close",
+        scaler0.update_rate,         5,
+        scaler0.auto_count_delay, 0.25,
+        scaler0.delay,            0.05,
+        scaler0.preset_time,         1,
+        scaler0.auto_count_time,     1,
+        upd_controls.auto.gainU,     old_femto_change_gain_up,
+        upd_controls.auto.gainD,     old_femto_change_gain_down,
+        a_stage.r,         terms.USAXS.ar_val_center.get(),
+        a_stage.x,         terms.USAXS.AX0.get(),
+        d_stage.x,         terms.USAXS.DX0.get(),
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
     yield from after_plan(weight=3)
@@ -391,18 +366,18 @@ def Flyscan(
 
     yield from mode_USAXS()
 
-    yield from bps.mv(
-        usaxs_slit.v_size,
-        terms.SAXS.usaxs_v_size.get(),
-        usaxs_slit.h_size,
-        terms.SAXS.usaxs_h_size.get(),
-        guard_slit.v_size,
-        terms.SAXS.usaxs_guard_v_size.get(),
-        guard_slit.h_size,
-        terms.SAXS.usaxs_guard_h_size.get(),
+    yield from bps.mv(              #make sure slits are correct, inc ase user changed them. 
+        # fmt: off
+        usaxs_slit.v_size,         terms.SAXS.usaxs_v_size.get(),
+        usaxs_slit.h_size,         terms.SAXS.usaxs_h_size.get(),
+        guard_slit.v_size,         terms.SAXS.usaxs_guard_v_size.get(),
+        guard_slit.h_size,         terms.SAXS.usaxs_guard_h_size.get(),
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
+    #this forces epics to recalculate and update paths in flyscan 
+    #without this bad things happen pon energy change. Keep me in. 
     oldUA = terms.USAXS.uaterm.get()
     yield from bps.mv(terms.USAXS.uaterm, oldUA + 0.1)
     yield from bps.sleep(0.05)
@@ -410,14 +385,15 @@ def Flyscan(
 
     yield from before_plan()
 
-    yield from bps.mv(
-        s_stage.x,
-        pos_X,
-        s_stage.y,
-        pos_Y,
+    yield from bps.mv(  #move sample in
+        # fmt: off
+        s_stage.x,         pos_X,
+        s_stage.y,         pos_Y,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
+    #setup names and paths. 
     scan_title = getSampleTitle(scan_title)
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
@@ -438,48 +414,31 @@ def Flyscan(
 
     usaxs_flyscan.saveFlyData_HDF5_dir = flyscan_path
     usaxs_flyscan.saveFlyData_HDF5_file = flyscan_file_name
+    logger.debug("Flyscan HDF5 data path: %s", flyscan_path)
+    logger.info("Flyscan HDF5 data file: %s %s", flyscan_path, flyscan_file_name)
+    logger.debug("*" * 10)
+
+
+    #yield from user_data.set_state_plan("Moving to Q=0")
+    yield from user_data.set_state_plan("starting USAXS Flyscan")
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
-        user_data.sample_title,
-        scan_title,
-        user_data.sample_thickness,
-        thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
-        user_data.time_stamp,
-        ts,
-        user_data.scan_macro,
-        "FlyScan",
+        # fmt: off
+        user_data.sample_title,         scan_title,
+        user_data.sample_thickness,     thickness,
+        user_data.spec_scan,            str(SCAN_N),
+        user_data.time_stamp,           ts,
+        user_data.scan_macro,           "FlyScan",
+        user_data.spec_file,  os.path.split(specwriter.spec_filename)[-1],
+        a_stage.r,         terms.USAXS.ar_val_center.get(),
+        d_stage.x,         terms.USAXS.DX0.get(),
+        a_stage.x,         terms.USAXS.AX0.get(),
+        usaxs_q_calc.channels.B.input_value,   terms.USAXS.ar_val_center.get(),
         timeout=MASTER_TIMEOUT,
-    )
-    yield from user_data.set_state_plan("starting USAXS Flyscan")
-
-    yield from bps.mv(
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
-        timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
-    yield from bps.mv(
-        a_stage.r,
-        terms.USAXS.ar_val_center.get(),
-        d_stage.x,
-        terms.USAXS.DX0.get(),
-        a_stage.x,
-        terms.USAXS.AX0.get(),
-        timeout=MASTER_TIMEOUT,
-    )
-    yield from user_data.set_state_plan("Moving to Q=0")
-
-    yield from bps.mv(
-        usaxs_q_calc.channels.B.input_value,
-        terms.USAXS.ar_val_center.get(),
-        timeout=MASTER_TIMEOUT,
-    )
-
-    usaxs_flyscan.saveFlyData_HDF5_dir = flyscan_path
-    usaxs_flyscan.saveFlyData_HDF5_file = flyscan_file_name
     yield from measure_USAXS_Transmission()
 
     yield from MONO_FEEDBACK_OFF()
@@ -496,69 +455,55 @@ def Flyscan(
     old_femto_change_gain_down = upd_controls.auto.gainD.get()
 
     yield from bps.mv(
-        upd_controls.auto.gainU,
-        terms.FlyScan.setpoint_up.get(),
-        upd_controls.auto.gainD,
-        terms.FlyScan.setpoint_down.get(),
-        usaxs_shutter,
-        "open",
+        # fmt: off
+        upd_controls.auto.gainU,         terms.FlyScan.setpoint_up.get(),
+        upd_controls.auto.gainD,         terms.FlyScan.setpoint_down.get(),
+        usaxs_shutter,                  "open",
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
+
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
 
     FlyScanAutoscaleTime = 0.025
     yield from bps.mv(
-        scaler0.update_rate,
-        0,
-        scaler0.auto_count_update_rate,
-        0,
-        upd_controls.auto.mode,
-        "auto+background",
-        scaler0.preset_time,
-        FlyScanAutoscaleTime,
-        scaler0.auto_count_time,
-        FlyScanAutoscaleTime,
-        scaler0.auto_count_delay,
-        FlyScanAutoscaleTime,
-        scaler0.delay,
-        0,
-        scaler0.count_mode,
-        SCALER_AUTOCOUNT_MODE,
+        # fmt: off
+        scaler0.update_rate,                0,
+        scaler0.auto_count_update_rate,     0,
+        upd_controls.auto.mode,         "auto+background",
+        scaler0.preset_time,            FlyScanAutoscaleTime,
+        scaler0.auto_count_time,        FlyScanAutoscaleTime,
+        scaler0.auto_count_delay,       FlyScanAutoscaleTime,
+        scaler0.delay,                      0,
+        scaler0.count_mode,             SCALER_AUTOCOUNT_MODE,
+        lax_autosave.disable,         1,
+        lax_autosave.max_time,        usaxs_flyscan.scan_time.get() + 9,        
         timeout=MASTER_TIMEOUT,
-    )
-
-    yield from bps.mv(
-        lax_autosave.disable,
-        1,
-        lax_autosave.max_time,
-        usaxs_flyscan.scan_time.get() + 9,
-        timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
     yield from user_data.set_state_plan("Running Flyscan")
 
     yield from bps.mv(
-        a_stage.r,
-        flyscan_trajectories.ar.get()[0],
-        a_stage.x,
-        flyscan_trajectories.ax.get()[0],
-        d_stage.x,
-        flyscan_trajectories.dx.get()[0],
-        ar_start,
-        flyscan_trajectories.ar.get()[0],
+        # fmt: off
+        a_stage.r,         flyscan_trajectories.ar.get()[0],
+        a_stage.x,         flyscan_trajectories.ax.get()[0],
+        d_stage.x,         flyscan_trajectories.dx.get()[0],
+        ar_start,          flyscan_trajectories.ar.get()[0],
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
     # SPEC-compatibility
     SCAN_N = RE.md["scan_id"] + 1
-    yield from bps.mv(
-        user_data.scanning,
-        "scanning",
-        user_data.spec_scan,
-        str(SCAN_N),
+    yield from bps.mv( 
+        # fmt: off
+        user_data.scanning,         "scanning",
+        user_data.spec_scan,         str(SCAN_N),
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
-
+    #save metadata
     _md = md or OrderedDict()
     _md.update(md or {})
     _md["plan_name"] = "Flyscan"
@@ -572,63 +517,51 @@ def Flyscan(
 
     yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
-    yield from Flyscan_internal_plan(md=_md)  
+    yield from Flyscan_internal_plan(md=_md)        #flyscan proper
 
     yield from bps.mv(
-        user_data.scanning,
-        "no",
-        terms.FlyScan.elapsed_time,
-        0,
+        # fmt: off
+        user_data.scanning,         "no",
+        terms.FlyScan.elapsed_time,    0,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
 
     diff = flyscan_trajectories.num_pulse_positions.get() - struck.current_channel.get()
     if diff > 5 and RE.state != "idle":
         msg = "WARNING: Flyscan finished with %g less points" % diff
-        logger.warning(msg)
-        if NOTIFY_ON_BAD_FLY_SCAN:
-            subject = "!!! bad number of PSO pulses !!!"
-            email_notices.send(subject, msg)
-
-    yield from user_data.set_state_plan("Flyscan finished")
+        logger.info("*")*20
+        logger.info(msg)
+        logger.info("*")*20
+        # if NOTIFY_ON_BAD_FLY_SCAN:
+        #     subject = "!!! bad number of PSO pulses !!!"
+        #     email_notices.send(subject, msg)
 
     yield from bps.mvr(terms.FlyScan.order_number, 1)
-    yield from bps.mv(
-        lax_autosave.disable,
-        0,
-        lax_autosave.max_time,
-        0,
-        usaxs_shutter,
-        "close",
-        scaler0.update_rate,
-        5,
-        scaler0.auto_count_delay,
-        0.25,
-        scaler0.delay,
-        0.05,
-        scaler0.preset_time,
-        1,
-        scaler0.auto_count_time,
-        1,
-        upd_controls.auto.gainU,
-        old_femto_change_gain_up,
-        upd_controls.auto.gainD,
-        old_femto_change_gain_down,
-        timeout=MASTER_TIMEOUT,
-    )
+
+    yield from user_data.set_state_plan("Moving USAXS back and saving data")
 
     yield from MONO_FEEDBACK_ON()
 
-    yield from user_data.set_state_plan("Moving USAXS back and saving data")
-    
     yield from bps.mv(
-        a_stage.r,
-        terms.USAXS.ar_val_center.get(),
-        a_stage.x,
-        terms.USAXS.AX0.get(),
-        d_stage.x,
-        terms.USAXS.DX0.get(),
+        # fmt: off
+        lax_autosave.disable,          0,
+        lax_autosave.max_time,         0,
+        usaxs_shutter,              "close",
+        scaler0.update_rate,           5,
+        scaler0.auto_count_delay,   0.25,
+        scaler0.delay,              0.05,
+        scaler0.preset_time,           1,
+        scaler0.auto_count_time        1,
+        upd_controls.auto.gainU,         old_femto_change_gain_up,
+        upd_controls.auto.gainD,         old_femto_change_gain_down,
+        a_stage.r,                      terms.USAXS.ar_val_center.get(),
+        a_stage.x,                      terms.USAXS.AX0.get(),
+        d_stage.x,                      terms.USAXS.DX0.get(),        
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
+
+    yield from user_data.set_state_plan("Flyscan finished")
 
     yield from after_plan(weight=3)
