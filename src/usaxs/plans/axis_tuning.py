@@ -188,16 +188,17 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         )
         scaler0.select_channels()
         success = stats.analysis.success
-        if stats.analysis.success:
+        print(f"Result: {success}")
+        if success:
             yield from bps.mv(
-                terms.USAXS.ar_val_center,
-                a_stage.r.position,
-                usaxs_q_calc.channels.B.input_value,
-                a_stage.r.position,
+                # fmt: off
+                terms.USAXS.ar_val_center,                 a_stage.r.position,
+                usaxs_q_calc.channels.B.input_value,       a_stage.r.position,
+                # fmt: on
             )
             logger.debug(f"final position: {a_stage.r.position}")
         else:
-            print(f"tune_ar failed for {stats.analysis.reasons}")
+            logger.info(f"tune_ar failed for {stats.analysis.reasons}")
 
     except Exception as e:
         logger.error(f"Error in tune_ar: {str(e)}")
