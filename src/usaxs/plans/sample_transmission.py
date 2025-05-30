@@ -118,21 +118,28 @@ def measure_USAXS_Transmission():
                 trmssn.I0_gain, I0_controls.femto.gain.get(),
                 # fmt: on
             )
-            tbl = pyRestTable.Table()
-            tbl.addLabel("detector")
-            tbl.addLabel("counts")
-            tbl.addLabel("gain")
-            tbl.addRow(
-                (
-                    "pinDiode",
-                    f"{trmssn.diode_counts.get():f}",
-                    f"{trmssn.diode_gain.get()}",
-                )
+            # tbl = pyRestTable.Table()
+            # tbl.addLabel("detector")
+            # tbl.addLabel("counts")
+            # tbl.addLabel("gain")
+            # tbl.addRow(
+            #     (
+            #         "pinDiode",
+            #         f"{trmssn.diode_counts.get():f}",
+            #         f"{trmssn.diode_gain.get()}",
+            #     )
+            # )
+            # tbl.addRow(("I0", f"{trmssn.I0_counts.get():f}", f"{trmssn.I0_gain.get()}"))
+            # msg = "Measured USAXS transmission values:\n"
+            # msg += str(tbl.reST())
+            logger.info(
+                "Measured USAXS transmission values :"
+                f" Diode = {terms.USAXS.transmission.diode_counts.get():f}"
+                f" with gain {terms.USAXS.transmission.diode_gain.get():g}"
+                f" and I0 = {terms.USAXS.transmission.I0_counts.get():f}"
+                f" with gain {terms.USAXS.transmission.I0_gain.get():g}"
             )
-            tbl.addRow(("I0", f"{trmssn.I0_counts.get():f}", f"{trmssn.I0_gain.get()}"))
-            msg = "Measured USAXS transmission values:\n"
-            msg += str(tbl.reST())
-            logger.info(msg)
+            #logger.info(msg)
 
         else:
             yield from bps.mv(
@@ -232,11 +239,11 @@ def measure_SAXS_Transmission():
         )
         logger.info(
             (
-                "Measured SAXS transmission values"
-                f", pinDiode cts ={terms.USAXS.transmission.diode_counts.get():f}"
-                f" with gain {terms.USAXS.transmission.diode_gain.get()}"
-                f" and I0 cts {terms.USAXS.transmission.I0_counts.get()}"
-                f" with gain {terms.USAXS.transmission.I0_gain.get()}"
+                "Measured SAXS transmission values :"
+                f" Diode = {terms.USAXS.transmission.diode_counts.get():f}"
+                f" with gain {terms.USAXS.transmission.diode_gain.get():g}"
+                f" and I0 = {terms.USAXS.transmission.I0_counts.get():f}"
+                f" with gain {terms.USAXS.transmission.I0_gain.get():g}"
             )
         )
 

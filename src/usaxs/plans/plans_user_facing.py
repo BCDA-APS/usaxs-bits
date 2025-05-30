@@ -178,7 +178,7 @@ def saxsExp(
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(SAXSscan_path, SAXS_file_name)
-    logger.info(f"Collecting SAXS with HDF5 file: {local_name}")
+    logger.debug(f"Collecting SAXS with HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
     logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
@@ -296,6 +296,9 @@ def saxsExp(
     yield from MONO_FEEDBACK_ON()
 
     yield from user_data.set_state_plan("Done SAXS")
+
+    logger.info(f"Collected SAXS with HDF5 file: {local_name}")
+
     logger.debug(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
     yield from after_plan()
 
@@ -384,7 +387,7 @@ def waxsExp(
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(WAXSscan_path, WAXS_file_name)
-    logger.info(f"Collecting WAXS with HDF5 file: {local_name}")
+    logger.debug(f"Collecting WAXS with HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, WAXS_file_name)
     logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
@@ -500,6 +503,8 @@ def waxsExp(
     yield from MONO_FEEDBACK_ON()
 
     yield from user_data.set_state_plan("Done WAXS")
+    
+    logger.info(f"Collected WAXS with HDF5 file: {local_name}")
 
     logger.debug(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
     yield from after_plan()
