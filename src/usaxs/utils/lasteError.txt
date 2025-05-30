@@ -1,51 +1,12 @@
-lan uascan ['6e81bd44'] (scan num: 10)
-W Thu-19:21:45.111: 'HDF5 address /entry/instrument/bluesky/streams/baseline/undulator_downstream_device/value_start not found.' -- not creating undulator group
-W Thu-19:21:45.114: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_chemical_formula/value_start not found.'
-W Thu-19:21:45.114: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_concentration/value_start not found.'
-W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_description/value_start not found.'
-W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_electric_field/value_start not found.'
-W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_magnetic_field/value_start not found.'
-W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_rotation_angle/value_start not found.'
-W Thu-19:21:45.115: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_scattering_length_density/value_start not found.'
-W Thu-19:21:45.116: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_stress_field/value_start not found.'
-W Thu-19:21:45.116: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_temperature/value_start not found.'
-W Thu-19:21:45.116: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_volume_fraction/value_start not found.'
-W Thu-19:21:45.116: 'HDF5 address /entry/instrument/bluesky/streams/baseline/sample_data_x_translation/value_start not found.'
-W Thu-19:21:45.116: no sample data found, not creating sample group
-W Thu-19:21:45.117: 'HDF5 address /entry/instrument/bluesky/streams/baseline/bss_user_info_contact/value_start not found.' -- not creating source group
-Exception in thread Thread-2017 (_threaded_writer):
-Traceback (most recent call last):
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
-    self.run()
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 982, in run
-    self._target(*self._args, **self._kwargs)
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 324, in _threaded_writer
-    self.write_root(fname)
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 581, in write_root
-    self.write_entry()
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 351, in write_entry
-    super().write_entry()  # write the raw data
-    ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/callbacks/nxwriter_usaxs.py", line 75, in write_entry
-    nxentry["SPEC_data_file"] = self.get_stream_link("user_data_spec_file")
-                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/nexus_writer.py", line 244, in get_stream_link
-    raise KeyError(f"HDF5 address {h5_addr} not found.")
-KeyError: 'HDF5 address /entry/instrument/bluesky/streams/baseline/user_data_spec_file/value_start not found.'
-I Thu-19:21:45.974: memory report: pmem(rss=561414144, vms=5075120128, shared=165642240, text=3293184, lib=0, data=1336324096, dirty=0)
-I Thu-19:21:45.974: Command ('USAXSscan', ['-140', '20', '1', 'test'], 31, '      USAXSscan        -140      20      1      "test"') executed successfully.
-I Thu-19:21:45.974: file line 34:       saxsExp        -140      20      1      "test"
-I Thu-19:21:45.999: Found UsaxsSaxsMode = USAXS in beam
-I Thu-19:21:45.999: Moving to proper SAXS mode
-I Thu-19:21:46.001: Moving WAXS out of beam
-I Thu-19:21:46.006: Removed WAXS from beam position
-I Thu-19:21:46.015: Moving USAXS out of beam
-I Thu-19:21:49.704: Removed USAXS from beam position
-I Thu-19:21:49.709: Moving to Pinhole SAXS mode
-I Thu-19:21:55.151: SAXS is in position
-I Thu-19:21:55.154: Prepared for SAXS mode
-I Thu-19:21:55.496: Area Detector HDF5 file: /share1/USAXS_data/2025-05/05_29_Eric/05_29_Eric_saxs/test_0002.hdf
-I Thu-19:21:55.496: Pilatus computer Area Detector HDF5 file: /mnt/usaxscontrol/USAXS_data/2025-05/05_29_Eric/05_29_Eric_saxs/test_0002.hdf
-I Thu-19:21:55.499: self._handler: None
-I Thu-19:21:55.561: Prepared for SAXS mode
 
+
+Plan uascan ['8e60f296'] (scan num: 6)
+W Fri-10:07:36.737: 'HDF5 address /entry/instrument/bluesky/streams/baseline/undulator_downstream_device/value_start not found.' -- not creating undulator group
+W Fri-10:07:36.743: 'HDF5 address /entry/instrument/bluesky/streams/baseline/bss_user_info_contact/value_start not found.' -- not creating source group
+I Fri-10:07:36.744: DIAGNOSTIC: this is when to write reduced 1-D data
+I Fri-10:07:36.745: DIAGNOSTIC: HDF5 file='/share1/USAXS_data/2025-05/05_30_Eric/05_30_Eric_usaxs/test_0006.h5'
+I Fri-10:07:36.745: DIAGNOSTIC: Is HDF5 file open? True
+I Fri-10:07:36.745: DIAGNOSTIC: HDF5 file access mode=r+
+I Fri-10:07:36.767: TODO: save reduced uascan data to group: /entry/uascan_reduced_full
+I Fri-10:07:37.866: memory report: pmem(rss=530673664, vms=5004894208, shared=168955904, text=3293184, lib=0, data=1303408640, dirty=0)
+I Fri-10:07:37.867: Command ('USAXSscan', ['-140', '20', '1', 'test'], 21, '      USAXSscan        -140      20      1      "test"') executed successfully.
