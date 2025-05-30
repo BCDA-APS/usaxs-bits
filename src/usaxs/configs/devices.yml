@@ -101,7 +101,7 @@ usaxs.devices.ptc10_controller.USAXS_PTC10: #TODO: Go into source and fix
   prefix: "usxTEMP:tc1:"
 
 usaxs.devices.sample_data.SampleDataDevice:
-- name: sample_data_device
+- name: sample_data
   labels:
   - baseline
 

@@ -63,35 +63,20 @@ class SampleDataDevice(Device):
     def resetAll(self):
         """Bluesky plan to reset all to preset values."""
         yield from bps.mv(
-            self.temperature,
-            25,
-            self.concentration,
-            1,
-            self.volume_fraction,
-            1,
-            self.scattering_length_density,
-            1,
-            self.magnetic_field,
-            0,
-            self.stress_field,
-            0,
-            self.electric_field,
-            0,
-            self.x_translation,
-            0,
-            self.rotation_angle,
-            0,
-            self.magnetic_field_dir,
-            "X",
-            self.stress_field_dir,
-            "X",
-            self.electric_field_dir,
-            "X",
-            self.description,
-            "",
-            self.chemical_formula,
-            "",
+            # fmt: off
+            self.temperature, 25,
+            self.concentration, 1,
+            self.volume_fraction, 1,
+            self.scattering_length_density, 1,
+            self.magnetic_field, 0,
+            self.stress_field, 0,
+            self.electric_field, 0,
+            self.x_translation, 0,
+            self.rotation_angle, 0,
+            self.magnetic_field_dir, "X",
+            self.stress_field_dir, "X",
+            self.electric_field_dir, "X",
+            self.description, "",
+            self.chemical_formula, "",
+            # fmt: on
         )
-
-
-sample_data = SampleDataDevice(name="sample_data")
