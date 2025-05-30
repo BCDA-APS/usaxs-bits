@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 from apsbits.core.instrument_init import oregistry
 
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 # import re
 

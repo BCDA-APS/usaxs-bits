@@ -31,7 +31,7 @@ MASTER_TIMEOUT = 60
 
 # # Device and plan instances from oregistry (allowed list)
 usaxs_shutter = oregistry["usaxs_shutter"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 # ms_stage = oregistry["ms_stage"]
 monochromator = oregistry["monochromator"]
 mono_shutter = oregistry["mono_shutter"]

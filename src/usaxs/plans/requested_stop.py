@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 mono_shutter = oregistry["mono_shutter"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 
 def IfRequestedStopBeforeNextScan():

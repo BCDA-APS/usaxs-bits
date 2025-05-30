@@ -43,7 +43,7 @@ s_stage = oregistry["s_stage"]
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 waxs_det = oregistry["waxs_det"]
 
 I0_controls = oregistry["I0_controls"]

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 # Device instances
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 auto_collect = oregistry["auto_collect"]
 
 

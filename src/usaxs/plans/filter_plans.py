@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 Filter_AlTi = oregistry["Filter_AlTi"]
 terms = oregistry["terms"]
 monochromator = oregistry["monochromator"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 iconfig = get_config()
 scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")

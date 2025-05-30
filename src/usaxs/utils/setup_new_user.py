@@ -17,7 +17,7 @@ from ..startup import RE
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 logger = logging.getLogger(__name__)
 

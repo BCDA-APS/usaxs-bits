@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Device instances
 pi_c867 = oregistry["pi_c867"]
 scaler0 = oregistry["scaler0"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 
 def PI_Off(

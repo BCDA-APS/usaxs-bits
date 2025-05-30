@@ -16,7 +16,7 @@ from ..utils.reporter import remaining_time_reporter
 logger = logging.getLogger(__name__)
 
 
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 
 
 def areaDetectorAcquire(det, create_directory=None, md=None):

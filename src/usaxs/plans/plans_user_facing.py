@@ -70,7 +70,7 @@ usaxs_q_calc = oregistry["usaxs_q_calc"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
-user_data = oregistry["user_device"]
+user_data = oregistry["user_data"]
 waxs_det = oregistry["waxs_det"]
 
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"
