@@ -11,7 +11,7 @@ from typing import Union
 from apsbits.core.instrument_init import oregistry
 from apsbits.utils.config_loaders import get_config
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
+from bluesky.utils import plan
 from ophyd.scaler import ScalerCH
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ scaler0.stage_sigs["count_mode"] = "OneShot"
 scaler0.select_channels()
 
 
+@plan
 def _insertFilters_(a: Union[int, float]):
     """
     Plan: insert the EPICS-specified filters.
@@ -49,6 +50,7 @@ def _insertFilters_(a: Union[int, float]):
     yield from bps.sleep(0.5)  # allow all blades to re-position
 
 
+@plan
 def insertBlackflyFilters():
     """
     Plan: insert the EPICS-specified filters.
@@ -64,6 +66,7 @@ def insertBlackflyFilters():
     )
 
 
+@plan
 def insertRadiographyFilters():
     """
     Plan: insert the EPICS-specified filters.
@@ -79,6 +82,7 @@ def insertRadiographyFilters():
     )
 
 
+@plan
 def insertSaxsFilters():
     """
     Plan: insert the EPICS-specified filters.
@@ -94,24 +98,9 @@ def insertSaxsFilters():
     )
 
 
-def insertScanFilters(
-    md: Optional[Dict[str, Any]] = None,
-):
-    """Insert filters for scanning.
-
-    This function inserts the appropriate filters for scanning operations,
-    configuring the instrument for optimal data collection.
-
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
+@plan
+def insertScanFilters():
+    """Insert the EPICS-specified filters for scanning.
 
     Returns
     -------
@@ -120,22 +109,13 @@ def insertScanFilters(
 
     USAGE:  ``RE(insertScanFilters())``
     """
-    if md is None:
-        md = {}
-
-    _md = {}
-    _md.update(md or {})
-
-    @bpp.run_decorator(md=_md)
-    def _inner():
-        yield from user_data.set_state_plan("inserting scan filters")
-        yield from bps.mv(scaler0.count_mode, "OneShot")
-        yield from bps.trigger(scaler0, group="filters")
-        yield from bps.wait(group="filters")
-
-    return (yield from _inner())
+    yield from _insertFilters_(
+        terms.USAXS.scan_filters.Al.get(),    # Bank A: Al
+        #terms.USAXS.scan_filters.Ti.get(),    # Bank B: Ti
+    )
 
 
+@plan
 def insertWaxsFilters():
     """
     Plan: insert the EPICS-specified filters.
