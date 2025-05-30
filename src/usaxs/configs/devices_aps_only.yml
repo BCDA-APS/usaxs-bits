@@ -8,3 +8,9 @@ apstools.devices.ApsMachineParametersDevice:
     - baseline
 
 # usaxs.devices.shutters.My12IdPssShutter: # TODO: make sure logic is implemented
+
+apstools.devices.PlanarUndulator:
+- name: undulator
+  prefix: "S12ID:USID:"
+  labels: 
+  - baseline
