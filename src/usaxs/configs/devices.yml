@@ -130,6 +130,8 @@ usaxs.devices.trajectories.Trajectories:
 
 usaxs.devices.user_data.UserDataDevice:
 - name: user_device
+  labels:
+  - baseline
 
 usaxs.devices.white_beam_ready_calc.WhiteBeamReadyCalc:
 - name: white_beam_ready
