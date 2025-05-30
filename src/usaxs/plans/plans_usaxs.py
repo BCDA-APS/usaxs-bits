@@ -38,8 +38,8 @@ from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
 from .sample_imaging import record_sample_image_on_demand
 from .sample_transmission import measure_USAXS_Transmission
-from .uascan import uascan
-from .usaxs_fly_scan_plan import Flyscan_internal_plan
+from .uascan_plan import uascan
+from .fly_scan_plan import Flyscan_internal_plan
 
 logger = logging.getLogger(__name__)
 
