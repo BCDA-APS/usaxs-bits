@@ -237,7 +237,7 @@ def USAXSscanStep(
         timeout=MASTER_TIMEOUT,
     )
 
-    yield from measure_USAXS_Transmission(md=_md)
+    yield from measure_USAXS_Transmission()
 
     # yield from bps.mv(
     #     monochromator.feedback.on,
@@ -511,7 +511,7 @@ def Flyscan(
 
     usaxs_flyscan.saveFlyData_HDF5_dir = flyscan_path
     usaxs_flyscan.saveFlyData_HDF5_file = flyscan_file_name
-    yield from measure_USAXS_Transmission(md=_md)
+    yield from measure_USAXS_Transmission()
 
     # yield from bps.mv(
     #     monochromator.feedback.on,

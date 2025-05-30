@@ -43,11 +43,11 @@ user_data = oregistry["user_data"]
 
 
 @plan
-def measure_USAXS_Transmission(
-    md: Optional[Dict[str, Any]] = None,
-):
+def measure_USAXS_Transmission():
     """
-    Measure the sample transmission in USAXS mode.
+    Measure the sample transmission in USAXS mode and update EPICS PVs.
+
+    This plan does not (should not) generate a bluesky run.
 
     This function measures the sample transmission by:
     1. Setting up the instrument in USAXS mode
@@ -56,19 +56,11 @@ def measure_USAXS_Transmission(
     4. Collecting data from the transmission diode and I0 detector
     5. Storing the results in the appropriate EPICS PVs
 
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
-
     Yields
     ------
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    if md is None:
-        md = {}
-
     try:
         trmssn = terms.USAXS.transmission  # for convenience
         yield from user_data.set_state_plan("Measure USAXS transmission")
@@ -80,22 +72,20 @@ def measure_USAXS_Transmission(
                 + 12 * np.sin(terms.USAXS.ar_val_center.get() * np.pi / 180)
             )
             yield from bps.mv(
-                trmssn.ax,
-                ax_target,
-                a_stage.x,
-                ax_target,
-                usaxs_shutter,
-                "open",
+                # fmt: off
+                trmssn.ax, ax_target,
+                a_stage.x, ax_target,
+                usaxs_shutter, "open",
+                # fmt: on
             )
             yield from insertTransmissionFilters()
 
             yield from autoscale_amplifiers([I0_controls, trd_controls])
 
             yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
-            md["plan_name"] = "measure_USAXS_Transmission"
             scaler0.select_channels(["I0", "TRD"])
             yield from no_run_trigger_and_wait([scaler0])
-            scaler0.select_channels(None)
+            scaler0.select_channels()
             s = scaler0.read()
             secs = s["scaler0_time"]["value"]
             _tr_diode = s["TRD"]["value"]
@@ -114,21 +104,19 @@ def measure_USAXS_Transmission(
                 s = scaler0.read()
 
             yield from bps.mv(
-                a_stage.x,
-                terms.USAXS.AX0.get(),
-                usaxs_shutter,
-                "close",
+                # fmt: off
+                a_stage.x, terms.USAXS.AX0.get(),
+                usaxs_shutter, "close",
+                # fmt: on
             )
             yield from insertScanFilters()
             yield from bps.mv(
-                trmssn.diode_counts,
-                s["TRD"]["value"],
-                trmssn.diode_gain,
-                trd_controls.femto.gain.get(),
-                trmssn.I0_counts,
-                s["I0"]["value"],
-                # trmssn.I0_gain,
-                # I0_controls.femto.gain.get(),
+                # fmt: off
+                trmssn.diode_counts, s["TRD"]["value"],
+                trmssn.diode_gain, trd_controls.femto.gain.get(),
+                trmssn.I0_counts, s["I0"]["value"],
+                trmssn.I0_gain, I0_controls.femto.gain.get(),
+                # fmt: on
             )
             tbl = pyRestTable.Table()
             tbl.addLabel("detector")
@@ -148,14 +136,12 @@ def measure_USAXS_Transmission(
 
         else:
             yield from bps.mv(
-                trmssn.diode_counts,
-                0,
-                trmssn.diode_gain,
-                0,
-                trmssn.I0_counts,
-                0,
-                trmssn.I0_gain,
-                0,
+                # fmt:off
+                trmssn.diode_counts, 0,
+                trmssn.diode_gain, 0,
+                trmssn.I0_counts, 0,
+                trmssn.I0_gain, 0,
+                # fmt:on
             )
             logger.info("Did not measure USAXS transmission.")
 
@@ -165,11 +151,9 @@ def measure_USAXS_Transmission(
 
 
 @plan
-def measure_SAXS_Transmission(
-    md: Optional[Dict[str, Any]] = None,
-):
+def measure_SAXS_Transmission():
     """
-    Measure the sample transmission in SAXS mode.
+    Measure the sample transmission in SAXS mode and update EPICS PVs.
 
     This function measures the sample transmission by:
     1. Setting up the instrument in SAXS mode
@@ -178,19 +162,11 @@ def measure_SAXS_Transmission(
     4. Collecting data from the transmission diode and I0 detector
     5. Storing the results in the appropriate EPICS PVs
 
-    Parameters
-    ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
-
     Yields
     ------
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    if md is None:
-        md = {}
-
     try:
         yield from user_data.set_state_plan("Measure SAXS transmission")
         yield from mode_SAXS()
@@ -201,18 +177,18 @@ def measure_SAXS_Transmission(
         yield from bps.mv(saxs_stage.z, pinz_target)
         # now x can put diode in the beam, open shutter...
         yield from bps.mv(
-            saxs_stage.x,
-            pinx_target,
-            usaxs_shutter,
-            "open",
+            # fmt: off
+            saxs_stage.x, pinx_target,
+            usaxs_shutter, "open",
+            # fmt: on
         )
 
         # yield from autoscale_amplifiers([I0_controls, trd_controls])
         yield from bps.mv(
-            scaler0.preset_time,
-            constants["SAXS_TR_TIME"],
+            # fmt: off
+            scaler0.preset_time, constants["SAXS_TR_TIME"],
+            # fmt: on
         )
-        md["plan_name"] = "measure_SAXS_Transmission"
         scaler0.select_channels(["I0", "TRD"])
         yield from no_run_trigger_and_wait([scaler0])
         scaler0.select_channels(None)
@@ -228,32 +204,31 @@ def measure_SAXS_Transmission(
             yield from autoscale_amplifiers([I0_controls, trd_controls])
 
             yield from bps.mv(
-                scaler0.preset_time,
-                constants["SAXS_TR_TIME"],
+                # fmt: off
+                scaler0.preset_time, constants["SAXS_TR_TIME"],
+                # fmt: on
             )
             yield from no_run_trigger_and_wait([scaler0])
             s = scaler0.read()
 
         # x has to move before z, close shutter...
         yield from bps.mv(
-            saxs_stage.x,
-            terms.SAXS.x_in.get(),
-            usaxs_shutter,
-            "close",
+            # fmt: off
+            saxs_stage.x, terms.SAXS.x_in.get(),
+            usaxs_shutter, "close",
+            # fmt: on
         )
         # z can move.
         yield from bps.mv(saxs_stage.z, terms.SAXS.z_in.get())
 
         yield from insertScanFilters()
         yield from bps.mv(
-            terms.SAXS_WAXS.diode_transmission,
-            s["TRD"]["value"],
-            terms.SAXS_WAXS.diode_gain,
-            trd_controls.femto.gain.get(),
-            terms.SAXS_WAXS.I0_transmission,
-            s["I0"]["value"],
-            # terms.SAXS_WAXS.I0_gain,
-            # I0_controls.femto.gain.get(),
+            # fmt: off
+            terms.SAXS_WAXS.diode_transmission, s["TRD"]["value"],
+            terms.SAXS_WAXS.diode_gain, trd_controls.femto.gain.get(),
+            terms.SAXS_WAXS.I0_transmission, s["I0"]["value"],
+            # terms.SAXS_WAXS.I0_gain, I0_controls.femto.gain.get(),
+            # fmt: on
         )
         logger.info(
             (
@@ -268,49 +243,3 @@ def measure_SAXS_Transmission(
     except Exception as e:
         logger.error(f"Error in measure_SAXS_Transmission: {str(e)}")
         raise
-
-
-@plan
-def measure_transmission(
-    count_time: float = 1.0,
-    md: Optional[Dict[str, Any]] = None,
-):
-    """Measure sample transmission.
-
-    This function measures the transmission of a sample by comparing
-    the incident and transmitted beam intensities.
-
-    Parameters
-    ----------
-    count_time : float, optional
-        Count time in seconds, by default 1.0
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
-
-    Returns
-    -------
-    Generator[Any, None, Any]
-        A sequence of plan messages
-
-    USAGE:  ``RE(measure_transmission(count_time=1.0))``
-    """
-    if md is None:
-        md = {}
-
-    _md = {}
-    _md.update(md or {})
-
-    @bpp.run_decorator(md=_md)
-    def _inner():
-        yield from user_data.set_state_plan("measuring transmission")
-        yield from bps.mv(scaler0.preset_time, count_time)
-        yield from bps.trigger(scaler0, group="transmission")
-        yield from bps.wait(group="transmission")
-
-    return (yield from _inner())
