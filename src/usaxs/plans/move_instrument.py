@@ -94,7 +94,7 @@ def move_WAXSIn():
         "close",
     )
 
-    #logger.info("Moving to WAXS mode")
+    logger.debug("Moving to WAXS mode")
 
     confirmUsaxsSaxsOutOfBeam()
 
@@ -113,7 +113,7 @@ def move_WAXSIn():
         # fmt: on
     )
 
-    logger.info("WAXS is in position")
+    logger.debug("WAXS is in position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["WAXS in beam"])
 
 
@@ -151,7 +151,7 @@ def move_SAXSIn():
         # fmt: on
     )
 
-    #logger.info("Moving to Pinhole SAXS mode")
+    logger.debug("Moving to SAXS mode")
 
     confirmUsaxsSaxsOutOfBeam()
 
@@ -176,7 +176,7 @@ def move_SAXSIn():
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-    logger.info("SAXS is in position")
+    logger.debug("SAXS is in position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["SAXS in beam"])
 
 
@@ -215,7 +215,7 @@ def move_USAXSIn():
         "close",
     )
 
-    #logger.info("Moving to USAXS mode")
+    logger.debug("Moving to USAXS mode")
 
     confirmUsaxsSaxsOutOfBeam()
 
@@ -238,6 +238,6 @@ def move_USAXSIn():
         # fmt: on
     )
 
-    logger.info("USAXS is in position")
+    logger.debug("USAXS is in position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["USAXS in beam"])
 

@@ -140,6 +140,8 @@ def mode_USAXS(md=None):
     """
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
 
+    logger.info("Moving to USAXS mode ... please wait ...")
+
     yield from bps.mv(
         # fmt: off  
         usaxs_shutter,         "close",
@@ -159,7 +161,6 @@ def mode_USAXS(md=None):
         yield from move_USAXSIn()
         #retune_needed = True
 
-    logger.debug("Preparing for USAXS mode ... please wait ...")
     # this mostly checks if we were not in USAXS mode in wrong place (e.g., radiography)... 
     yield from bps.mv(
         # fmt: off
@@ -210,6 +211,9 @@ def mode_SAXS(md=None):
         Metadata dictionary for the scan.
     """
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
+     
+    logger.info("Moving to SAXS mode ... please wait ...")
+    
     yield from bps.mv(
         # fmt: off
         usaxs_shutter,         "close",
@@ -250,6 +254,9 @@ def mode_WAXS(md=None):
         Metadata dictionary for the scan.
     """
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
+
+    logger.info("Moving to WAXS mode ... please wait ...")
+
     yield from bps.mv(
         # fmt: off
         usaxs_shutter,         "close",
@@ -297,7 +304,9 @@ def mode_Radiography(md=None):
         Metadata dictionary for the scan.
     """
     yield from mode_USAXS()
- 
+
+    logger.info("Moving to Radiography mode ... please wait ...")
+
     yield from MONO_FEEDBACK_ON()
 
     yield from bps.mv(

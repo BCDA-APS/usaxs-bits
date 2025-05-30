@@ -400,7 +400,7 @@ def Flyscan(
     _md["title"] = scan_title
 
     scan_title_clean = cleanupText(scan_title)
-    print("scan_title_clean:", scan_title_clean)
+    #print("scan_title_clean:", scan_title_clean)
 
     # SPEC-compatibility
     SCAN_N = RE.md["scan_id"] + 1
