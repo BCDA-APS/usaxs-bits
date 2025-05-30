@@ -125,7 +125,7 @@ def Flyscan_internal_plan(
             if t > usaxs_flyscan.update_time:
                 usaxs_flyscan.update_time = t + usaxs_flyscan.update_interval_s
                 msg = _report_(t - usaxs_flyscan.t0)
-                logger.debug(msg)
+                logger.info(msg)
             time.sleep(0.01)
             t = time.time()
         msg = _report_(time.time() - usaxs_flyscan.t0)
