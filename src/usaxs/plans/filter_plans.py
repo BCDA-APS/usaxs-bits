@@ -46,7 +46,7 @@ def _insertFilters_(a: Union[int, float]):
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    current_filter = Filter_AlTi.fPos.get()
+    current_filter = Filter_AlTi.fPos_RBV.get()
     if current_filter == a:
         # logger.info(f"Filter already set to {a}, no action taken.")
         return

@@ -52,6 +52,9 @@ class FilterBank(Device):
     fPos = FormattedComponent(
         EpicsSignal, "{prefix}{_bank}:sortedIndex"
     )  # , kind="config")
+    fPos_RBV = FormattedComponent(
+        EpicsSignalRO, "{prefix}{_bank}:sortedIndex_RBV", kind="config"
+    )
     # control = FormattedComponent(EpicsSignalRO, "{prefix}bank{_bank}", string=True,
     #                              kind="config")
     # bits = FormattedComponent(EpicsSignalRO, "{prefix}bitFlag{_bank}", kind="config")
