@@ -128,7 +128,11 @@ if iconfig.get("BASELINE_LABEL", {}).get("ENABLE", False):
     del _label
 
 
+
 from .plans import *  # noqa: F401
+
+# customize the instrument configuration
+bec.disable_table()
 
 print("You must now run newUser() first")
 # newUser()
