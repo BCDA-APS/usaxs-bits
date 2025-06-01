@@ -119,7 +119,7 @@ def saxsExp(
     if md is None:
         md = {}
 
-    logger.info(f"Collecting SAXS for {scan_title}")
+    logger.info(f"Starting collection of SAXS for {scan_title}")
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -180,7 +180,7 @@ def saxsExp(
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(SAXSscan_path, SAXS_file_name)
-    logger.debug(f"Collecting SAXS with HDF5 file: {local_name}")
+    logger.debug(f"SAXS HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
     logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
@@ -341,7 +341,7 @@ def waxsExp(
     if md is None:
         md = {}
 
-    logger.info(f"Collecting WAXS for {scan_title}")
+    logger.info(f"Starting collection of WAXS for {scan_title}")
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -391,7 +391,7 @@ def waxsExp(
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(WAXSscan_path, WAXS_file_name)
-    logger.debug(f"Collecting WAXS with HDF5 file: {local_name}")
+    logger.debug(f"WAXS HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, WAXS_file_name)
     logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
