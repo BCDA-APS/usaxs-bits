@@ -90,7 +90,7 @@ setup_scalers()
 
 ##operation variables
 # in_operation = caget("usxLAX:blCalc:userCalc2.VAL") == 1  # should be a caget?
-in_operation = False
+in_operation = True
 
 RE(make_devices(file="devices.yml", clear=False))
 RE(make_devices(file="devices_aps_only.yml", clear=False))
