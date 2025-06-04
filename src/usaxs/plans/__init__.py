@@ -35,6 +35,7 @@ from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
+from .mode_changes import mode_DirectBeam
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
 from .move_instrument import move_SAXSIn
