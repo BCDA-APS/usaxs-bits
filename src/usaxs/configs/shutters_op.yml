@@ -17,6 +17,7 @@ apstools.devices.ApsPssShutter:
   prefix: "12idc:uniblitz:shutter:"
   open_pv: 12idc:uniblitz:shutter:open
   close_pv: 12idc:uniblitz:shutter:close
+  delay_s: 0.1
   labels: ["shutters"]  
 
 ophyd.signal.EpicsSignal:
