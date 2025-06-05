@@ -30,6 +30,7 @@ from ..startup import bec
 from ..utils.a2q_q2a import q2angle
 from ..utils.emails import NOTIFY_ON_BAD_FLY_SCAN
 from .amplifiers_plan import autoscale_amplifiers
+from .filter_plans import insertScanFilters
 from .command_list import after_plan
 from .command_list import before_plan
 from .mode_changes import mode_USAXS
@@ -232,6 +233,8 @@ def USAXSscanStep(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
+    yield from insertScanFilters()  # make sure filters are in place for scan
+
     yield from autoscale_amplifiers([upd_controls, I0_controls])
 
     yield from user_data.set_state_plan("Running USAXS step scan")
@@ -440,6 +443,7 @@ def Flyscan(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
+    yield from insertScanFilters()  # make sure filters are in place for scan
 
     yield from measure_USAXS_Transmission()
 
@@ -518,6 +522,8 @@ def Flyscan(
     _md["fly_scan_time"] = usaxs_flyscan.scan_time.get()
 
     yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+
+    bec.disable_table()
 
     yield from Flyscan_internal_plan(md=_md)        #flyscan proper
 

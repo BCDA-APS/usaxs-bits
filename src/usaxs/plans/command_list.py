@@ -30,6 +30,7 @@ from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
+from .filter_plans import insertScanFilters
 from .plans_tune import allUSAXStune
 from .plans_tune import preSWAXStune
 from .plans_tune import preUSAXStune

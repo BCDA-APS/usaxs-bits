@@ -16,6 +16,7 @@ from typing import Union
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
+from ..startup import bec
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ def no_run_trigger_and_wait(
     The primary use case is to count detectors (on a scaler card)
     when measuring sample transmission.
     """
+    bec.disable_table()
     if not isinstance(objects, (tuple, set, list)):
         objects = [objects]
     group = bps._short_uid("trigger_and_wait_no_run")

@@ -117,6 +117,7 @@ def insertScanFilters():
         terms.USAXS.scan_filters.Al.get(),    # Bank A: Al
         #terms.USAXS.scan_filters.Ti.get(),    # Bank B: Ti
     )
+    yield from bps.sleep(0.5)  # allow all blades to re-position
 
 
 @plan
@@ -161,3 +162,4 @@ def insertTransmissionFilters():
     else:
         al_filters = 7
     yield from _insertFilters_(al_filters)
+    yield from bps.sleep(1)  # allow all blades to re-position
