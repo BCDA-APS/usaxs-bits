@@ -29,7 +29,7 @@
 # from .filter_plans import insertWaxsFilters
 # from .filter_plans import insertTransmissionFilters
 
-# # from .mode_changes import mode_BlackFly
+# # from .mode_changes import mode_DirectBeam
 # from .mode_changes import mode_OpenBeamPath
 # from .mode_changes import mode_Radiography
 # from .mode_changes import mode_SAXS
