@@ -15,6 +15,7 @@ from bluesky import plan_stubs as bps
 from ophyd.scaler import ScalerCH
 
 from .filter_plans import insertBlackflyFilters
+from .filter_plans import insertScanFilters
 from .filter_plans import insertRadiographyFilters
 from .mono_feedback import MONO_FEEDBACK_ON
 from .move_instrument import UsaxsSaxsModes
@@ -154,6 +155,8 @@ def mode_USAXS(md=None):
         yield from move_USAXSIn()
         #retune_needed = True
 
+    yield from insertScanFilters()        #not appropriate? 
+
     # this mostly checks if we were not in USAXS mode in wrong place (e.g., radiography)... 
     yield from bps.mv(
         # fmt: off
@@ -170,8 +173,6 @@ def mode_USAXS(md=None):
         blackfly_det.cam.acquire, 0,    #stop Blackfly if it is running...
         # fmt: on
     )
-
-    # yield from insertScanFilters()        #not appropriate? 
 
     logger.debug("Prepared for USAXS mode")
     yield from user_data.set_state_plan("USAXS Mode")
