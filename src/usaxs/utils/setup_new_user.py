@@ -3,10 +3,10 @@ manage the user folder
 """
 
 import datetime
+import json
 import logging
 import os
 from pathlib import Path
-import json
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
@@ -79,26 +79,24 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
     global specwriter
-    filename = ".user_info.json" #Store if a new user was created
+    filename = ".user_info.json"  # Store if a new user was created
     cwd = Path.cwd()
 
     print("Your Path Is : %s", cwd)
 
     file_exists = Path(filename).is_file()
 
-#### If the file exists:
+    #### If the file exists:
     if user is None and file_exists:
         logger.info("Found existing user info file: %s", filename)
-        with open(filename, 'r') as file:
-            user_json = json.load(file)
-        logger.info("This is the user_name used: %s", user_json["user_name"])
-        return
-
-####### If file does not exist
-    if user is None:
+        with open(filename, "r") as file:
+            data = json.load(file)
+            user = data.get("user_name")
+            year = data.get("year")
+            month = data.get("month")
+            day = data.get("day")
+    elif user is None and not file_exists:
         user = input("Please provide the name of the new user: ").strip()
-
-    logger.info("This is the user_name used: %s", user)
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]
@@ -113,7 +111,7 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     }
 
     #### Load json data into file
-    with open(filename, 'w') as file:
+    with open(filename, "w") as file:
         json.dump(data, file, indent=4)  # indent=4 for pretty formatting
 
     user_data.user_name.put(user)  # set in the PV
@@ -138,7 +136,9 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     # matchUserInApsbss(user)     # update ESAF & Proposal, if available
     # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
 
+    logger.info(data)
     return str(path.absolute())
+
 
 # def _pick_esaf(user, now, cycle):
 #     """

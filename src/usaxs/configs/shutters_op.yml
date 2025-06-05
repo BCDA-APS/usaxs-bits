@@ -10,14 +10,14 @@ apstools.devices.ApsPssShutterWithStatus:
   prefix: "PA:12ID:"
   open_pv: "12ida2:rShtrC:Open"
   close_pv: "12ida2:rShtrC:Close"
-  labels: ["shutters"]  
+  labels: ["shutters"]
 
 apstools.devices.ApsPssShutter:
 - name: usaxs_shutter
   prefix: "12idc:uniblitz:shutter:"
   open_pv: 12idc:uniblitz:shutter:open
   close_pv: 12idc:uniblitz:shutter:close
-  labels: ["shutters"]  
+  labels: ["shutters"]
 
 ophyd.signal.EpicsSignal:
 - name: a_shutter_autoopen

@@ -12,5 +12,5 @@ apstools.devices.ApsMachineParametersDevice:
 apstools.devices.PlanarUndulator:
 - name: undulator
   prefix: "S12ID:USID:"
-  labels: 
+  labels:
   - baseline

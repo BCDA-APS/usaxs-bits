@@ -6,9 +6,10 @@ import logging
 import os
 import pathlib
 
+from apsbits.core.instrument_init import oregistry
+
 logger = logging.getLogger(__name__)
 logger.info(__file__)
-from apsbits.core.instrument_init import oregistry
 
 user_data = oregistry["user_data"]
 

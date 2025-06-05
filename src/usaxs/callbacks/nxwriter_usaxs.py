@@ -351,10 +351,10 @@ class NXWriterUascan(OurCustomNXWriterBase):
         super().write_entry()  # write the raw data
 
         # https://github.com/APS-USAXS/usaxs-bluesky/issues/588
-        #logger.info("DIAGNOSTIC: this is when to write reduced 1-D data")
-        #logger.info("DIAGNOSTIC: HDF5 file='%s'", self.root.filename)
-        #logger.info("DIAGNOSTIC: Is HDF5 file open? %s", self.root.id.valid == 1)
-        #if self.root.id.valid == 1:
+        # logger.info("DIAGNOSTIC: this is when to write reduced 1-D data")
+        # logger.info("DIAGNOSTIC: HDF5 file='%s'", self.root.filename)
+        # logger.info("DIAGNOSTIC: Is HDF5 file open? %s", self.root.id.valid == 1)
+        # if self.root.id.valid == 1:
         #    logger.info("DIAGNOSTIC: HDF5 file access mode=%s", self.root.mode)
 
         try:

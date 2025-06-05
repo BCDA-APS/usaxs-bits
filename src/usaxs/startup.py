@@ -23,7 +23,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
-from epics import caget 
+from epics import caget
 
 from usaxs.utils.scalers_setup import setup_scalers
 
@@ -92,7 +92,7 @@ setup_scalers()
 
 ##operation variables
 in_operation = caget("usxLAX:blCalc:userCalc2.VAL") == 1  # should be a caget?
-#in_operation = True
+# in_operation = True
 logger.info("in operation = " + str(in_operation))
 
 RE(make_devices(file="devices.yml", clear=False))
