@@ -25,7 +25,7 @@ from .amplifiers_plan import measure_background
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
 from .axis_tuning import user_defined_settings
-from .mode_changes import mode_BlackFly
+from .mode_changes import mode_DirectBeam
 from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
@@ -503,7 +503,7 @@ def execute_command_list(filename, commands, md=None):
         simple_actions = dict(
             # command names MUST be lower case!
             # TODO: all these should accept a `md` kwarg
-            mode_blackfly=mode_BlackFly,
+            mode_blackfly=mode_DirectBeam,
             mode_radiography=mode_Radiography,
             mode_saxs=mode_SAXS,
             mode_usaxs=mode_USAXS,

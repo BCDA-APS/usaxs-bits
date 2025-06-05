@@ -44,7 +44,7 @@ logger.info("Starting Instrument with iconfig: %s", iconfig_path)
 # Discard oregistry items loaded above.
 oregistry.clear()
 
-# Configure the session with callbacks, devices, and plans.
+# Configure the session with callbacks, devices, and .plans.
 aps_dm_setup(iconfig.get("DM_SETUP_FILE"))
 
 # Command-line tools, such as %wa, %ct, ...
@@ -131,12 +131,60 @@ if iconfig.get("BASELINE_LABEL", {}).get("ENABLE", False):
     del _label
 
 
+# flake8: noqa: F401, E402
+"""Bluesky .plans."""
+from .plans.amplifiers_plan import autoscale_amplifiers
+from .plans.area_detector_plans import areaDetectorAcquire
+from .plans.autocollect_plan import remote_ops
 
-from usaxs.utils.setup_new_user import newUser
+# these are all tuning plans facing users and staff
+from .plans.axis_tuning import tune_a2rp
+from .plans.axis_tuning import tune_ar
+from .plans.axis_tuning import tune_diode
+from .plans.axis_tuning import tune_dx
+from .plans.axis_tuning import tune_dy
+from .plans.axis_tuning import tune_mr
+from .plans.axis_tuning import tune_saxs_optics
+from .plans.axis_tuning import tune_usaxs_optics
+from .plans.command_list import run_command_file
+from .plans.command_list import sync_order_numbers
+from .plans.filter_plans import insertBlackflyFilters
+from .plans.filter_plans import insertRadiographyFilters
+from .plans.filter_plans import insertSaxsFilters
+from .plans.filter_plans import insertScanFilters
+from .plans.filter_plans import insertTransmissionFilters
+from .plans.filter_plans import insertWaxsFilters
+from .plans.mode_changes import mode_DirectBeam
+from .plans.mode_changes import mode_OpenBeamPath
+from .plans.mode_changes import mode_Radiography
+from .plans.mode_changes import mode_SAXS
+from .plans.mode_changes import mode_USAXS
+from .plans.mode_changes import mode_WAXS
+from .plans.mono_feedback import MONO_FEEDBACK_OFF
+from .plans.mono_feedback import MONO_FEEDBACK_ON
+from .plans.move_instrument import move_SAXSIn
+from .plans.move_instrument import move_SAXSOut
+from .plans.move_instrument import move_USAXSIn
+from .plans.move_instrument import move_USAXSOut
+from .plans.move_instrument import move_WAXSIn
+from .plans.move_instrument import move_WAXSOut
+from .plans.plans_tune import allUSAXStune
+from .plans.plans_tune import preSWAXStune
+from .plans.plans_tune import preUSAXStune
+from .plans.plans_usaxs import Flyscan
+from .plans.plans_usaxs import USAXSscan
+from .plans.plans_usaxs import USAXSscanStep
+from .plans.plans_user_facing import saxsExp
+from .plans.plans_user_facing import waxsExp
+from .plans.resets import reset_USAXS
+from .plans.sample_transmission import measure_USAXS_Transmission
+from .plans.sim_plans import sim_count_plan
+from .plans.sim_plans import sim_print_plan
+from .plans.sim_plans import sim_rel_scan_plan
+from .utils.setup_new_user import newUser
 
 # customize the instrument configuration
-bec.disable_table()
 usaxs_shutter = oregistry["usaxs_shutter"]
-usaxs_shutter.delay_s=0.01
+usaxs_shutter.delay_s = 0.01
 
 newUser()
