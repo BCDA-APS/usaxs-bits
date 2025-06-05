@@ -139,19 +139,4 @@ bec.disable_table()
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_shutter.delay_s=0.01
 
-logger.info("Your Path Is : %s", os.getcwd())
-
-filename = ".user_info.txt" #Store if a new user was created
-if Path(filename).is_file():
-    logger.info(f"{filename} exists, no need to run new user")
-    user_name = Path(filename).read_text()
-    logger.info("You are running as: %s", user_name.strip())
-else:
-    logger.info(f"{filename} does not exist, run new user")
-    while True:
-        new_user_name = input("Please provide the name of the new user: ").strip()
-        if new_user_name:  # Check if not empty
-            break
-        print("Argument cannot be empty. Please try again.")
-    newUser(new_user_name)
-    Path(filename).write_text(new_user_name)
+newUser()

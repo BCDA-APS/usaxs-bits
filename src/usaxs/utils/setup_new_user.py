@@ -6,6 +6,7 @@ import datetime
 import logging
 import os
 import pathlib
+from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
@@ -54,7 +55,7 @@ def _setSpecFileName(path, scan_id=1):
     logger.info(f"File will be {handled} at end of next bluesky scan.")
 
 
-def newUser(user, scan_id=1, year=None, month=None, day=None):
+def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     """
     setup for a new user
 
@@ -78,6 +79,23 @@ def newUser(user, scan_id=1, year=None, month=None, day=None):
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
     global specwriter
+    filename = ".user_info.json" #Store if a new user was created
+
+    logger.info("Your Path Is : %s", os.getcwd())
+
+    if user is None:
+        if Path(filename).is_file():
+            user = Path(filename).read_text()
+            logger.info(f"{filename} exists, no need to run new user")
+            logger.info("You are running as: %s", user.strip())
+            return
+        else:
+            user = input("Please provide the name of the new user: ").strip()
+    else:
+        pass
+
+    logger.info("You are running as: %s", user.strip())
+    Path(filename).write_text(user)
 
     user_data.user_name.put(user)  # set in the PV
     # user_data.spec_scan.put(scan_id)  # set in the PV
