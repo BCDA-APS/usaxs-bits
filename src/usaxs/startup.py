@@ -10,6 +10,7 @@ Includes:
 """
 
 import logging
+import os
 from pathlib import Path
 
 from apsbits.core.best_effort_init import init_bec_peaks
@@ -24,6 +25,7 @@ from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 
 from usaxs.utils.scalers_setup import setup_scalers
+from usaxs.utils.setup_new_user import newUser
 
 logger = logging.getLogger(__name__)
 
@@ -136,5 +138,11 @@ bec.disable_table()
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_shutter.delay_s=0.01
 
-print("You must now run newUser() first")
-# newUser()
+logger.info("Your Path Is : %s", os.getcwd())
+
+filename = "user_info.txt"
+if Path(filename).is_file():
+    print(f"{filename} exists and is a file")
+else:
+    print(f"{filename} does not exist or is not a file, run new user")
+    newUser()
