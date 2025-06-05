@@ -150,3 +150,4 @@ else:
             break
         print("Argument cannot be empty. Please try again.")
     newUser(new_user_name)
+    Path(filename).write_text(new_user_name)
