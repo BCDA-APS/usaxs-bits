@@ -25,7 +25,6 @@ from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 
 from usaxs.utils.scalers_setup import setup_scalers
-from usaxs.utils.setup_new_user import newUser
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +130,7 @@ if iconfig.get("BASELINE_LABEL", {}).get("ENABLE", False):
 
 
 
-from .plans import *  # noqa: F401
+from usaxs.utils.setup_new_user import newUser
 
 # customize the instrument configuration
 bec.disable_table()
@@ -140,9 +139,14 @@ usaxs_shutter.delay_s=0.01
 
 logger.info("Your Path Is : %s", os.getcwd())
 
-filename = "user_info.txt"
+filename = "user_info.txt" #Store if a new user was created
 if Path(filename).is_file():
-    print(f"{filename} exists and is a file")
+    logger.info(f"{filename} exists, no need to run new user")
 else:
-    print(f"{filename} does not exist or is not a file, run new user")
-    newUser()
+    logger.info(f"{filename} does not exist, run new user")
+    while True:
+        new_user_name = input("Please provide the name of the new user: ").strip()
+        if new_user_name:  # Check if not empty
+            break
+        print("Argument cannot be empty. Please try again.")
+    newUser(new_user_name)
