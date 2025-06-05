@@ -24,7 +24,6 @@ from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 
 from usaxs.utils.scalers_setup import setup_scalers
-from usaxs.utils.setup_new_user import newUser
 
 logger = logging.getLogger(__name__)
 
@@ -131,8 +130,6 @@ if iconfig.get("BASELINE_LABEL", {}).get("ENABLE", False):
 
 # flake8: noqa: F401, E402
 """Bluesky plans."""
-
-# from .resets import resets
 from plans.amplifiers_plan import autoscale_amplifiers
 from plans.area_detector_plans import areaDetectorAcquire
 from plans.autocollect_plan import remote_ops
@@ -147,10 +144,6 @@ from plans.axis_tuning import tune_mr
 from plans.axis_tuning import tune_saxs_optics
 from plans.axis_tuning import tune_usaxs_optics
 from plans.command_list import run_command_file
-
-# from .command_list import execute_command_list
-# from .command_list import run_command_file
-# from .command_list import run_python_file
 from plans.command_list import sync_order_numbers
 from plans.filter_plans import insertBlackflyFilters
 from plans.filter_plans import insertRadiographyFilters
@@ -159,8 +152,6 @@ from plans.filter_plans import insertScanFilters
 from plans.filter_plans import insertTransmissionFilters
 from plans.filter_plans import insertWaxsFilters
 from plans.mode_changes import mode_DirectBeam
-
-# from .mode_changes import mode_BlackFly
 from plans.mode_changes import mode_OpenBeamPath
 from plans.mode_changes import mode_Radiography
 from plans.mode_changes import mode_SAXS
@@ -187,6 +178,7 @@ from plans.sample_transmission import measure_USAXS_Transmission
 from plans.sim_plans import sim_count_plan
 from plans.sim_plans import sim_print_plan
 from plans.sim_plans import sim_rel_scan_plan
+from utils.setup_new_user import newUser
 
 # customize the instrument configuration
 bec.disable_table()
