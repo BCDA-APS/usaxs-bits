@@ -5,8 +5,8 @@ manage the user folder
 import datetime
 import logging
 import os
-import pathlib
 from pathlib import Path
+import json
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
@@ -80,32 +80,45 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     """
     global specwriter
     filename = ".user_info.json" #Store if a new user was created
+    cwd = Path.cwd()
 
-    logger.info("Your Path Is : %s", os.getcwd())
+    print("Your Path Is : %s", cwd)
 
+    file_exists = Path(filename).is_file()
+
+#### If the file exists:
+    if user is None and file_exists:
+        logger.info("Found existing user info file: %s", filename)
+        with open(filename, 'r') as file:
+            user_json = json.load(file)
+        logger.info("This is the user_name used: %s", user_json["user_name"])
+        return
+
+####### If file does not exist
     if user is None:
-        if Path(filename).is_file():
-            user = Path(filename).read_text()
-            logger.info(f"{filename} exists, no need to run new user")
-            logger.info("You are running as: %s", user.strip())
-            return
-        else:
-            user = input("Please provide the name of the new user: ").strip()
-    else:
-        pass
+        user = input("Please provide the name of the new user: ").strip()
 
-    logger.info("You are running as: %s", user.strip())
-    Path(filename).write_text(user)
-
-    user_data.user_name.put(user)  # set in the PV
-    # user_data.spec_scan.put(scan_id)  # set in the PV
+    logger.info("This is the user_name used: %s", user)
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]
     month = month or dt.month
     day = day or dt.day
 
-    cwd = pathlib.Path.cwd()
+    data = {
+        "user_name": user,
+        "year": year,
+        "month": month,
+        "day": day,
+    }
+
+    #### Load json data into file
+    with open(filename, 'w') as file:
+        json.dump(data, file, indent=4)  # indent=4 for pretty formatting
+
+    user_data.user_name.put(user)  # set in the PV
+    # user_data.spec_scan.put(scan_id)  # set in the PV
+
     # DATA_DIR_BASE = pathlib.Path("/") / "share1" / "USAXS_data"
     path = (
         cwd  # instead of DATA_DIR_BASE
@@ -126,7 +139,6 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
 
     return str(path.absolute())
-
 
 # def _pick_esaf(user, now, cycle):
 #     """
