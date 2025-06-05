@@ -181,7 +181,6 @@ from plans.sim_plans import sim_rel_scan_plan
 from utils.setup_new_user import newUser
 
 # customize the instrument configuration
-bec.disable_table()
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_shutter.delay_s = 0.01
 
