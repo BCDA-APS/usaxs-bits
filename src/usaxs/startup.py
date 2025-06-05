@@ -133,6 +133,8 @@ from .plans import *  # noqa: F401
 
 # customize the instrument configuration
 bec.disable_table()
+usaxs_shutter = oregistry["usaxs_shutter"]
+usaxs_shutter.delay_s=0.01
 
 print("You must now run newUser() first")
 # newUser()
