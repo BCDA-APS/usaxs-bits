@@ -10,6 +10,7 @@ Includes:
 """
 
 import logging
+import os
 from pathlib import Path
 
 from apsbits.core.best_effort_init import init_bec_peaks
@@ -22,6 +23,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
+from epics import caget 
 
 from usaxs.utils.scalers_setup import setup_scalers
 
@@ -89,8 +91,9 @@ setup_scalers()
 
 
 ##operation variables
-# in_operation = caget("usxLAX:blCalc:userCalc2.VAL") == 1  # should be a caget?
-in_operation = True
+in_operation = caget("usxLAX:blCalc:userCalc2.VAL") == 1  # should be a caget?
+#in_operation = True
+logger.info("in operation = " + str(in_operation))
 
 RE(make_devices(file="devices.yml", clear=False))
 RE(make_devices(file="devices_aps_only.yml", clear=False))
@@ -184,5 +187,4 @@ from .utils.setup_new_user import newUser
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_shutter.delay_s = 0.01
 
-print("You must now run newUser() first")
-# newUser()
+newUser()
