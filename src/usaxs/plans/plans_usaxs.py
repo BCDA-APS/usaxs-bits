@@ -523,7 +523,7 @@ def Flyscan(
 
     yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
-    bec.disable_table()
+    #bec.disable_table()
 
     yield from Flyscan_internal_plan(md=_md)        #flyscan proper
 

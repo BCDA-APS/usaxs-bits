@@ -40,7 +40,7 @@ BEC:
     BASELINE: false
     HEADING: true
     PLOTS: true
-    TABLE: false
+    TABLE: true
 
 ### Baseline stream
 ### When ENABLE=true, all ophyd objects with a "baseline" label

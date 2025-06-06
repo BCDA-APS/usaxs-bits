@@ -12,6 +12,7 @@ from collections import OrderedDict
 from typing import Any
 from typing import Dict
 from typing import Optional
+from ..startup import bec
 
 # Get devices from oregistry
 from apsbits.core.instrument_init import oregistry
@@ -189,6 +190,8 @@ def uascan(
         I00_controls.auto.reqrange,
         trd_controls.auto.reqrange,
     ]
+    
+    bec.enable_table()
 
     # do not report the "quiet" detectors/stages during a uascan
     quiet_detectors = [
