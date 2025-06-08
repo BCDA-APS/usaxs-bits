@@ -33,16 +33,17 @@ ptc10_debug = Signal(name="ptc10_debug", value=False)
 # this is for myPTC10List list of temperatures to go to.
 # TemperatureList = [50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,500,35]
 # SampleList = [[pos_X, pos_Y, thickness, scan_title]]
-TemperatureList = [500]  # deg C
-TimeList = [120]  # minutes
+TemperatureList = [80]  # deg C
+TimeList = [720]  # minutes
 SampleList = [
     [0, 0, 1.1, "Ore-air4"],
     # [4, 0, 1.1, "KCDN2"],
     # [5, 0, 1.1, "KCDN2"],
 ]
+
 # [sx,sy,th,"sampleName"]
-assert len(TemperatureList) == len(TimeList)
-assert len(TemperatureList) == len(SampleList)
+#assert len(TemperatureList) == len(TimeList)
+#assert len(TemperatureList) == len(SampleList)
 # [2, 0, 1.3, "Alr_20flow2"],
 # [3, 0, 1.3, "Alr_20flow3"],
 # [4, 0, 1.3, "Alr_20flow4"]]
@@ -62,6 +63,7 @@ def setheaterOff():
     )
 
 
+
 def setheaterOn():
     """
     switches heater on
@@ -72,6 +74,104 @@ def setheaterOn():
         ptc10.pid.pidmode,
         "On",  # Start pid loop also
     )
+
+
+#plans
+
+def myPTC10HoldList(temp1, rate1Cmin, delay1min, md={}):
+    """
+    collect RT USAXS/SAXS/WAXS at RT
+    set temperature of PTC10 to temp1 and heating rate to rate1Cmin
+    start heating and wait until PTC10 heats to temp1
+    Start loop, collecti USAXS/SAXS/WAXS for delay1 minutes
+    in positions from SampleList, collecting USAXS/SAXS/WAXS for each item on SampleList
+    """
+    # needed customized functions to handle data collection.
+    def getSampleName(inputTitle):
+        """
+        return the name of the sample
+        """
+        return f"{inputTitle}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
+
+    def collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode):
+        """
+        Collects USAXS/SAXS/WAXS data for given input conditions. 
+        """
+        if isDebugMode is not True:
+            sampleMod = getSampleName(scan_title)
+            md["title"] = sampleMod
+            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = getSampleName(scan_title)
+            md["title"] = sampleMod
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = getSampleName(scan_title)
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+        else:
+            # for testing purposes, set debug=True
+            sampleMod = getSampleName(scan_title)
+            logger.info(pos_X, pos_Y, thickness, scan_title)
+            yield from bps.sleep(20)
+
+    # check for debug mode
+    isDebugMode = ptc10_debug.get()
+
+    #data collection
+    if isDebugMode is not True:
+        yield from before_command_list()  # this will run usual startup scripts for scans
+    else:
+        logger.info("debug mode, would be running usual startup scripts for scans")
+        yield from bps.sleep(5)
+
+    # collect data at RT
+    logger.info(f"Collecting data at RT")
+    t0 = time.time()
+    for tmpVal in SampleList:
+        pos_X, pos_Y, thickness, scan_title = tmpVal
+        yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)  # collect RT data
+
+    # ramp to temperature
+    logger.info(f"Ramping temperature to {temp1} C")
+    yield from bps.mv(
+        ptc10.ramp, rate1Cmin / 60.0,       # user wants C/min, controller wants C/s
+        ptc10.temperature.setpoint, temp1   # Change the temperature and not wait
+    )  
+    yield from setheaterOn()
+
+    # wait until PTC10 heats to temp1
+    while (
+        not ptc10.temperature.inposition
+    ):  # sleep for now, check every 10 seconds. Change as needed.
+        yield from bps.sleep(5)         # sleep for 10 seconds combined with loger info mid way
+        logger.info(f"Still Ramping temperature to {temp1} C")
+        yield from bps.sleep(5)
+        # OR : 
+        # for tmpVal in SampleList:
+        #     pos_X, pos_Y, thickness, scan_title = tmpVal
+        #     yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)  # collect data during heating 
+
+    logger.info(f"Reached temperature {temp1} C, now collecting data for {delay1min} min")
+
+    # reset time in experiment here. This is the time we start collecting data.
+    t0 = time.time()
+
+    # Main data collection loop - for delay1min collect on each sample from the SampleList USAXS, SAXS, and WAXS 
+    while time.time() - t0 < delay1min * 60:                    # collects data for delay1 seconds
+        logger.info(f"Collecting data for {delay1min} min")
+        for tmpVal in SampleList:
+            pos_X, pos_Y, thickness, scan_title = tmpVal
+            yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)
+
+    # done, switch off heater and be done
+    yield from setheaterOff()
+
+    if isDebugMode is not True:
+        yield from after_command_list()  # runs standard after scan scripts.
+    else:
+        logger.info("debug mode, would be running standard after scan scripts.")
+
+    logger.info("finished with myPTC10HoldList")
+
 
 
 def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
@@ -95,23 +195,14 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
         return f"{scan_title}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
 
     def collectAllThree(debug=False):
-        """
-        documentation here
-        """
+        md["title"] = sampleMod
+        yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = getSampleName()
-        if debug:
-            # for testing purposes, set debug=True
-            print(sampleMod)
-            yield from bps.sleep(20)
-        else:
-            md["title"] = sampleMod
-            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
-            sampleMod = getSampleName()
-            md["title"] = sampleMod
-            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
-            sampleMod = getSampleName()
-            md["title"] = sampleMod
-            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+        md["title"] = sampleMod
+        yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+        sampleMod = getSampleName()
+        md["title"] = sampleMod
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     yield from before_command_list()  # this will run usual startup scripts for scans
 
