@@ -381,6 +381,14 @@ def Flyscan(
         # fmt: on
     )
 
+    #verify, that min_step is not too small to prevent PSO generator from failing. 0.00002 deg is known minimum
+    CurMinSTep=terms.USAXS.min_step.get()
+    if CurMinSTep < 0.00002:
+        logger.warning(
+            "Flyscan min_step is too small: %g deg, resetting to 0.00002 deg", CurMinSTep
+        )
+        yield from bps.mv(terms.USAXS.min_step, 0.00002)
+
     #this forces epics to recalculate and update paths in flyscan 
     #without this bad things happen pon energy change. Keep me in. 
     oldUA = terms.USAXS.uaterm.get()
