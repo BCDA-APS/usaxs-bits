@@ -71,8 +71,8 @@ def setheaterOff():
     yield from bps.mv(
         ptc10.enable,
         "Off",  # power downptc10
-        #ptc10.pid.pidmode,
-        #"Off",  # Stop pid loop also
+        ptc10.pid.pidmode,
+        "Off",  # Stop pid loop also
     )
 
 
@@ -84,8 +84,8 @@ def setheaterOn():
     yield from bps.mv(
         ptc10.enable,
         "On",  # power up
-        #ptc10.pid.pidmode,
-        #"On",  # Start pid loop also
+        ptc10.pid.pidmode,
+        "On",  # Start pid loop also
     )
 
 

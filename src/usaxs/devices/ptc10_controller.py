@@ -3,6 +3,8 @@ PTC10 Programmable Temperature Controller
 """
 
 from apstools.devices import PTC10PositionerMixin
+from apstools.devices import PTC10AioChannel
+#from apstools.devices import PTC10RtdChannel
 from ophyd import Component
 from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
@@ -85,7 +87,31 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     enable: Component[EpicsSignalWithRBV] = Component(
         EpicsSignalWithRBV, "outputEnable", kind="config", string=True
     )
+    # used moduly
+    # PTC10 thermocouple module : reads as NaN
+    # temperatureB = Component(
+    #     EpicsSignalRO, "2B:temperature", kind="config"
+    # )
+    # temperatureC = Component(EpicsSignalRO, "2C:temperature", kind="config")
+    # temperatureD = Component(
+    #     EpicsSignalRO,
+    #     "2D:temperature",
+    #     kind="omitted"
+    # )  # it's a NaN now
+    # coldj2 = Component(
+    #     EpicsSignalRO, "ColdJ2:temperature", kind="config"
+    # )
 
+    # PTC10 RTD module
+    # rtd = Component(PTC10RtdChannel, "3A:")  # reads as NaN
+    # rtdB = Component(PTC10RtdChannel, "3B:")  # unused now
+
+    # PTC10 AIO module
+    pid = Component(PTC10AioChannel, "5A:")
+    # pidB = Component(PTC10AioChannel, "5B:")  # unused now
+    # pidC = Component(PTC10AioChannel, "5C:")  # unused now
+    # pidD = Component(PTC10AioChannel, "5D:")  # unused now
+    
     def __init__(self, *args, **kwargs):
         """
         Initialize the PTC10 controller.
@@ -111,26 +137,4 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
         """Get the current ramp rate."""
         return self.pid.ramprate
 
-    # PTC10 thermocouple module : reads as NaN
-    # temperatureB = Component(
-    #     EpicsSignalRO, "2B:temperature", kind="config"
-    # )
-    # temperatureC = Component(EpicsSignalRO, "2C:temperature", kind="config")
-    # temperatureD = Component(
-    #     EpicsSignalRO,
-    #     "2D:temperature",
-    #     kind="omitted"
-    # )  # it's a NaN now
-    # coldj2 = Component(
-    #     EpicsSignalRO, "ColdJ2:temperature", kind="config"
-    # )
 
-    # PTC10 RTD module
-    # rtd = Component(PTC10RtdChannel, "3A:")  # reads as NaN
-    # rtdB = Component(PTC10RtdChannel, "3B:")  # unused now
-
-    # PTC10 AIO module
-    # pid: Component[PTC10AioChannel] = Component(PTC10AioChannel, "5A:")
-    # pidB = Component(PTC10AioChannel, "5B:")  # unused now
-    # pidC = Component(PTC10AioChannel, "5C:")  # unused now
-    # pidD = Component(PTC10AioChannel, "5D:")  # unused now
