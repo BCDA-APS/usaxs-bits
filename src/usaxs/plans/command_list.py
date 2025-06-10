@@ -100,7 +100,7 @@ def postCommandsListfile2WWW(commands):
 
     # post for livedata page
     # path = "/tmp"
-    path = "/share1/local_livedata"
+    path = "/home/joule/WEBUSAXS/www_live"
     with open(os.path.join(path, tbl_file), "w") as fp:
         fp.write(file_contents)
 
