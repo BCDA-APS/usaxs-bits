@@ -91,7 +91,8 @@ def beforeScanComputeOtherStuff():
 @plan
 def postCommandsListfile2WWW(commands):
     """Post list of commands to WWW and archive the list for posterity."""
-    tbl_file = "commands.txt"
+    #tbl_file = "commands.txt"
+    tbl_file = "specmacro.txt"
     tbl = command_list_as_table(commands)
     timestamp = datetime.datetime.now().isoformat().replace("T", " ")
     file_contents = "bluesky command sequence\n"
