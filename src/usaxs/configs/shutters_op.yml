@@ -1,7 +1,7 @@
 usaxs.devices.shutters.My12IdPssShutter:
 - name: FE_shutter
   state_pv: "PA:12ID:STA_A_FES_OPEN_PL"
-  prefix: "PA:12ID:"
+  prefix: "12ida2:rShtrA:"
   labels: ["shutters"]
 
 apstools.devices.ApsPssShutterWithStatus:

@@ -25,8 +25,8 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
     """
 
     # bo records that reset after a short time, set to 1 to move
-    open_signal: Component[EpicsSignal] = Component(EpicsSignal, "_opn")
-    close_signal: Component[EpicsSignal] = Component(EpicsSignal, "_cls")
+    open_signal: Component[EpicsSignal] = Component(EpicsSignal, "Open")
+    close_signal: Component[EpicsSignal] = Component(EpicsSignal, "Close")
     # bi record ZNAM=OFF, ONAM=ON
     pss_state: FormattedComponent[EpicsSignalRO] = FormattedComponent(
         EpicsSignalRO, "{self.state_pv}"
