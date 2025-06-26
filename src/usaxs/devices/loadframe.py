@@ -11,10 +11,9 @@ from ophyd import Device
 
 
 # define device. Only motor position and readback on strain needed.
-class loadFrameDevice(Device):
-    Extension = Component(EpicsMotor, "usxLAX:m58:c2:m1")
-    StrainRBV = Component(EpicsSignalRO, "usxLAX:userCalc2.VAL")
-
+class LoadFrameDevice(Device):
+     extension = Component(EpicsMotor, "usxLAX:m58:c2:m1", kind="hinted")
+     strain= Component(EpicsSignalRO, "usxLAX:userCalc2.VAL", kind="hinted")
 
 
 # create the Python object:
