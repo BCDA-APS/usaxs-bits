@@ -1,0 +1,46 @@
+# USAXS: amplifiers and scalers are tightly-coupled.
+
+ophyd.scaler.ScalerCH:
+  - { name: scaler0, prefix: "usxLAX:vsc:c0" }
+  - { name: scaler1, prefix: "usxLAX:vsc:c1" }
+
+usaxs.devices.amplifiers.ModifiedSwaitRecord:
+  - { name: I0_photocurrent_calc, prefix: "usxLAX:USAXS:I0" }
+  - { name: I00_photocurrent_calc, prefix: "usxLAX:USAXS:I00" }
+  - { name: I000_photocurrent_calc, prefix: "usxLAX:USAXS:I000" }
+  - { name: trd_photocurrent_calc, prefix: "usxLAX:USAXS:trd" }
+  - { name: upd_photocurrent_calc, prefix: "usxLAX:USAXS:upd" }
+
+usaxs.devices.amplifiers.FemtoAmplifierDevice:
+  - { name: I0_femto_amplifier, prefix: "usxRIO:fem02:seq01:" }
+  - { name: I00_femto_amplifier, prefix: "usxRIO:fem03:seq01:" }
+  - { name: I000_femto_amplifier, prefix: "usxRIO:fem04:seq01:" }
+  - { name: trd_femto_amplifier, prefix: "usxRIO:fem05:seq01:" }
+
+  # DLCPA200
+  # - { name: upd_femto_amplifier, prefix: "usxLAX:pd01:seq01:" }
+
+  # DDPCA300
+  - { name: upd_femto_amplifier, prefix: "usxLAX:fem09:seq02:" }
+
+usaxs.devices.amplifiers.AmplifierAutoDevice:
+  - name: I0_autorange_controls
+    prefix: "usxLAX:pd02:seq01:"
+    labels: [baseline]
+
+  - name: I00_autorange_controls
+    prefix: "usxLAX:pd03:seq01:"
+    labels: [baseline]
+
+  - name: trd_autorange_controls
+    prefix: "usxLAX:pd05:seq01:"
+    labels: [baseline]
+
+  # Nothing for I000
+
+  - name: upd_autorange_controls
+    prefix: "usxLAX:pd01:seq02:"  # DDPCA300
+    # prefix: "usxLAX:pd01:seq01:"  # DLCPA200
+    labels: [baseline]
+
+# Autorange devices are loaded _after_ the above devices.

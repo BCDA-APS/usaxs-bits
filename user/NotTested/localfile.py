@@ -7,10 +7,11 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-from instrument.utils.cleanup_text import cleanupText
+import pathlib
+
 from instrument.utils import getSampleTitle
 from instrument.utils import setSampleTitleFunction
-import pathlib
+from apstools.utils import cleanupText
 
 
 def myNamer(title):

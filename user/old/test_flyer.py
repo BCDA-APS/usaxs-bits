@@ -1,17 +1,17 @@
 # raise RuntimeError("Work-in-progress, do not use yet")
 # %matplotlib auto
+import databroker
 from apstools.devices import EpicsOnOffShutter
-from apstools.devices import make_dict_device
 from apstools.devices import ScalerMotorFlyer
+from apstools.devices import make_dict_device
+from bluesky import RunEngine
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 from bluesky import preprocessors as bpp
-from bluesky import RunEngine
 from bluesky.callbacks.best_effort import BestEffortCallback
 from matplotlib import pyplot as plt
 from ophyd import EpicsMotor
 from ophyd.scaler import ScalerCH
-import databroker
 
 cat = databroker.catalog["20idb_usaxs"].v2
 plt.ion()  # enables matplotlib graphics
@@ -24,7 +24,7 @@ a2rp = EpicsMotor("usxLAX:pi:c0:m1", name="a2rp")
 ar = EpicsMotor("usxAERO:m6", name="ar")
 mr = EpicsMotor("usxAERO:m12", name="mr")
 scaler1 = ScalerCH("usxLAX:vsc:c0", name="scaler1")
-shutter = EpicsOnOffShutter("usxLAX:userTran3.A", name="shutter")  # ti_filter_shutter
+shutter = EpicsOnOffShutter("usxLAX:userTran3.A", name="shutter")  # usaxs_shutter
 
 for o in (mr, ar, a2rp, scaler1, shutter):
     o.wait_for_connection()
@@ -32,7 +32,6 @@ scaler1.select_channels()
 
 
 class MyScalerMotorFlyer(ScalerMotorFlyer):
-
     tolerance = 1
 
     def _action_taxi(self):
@@ -117,7 +116,7 @@ def fly_with_stats(flyers, *, md=None):
                         if v is not None
                         # fmt: on
                     },
-                    name=ch
+                    name=ch,
                 )
             )
         yield from bps.save()
@@ -126,11 +125,17 @@ def fly_with_stats(flyers, *, md=None):
 
 
 def my_fly_plan(
-    scaler, motor, start, finish,
-    fly_time=10.0, period=0.5,
-    fly_time_pad=2, scaler_time_pad=2,
+    scaler,
+    motor,
+    start,
+    finish,
+    fly_time=10.0,
+    period=0.5,
+    fly_time_pad=2,
+    scaler_time_pad=2,
     tolerance=1,
-    name="flyer", md={}
+    name="flyer",
+    md={},
 ):
     """
     my_fly_plan: Continuous motion scan of scaler v motor at constant velocity.
@@ -168,10 +173,15 @@ def my_fly_plan(
         Dictionary of metadata.
     """
     flyer = MyScalerMotorFlyer(
-        scaler, motor, start, finish,
-        fly_time=fly_time, period=period,
-        fly_time_pad=fly_time_pad, scaler_time_pad=scaler_time_pad,
-        name=name
+        scaler,
+        motor,
+        start,
+        finish,
+        fly_time=fly_time,
+        period=period,
+        fly_time_pad=fly_time_pad,
+        scaler_time_pad=scaler_time_pad,
+        name=name,
     )
     flyer.tolerance = tolerance
 

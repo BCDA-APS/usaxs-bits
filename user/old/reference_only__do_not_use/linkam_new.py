@@ -6,21 +6,26 @@ logger = logging.getLogger(__name__)
 logger.info(__file__)
 
 
-from bluesky import plan_stubs as bps
 import subprocess
 import time
 
-from instrument.devices import linkam_ci94, linkam_tc1, terms
-from instrument.plans import SAXS, USAXSscan, WAXS, preUSAXStune
-from instrument.utils import getSampleTitle, resetSampleTitleFunction, setSampleTitleFunction
-from instrument.plans import before_command_list
+from bluesky import plan_stubs as bps
+from instrument.devices import linkam_ci94
+from instrument.devices import terms
+from instrument.plans import SAXS
+from instrument.plans import WAXS
+from instrument.plans import USAXSscan
 from instrument.plans import after_command_list
+from instrument.plans import before_command_list
+from instrument.utils import resetSampleTitleFunction
+from instrument.utils import setSampleTitleFunction
 
 HEATER_SCRIPT = "/home/beams/USAXS/bin/heater_profile_manager.sh"
 PULSE_MAX = 10000
 SECOND = 1
-MINUTE = 60*SECOND
-HOUR = 60*MINUTE
+MINUTE = 60 * SECOND
+HOUR = 60 * MINUTE
+
 
 def commandHeaterProcess(command="checkup"):
     """
@@ -32,9 +37,7 @@ def commandHeaterProcess(command="checkup"):
     * status - show process info if running
     * stop - stop the process
     """
-    response = subprocess.run(
-        f"{HEATER_SCRIPT} {command}".split(), capture_output=True
-    )
+    response = subprocess.run(f"{HEATER_SCRIPT} {command}".split(), capture_output=True)
     return response.stdout.decode().strip()
 
 
@@ -55,7 +58,7 @@ def myLinkamPlan(pos_X, pos_Y, thickness, scan_title, delayhours, md={}):
 
     def collectAllThree(debug=False):
         if debug:
-            #for testing purposes, set debug=True
+            # for testing purposes, set debug=True
             sampleMod = myTitleFunction(scan_title)
             print(sampleMod)
             yield from bps.sleep(20)
@@ -64,17 +67,17 @@ def myLinkamPlan(pos_X, pos_Y, thickness, scan_title, delayhours, md={}):
             yield from SAXS(pos_X, pos_Y, thickness, scan_title, md={})
             yield from WAXS(pos_X, pos_Y, thickness, scan_title, md={})
 
-    #linkam = linkam_tc1
+    # linkam = linkam_tc1
     linkam = linkam_ci94
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
 
     # this runs start of scan code...
     yield from before_command_list(md={})
-    #yield from preUSAXStune()
-    
+    # yield from preUSAXStune()
+
     setSampleTitleFunction(myTitleFunction)
 
-    t1 = time.time()                                      # it is used in myTitileFunction
+    t1 = time.time()  # it is used in myTitileFunction
     yield from collectAllThree()
 
     # signal the (external) Linkam control python program to start
@@ -90,9 +93,9 @@ def myLinkamPlan(pos_X, pos_Y, thickness, scan_title, delayhours, md={}):
     yield from bps.mv(terms.HeaterProcess.linkam_trigger, 1)
 
     t1 = time.time()
-    delay = delayhours * HOUR                         # convert to seconds
+    delay = delayhours * HOUR  # convert to seconds
 
-    while time.time()-t1 < delay:                          # collects data for delay seconds
+    while time.time() - t1 < delay:  # collects data for delay seconds
         yield from collectAllThree()
 
     logger.info("Finished after %.3f seconds", delay)
@@ -103,10 +106,9 @@ def myLinkamPlan(pos_X, pos_Y, thickness, scan_title, delayhours, md={}):
     yield from bps.mv(terms.HeaterProcess.linkam_exit, 1)  # orderly
     # commandHeaterProcess("stop")  # abrupt
 
-     # run endof scan code.
+    # run endof scan code.
     yield from after_command_list()
 
     resetSampleTitleFunction()
 
-    logger.info(f"finished")
-
+    logger.info("finished")

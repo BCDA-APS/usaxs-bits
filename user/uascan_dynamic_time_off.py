@@ -1,4 +1,3 @@
-
 """
 Turn off dynamic time in uascan.
 
@@ -14,11 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from instrument.devices import terms
-
+from usaxs.devices import terms
 
 terms.USAXS.useDynamicTime.put(False)
-logger.info(
-    "terms.USAXS.useDynamicTime = %s",
-    terms.USAXS.useDynamicTime.get()
-)
+logger.info("terms.USAXS.useDynamicTime = %s", terms.USAXS.useDynamicTime.get())

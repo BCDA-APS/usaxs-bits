@@ -1,0 +1,11 @@
+apstools.devices.SimulatedApsPssShutterWithStatus:
+- name: FE_shutter
+  labels: ["shutters"]
+- name: mono_shutter
+  labels: ["shutters"]
+- name: usaxs_shutter
+  labels: ["shutters"]
+
+ophyd.Signal:
+- name: a_shutter_autoopen
+  value: 0

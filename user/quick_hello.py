@@ -10,18 +10,15 @@ EXAMPLE::
     RE(hello_world())
 """
 
-__all__ = """
-    hello_world
-""".split()
-
 import logging
 
 logger = logging.getLogger(__name__)
 logger.info(__file__)
 
-from ophyd import Component, Device, Signal
-
 from bluesky import plans as bp
+from ophyd import Component
+from ophyd import Device
+from ophyd import Signal
 
 print("Loading 'Hello, World!' example.")
 
