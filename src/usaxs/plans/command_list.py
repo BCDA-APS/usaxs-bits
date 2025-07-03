@@ -207,27 +207,23 @@ def verify_commands(commands):
             # check sx against travel limits
             if sx < s_stage.x.low_limit:
                 errors.append(
-                    f"line {i}: SX low limit: value {sx} < low limit {
-                        s_stage.x.low_limit}, "
+                    f"line {i}: SX low limit: value {sx} < low limit {s_stage.x.low_limit}, "  # noqa: E501
                     f"command: {raw_command.strip()}"
                 )
             if sx > s_stage.x.high_limit:
                 errors.append(
-                    f"line {i}: SX high limit: value {sx} > high limit {
-                        s_stage.x.high_limit}, "
+                    f"line {i}: SX high limit: value {sx} > high limit {s_stage.x.high_limit}, "  # noqa: E501
                     f"command: {raw_command.strip()}"
                 )
             # check sy against travel limits
             if sy < s_stage.y.low_limit:
                 errors.append(
-                    f"line {i}: SY low limit: value {sy} < low limit {
-                        s_stage.y.low_limit}, "
+                    f"line {i}: SY low limit: value {sy} < low limit {s_stage.y.low_limit}, "  # noqa: E501
                     f"command: {raw_command.strip()}"
                 )
             if sy > s_stage.y.high_limit:
                 errors.append(
-                    f"line {i}: SY high limit: value {sy} > high limit {
-                        s_stage.y.high_limit}, "
+                    f"line {i}: SY high limit: value {sy} > high limit {s_stage.y.high_limit}, "  # noqa: E501
                     f"command: {raw_command.strip()}"
                 )
             # check sth for reasonable sample thickness value
