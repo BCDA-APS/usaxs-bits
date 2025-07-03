@@ -11,7 +11,6 @@ import os
 import pyRestTable
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import ExcelDatabaseFileGeneric
-from apstools.utils import rss_mem
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 from ophyd import Signal
@@ -30,7 +29,6 @@ from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .mode_changes import mode_WAXS
-from .filter_plans import insertScanFilters
 from .plans_tune import allUSAXStune
 from .plans_tune import preSWAXStune
 from .plans_tune import preUSAXStune
@@ -91,7 +89,7 @@ def beforeScanComputeOtherStuff():
 @plan
 def postCommandsListfile2WWW(commands):
     """Post list of commands to WWW and archive the list for posterity."""
-    #tbl_file = "commands.txt"
+    # tbl_file = "commands.txt"
     tbl_file = "specmacro.txt"
     tbl = command_list_as_table(commands)
     timestamp = datetime.datetime.now().isoformat().replace("T", " ")
@@ -108,8 +106,10 @@ def postCommandsListfile2WWW(commands):
     # post to EPICS
     yield from bps.mv(
         # fmt: off
-        user_data.macro_file,         os.path.split(tbl_file)[-1],
-        user_data.macro_file_time,    timestamp,
+        user_data.macro_file,
+        os.path.split(tbl_file)[-1],
+        user_data.macro_file_time,
+        timestamp,
         # fmt: on
     )
 
@@ -133,8 +133,10 @@ def before_command_list(md=None, commands=None):
 
     yield from bps.mv(
         # fmt: off
-        user_data.time_stamp,         str(datetime.datetime.now()),
-        user_data.collection_in_progress,         1,
+        user_data.time_stamp,
+        str(datetime.datetime.now()),
+        user_data.collection_in_progress,
+        1,
         # fmt: on
     )
 
@@ -142,10 +144,14 @@ def before_command_list(md=None, commands=None):
 
     yield from bps.mv(
         # fmt: off
-        usaxs_shutter,         "close",
-        terms.SAXS.collecting,         0,
-        terms.WAXS.collecting,         0,
-        a_shutter_autoopen,            1,
+        usaxs_shutter,
+        "close",
+        terms.SAXS.collecting,
+        0,
+        terms.WAXS.collecting,
+        0,
+        a_shutter_autoopen,
+        1,
         # fmt: on
     )
 
@@ -186,12 +192,13 @@ def verify_commands(commands):
         action, args, i, raw_command = command
         if action.lower() in scan_actions:
             # if args[2].isnumeric() is False :
-            #    list_of_errors.append(f"line {i}: thickness incorrect for : {raw_command.strip()}")
+            #    list_of_errors.append(f"line {i}: thickness incorrect for :
+            # {raw_command.strip()}")
             try:
                 sx = float(args[0])
                 sy = float(args[1])
                 sth = float(args[2])
-                snm = args[3]
+                # snm = args[3]
             except (IndexError, ValueError) as exinfo:
                 errors.append(
                     f"line {i}: Improper command : {raw_command.strip()} : {exinfo}"
@@ -200,23 +207,27 @@ def verify_commands(commands):
             # check sx against travel limits
             if sx < s_stage.x.low_limit:
                 errors.append(
-                    f"line {i}: SX low limit: value {sx} < low limit {s_stage.x.low_limit}, "
+                    f"line {i}: SX low limit: value {sx} < low limit {
+                        s_stage.x.low_limit}, "
                     f"command: {raw_command.strip()}"
                 )
             if sx > s_stage.x.high_limit:
                 errors.append(
-                    f"line {i}: SX high limit: value {sx} > high limit {s_stage.x.high_limit}, "
+                    f"line {i}: SX high limit: value {sx} > high limit {
+                        s_stage.x.high_limit}, "
                     f"command: {raw_command.strip()}"
                 )
             # check sy against travel limits
             if sy < s_stage.y.low_limit:
                 errors.append(
-                    f"line {i}: SY low limit: value {sy} < low limit {s_stage.y.low_limit}, "
+                    f"line {i}: SY low limit: value {sy} < low limit {
+                        s_stage.y.low_limit}, "
                     f"command: {raw_command.strip()}"
                 )
             if sy > s_stage.y.high_limit:
                 errors.append(
-                    f"line {i}: SY high limit: value {sy} > high limit {s_stage.y.high_limit}, "
+                    f"line {i}: SY high limit: value {sy} > high limit {
+                        s_stage.y.high_limit}, "
                     f"command: {raw_command.strip()}"
                 )
             # check sth for reasonable sample thickness value
@@ -224,7 +235,8 @@ def verify_commands(commands):
                 print(
                     f"{sth = } from args[2] = float('{args[2]}') -- thickness problem"
                 )
-            #    list_of_errors.append(f"line {i}: thickness incorrect for : {raw_command.strip()}")
+            #    list_of_errors.append(f"line {i}: thickness incorrect for :
+            #  {raw_command.strip()}")
             # check snm for reasonable sample title value
     if len(errors) > 0:
         err_msg = (
@@ -244,9 +256,12 @@ def after_command_list(md=None):
     #     md = {}
     yield from bps.mv(
         # fmt: off
-        user_data.time_stamp,         str(datetime.datetime.now()),
-        user_data.collection_in_progress,         0,
-        usaxs_shutter,              "close",
+        user_data.time_stamp,
+        str(datetime.datetime.now()),
+        user_data.collection_in_progress,
+        0,
+        usaxs_shutter,
+        "close",
         # fmt: on
     )
     yield from user_data.set_state_plan("USAXS macro file done")
@@ -278,7 +293,8 @@ def after_plan(weight=1, md=None):
 
     yield from bps.mv(  # increment it
         # fmt: off
-        terms.preUSAXStune.num_scans_last_tune, terms.preUSAXStune.num_scans_last_tune.get() + weight,
+        terms.preUSAXStune.num_scans_last_tune,
+        terms.preUSAXStune.num_scans_last_tune.get() + weight,
         # fmt: on
     )
 
@@ -474,12 +490,13 @@ def execute_command_list(filename, commands, md=None):
     text = f"Command file: {filename}\n"
     text += str(command_list_as_table(commands))
     logger.info(text)
-    #logger.info("memory report: %s", rss_mem())
+    # logger.info("memory report: %s", rss_mem())
 
     # save the command list as a separate Bluesky run for documentation purposes
     # yield from documentation_run(text)
 
-    # TODO: figure out what this was doing, does not seem to have the code available in bits
+    # TODO: figure out what this was doing, does not seem to have the code available in
+    # bits
     # instrument_archive(text)
 
     yield from before_command_list(md=md, commands=commands)
@@ -559,7 +576,7 @@ def execute_command_list(filename, commands, md=None):
             else:
                 logger.debug("no handling for line %d: %s", i, raw_command)
                 yield from bps.null()
-            #logger.info("memory report: %s", rss_mem())
+            # logger.info("memory report: %s", rss_mem())
 
         attempt = 0  # count the number of attempts
         maximum_attempts = MAXIMUM_ATTEMPTS  # set an upper limit
@@ -600,7 +617,7 @@ def execute_command_list(filename, commands, md=None):
             break
 
     yield from after_command_list(md=md)
-    #logger.info("memory report: %s", rss_mem())
+    # logger.info("memory report: %s", rss_mem())
 
 
 @plan
@@ -619,9 +636,12 @@ def sync_order_numbers():
     logger.debug("Synchronizing detector order numbers to %d", order_number)
     yield from bps.mv(
         # fmt: off
-        terms.FlyScan.order_number,         order_number,
-        saxs_det.hdf1.file_number,          order_number,
-        waxs_det.hdf1.file_number,          order_number,
+        terms.FlyScan.order_number,
+        order_number,
+        saxs_det.hdf1.file_number,
+        order_number,
+        waxs_det.hdf1.file_number,
+        order_number,
         # fmt: on
     )
 

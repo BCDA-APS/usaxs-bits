@@ -3,9 +3,6 @@ plans to control the beam filters
 """
 
 import logging
-from typing import Any
-from typing import Dict
-from typing import Optional
 from typing import Union
 
 from apsbits.core.instrument_init import oregistry
@@ -114,8 +111,8 @@ def insertScanFilters():
     USAGE:  ``RE(insertScanFilters())``
     """
     yield from _insertFilters_(
-        terms.USAXS.scan_filters.Al.get(),    # Bank A: Al
-        #terms.USAXS.scan_filters.Ti.get(),    # Bank B: Ti
+        terms.USAXS.scan_filters.Al.get(),  # Bank A: Al
+        # terms.USAXS.scan_filters.Ti.get(),    # Bank B: Ti
     )
 
 

@@ -3,19 +3,16 @@ Reset the instrument.
 """
 
 import logging
-from typing import Any
-from typing import Dict
-from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
 from usaxs.devices.amplifiers import AutorangeSettings
-#from ..utils.emails import NOTIFY_ON_RESET
-#from ..utils.emails import send_notification
+
+# from ..utils.emails import NOTIFY_ON_RESET
+# from ..utils.emails import send_notification
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 
@@ -51,15 +48,24 @@ def reset_USAXS():
     yield from MONO_FEEDBACK_ON()
     yield from bps.mv(
         # fmt: off
-        scaler0.count_mode,         SCALER_AUTOCOUNT_MODE,
-        upd_controls.auto.mode,     AutorangeSettings.auto_background,
-        I0_controls.auto.mode,      AutorangeSettings.manual,
-        I00_controls.auto.mode,     AutorangeSettings.manual,
-        usaxs_shutter,              "close",
-        user_data.scanning,         "no",
-        d_stage.x,                  terms.USAXS.DX0.get(),
-        a_stage.x,                  terms.USAXS.AX0.get(),
-        a_stage.r,                  terms.USAXS.ar_val_center.get(),       
+        scaler0.count_mode,
+        SCALER_AUTOCOUNT_MODE,
+        upd_controls.auto.mode,
+        AutorangeSettings.auto_background,
+        I0_controls.auto.mode,
+        AutorangeSettings.manual,
+        I00_controls.auto.mode,
+        AutorangeSettings.manual,
+        usaxs_shutter,
+        "close",
+        user_data.scanning,
+        "no",
+        d_stage.x,
+        terms.USAXS.DX0.get(),
+        a_stage.x,
+        terms.USAXS.AX0.get(),
+        a_stage.r,
+        terms.USAXS.ar_val_center.get(),
         # fmt: on
     )
     # move_list = [
@@ -78,7 +84,7 @@ def reset_USAXS():
     TRD.kind = "hinted"  # correct value
     I0.kind = "hinted"  # correct value
     I00.kind = "hinted"  # correct value
-    for obj in (m_stage.r, a_stage.r, a_stage.x, s_stage.y,s_stage.x, d_stage.x):
+    for obj in (m_stage.r, a_stage.r, a_stage.x, s_stage.y, s_stage.x, d_stage.x):
         obj.kind = "normal"  #  correct value
         obj.user_setpoint.kind = "normal"  #  correct value
         obj.user_readback.kind = "hinted"  #  correct value
@@ -94,6 +100,7 @@ def reset_USAXS():
 
     yield from bps.mv(
         # fmt: off
-        user_data.collection_in_progress,         0,  # despite the label, 0 means not collecting
+        user_data.collection_in_progress,
+        0,  # despite the label, 0 means not collecting
         # fmt: on
     )

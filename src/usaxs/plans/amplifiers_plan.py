@@ -196,20 +196,22 @@ def _scaler_autoscale_(
             last_gain_dict[control.auto.gain.name] = gain_now
 
             # are we topped up on any detector?
-            # also, if we changed are we still too low? This helps increase gain if needed.
+            # also, if we changed are we still too low?
+            # This helps increase gain if needed.
             max_rate = control.auto.max_count_rate.get()
             min_rate = control.auto.min_count_rate.get()
             if isinstance(control.signal, ScalerChannel):  # ophyd.ScalerCH
                 actual_rate = control.signal.s.get() / control.scaler.time.get()
             elif isinstance(control.signal, EpicsSignalRO):  # ophyd.EpicsScaler
-                # actual_rate = control.signal.get()  / control.scaler.time.get()    # FIXME
+                # actual_rate = control.signal.get()  / control.scaler.time.get()# FIXME
                 raise RuntimeError("This scaler needs to divide by time")
             else:
                 raise ValueError(f"unexpected control.signal: {control.signal}")
             converged.append(actual_rate <= max_rate)
             if changed:
                 converged.append(actual_rate >= min_rate)
-            # print(f"gain={gain_now}  rate: {actual_rate}  max: {max_rate} min: {min_rate}")
+            # print(f"gain={gain_now}  rate: {actual_rate}
+            # max: {max_rate} min: {min_rate}")
             # print(converged)
             # logger.debug(
             #     "gain={gain_now}  rate: {actual_rate}  "

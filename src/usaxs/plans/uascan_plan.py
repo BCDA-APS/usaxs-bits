@@ -12,7 +12,6 @@ from collections import OrderedDict
 from typing import Any
 from typing import Dict
 from typing import Optional
-from ..startup import bec
 
 # Get devices from oregistry
 from apsbits.core.instrument_init import oregistry
@@ -21,6 +20,7 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
+from ..startup import bec
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
 
@@ -190,7 +190,7 @@ def uascan(
         I00_controls.auto.reqrange,
         trd_controls.auto.reqrange,
     ]
-    
+
     bec.enable_table()
 
     # do not report the "quiet" detectors/stages during a uascan
@@ -293,8 +293,9 @@ def uascan(
 
             if terms.USAXS.useSBUSAXS.get():
                 # adjust the ASRP piezo on the AS side-bounce stage
-                tanBragg = math.tan(reference * math.pi / 180)
-                cosScatAngle = math.cos((reference - target_ar) * math.pi / 180)
+                # tanBragg = math.tan(reference * math.pi / 180)
+                # cosScatAngle = math.cos((reference - target_ar) * math.pi / 180)
+                pass
 
             yield from user_data.set_state_plan(f"moving motors {i + 1}/{intervals}")
             yield from bps.mv(*moves)

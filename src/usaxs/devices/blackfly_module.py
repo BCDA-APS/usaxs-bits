@@ -157,9 +157,9 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         read_path_template=READ_IMAGE_FILE_PATH,
         kind="normal",
     )
-    #trans1: ADComponent[TransformPlugin] = ADComponent(TransformPlugin, "Trans1:")
-    #cc1: ADComponent[ColorConvPlugin] = ADComponent(ColorConvPlugin, "CC1:")
-    #proc1: ADComponent[ProcessPlugin] = ADComponent(ProcessPlugin, "Proc1:")
+    # trans1: ADComponent[TransformPlugin] = ADComponent(TransformPlugin, "Trans1:")
+    # cc1: ADComponent[ColorConvPlugin] = ADComponent(ColorConvPlugin, "CC1:")
+    # proc1: ADComponent[ProcessPlugin] = ADComponent(ProcessPlugin, "Proc1:")
 
     @property
     def image_file_name(self) -> str:
@@ -185,9 +185,12 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
         yield from bps.mv(
             # fmt: off
-            plugin.file_path,             path,
-            plugin.file_name,             filename_base,
-            plugin.file_number,           order_number,
+            plugin.file_path,
+            path,
+            plugin.file_name,
+            filename_base,
+            plugin.file_number,
+            order_number,
             # fmt: on
         )
 

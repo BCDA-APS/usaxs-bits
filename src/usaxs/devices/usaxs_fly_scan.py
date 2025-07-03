@@ -102,9 +102,10 @@ class UsaxsFlyScanDevice(Device):
 #             t = time.time()
 #             timeout = t + self.scan_time.get() + self.timeout_s # extra padded time
 #             startup = t + self.update_interval_s/2
-#             while t < startup and not self.flying.get():    # wait for flyscan to start
+#             while t < startup and not self.flying.get():  # wait for flyscan to start
 #                 time.sleep(0.01)
-#             labels = ("flying, s", "ar, deg", "ax, mm", "dx, mm", "channel", "elapsed, s")
+#             labels = ("flying, s", "ar, deg", "ax, mm", "dx, mm", "channel",
+#                                                                   "elapsed, s")
 #             logger.info("  ".join([f"{s:11}" for s in labels]))
 #             while t < timeout and self.flying.get():
 #                 if t > self.update_time:
@@ -125,7 +126,7 @@ class UsaxsFlyScanDevice(Device):
 #         def prepare_HDF5_file():
 #             fname = os.path.abspath(self.saveFlyData_HDF5_dir)
 #             if not os.path.exists(fname):
-#                 msg = f"Must save fly scan data to an existing directory.  Gave {fname}"
+#                 msg = f"Must save fly scan data to an existing directory.Gave {fname}"
 #                 fname = os.path.abspath(self.fallback_dir)
 #                 msg += f"  Using fallback directory {self.fallback_dir}"
 #                 logger.error(msg)
@@ -134,7 +135,8 @@ class UsaxsFlyScanDevice(Device):
 #             _s_ = os.path.join(fname, s)      # for testing here
 #             if os.path.exists(_s_):
 #                 msg = f"File {_s_} exists.  Will not overwrite."
-#                 s = datetime.datetime.isoformat(datetime.datetime.now(), sep="_").split(".")[0]
+#                 s = datetime.datetime.isoformat(datetime.datetime.now(),
+#                                                                sep="_").split(".")[0]
 #                 s = s.replace(":", "").replace("-", "")
 #                 # s = "flyscan_" + s + ".h5"
 #                 _s_ = os.path.join(fname, s)
@@ -151,7 +153,6 @@ class UsaxsFlyScanDevice(Device):
 #             self.saveFlyData = SaveFlyScan(
 #                 fname,
 #                 config_file=self.saveFlyData_config)
-#             # logger.debug(resource_usage("before saveFlyData.preliminaryWriteFile()"))
 #             self.saveFlyData.preliminaryWriteFile()
 #             # logger.debug(resource_usage("after saveFlyData.preliminaryWriteFile()"))
 
@@ -190,9 +191,11 @@ class UsaxsFlyScanDevice(Device):
 #             yield from bps.abs_set(self.flying, False)
 
 #         if bluesky_runengine_running:
-#             prepare_HDF5_file()      # prepare HDF5 file to save fly scan data (background thread)
+#             prepare_HDF5_file()      # prepare HDF5 file to save fly scan data
+#                                      # (background thread)
 #         # path = os.path.abspath(self.saveFlyData_HDF5_dir)
-#         specwriter._cmt("start", f"HDF5 configuration file: {self.saveFlyData_config}")
+#         specwriter._cmt("start",
+#                         f"HDF5 configuration file: {self.saveFlyData_config}")
 
 #         g = uuid.uuid4()
 #         yield from bps.abs_set(
@@ -207,7 +210,6 @@ class UsaxsFlyScanDevice(Device):
 
 #         if self.flying._status is not None and not self.flying._status.done:
 #             # per https://github.com/APS-USAXS/ipython-usaxs/issues/499
-#             logger.warning("Clearing unfinished status object on 'usaxs_flyscan/flying'")
 #             self.flying._status.set_finished()
 #         if not self.flying.get():
 #             yield from bps.abs_set(self.flying, True)
@@ -235,7 +237,8 @@ class UsaxsFlyScanDevice(Device):
 #                 # see: https://github.com/APS-USAXS/ipython-usaxs/issues/417
 #                 user_data.state._set_thread = None
 #             # logger.debug(resource_usage("before saveFlyData.finish_HDF5_file()"))
-#             finish_HDF5_file()    # finish saving data to HDF5 file (background thread)
+#             finish_HDF5_file()    # finish saving data to HDF5 file
+#                                   # (background thread)
 #             # logger.debug(resource_usage("after saveFlyData.finish_HDF5_file()"))
 #             specwriter._cmt("stop", f"finished {msg}")
 #             logger.info(f"finished {msg}")

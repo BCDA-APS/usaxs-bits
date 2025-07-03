@@ -78,7 +78,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
         md = {}
 
     yield from IfRequestedStopBeforeNextScan()
-    success = False
+    # success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
@@ -110,7 +110,7 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
             "auto+background",
         )
         scaler0.select_channels()
-        success = stats.analysis.success
+        # success = stats.analysis.success
         if stats.analysis.success:
             yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
             logger.debug(f"final position: {m_stage.r.position}")
@@ -156,7 +156,7 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_ar"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r.name}")
-        axis_start = a_stage.r.position
+        # axis_start = a_stage.r.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -192,8 +192,10 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         if success:
             yield from bps.mv(
                 # fmt: off
-                terms.USAXS.ar_val_center,                 a_stage.r.position,
-                usaxs_q_calc.channels.B.input_value,       a_stage.r.position,
+                terms.USAXS.ar_val_center,
+                a_stage.r.position,
+                usaxs_q_calc.channels.B.input_value,
+                a_stage.r.position,
                 # fmt: on
             )
             logger.debug(f"final position: {a_stage.r.position}")
@@ -228,7 +230,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
     """
     if md is None:
         md = {}
-    success = False
+    # success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
@@ -237,7 +239,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_a2rp"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r2p.name}")
-        axis_start = a_stage.r2p.position
+        # axis_start = a_stage.r2p.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -268,7 +270,7 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             "auto+background",
         )
         scaler0.select_channels()
-        success = stats.analysis.success
+        # success = stats.analysis.success
         if stats.analysis.success:
             logger.debug(f"final position: {a_stage.r2p.position}")
         else:
@@ -312,7 +314,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_dx"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {d_stage.x.name}")
-        axis_start = d_stage.x.position
+        # axis_start = d_stage.x.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -388,7 +390,7 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_dy"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {d_stage.y.name}")
-        axis_start = d_stage.y.position
+        # axis_start = d_stage.y.position
         yield from bps.mv(
             mono_shutter,
             "open",

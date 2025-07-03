@@ -19,7 +19,7 @@ attempt: 1 of 1
 exception: Status(obj=EpicsSignalWithRBV(read_pv='usaxs_eiger1:HDF1:FileName_RBV', name='waxs_det_hdf1_file_name', parent='waxs_det_hdf1', value='t', timestamp=1748802429.636288, auto_monitor=True, string=True, write_pv='usaxs_eiger1:HDF1:FileName', limits=False, put_complete=False), done=True, success=False)
 Stopping further processing of this command list.
 
-Out[2]: 
+Out[2]:
 ('5e88265e-b9af-4509-806f-aa1a00650a4a',
  '0ec1f7d4-97dd-4774-ade7-e4b98ff0a13e',
  'e1d8cc76-845a-4334-a6f4-52af113fb62c',
@@ -35,7 +35,7 @@ None
 Result: True
 Out[2]: ('9d391c32-4045-4bfa-9a92-b6ee2eabb5b5',)
 
-In [3]: 
+In [3]:
 None
 I Sun-13:26:02.645: Creating technique directory: /share1/USAXS_data/2025-05/06_01_Eric/06_01_Eric_usaxs
 I Sun-13:26:02.646: Flyscan HDF5 data file: /share1/USAXS_data/2025-05/06_01_Eric/06_01_Eric_usaxs test_0036.h5
@@ -45,14 +45,14 @@ I Sun-13:26:08.038: Measured USAXS transmission values : Diode = 1 with gain 1e+
 Transient Scan ID: 4     Time: 2025-06-01 13:26:10
 Persistent Unique Scan ID: 'e1d8cc76-845a-4334-a6f4-52af113fb62c'
 I Sun-13:26:10.882: HDF5 file : /share1/USAXS_data/2025-05/06_01_Eric/06_01_Eric_usaxs/test_0036.h5
-I Sun-13:26:10.893: flying, s    ar, deg      ax, mm       dx, mm       channel      elapsed, s 
-I Sun-13:26:15.883: 5.00         5.5084671    14.64535     96.83397     142          4.97       
-I Sun-13:26:20.893: 10.01        5.4818034    14.53382     96.33120     893          9.97       
-I Sun-13:26:25.893: 15.01        5.3738392    14.08198     94.29191     2300         14.97      
-I Sun-13:26:30.901: 20.02        5.1134584    12.99189     89.36938     3993         19.98      
-I Sun-13:26:35.906: 25.02        4.6354539    10.99027     80.32827     5800         24.98      
-I Sun-13:26:40.909: 30.03        3.8256627    7.59769      65.00322     7665         29.98      
-I Sun-13:26:41.932: 31.05        3.6142306    6.70732      60.94754     7999         30.98      
+I Sun-13:26:10.893: flying, s    ar, deg      ax, mm       dx, mm       channel      elapsed, s
+I Sun-13:26:15.883: 5.00         5.5084671    14.64535     96.83397     142          4.97
+I Sun-13:26:20.893: 10.01        5.4818034    14.53382     96.33120     893          9.97
+I Sun-13:26:25.893: 15.01        5.3738392    14.08198     94.29191     2300         14.97
+I Sun-13:26:30.901: 20.02        5.1134584    12.99189     89.36938     3993         19.98
+I Sun-13:26:35.906: 25.02        4.6354539    10.99027     80.32827     5800         24.98
+I Sun-13:26:40.909: 30.03        3.8256627    7.59769      65.00322     7665         29.98
+I Sun-13:26:41.932: 31.05        3.6142306    6.70732      60.94754     7999         30.98
 I Sun-13:26:41.972: HDF5 file complete: /share1/USAXS_data/2025-05/06_01_Eric/06_01_Eric_usaxs/test_0036.h5
 I Sun-13:26:43.252: Starting collection of SAXS for test
 I Sun-13:26:43.274: Moving to SAXS mode ... please wait ...
@@ -80,7 +80,7 @@ attempt: 1 of 1
 exception: Status(obj=EpicsSignalWithRBV(read_pv='usaxs_eiger1:HDF1:FileName_RBV', name='waxs_det_hdf1_file_name', parent='waxs_det_hdf1', value='t', timestamp=1748802429.636288, auto_monitor=True, string=True, write_pv='usaxs_eiger1:HDF1:FileName', limits=False, put_complete=False), done=True, success=False)
 Stopping further processing of this command list.
 
-Out[2]: 
+Out[2]:
 ('5e88265e-b9af-4509-806f-aa1a00650a4a',
  '0ec1f7d4-97dd-4774-ade7-e4b98ff0a13e',
  'e1d8cc76-845a-4334-a6f4-52af113fb62c',
@@ -98,16 +98,16 @@ CA.Client.Exception...............................................
     Source File: modules/ca/src/client/cac.cpp line 1237
     Current Time: Sun Jun 01 2025 17:02:00.867349214
 ..................................................................
-In [3]: 
+In [3]:
 
-In [3]: 
+In [3]:
 
 In [3]: RE(run_command_file("usaxs.mac"))
 I Sun-17:02:13.683: Command file: usaxs.mac
 ====== ======================= =================
-line # action                  parameters       
+line # action                  parameters
 ====== ======================= =================
-1      CURRENT_EXPERIMENT_NAME                  
+1      CURRENT_EXPERIMENT_NAME
 21     USAXSscan               -140, 20, 1, test
 24     saxsExp                 -140, 20, 1, test
 27     waxsExp                 -140, 20, 1, test

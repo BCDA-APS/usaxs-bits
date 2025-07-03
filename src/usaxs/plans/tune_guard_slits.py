@@ -485,17 +485,17 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
         A generator that yields plan steps
     """
     # Get devices from oregistry
-    UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+    # UPD_SIGNAL = oregistry["UPD_SIGNAL"]
     I0_controls = oregistry["I0_controls"]
     I00_controls = oregistry["I00_controls"]
     autoscale_amplifiers = oregistry["autoscale_amplifiers"]
     guard_slit = oregistry["guard_slit"]
-    scaler0 = oregistry["scaler0"]
+    # scaler0 = oregistry["scaler0"]
     terms = oregistry["terms"]
     usaxs_shutter = oregistry["usaxs_shutter"]
     upd_controls = oregistry["upd_controls"]
     usaxs_slit = oregistry["usaxs_slit"]
-    user_data = oregistry["user_data"]
+    # user_data = oregistry["user_data"]
 
     yield from tune_GslitsCenter(oregistry)
     yield from mode_USAXS(oregistry)
@@ -556,7 +556,7 @@ def tune_Gslits(oregistry: Optional[Dict[str, Any]] = None):
         A generator that yields plan steps
     """
     # Get devices from oregistry
-    user_data = oregistry["user_data"]
+    # user_data = oregistry["user_data"]
 
     yield from tune_GslitsCenter(oregistry)
     yield from tune_GslitsSize(oregistry)

@@ -157,7 +157,8 @@ def test_plan(md=None, thickness=0.0):
             scaler1.count_mode,
             "OneShot",
             # update as fast as hardware will allow
-            # this is needed to make sure we get as up to date I0 number as possible for AD software.
+            # this is needed to make sure we get as up to date I0 number as possible for
+            # AD software.
             scaler0.update_rate,
             60,
             scaler1.update_rate,

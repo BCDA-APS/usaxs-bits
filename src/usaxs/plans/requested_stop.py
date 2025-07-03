@@ -58,7 +58,8 @@ def IfRequestedStopBeforeNextScan():
         yield from bps.mv(*mv_args)
         yield from user_data.set_state_plan("Aborted data collection")
 
-        # RE.pause_msg = "DEBUG: stopped the scans, ignore the (informative) exception trace"
+        # RE.pause_msg = "DEBUG: stopped the scans, ignore the (informative) exception
+        # trace"
         raise RequestAbort(msg)  # long exception trace?
 
     if open_the_shutter:

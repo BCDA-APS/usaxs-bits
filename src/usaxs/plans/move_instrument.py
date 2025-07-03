@@ -3,14 +3,10 @@ move the parts of the instrument in and out
 """
 
 import logging
-from typing import Any
-from typing import Dict
-from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from apsbits.utils.config_loaders import get_config
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 from ophyd.scaler import ScalerCH
 
 logger = logging.getLogger(__name__)
@@ -74,14 +70,14 @@ def move_WAXSOut():
         "close",
     )
 
-    #logger.info("Moving WAXS out of beam")
+    # logger.info("Moving WAXS out of beam")
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
     # move the WAXS X away from sample
     yield from bps.mv(waxsx, terms.WAXS.x_out.get())
 
-    #logger.info("Removed WAXS from beam position")
+    # logger.info("Removed WAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
@@ -104,11 +100,16 @@ def move_WAXSIn():
     # first move USAXS out of way
     yield from bps.mv(
         # fmt: off
-        guard_slit.v_size,         terms.SAXS.guard_v_size.get(),
-        guard_slit.h_size,         terms.SAXS.guard_h_size.get(),
-        waxsx,                     terms.WAXS.x_in.get(),
-        usaxs_slit.v_size,         terms.SAXS.v_size.get(),
-        usaxs_slit.h_size,         terms.SAXS.h_size.get(),
+        guard_slit.v_size,
+        terms.SAXS.guard_v_size.get(),
+        guard_slit.h_size,
+        terms.SAXS.guard_h_size.get(),
+        waxsx,
+        terms.WAXS.x_in.get(),
+        usaxs_slit.v_size,
+        terms.SAXS.v_size.get(),
+        usaxs_slit.h_size,
+        terms.SAXS.h_size.get(),
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
@@ -126,7 +127,7 @@ def move_SAXSOut():
         "close",
     )
 
-    #logger.info("Moving SAXS out of beam")
+    # logger.info("Moving SAXS out of beam")
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
@@ -136,7 +137,7 @@ def move_SAXSOut():
     # move pinhole up to out of beam position
     yield from bps.mv(saxs_stage.y, terms.SAXS.y_out.get())
 
-    #logger.info("Removed SAXS from beam position")
+    # logger.info("Removed SAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
@@ -146,7 +147,8 @@ def move_SAXSIn():
     """
     yield from bps.mv(
         # fmt: off
-        usaxs_shutter,         "close",
+        usaxs_shutter,
+        "close",
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
@@ -161,18 +163,24 @@ def move_SAXSIn():
     # move SAXS in place, in two steps to prevent possible damage to snout
     yield from bps.mv(
         # fmt: off
-        guard_slit.v_size,         terms.SAXS.guard_v_size.get(),
-        guard_slit.h_size,         terms.SAXS.guard_h_size.get(),
-        saxs_stage.y,              terms.SAXS.y_in.get(),
-        usaxs_slit.v_size,         terms.SAXS.v_size.get(),
-        usaxs_slit.h_size,         terms.SAXS.h_size.get(),
+        guard_slit.v_size,
+        terms.SAXS.guard_v_size.get(),
+        guard_slit.h_size,
+        terms.SAXS.guard_h_size.get(),
+        saxs_stage.y,
+        terms.SAXS.y_in.get(),
+        usaxs_slit.v_size,
+        terms.SAXS.v_size.get(),
+        usaxs_slit.h_size,
+        terms.SAXS.h_size.get(),
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
 
     yield from bps.mv(
         # fmt: off
-        saxs_stage.z,         terms.SAXS.z_in.get(),
+        saxs_stage.z,
+        terms.SAXS.z_in.get(),
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
@@ -189,20 +197,22 @@ def move_USAXSOut():
         "close",
     )
 
-    #logger.info("Moving USAXS out of beam")
+    # logger.info("Moving USAXS out of beam")
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
     # move the USAXS X away from sample
     yield from bps.mv(
         # fmt: off
-        a_stage.x,         terms.SAXS.ax_out.get(),
-        d_stage.x,         terms.SAXS.dx_out.get(),
+        a_stage.x,
+        terms.SAXS.ax_out.get(),
+        d_stage.x,
+        terms.SAXS.dx_out.get(),
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
 
-    #logger.info("Removed USAXS from beam position")
+    # logger.info("Removed USAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
@@ -225,19 +235,27 @@ def move_USAXSIn():
     # move to USAXS size
     yield from bps.mv(
         # fmt: off
-        guard_slit.h_size,         terms.USAXS.guard_h_size.get(),
-        guard_slit.v_size,         terms.USAXS.guard_v_size.get(),
-        usaxs_slit.h_size,         terms.USAXS.usaxs_h_size.get(),
-        usaxs_slit.v_size,         terms.USAXS.usaxs_v_size.get(),
-        a_stage.y,                 terms.USAXS.ay_in.get(),
-        a_stage.x,                 terms.USAXS.AX0.get(),
-        d_stage.y,                 terms.USAXS.dy_in.get(),
-        d_stage.x,                 terms.USAXS.DX0.get(),  # same as: terms.USAXS:Diode_dx.get(),
-        gslit_stage.x,             terms.USAXS.AX0.get(),  # this requires AX0 and Gslits.X be the same.
+        guard_slit.h_size,
+        terms.USAXS.guard_h_size.get(),
+        guard_slit.v_size,
+        terms.USAXS.guard_v_size.get(),
+        usaxs_slit.h_size,
+        terms.USAXS.usaxs_h_size.get(),
+        usaxs_slit.v_size,
+        terms.USAXS.usaxs_v_size.get(),
+        a_stage.y,
+        terms.USAXS.ay_in.get(),
+        a_stage.x,
+        terms.USAXS.AX0.get(),
+        d_stage.y,
+        terms.USAXS.dy_in.get(),
+        d_stage.x,
+        terms.USAXS.DX0.get(),  # same as: terms.USAXS:Diode_dx.get(),
+        gslit_stage.x,
+        terms.USAXS.AX0.get(),  # this requires AX0 and Gslits.X be the same.
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
 
     logger.debug("USAXS is in position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["USAXS in beam"])
-

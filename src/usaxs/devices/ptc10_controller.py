@@ -2,9 +2,10 @@
 PTC10 Programmable Temperature Controller
 """
 
-from apstools.devices import PTC10PositionerMixin
 from apstools.devices import PTC10AioChannel
-#from apstools.devices import PTC10RtdChannel
+from apstools.devices import PTC10PositionerMixin
+
+# from apstools.devices import PTC10RtdChannel
 from ophyd import Component
 from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
@@ -111,7 +112,7 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     # pidB = Component(PTC10AioChannel, "5B:")  # unused now
     # pidC = Component(PTC10AioChannel, "5C:")  # unused now
     # pidD = Component(PTC10AioChannel, "5D:")  # unused now
-    
+
     def __init__(self, *args, **kwargs):
         """
         Initialize the PTC10 controller.
@@ -136,5 +137,3 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     def ramp(self):
         """Get the current ramp rate."""
         return self.pid.ramprate
-
-

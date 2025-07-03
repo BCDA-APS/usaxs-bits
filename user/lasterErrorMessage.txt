@@ -41,7 +41,7 @@ Traceback (most recent call last):
     RE(myPTC10RampListPos(25,40,540,30,40))
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:976 in __call__
     raise RunEngineInterrupted(self.pause_msg) from None
-RunEngineInterrupted: 
+RunEngineInterrupted:
 Your RunEngine is entering a paused state. These are your options for changing
 the state of the RunEngine:
 
@@ -59,7 +59,7 @@ W Mon-08:40:49.197: No open traces left to close!
 generator tune_ar ['34bed235'] (scan num: 4799)
 E Mon-08:40:49.301: Task was destroyed but it is pending!
 task: <Task pending name='Task-1286552' coro=<Event.wait() running at /home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/asyncio/locks.py:213> wait_for=<Future pending cb=[Task.task_wakeup()]>>
-E Mon-08:40:49.373: Error in tune_ar: 
+E Mon-08:40:49.373: Error in tune_ar:
 Suspender SuspendBoolLow(EpicsSignalRO(read_pv='usxLAX:blCalc:userCalc1', name='usaxs_CheckBeamStandard', value=0.0, timestamp=1750078817.681823, auto_monitor=False, string=False), sleep=0, pre_plan=None, post_plan=None, tripped_message=) reports a return to nominal conditions. Will sleep for 0 seconds and then release suspension at 2025-06-16 08:40:49.
 Suspender SuspendFloor(EpicsSignalRO(read_pv='PA:12ID:STA_A_FES_OPEN_PL', name='FE_shutter_pss_state', parent='FE_shutter', value=0, timestamp=1750078817.598359, auto_monitor=True, string=False), sleep=0, pre_plan=None, post_plan=None, tripped_message=) reports a return to nominal conditions. Will sleep for 0 seconds and then release suspension at 2025-06-16 08:40:49.
 E Mon-08:40:49.375: Run aborted
@@ -352,7 +352,7 @@ Traceback (most recent call last):
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 1282, in suspender_helper_inner_plan
     yield Msg(
 bluesky.utils.RequestAbort
-Out[150]: 
+Out[150]:
 ('72506c33-98a5-48eb-9cf1-72c03988cd46',
  'd40aa7c2-973b-46d7-97f5-3124d0165a2f',
  'bd18baed-4fac-4862-bb1b-3637c6dd0168',

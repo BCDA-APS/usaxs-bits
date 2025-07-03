@@ -1,8 +1,8 @@
-'''
-This is for load frame from sector 1, the device has two controls - 
+"""
+This is for load frame from sector 1, the device has two controls -
 motor to extend the sample (strain) and calculation to report the stress
 
-'''
+"""
 # import needed stuff
 
 from apstools.callbacks import SpecWriterCallback2
@@ -26,12 +26,14 @@ RE.subscribe(specwriter.receiver)
 
 class LoadFrameDevice(Device):
     """Group these together."""
+
     strain = Component(EpicsMotor, "usxLAX:m58:c2:m1", kind="hinted")
     load = Component(EpicsSignalRO, "usxLAX:userCalc2.VAL", kind="hinted")
 
 
 LoadFrame = LoadFrameDevice("", name="LoadFrame")
-# add to oregistry? 
+# add to oregistry?
+
 
 def CalibrateLoadFrame(StrainStart, StrainEnd, StrainStep):
     """
@@ -39,7 +41,7 @@ def CalibrateLoadFrame(StrainStart, StrainEnd, StrainStep):
     It will move the strain motor to 0 and read the load.
     It will then scan the strain motor from StrainStart to StrainEnd
     with a step size of StrainStep, and report the load at each step.
-    Then it reports name of spec file in hwich user can find the data. 
+    Then it reports name of spec file in hwich user can find the data.
     """
     # Move the strain motor to a known position
     strain.move(0.0)

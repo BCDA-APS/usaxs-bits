@@ -42,8 +42,8 @@ ptc10_debug = Signal(name="ptc10_debug", value=False)
 # ]
 
 # [sx,sy,th,"sampleName"]
-#assert len(TemperatureList) == len(TimeList)
-#assert len(TemperatureList) == len(SampleList)
+# assert len(TemperatureList) == len(TimeList)
+# assert len(TemperatureList) == len(SampleList)
 # [2, 0, 1.3, "Alr_20flow2"],
 # [3, 0, 1.3, "Alr_20flow3"],
 # [4, 0, 1.3, "Alr_20flow4"]]
@@ -63,7 +63,6 @@ def setheaterOff():
     )
 
 
-
 def setheaterOn():
     """
     switches heater on
@@ -76,7 +75,8 @@ def setheaterOn():
     )
 
 
-#plans
+# plans
+
 
 def myPTC10HoldList(temp1, rate1Cmin, delay1min, md={}):
     """
@@ -86,6 +86,7 @@ def myPTC10HoldList(temp1, rate1Cmin, delay1min, md={}):
     Start loop, collecti USAXS/SAXS/WAXS for delay1 minutes
     in positions from SampleList, collecting USAXS/SAXS/WAXS for each item on SampleList
     """
+
     # needed customized functions to handle data collection.
     def getSampleName(inputTitle):
         """
@@ -95,7 +96,7 @@ def myPTC10HoldList(temp1, rate1Cmin, delay1min, md={}):
 
     def collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode):
         """
-        Collects USAXS/SAXS/WAXS data for given input conditions. 
+        Collects USAXS/SAXS/WAXS data for given input conditions.
         """
         if isDebugMode is not True:
             sampleMod = getSampleName(scan_title)
@@ -116,7 +117,7 @@ def myPTC10HoldList(temp1, rate1Cmin, delay1min, md={}):
     # check for debug mode
     isDebugMode = ptc10_debug.get()
 
-    #data collection
+    # data collection
     if isDebugMode is not True:
         yield from before_command_list()  # this will run usual startup scripts for scans
     else:
@@ -128,35 +129,41 @@ def myPTC10HoldList(temp1, rate1Cmin, delay1min, md={}):
     t0 = time.time()
     for tmpVal in SampleList:
         pos_X, pos_Y, thickness, scan_title = tmpVal
-        yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)  # collect RT data
+        yield from collectAllThree(
+            pos_X, pos_Y, thickness, scan_title, isDebugMode
+        )  # collect RT data
 
     # ramp to temperature
     logger.info(f"Ramping temperature to {temp1} C")
     yield from bps.mv(
-        ptc10.ramp, rate1Cmin / 60.0,       # user wants C/min, controller wants C/s
-        ptc10.temperature.setpoint, temp1   # Change the temperature and not wait
-    )  
+        ptc10.ramp,
+        rate1Cmin / 60.0,  # user wants C/min, controller wants C/s
+        ptc10.temperature.setpoint,
+        temp1,  # Change the temperature and not wait
+    )
     yield from setheaterOn()
 
     # wait until PTC10 heats to temp1
     while (
         not ptc10.temperature.inposition
     ):  # sleep for now, check every 10 seconds. Change as needed.
-        yield from bps.sleep(5)         # sleep for 10 seconds combined with loger info mid way
+        yield from bps.sleep(5)  # sleep for 10 seconds combined with loger info mid way
         logger.info(f"Still Ramping temperature to {temp1} C")
         yield from bps.sleep(5)
-        # OR : 
+        # OR :
         # for tmpVal in SampleList:
         #     pos_X, pos_Y, thickness, scan_title = tmpVal
-        #     yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)  # collect data during heating 
+        #     yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)  # collect data during heating
 
-    logger.info(f"Reached temperature {temp1} C, now collecting data for {delay1min} min")
+    logger.info(
+        f"Reached temperature {temp1} C, now collecting data for {delay1min} min"
+    )
 
     # reset time in experiment here. This is the time we start collecting data.
     t0 = time.time()
 
-    # Main data collection loop - for delay1min collect on each sample from the SampleList USAXS, SAXS, and WAXS 
-    while time.time() - t0 < delay1min * 60:                    # collects data for delay1 seconds
+    # Main data collection loop - for delay1min collect on each sample from the SampleList USAXS, SAXS, and WAXS
+    while time.time() - t0 < delay1min * 60:  # collects data for delay1 seconds
         logger.info(f"Collecting data for {delay1min} min")
         for tmpVal in SampleList:
             pos_X, pos_Y, thickness, scan_title = tmpVal
@@ -171,7 +178,6 @@ def myPTC10HoldList(temp1, rate1Cmin, delay1min, md={}):
         logger.info("debug mode, would be running standard after scan scripts.")
 
     logger.info("finished with myPTC10HoldList")
-
 
 
 def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
@@ -319,9 +325,8 @@ def myPTC10Plan(
 
     logger.info("finished")
 
-def myPTC10RampListPos(
-    temp1, rate1, delay1min, temp2, rate2, md={}
-):
+
+def myPTC10RampListPos(temp1, rate1, delay1min, temp2, rate2, md={}):
     """
     uses sampleList to select position
     collect RT USAXS/SAXS/WAXS - or not, change code
@@ -370,53 +375,69 @@ def myPTC10RampListPos(
 
     yield from before_command_list()  # this will run usual startup scripts for scans
     t0 = time.time()
-    #comment out from here to remove data collection at RT before heating
+    # comment out from here to remove data collection at RT before heating
     for tmpVal in SampleList:
         pos_X, pos_Y, thickness, scan_title = tmpVal
-        yield from collectAllThree(pos_X, pos_Y, thickness, scan_title)  # collect RT data
-    #commnet above to remove data collection at RT before heating
+        yield from collectAllThree(
+            pos_X, pos_Y, thickness, scan_title
+        )  # collect RT data
+    # commnet above to remove data collection at RT before heating
 
-    yield from bps.mv(ptc10.ramp, rate1 / 60.0)  # user wants C/min, controller wants C/s
-    yield from bps.mv(ptc10.temperature.setpoint, temp1)  # Change the temperature and not wait
+    yield from bps.mv(
+        ptc10.ramp, rate1 / 60.0
+    )  # user wants C/min, controller wants C/s
+    yield from bps.mv(
+        ptc10.temperature.setpoint, temp1
+    )  # Change the temperature and not wait
     yield from setheaterOn()
 
     logger.info(f"Ramping temperature to {temp1} C")
 
-    while (not ptc10.temperature.inposition):  # runs data collection until next temp or sleeps. Change as needed.
+    while (
+        not ptc10.temperature.inposition
+    ):  # runs data collection until next temp or sleeps. Change as needed.
         yield from bps.sleep(10)
         logger.info(f"Still Ramping temperature to {temp1} C")
 
-    logger.info("Reached temperature, now collecting data for %s seconds", delay1min*60)
+    logger.info(
+        "Reached temperature, now collecting data for %s seconds", delay1min * 60
+    )
     t1 = time.time()
     t0 = time.time()
 
-    while time.time() - t1 < delay1min*60:  # collects data for delay1 minutes
+    while time.time() - t1 < delay1min * 60:  # collects data for delay1 minutes
         # yield from bps.sleep(5)
-        logger.info("Collecting data for %s ", delay1min*60)
+        logger.info("Collecting data for %s ", delay1min * 60)
         for tmpVal in SampleList:
             pos_X, pos_Y, thickness, scan_title = tmpVal
-            yield from collectAllThree(pos_X, pos_Y, thickness, scan_title)  # collect RT data
+            yield from collectAllThree(
+                pos_X, pos_Y, thickness, scan_title
+            )  # collect RT data
 
-    logger.info(
-        "waited for %s min, now changing temperature to %s C", delay1min, temp2
-    )
+    logger.info("waited for %s min, now changing temperature to %s C", delay1min, temp2)
 
     yield from bps.mv(ptc10.ramp, rate2 / 60.0)  # sets the rate of next ramp
-    yield from bps.mv(ptc10.temperature, temp2)  # Change the temperature and wait to get there
-    
-    while (not ptc10.temperature.inposition):  # runs data collection until next temp or sleeps. Change as needed.
+    yield from bps.mv(
+        ptc10.temperature, temp2
+    )  # Change the temperature and wait to get there
+
+    while (
+        not ptc10.temperature.inposition
+    ):  # runs data collection until next temp or sleeps. Change as needed.
         yield from bps.sleep(10)
         logger.info(f"Still changing temperature to {temp2} C")
 
     logger.info(f"reached {temp2} C")
 
-    #comment out from here to remove data collection at RT after heating
+    # comment out from here to remove data collection at RT after heating
     for tmpVal in SampleList:
         pos_X, pos_Y, thickness, scan_title = tmpVal
-        yield from collectAllThree(pos_X, pos_Y, thickness, scan_title)  # collect RT data
-    #comment above to remove data collection at RT after heating
+        yield from collectAllThree(
+            pos_X, pos_Y, thickness, scan_title
+        )  # collect RT data
+    # comment above to remove data collection at RT after heating
 
-    #yield from setheaterOff()
+    # yield from setheaterOff()
 
     yield from after_command_list()  # runs standard after scan scripts.
 

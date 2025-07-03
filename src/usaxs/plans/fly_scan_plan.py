@@ -215,7 +215,8 @@ def Flyscan_internal_plan(
         # prepare HDF5 file to save fly scan data (background thread)
         prepare_HDF5_file()
     # path = os.path.abspath(usaxs_flyscan.saveFlyData_HDF5_dir)
-    # specwriter._cmt("start", f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
+    # specwriter._cmt("start", f"HDF5 configuration file: {
+    # usaxs_flyscan.saveFlyData_config}")
     specwriter._cmt(f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
 
     g = uuid.uuid4()
@@ -267,12 +268,17 @@ def Flyscan_internal_plan(
 
     yield from bps.mv(
         # fmt: off
-        a_stage.r.user_setpoint,         usaxs_flyscan.ar0,
-        a_stage.x.user_setpoint,         usaxs_flyscan.ax0,
-        d_stage.x.user_setpoint,         usaxs_flyscan.dx0,
-        upd_controls.auto.mode,         AutorangeSettings.auto_background,
-        usaxs_shutter,         "close",
-        #fmt: on
+        a_stage.r.user_setpoint,
+        usaxs_flyscan.ar0,
+        a_stage.x.user_setpoint,
+        usaxs_flyscan.ax0,
+        d_stage.x.user_setpoint,
+        usaxs_flyscan.dx0,
+        upd_controls.auto.mode,
+        AutorangeSettings.auto_background,
+        usaxs_shutter,
+        "close",
+        # fmt: on
     )
 
     yield from write_stream([struck.mca1, struck.mca2, struck.mca3], "mca")

@@ -8,15 +8,10 @@ using various detectors.
 """
 
 import logging
-from typing import Any
-from typing import Dict
-from typing import Optional
 
 import numpy as np
-import pyRestTable
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
 from ..utils.constants import constants
@@ -73,9 +68,12 @@ def measure_USAXS_Transmission():
             )
             yield from bps.mv(
                 # fmt: off
-                trmssn.ax, ax_target,
-                a_stage.x, ax_target,
-                usaxs_shutter, "open",
+                trmssn.ax,
+                ax_target,
+                a_stage.x,
+                ax_target,
+                usaxs_shutter,
+                "open",
                 # fmt: on
             )
             yield from insertTransmissionFilters()
@@ -105,17 +103,23 @@ def measure_USAXS_Transmission():
 
             yield from bps.mv(
                 # fmt: off
-                a_stage.x, terms.USAXS.AX0.get(),
-                usaxs_shutter, "close",
+                a_stage.x,
+                terms.USAXS.AX0.get(),
+                usaxs_shutter,
+                "close",
                 # fmt: on
             )
             yield from insertScanFilters()
             yield from bps.mv(
                 # fmt: off
-                trmssn.diode_counts, s["TRD"]["value"],
-                trmssn.diode_gain, trd_controls.femto.gain.get(),
-                trmssn.I0_counts, s["I0"]["value"],
-                trmssn.I0_gain, I0_controls.femto.gain.get(),
+                trmssn.diode_counts,
+                s["TRD"]["value"],
+                trmssn.diode_gain,
+                trd_controls.femto.gain.get(),
+                trmssn.I0_counts,
+                s["I0"]["value"],
+                trmssn.I0_gain,
+                I0_controls.femto.gain.get(),
                 # fmt: on
             )
             # tbl = pyRestTable.Table()
@@ -129,7 +133,8 @@ def measure_USAXS_Transmission():
             #         f"{trmssn.diode_gain.get()}",
             #     )
             # )
-            # tbl.addRow(("I0", f"{trmssn.I0_counts.get():f}", f"{trmssn.I0_gain.get()}"))
+            # tbl.addRow(("I0", f"{trmssn.I0_counts.get():f}",
+            # f"{trmssn.I0_gain.get()}"))
             # msg = "Measured USAXS transmission values:\n"
             # msg += str(tbl.reST())
             logger.info(
@@ -139,15 +144,19 @@ def measure_USAXS_Transmission():
                 f" and I0 = {terms.USAXS.transmission.I0_counts.get():.0f}"
                 f" with gain {terms.USAXS.transmission.I0_gain.get():g}"
             )
-            #logger.info(msg)
+            # logger.info(msg)
 
         else:
             yield from bps.mv(
                 # fmt:off
-                trmssn.diode_counts, 0,
-                trmssn.diode_gain, 0,
-                trmssn.I0_counts, 0,
-                trmssn.I0_gain, 0,
+                trmssn.diode_counts,
+                0,
+                trmssn.diode_gain,
+                0,
+                trmssn.I0_counts,
+                0,
+                trmssn.I0_gain,
+                0,
                 # fmt:on
             )
             logger.info("Did not measure USAXS transmission.")
@@ -185,15 +194,18 @@ def measure_SAXS_Transmission():
         # now x can put diode in the beam, open shutter...
         yield from bps.mv(
             # fmt: off
-            saxs_stage.x, pinx_target,
-            usaxs_shutter, "open",
+            saxs_stage.x,
+            pinx_target,
+            usaxs_shutter,
+            "open",
             # fmt: on
         )
 
         # yield from autoscale_amplifiers([I0_controls, trd_controls])
         yield from bps.mv(
             # fmt: off
-            scaler0.preset_time, constants["SAXS_TR_TIME"],
+            scaler0.preset_time,
+            constants["SAXS_TR_TIME"],
             # fmt: on
         )
         scaler0.select_channels(["I0", "TRD"])
@@ -212,7 +224,8 @@ def measure_SAXS_Transmission():
 
             yield from bps.mv(
                 # fmt: off
-                scaler0.preset_time, constants["SAXS_TR_TIME"],
+                scaler0.preset_time,
+                constants["SAXS_TR_TIME"],
                 # fmt: on
             )
             yield from no_run_trigger_and_wait([scaler0])
@@ -221,8 +234,10 @@ def measure_SAXS_Transmission():
         # x has to move before z, close shutter...
         yield from bps.mv(
             # fmt: off
-            saxs_stage.x, terms.SAXS.x_in.get(),
-            usaxs_shutter, "close",
+            saxs_stage.x,
+            terms.SAXS.x_in.get(),
+            usaxs_shutter,
+            "close",
             # fmt: on
         )
         # z can move.
@@ -231,10 +246,14 @@ def measure_SAXS_Transmission():
         yield from insertScanFilters()
         yield from bps.mv(
             # fmt: off
-            terms.SAXS_WAXS.diode_transmission, s["TRD"]["value"],
-            terms.SAXS_WAXS.diode_gain, trd_controls.femto.gain.get(),
-            terms.SAXS_WAXS.I0_transmission, s["I0"]["value"],
-            terms.SAXS_WAXS.I0_gain, I0_controls.femto.gain.get(),
+            terms.SAXS_WAXS.diode_transmission,
+            s["TRD"]["value"],
+            terms.SAXS_WAXS.diode_gain,
+            trd_controls.femto.gain.get(),
+            terms.SAXS_WAXS.I0_transmission,
+            s["I0"]["value"],
+            terms.SAXS_WAXS.I0_gain,
+            I0_controls.femto.gain.get(),
             # fmt: on
         )
         logger.info(
