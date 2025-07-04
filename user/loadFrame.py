@@ -44,11 +44,11 @@ def CalibrateLoadFrame(StrainStart, StrainEnd, StrainStep):
     Then it reports name of spec file in hwich user can find the data.
     """
     # Move the strain motor to a known position
-    strain.move(0.0)
+    LoadFrame.strain.move(0.0)
     # Wait for the move to complete
-    strain.wait()
+    LoadFrame.strain.wait()
     # Read the load value
-    load_value = load.get()
+    load_value = LoadFrame.load.get()
     print(f"Load at 0.0 strain: {load_value}")
     RE(bp.scan([LoadFrame.load], LoadFrame.strain, StrainStart, StrainEnd, StrainStep))
     print(f"{specwriter.spec_filename=}")
