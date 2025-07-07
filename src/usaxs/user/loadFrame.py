@@ -2,6 +2,8 @@
 This is for load frame from sector 1, the device has two controls -
 motor to extend the sample (strain) and calculation to report the stress
 
+%run -im usaxs.user.loadFrame
+
 """
 # import needed stuff
 
@@ -27,8 +29,10 @@ RE.subscribe(specwriter.receiver)
 class LoadFrameDevice(Device):
     """Group these together."""
 
-    strain = Component(EpicsMotor, "usxLAX:m58:c2:m1", kind="hinted")
-    load = Component(EpicsSignalRO, "usxLAX:userCalc2.VAL", kind="hinted")
+    strain = Component(EpicsMotor, "usxLAX:m58:c0:m1", kind="hinted")   #extension, microns
+    load = Component(EpicsSignalRO, "usxLAX:userCalc2.VAL", kind="hinted")  #force, N
+    y = Component(EpicsMotor, "usxLAX:mxv:c0:m1", kind="hinted")     #mm
+    x = Component(EpicsMotor, "usxLAX:mxv:c0:m2", kind="hinted")     #mm
 
 
 LoadFrame = LoadFrameDevice("", name="LoadFrame")
@@ -46,12 +50,23 @@ def CalibrateLoadFrame(StrainStart, StrainEnd, StrainStep):
     # Move the strain motor to a known position
     LoadFrame.strain.move(0.0)
     # Wait for the move to complete
-    LoadFrame.strain.wait()
+    #LoadFrame.strain.wait() - this does not excist. ABove command waits oon its own. 
     # Read the load value
     load_value = LoadFrame.load.get()
     print(f"Load at 0.0 strain: {load_value}")
     RE(bp.scan([LoadFrame.load], LoadFrame.strain, StrainStart, StrainEnd, StrainStep))
     print(f"{specwriter.spec_filename=}")
+
+#this gieves error:
+# specwriter.spec_filename=PosixPath('20250707-163449.dat')
+# Traceback (most recent call last):
+#   Cell In[28], line 1
+#     RE(CalibrateLoadFrame(0,100,20))
+#   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:951 in __call__
+#     gen = ensure_generator(plan)
+#   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:168 in ensure_generator
+#     gen = iter(plan)  # no-op on generators; needed for classes
+# TypeError: 'NoneType' object is not iterable
 
 
 # this will scan the strain (as motor position) and report load (as signal readback)
