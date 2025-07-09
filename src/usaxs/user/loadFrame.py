@@ -42,6 +42,7 @@ LoadFrame = LoadFrameDevice("", name="LoadFrame")
 def CalibrateLoadFrame(StrainStart, StrainEnd, StrainStep):
     """
     This function is used to calibrate the load frame.
+    run this as function, not as bluesky plan. 
     It will move the strain motor to 0 and read the load.
     It will then scan the strain motor from StrainStart to StrainEnd
     with a step size of StrainStep, and report the load at each step.
