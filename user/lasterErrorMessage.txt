@@ -1,3 +1,18 @@
+In [25]: RE(tune_usaxs_optics())
+I Tue-16:29:30.099: Moving to USAXS mode ... please wait ...
+E Tue-16:29:37.123: Subscription value callback exception (EpicsSignalRO(read_pv='usxLAX:blCalc:userCalc1', name='usaxs_CheckBeamStandard', value=0.0, timestamp=1752009520.092728, auto_monitor=False, string=False))
+Traceback (most recent call last):
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophyd/ophydobj.py", line 492, in inner
+    cb(*args, **kwargs)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/suspenders.py", line 141, in __call__
+    raise RuntimeError("Could not create the ")
+RuntimeError: Could not create the 
+
+
+
+
+
+
 Suspender worked fine 6-16
 Transient Scan ID: 4799     Time: 2025-06-16 07:04:36
 Persistent Unique Scan ID: '34bed235-3c37-4678-9018-bb3de36b30a5'

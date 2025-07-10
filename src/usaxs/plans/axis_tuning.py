@@ -22,8 +22,6 @@ from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from ..startup import suspend_BeamInHutch
-from ..startup import suspend_FE_shutter
 from .amplifiers_plan import autoscale_amplifiers
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
@@ -70,8 +68,6 @@ logger = logging.getLogger(__name__)
 #     tune_m2rp = empty_plan
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
 def tune_mr(md: Optional[Dict[str, Any]] = None):
     """Tune the monochromator rotation."""
     if md is None:
@@ -126,8 +122,6 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
     # return success
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
 def tune_ar(md: Optional[Dict[str, Any]] = None):
     """
     Tune the AR stage.
@@ -209,7 +203,6 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
     # return success
 
 
-@bpp.suspend_decorator(suspend_BeamInHutch)
 def tune_a2rp(md: Optional[Dict[str, Any]] = None):
     """
     Tune the A2RP stage.
@@ -283,8 +276,6 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
     # return success
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
 def tune_dx(md: Optional[Dict[str, Any]] = None):
     """
     Tune the DX stage.
@@ -359,8 +350,7 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         raise
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
+
 def tune_dy(md: Optional[Dict[str, Any]] = None):
     """
     Tune the DY stage.

@@ -3,7 +3,7 @@ BS plan to run infinte data collection same as spec used to do.
 
 load this way:
 
-     %run -im user.finite_loop
+     %run -im usaxs.user.finite_loop
 
 * file: /USAXS_data/bluesky_plans/finite_loop.py
 * aka:  ~/.ipython/user/finite_loop.py
@@ -11,6 +11,7 @@ load this way:
 * JIL, 2022-11-17 : first release
 * JIL, 2022-11-18 : added different modes
 * JIL, 2025-5-28 : fixs for BITS
+* JIL, 7/9/2025 user changes
 """
 
 import logging
@@ -179,17 +180,19 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
     """
     # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
     ListOfSamples = [
-        [66.4, 20, 4.0, "MR16Wt"],  # tube 4
-        [104.6, 20, 4.0, "MR12Wt"],  # tube 3
-        [145.9, 20, 4.0, "MR08WXt"],  # tube 2
-        [185.4, 20, 4.0, "MR04WXt"],  # tube 1
+        [99.8, 100, 1.0, "Blank"],  # tube 4
+        [20, 99.6, 0.653, "RbCl6m"],  # tube 3
+        [19.4, 160.1,0.638, "NaCl6m"],  # tube 2
+        [60.3, 100.1, 0.661, "BoehRbCl6m"],  # tube 1
+        [60, 160.25, 0.633, "BoehNaCl6m"],  # tube 1
     ]
 
     # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
     #                 ]
 
     def setSampleName(scan_titlePar):
-        return f"{scan_titlePar}" f"_{(time.time()-t0+(StartTime*60))/60:.0f}min"
+        #return f"{scan_titlePar}" f"_{(time.time()-t0+(StartTime*60))/60:.0f}min"
+        return f"{scan_titlePar}" f"_{counter}"
 
     def collectAllThree(debug=False):
         if debug:
@@ -212,10 +215,10 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
                 md["title"] = sampleMod
                 yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
-            # for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
-            #     sampleMod = setSampleName(sampleName)
-            #     md["title"]=sampleMod
-            #     yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
+                sampleMod = setSampleName(sampleName)
+                md["title"]=sampleMod
+                yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = loop_debug.get()
     # isDebugMode = False
@@ -224,6 +227,8 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
         yield from before_command_list()  # this will run usual startup scripts for scans
 
     t0 = time.time()  # mark start time of data collection.
+
+    counter = 17
 
     checkpoint = (
         time.time() + delay1minutes * MINUTE
@@ -235,6 +240,7 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
         time.time() < checkpoint
     ):  # collects USAXS/SAXS/WAXS data while holding at temp1
         yield from collectAllThree(isDebugMode)
+        counter +=1
 
     logger.info("finished")  # record end.
 

@@ -85,6 +85,8 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 """.split()
 
 
+@bpp.suspend_decorator(suspend_FE_shutter)
+@bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
 def saxsExp(
     pos_X: float,

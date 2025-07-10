@@ -11,6 +11,7 @@ from apstools.callbacks import SpecWriterCallback2
 from bluesky import RunEngine, plans as bp, plan_stubs as bps
 from bluesky.callbacks.best_effort import BestEffortCallback
 from ophyd import Component, Device, EpicsSignal, EpicsMotor, EpicsSignalRO
+from bluesky import plan_stubs as bps
 
 # define what we need to use
 RE = RunEngine()
@@ -49,6 +50,7 @@ def CalibrateLoadFrame(StrainStart, StrainEnd, StrainStep):
     """
     # Move the strain motor to a known position
     LoadFrame.strain.move(0.0)
+    #yield from bps.mv(LoadFrame.strain,0)
     # Wait for the move to complete
     #LoadFrame.strain.wait() - this does not excist. ABove command waits oon its own. 
     # Read the load value
