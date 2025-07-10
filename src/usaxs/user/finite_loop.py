@@ -180,11 +180,11 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
     """
     # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
     ListOfSamples = [
-        [99.8, 100, 1.0, "Blank"],  # tube 4
-        [20, 99.6, 0.653, "RbCl6m"],  # tube 3
-        [19.4, 160.1,0.638, "NaCl6m"],  # tube 2
-        [60.3, 100.1, 0.661, "BoehRbCl6m"],  # tube 1
-        [60, 160.25, 0.633, "BoehNaCl6m"],  # tube 1
+        [100, 160, 1.0, "BlankLE"],  # tube 4
+        [139, 100.6, 0.686, "RbCl6mLE"],  # tube 3
+        [139, 160.3,0.658, "NaCl6mLE"],  # tube 2
+        [179.6, 100.6, 0.684, "BoehRbCl6mLE"],  # tube 1
+        [178.8, 161.0, 0.654, "BoehNaCl6mLE"],  # tube 1
     ]
 
     # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
@@ -228,7 +228,7 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
 
     t0 = time.time()  # mark start time of data collection.
 
-    counter = 17
+    counter = 26
 
     checkpoint = (
         time.time() + delay1minutes * MINUTE
