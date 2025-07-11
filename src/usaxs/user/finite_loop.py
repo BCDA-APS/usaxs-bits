@@ -228,7 +228,7 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
 
     t0 = time.time()  # mark start time of data collection.
 
-    counter = 26
+    counter = 0
 
     checkpoint = (
         time.time() + delay1minutes * MINUTE
