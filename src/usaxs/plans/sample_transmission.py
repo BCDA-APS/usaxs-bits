@@ -57,6 +57,7 @@ def measure_USAXS_Transmission():
         A generator that yields plan steps
     """
     try:
+        yield from bps.checkpoint() # add checkpoint for suspenders
         trmssn = terms.USAXS.transmission  # for convenience
         yield from user_data.set_state_plan("Measure USAXS transmission")
         if trmssn.measure.get():
@@ -184,6 +185,7 @@ def measure_SAXS_Transmission():
         A generator that yields plan steps
     """
     try:
+        yield from bps.checkpoint()         #add checkpoint for suspenders
         yield from user_data.set_state_plan("Measure SAXS transmission")
         yield from mode_SAXS()
         yield from insertTransmissionFilters()
