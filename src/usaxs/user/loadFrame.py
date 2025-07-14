@@ -5,6 +5,7 @@ motor to extend the sample (strain) and calculation to report the stress
 %run -im usaxs.user.loadFrame
 
 """
+
 # import needed stuff
 import logging
 
@@ -36,26 +37,27 @@ from ophyd import Signal
 class LoadFrameDevice(Device):
     """Group these together."""
 
-    strain = Component(EpicsMotor, "usxLAX:m58:c0:m1", kind="hinted")   #extension, microns
-    load = Component(EpicsSignalRO, "usxLAX:userCalc2.VAL", kind="hinted")  #force, N
-    y = Component(EpicsMotor, "usxLAX:mxv:c0:m1", kind="hinted")     #mm
-    x = Component(EpicsMotor, "usxLAX:m58:c0:m2", kind="hinted")     #mm
+    strain = Component(
+        EpicsMotor, "usxLAX:m58:c0:m1", kind="hinted"
+    )  # extension, microns
+    load = Component(EpicsSignalRO, "usxLAX:userCalc2.VAL", kind="hinted")  # force, N
+    y = Component(EpicsMotor, "usxLAX:mxv:c0:m1", kind="hinted")  # mm
+    x = Component(EpicsMotor, "usxLAX:m58:c0:m2", kind="hinted")  # mm
 
 
 LoadFrame = LoadFrameDevice("", name="LoadFrame")
 # automatically added to oregistry
 
 
-
 def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
     """
     Will run Frame from StrainStart to StrainEnd in StrainSteps, starin is in um
     frame_x and frame_y are specific motors controlling the frame position
-    NOTE: make sure normal sx and sy can be in 0, 0 positions, they will be moved there if not there. 
-    Sample name will contain load read from frame.load 
+    NOTE: make sure normal sx and sy can be in 0, 0 positions, they will be moved there if not there.
+    Sample name will contain load read from frame.load
 
-    final name: Samplename_250N_6min_XYZ.hdf where 
-        force is read at start of each measurement and 
+    final name: Samplename_250N_6min_XYZ.hdf where
+        force is read at start of each measurement and
         time is reset after each starin is set
 
     reload by
@@ -63,16 +65,21 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
 
     run as
                     RE(measureFrame(0, 0, 1,"Samplename", 4))
-    would scan frame positioned at 0, 0 at all strains on listOfStrains  
-    Sample thickness is 1mm and "Samplename" is sample name. 
+    would scan frame positioned at 0, 0 at all strains on listOfStrains
+    Sample thickness is 1mm and "Samplename" is sample name.
     each sample will be measured
     """
-    #this list MUST start from 0, you need to 0 styrain in epics before start
-    # we assume in samply_Y correction that this list starts from 0 and is in um. 
-    ListOfStrains = [0, 100, 300, 500, 1500, 2000]
+    # this list MUST start from 0, you need to 0 styrain in epics before start
+    # we assume in samply_Y correction that this list starts from 0 and is in um.
+   
+    ListOfStrains = [0, 110, 220, 330, 440, 550, 990, 1430, 1870, 2310, 2750, 3190, 3630]
 
     def setSampleName():
-        return f"{scan_title}" f"_{(LoadFrame.load.get()):.0f}N" f"_{(time.time()-t0)/60:.0f}min"
+        return (
+            f"{scan_title}"
+            f"_{(LoadFrame.load.get()):.0f}N"
+            f"_{(time.time()-t0)/60:.0f}min"
+        )
 
     def collectAllThree(debug=False):
         if debug:
@@ -84,10 +91,10 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
             md["title"] = sampleMod
             yield from USAXSscan(0, 0, thickness, sampleMod, md={})
             sampleMod = setSampleName()
-            md["title"]=sampleMod
+            md["title"] = sampleMod
             yield from saxsExp(0, 0, thickness, sampleMod, md={})
             sampleMod = setSampleName()
-            md["title"]=sampleMod
+            md["title"] = sampleMod
             yield from waxsExp(0, 0, thickness, sampleMod, md={})
 
     isDebugMode = False
@@ -98,41 +105,53 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
 
     t0 = time.time()  # mark start time of data collection.
 
-    #move sample in place, make sure we are at start strain
-    yield from bps.mv(LoadFrame.x, frame_x,
-                      LoadFrame.y, frame_y,
-                      )
-    #now do the loop. 
+    # move sample in place, make sure we are at start strain
+    yield from bps.mv(
+        LoadFrame.x,
+        -4,
+        LoadFrame.y,
+        frame_y,
+    )
+    yield from USAXSscan(0, 0, 1, "Blank", md={})
+    yield from saxsExp(0, 0, 1, "Blank", md={})
+    yield from waxsExp(0, 0, 1, "Blank", md={})
+
+    # move sample in place, make sure we are at start strain
+    yield from bps.mv(
+        LoadFrame.x,
+        frame_x,
+        LoadFrame.y,
+        frame_y,
+    )
+    # now do the loop.
     logger.info("Starting Frame collection")
 
-    for StrainPos in ListOfStrains :
-
-        # first is move to vertically to correct for extension by half distance 
-        # sample is pulled up, so we need to go 1/2 distacne down and also, strain is in micron, 
-        #  LoadFrame.y, frame_y are in mm  
-        #  this should be what we need as change    frame_y-(StrainPos)/(2*1000)     
+    for StrainPos in ListOfStrains:
+        # first is move to vertically to correct for extension by half distance
+        # sample is pulled up, so we need to go 1/2 distacne down and also, strain is in micron,
+        #  LoadFrame.y, frame_y are in mm
+        #  this should be what we need as change    frame_y-(StrainPos)/(2*1000)
         # basically, is we extend the sample by 1000um = 1mm (StrainPos), dividng by 2000 will give 0.5mm
-        # and we need to mvoe by 0.5mm down, so frame_y - 0.5 
-        yield from bps.mv(LoadFrame.y, frame_y-(StrainPos/(2*1000)))
-        
-        # move frame strain position, in example above, this extends the sample up by 1000um, 1mm up.         
+        # and we need to mvoe by 0.5mm down, so frame_y - 0.5
+        yield from bps.mv(LoadFrame.y, frame_y - (StrainPos / (2 * 1000)))
+
+        # move frame strain position, in example above, this extends the sample up by 1000um, 1mm up.
         yield from bps.mv(LoadFrame.strain, StrainPos)
-        # reset time to know we started measurement at this strain. This is convenience information. 
-        t0 = time.time() 
+        # reset time to know we started measurement at this strain. This is convenience information.
+        t0 = time.time()
         # collect NumOfScans data sets, 2min each, 4 are about 8 minutes
-        # this is to observe any relaxation at each strain. 
+        # this is to observe any relaxation at each strain.
         scanN = 0
         while scanN < NumOfScans:
             yield from collectAllThree(isDebugMode)
-            scanN +=1
+            scanN += 1
 
     logger.info("finished")  # record end.
 
     if isDebugMode is not True:
         yield from after_command_list()  # runs standard after scan scripts.
-    
-    #end of the measureFrame
 
+    # end of the measureFrame
 
 
 # this will scan the strain (as motor position) and report load (as signal readback)

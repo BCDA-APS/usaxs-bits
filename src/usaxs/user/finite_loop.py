@@ -182,7 +182,7 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
     ListOfSamples = [
         [100, 160, 1.0, "BlankLE"],  # tube 4
         [139, 100.6, 0.686, "RbCl6mLE"],  # tube 3
-        [139, 160.3,0.658, "NaCl6mLE"],  # tube 2
+        [139, 160.3, 0.658, "NaCl6mLE"],  # tube 2
         [179.6, 100.6, 0.684, "BoehRbCl6mLE"],  # tube 1
         [178.8, 161.0, 0.654, "BoehNaCl6mLE"],  # tube 1
     ]
@@ -191,7 +191,7 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
     #                 ]
 
     def setSampleName(scan_titlePar):
-        #return f"{scan_titlePar}" f"_{(time.time()-t0+(StartTime*60))/60:.0f}min"
+        # return f"{scan_titlePar}" f"_{(time.time()-t0+(StartTime*60))/60:.0f}min"
         return f"{scan_titlePar}" f"_{counter}"
 
     def collectAllThree(debug=False):
@@ -217,7 +217,7 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
 
             for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
                 sampleMod = setSampleName(sampleName)
-                md["title"]=sampleMod
+                md["title"] = sampleMod
                 yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     isDebugMode = loop_debug.get()
@@ -240,7 +240,7 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
         time.time() < checkpoint
     ):  # collects USAXS/SAXS/WAXS data while holding at temp1
         yield from collectAllThree(isDebugMode)
-        counter +=1
+        counter += 1
 
     logger.info("finished")  # record end.
 

@@ -20,7 +20,6 @@ from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 
 from .amplifiers_plan import autoscale_amplifiers
 from .mode_changes import mode_USAXS
@@ -348,7 +347,6 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
     except Exception as e:
         logger.error(f"Error in tune_dx: {str(e)}")
         raise
-
 
 
 def tune_dy(md: Optional[Dict[str, Any]] = None):

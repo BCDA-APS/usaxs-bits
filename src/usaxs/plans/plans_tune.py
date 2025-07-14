@@ -12,11 +12,8 @@ from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from ..startup import suspend_BeamInHutch
-from ..startup import suspend_FE_shutter
 from .axis_tuning import tune_a2rp
 from .axis_tuning import tune_ar
 from .axis_tuning import tune_mr
@@ -45,8 +42,8 @@ m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
 
 
-#@bpp.suspend_decorator(suspend_FE_shutter)
-#@bpp.suspend_decorator(suspend_BeamInHutch)
+# @bpp.suspend_decorator(suspend_FE_shutter)
+# @bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
 def preUSAXStune(md={}):  # noqa: B006
     """
@@ -172,8 +169,8 @@ def preUSAXStune(md={}):  # noqa: B006
     yield from user_data.set_state_plan("pre-USAXS optics tune")
 
 
-#@bpp.suspend_decorator(suspend_FE_shutter)
-#@bpp.suspend_decorator(suspend_BeamInHutch)
+# @bpp.suspend_decorator(suspend_FE_shutter)
+# @bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
 def allUSAXStune(
     md: Optional[Dict[str, Any]] = None,

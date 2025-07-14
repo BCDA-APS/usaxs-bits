@@ -272,7 +272,7 @@ Traceback (most recent call last):
     cb(*args, **kwargs)
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/suspenders.py", line 141, in __call__
     raise RuntimeError("Could not create the ")
-RuntimeError: Could not create the 
+RuntimeError: Could not create the
 
 
 
