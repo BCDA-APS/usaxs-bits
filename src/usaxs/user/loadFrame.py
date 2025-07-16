@@ -71,7 +71,7 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
     """
     # this list MUST start from 0, you need to 0 styrain in epics before start
     # we assume in samply_Y correction that this list starts from 0 and is in um.
-   
+
     ListOfStrains = [0, 110, 220, 330, 440, 550, 990, 1430, 1870, 2310, 2750, 3190, 3630]
 
     def setSampleName():

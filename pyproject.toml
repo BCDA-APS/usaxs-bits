@@ -38,20 +38,32 @@ extend-ignore = [ "E203", "E402", "E501", "F401", "F405", "F722", "F811", "W503"
 
 [tool.isort]
 force_single_line = true
-line_length = 88
+line_length = 115
 include_trailing_comma = true
 
 [tool.ruff]
-exclude = [ ".eggs", ".git", ".git-rewrite", ".mypy_cache", ".pytype", ".ruff_cache", ".tox", ".venv", "__pypackages__", "_build", "build", "dist", "venv", ".venv", "docs",]
-line-length = 88
+exclude = [ ".eggs", ".git", ".git-rewrite", ".mypy_cache", ".pytype", ".ruff_cache", ".tox", ".venv", "__pypackages__", "_build", "build", "dist", "venv", ".venv", "docs", "user", "src/usaxs/original_plans",]
+line-length = 115
 indent-width = 4
 target-version = "py311"
+
+[tool.ruff.lint]
+select = [ "E", "F", "B", "I", "W", "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",]
+fixable = [ "ALL",]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = [ "F405",]
+
+[tool.ruff.lint.isort]
+force-single-line = true
 
 [project.license]
 file = "LICENSE"
 
 [project.optional-dependencies]
-dev = [ "build", "isort", "mypy", "pre-commit", "pytest", "ruff",]
+dev = [ "black", "build", "isort", "mypy", "pre-commit", "pytest", "ruff",]
 doc = [ "babel", "ipykernel", "jinja2", "markupsafe", "myst_parser", "nbsphinx", "pydata-sphinx-theme", "pygments-ipython-console", "pygments", "sphinx-design", "sphinx-tabs", "sphinx",]
 all = [ "bits_usaxs[dev,doc]",]
 
@@ -64,26 +76,8 @@ addopts = [ "--import-mode=importlib", "-x",]
 junit_family = "xunit1"
 filterwarnings = [ "ignore::DeprecationWarning", "ignore::PendingDeprecationWarning",]
 
-[tool.ruff.lint]
-select = [ "E", "F", "B", "I", "W", "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",]
-fixable = [ "ALL",]
-unfixable = []
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-
 [tool.setuptools.package-dir]
 "" = "src"
 
 [tool.setuptools.package-data]
 "*" = [ "*.yml",]
-
-[tool.ruff.lint.per-file-ignores]
-"*.ipynb" = [ "F405",]
-
-[tool.ruff.lint.isort]
-force-single-line = true

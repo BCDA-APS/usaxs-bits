@@ -21,6 +21,7 @@ repos:
       - id: ruff # replaces Flake8, isort, pydocstyle, pyupgrade
         args:
           - --fix
-          - --exclude=user
-          - --exclude=src/usaxs/original_plans
-      - id: ruff-format # replaces Black
+  # - repo: https://github.com/psf/black
+  #   rev: 24.10.0
+  #   hooks:
+  #     - id: black
