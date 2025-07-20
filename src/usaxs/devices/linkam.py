@@ -209,7 +209,8 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         s = [f"{v}{k}" for k, v in db.items() if v != 0]
         return " ".join(s)
 
-    # def log_it(self, text):
+    def log_it(self, text):
+        pass
     #     """Cheap, lazy way to add to log file.  Gotta be better way..."""
     #     if not log_file_name.exists():
     #         # create the file and header
@@ -227,15 +228,15 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
     def linkam_report(self):
         """Report current values for selected controller."""
         # assuming units are "Celsius"
-        units = self.units.get()[:1].upper()
-        self.log_it(
-            f"{self.name}"
-            f" T={self.temperature.position:.1f}{units}"
-            f" setpoint={self.temperature.setpoint.get():.1f}{units}"
-            f" ramp:{self.ramp.setpoint.get()}"
-            f" settled: {self.temperature.inposition}"
-            f" done: {self.temperature.done.get()}"
-        )
+        # units = self.units.get()[:1].upper()
+        # self.log_it(
+        #     f"{self.name}"
+        #     f" T={self.temperature.position:.1f}{units}"
+        #     f" setpoint={self.temperature.setpoint.get():.1f}{units}"
+        #     f" ramp:{self.ramp.setpoint.get()}"
+        #     f" settled: {self.temperature.inposition}"
+        #     f" done: {self.temperature.done.get()}"
+        # )
 
     def set_target(self, value, wait=True):
         """

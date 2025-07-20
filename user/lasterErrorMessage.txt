@@ -1,3 +1,18 @@
+I Sun-10:13:48.779: 205.19       8.8087170    14.42074     94.53163     798          21.60      
+I Sun-10:13:53.599: 210.01       8.8087145    14.42074     94.53162     798          21.60      
+E Sun-10:13:53.599: 210.01175808906555s - progress_reporting timeout!!
+Suspender SuspendFloor(EpicsSignalRO(read_pv='PA:12ID:STA_A_FES_OPEN_PL', name='FE_shutter_pss_state', parent='FE_shutter', value=1, timestamp=1753029421.398214, auto_monitor=True, string=False), sleep=0, pre_plan=None, post_plan=None, tripped_message=) reports a return to nominal conditions. Will sleep for 0 seconds and then release suspension at 2025-07-20 11:37:01.
+Suspender SuspendBoolLow(EpicsSignalRO(read_pv='usxLAX:blCalc:userCalc1', name='usaxs_CheckBeamStandard', value=1.0, timestamp=1753029421.437477, auto_monitor=False, string=False), sleep=0, pre_plan=None, post_plan=None, tripped_message=) reports a return to nominal conditions. Will sleep for 0 seconds and then release suspension at 2025-07-20 11:37:01.
+I Sun-11:38:32.775: HDF5 file complete: /share1/USAXS_data/2025-07/07_20_Wang/07_20_Wang_usaxs/AC3_unmarked_2758.h5
+I Sun-11:38:33.997: Starting collection of SAXS for BlankTube
+I Sun-11:38:35.893: tuning axis: a_stage_r
+
+
+Transient Scan ID: 96     Time: 2025-07-20 11:38:36
+Persistent Unique Scan ID: 'cee2a5b9-0b7f-4ad1-9146-5c907dad11c0'
+
+
+
 I Thu-13:26:44.838: HDF5 file complete: /share1/USAXS_data/2025-07/07_09_Larry/07_09_Larry_usaxs/BoehNaCl6mLE_26_0665.h5
 I Thu-13:26:46.089: Starting collection of SAXS for BlankLE_26
 I Thu-13:26:46.115: Moving to SAXS mode ... please wait ...

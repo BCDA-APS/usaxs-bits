@@ -1,18 +1,17 @@
 """
 BS plan template to control Linkam temperature during data collection same as spec used to do.
 
-IMPORTANT: Assumes all objects from ./heater_profile.py are imported!
+???: Assumes all objects from ./heater_profile.py are imported!
 load this way:
-    %run -im user.linkam
+    %run -im usaxs.user.linkam
 
-* file: /USAXS_data/bluesky_plans/linkam.py
-* aka:  ~/.ipython/user/linkam.py
 
 * PRJ, 2022-01-22 : updated for new linkam support
 * JIL, 2021-11-12 : modified to use updated before_command_list(), verify operations
 * JIL, 2022-11-05 : 20ID test
 * JIL, 2024-12-03 : 12ID check and fix. Needs testing
 * JIL, 2025-05-28 : fixs for BITS
+* JIL, 2025-7-14  : operations
 
 limitations: uses new Linkam support only for tc1 with linux ioc
 
@@ -170,6 +169,93 @@ def myLinkamPlan_template(
     if isDebugMode is not True:
         yield from after_command_list()  # runs standard after scan scripts.
     # end of this template functio.
+
+# def testTempControl(md={}):
+#     def change_rate_and_temperature(rate, t, wait=False):
+#         yield from bps.mv(
+#             linkam.ramprate.setpoint, rate
+#         )  # ramp rate for next temperature change in degC/min
+#         yield from linkam.set_target(
+#             t, wait=wait
+#         )  # sets the temp of to t, wait = True waits until we get there (no data collection), wait = False does not wait and enables data collection
+
+#     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
+
+#     yield from change_rate_and_temperature(20, 55, wait=True)
+
+
+
+   
+
+def FanTemperatureRamp(
+    pos_X, pos_Y, thickness, scan_title, md={}
+):
+    """
+    Collects data in steps form -40C to 400C 
+    steps are 10C, rate is 40C/min
+    4 data sets are collected at each temperature 
+q
+    reload by
+        %run -im usaxs.user.linkam
+    """
+
+    # DO NOT CHANGE FOLLOWING METHODS
+    # unless you need to remove WAXS or SAXS from scans...
+    def setSampleName():
+        return (
+            f"{scan_title}"
+            f"_{linkam.temperature.position:.0f}C"
+            f"_{(time.time()-t0)/60:.0f}min"
+        )
+
+    def collectAllThree():
+        sampleMod = setSampleName()
+        md["title"] = sampleMod
+        yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+        sampleMod = setSampleName()
+        md["title"] = sampleMod
+        yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+        sampleMod = setSampleName()
+        md["title"] = sampleMod
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    def change_rate_and_temperature(rate, t, wait=False):
+        yield from bps.mv(
+            linkam.ramprate.setpoint, rate
+        )  # ramp rate for next temperature change in degC/min
+        yield from linkam.set_target(
+            t, wait=wait
+        )  # sets the temp of to t, wait = True waits until we get there (no data collection), wait = False does not wait and enables data collection
+
+    # DO NOT CHANGE ABOVE METHODS
+    # ***************************************************************
+
+    linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
+
+    # run usual startup scripts for scans.
+    yield from before_command_list()  # this will run usual startup scripts for scans
+
+    # Collect data at 4start temperature 
+    temp0 = -40
+    temp = -40
+    iteration = 0
+    while temp < 405 : 
+        yield from change_rate_and_temperature(40, temp, wait=True)
+        t0 = time.time()  # set this moment as the start time of data collection.
+        yield from collectAllThree()  # collect the data at RT
+        yield from collectAllThree()  # collect the data at RT
+        yield from collectAllThree()  # collect the data at RT
+        #yield from collectAllThree()  # collect the data at RT
+        iteration +=1
+        temp = temp0 + iteration*10
+    # *******
+    yield from change_rate_and_temperature(100, 20, wait=True)     
+    t0 = time.time()  # set this moment as the start time of data collection.
+    yield from collectAllThree()  # collect the data at RT
+
+    yield from after_command_list()  # runs standard after scan scripts.
+    # end of this template functio.
+
 
 
 def fanLinkamPlan(
@@ -601,12 +687,12 @@ def Fan625Plan(
         sampleMod = setSampleName()
         md["title"] = sampleMod
         yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
-        # sampleMod = setSampleName()
-        # md["title"]=sampleMod
-        # yield from SAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        sampleMod = setSampleName()
+        md["title"]=sampleMod
+        yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = setSampleName()
         md["title"] = sampleMod
-        yield from WAXS(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
     def collectWAXSOnly(debug=False):
         sampleMod = setSampleName()
