@@ -109,12 +109,11 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
         plugin = self.jpeg1
         path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
         yield from bps.mv(
-            plugin.file_path,
-            path,
-            plugin.file_name,
-            filename_base,
-            plugin.file_number,
-            order_number,
+            # ftm: off
+            plugin.file_path,        path,
+            plugin.file_name,        filename_base,
+            plugin.file_number,      order_number,
+            # fmt: on
         )
 
     @property
@@ -150,12 +149,11 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
     """
 
     tiff1: ADComponent[EpicsDefinesTiffFileNames] = ADComponent(
-        EpicsDefinesTiffFileNames,
-        suffix="TIFF1:",
-        root=DATABROKER_ROOT_PATH,
-        write_path_template=WRITE_IMAGE_FILE_PATH,
-        read_path_template=READ_IMAGE_FILE_PATH,
-        kind="normal",
+        # ftm: off
+        EpicsDefinesTiffFileNames,                      suffix="TIFF1:",
+        root=DATABROKER_ROOT_PATH,                      write_path_template=WRITE_IMAGE_FILE_PATH,
+        read_path_template=READ_IMAGE_FILE_PATH,        kind="normal",
+        # ftm: on
     )
     # trans1: ADComponent[TransformPlugin] = ADComponent(TransformPlugin, "Trans1:")
     # cc1: ADComponent[ColorConvPlugin] = ADComponent(ColorConvPlugin, "CC1:")
@@ -185,12 +183,9 @@ class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
         path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
         yield from bps.mv(
             # fmt: off
-            plugin.file_path,
-            path,
-            plugin.file_name,
-            filename_base,
-            plugin.file_number,
-            order_number,
+            plugin.file_path,            path,
+            plugin.file_name,            filename_base,
+            plugin.file_number,          order_number,
             # fmt: on
         )
 

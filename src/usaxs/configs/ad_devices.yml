@@ -3,7 +3,7 @@ usaxs.devices.blackfly_module.MyPointGreyDetector:
   prefix: "usxFLY1:"
   labels: ["camera", "area_detector"]
 
-usaxs.devices.blackfly_module.MyPointGreyDetectorTIFF:
+usaxs.devices.blackfly_module.MyPointGreyDetectorJPEG:
 - name: blackfly_optical
   prefix: "usxFLY2:"
   labels: ["camera", "area_detector"]
