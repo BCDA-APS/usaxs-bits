@@ -13,7 +13,6 @@ from apstools.utils import cleanupText
 
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
-from ..callbacks.nxwriter_usaxs import nxwriter
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
@@ -31,6 +30,7 @@ def _setNeXusFileName(path, scan_id=1):
     """
     NeXus file name
     """
+    from ..startup import nxwriter
 
     fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
     nxwriter.file_name = fname

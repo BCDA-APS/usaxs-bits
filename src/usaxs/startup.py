@@ -58,7 +58,7 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 
 # Import optional components based on configuration
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.nexus_data_file_writer import nxwriter_init
+    from .callbacks.nxwriter_usaxs import nxwriter_init
 
     nxwriter = nxwriter_init(RE)
 
