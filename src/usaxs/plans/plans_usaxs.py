@@ -18,13 +18,13 @@ from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
 from usaxs.callbacks.spec_data_file_writer import specwriter
-from utils.global_suspenders import get_suspend_BeamInHutch
-from utils.global_suspenders import get_suspend_FE_shutter
 from usaxs.utils.override import user_override
 from usaxs.utils.user_sample_title import getSampleTitle
 from usaxs.utils.utils import techniqueSubdirectory
 
 from ..utils.a2q_q2a import q2angle
+from ..utils.global_suspenders import get_suspend_BeamInHutch
+from ..utils.global_suspenders import get_suspend_FE_shutter
 from .amplifiers_plan import autoscale_amplifiers
 from .command_list import after_plan
 from .command_list import before_plan
