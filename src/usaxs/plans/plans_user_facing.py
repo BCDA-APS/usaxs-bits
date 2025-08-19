@@ -21,8 +21,8 @@ from bluesky.utils import plan
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
 from ..startup import RE
-from ..suspenders.global_suspenders import get_suspend_BeamInHutch
-from ..suspenders.global_suspenders import get_suspend_FE_shutter
+from ..utils.global_suspenders import get_suspend_BeamInHutch
+from ..utils.global_suspenders import get_suspend_FE_shutter
 from ..utils.constants import constants
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle

@@ -23,7 +23,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
-from .suspenders import global_suspenders
+from .utils import global_suspenders
 from epics import caget
 
 from usaxs.utils.scalers_setup import setup_scalers

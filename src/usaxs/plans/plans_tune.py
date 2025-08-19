@@ -15,8 +15,8 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from ..suspenders.global_suspenders import get_suspend_BeamInHutch
-from ..suspenders.global_suspenders import get_suspend_FE_shutter
+from ..utils.global_suspenders import get_suspend_BeamInHutch
+from ..utils.global_suspenders import get_suspend_FE_shutter
 from .axis_tuning import tune_a2rp
 from .axis_tuning import tune_ar
 from .axis_tuning import tune_mr

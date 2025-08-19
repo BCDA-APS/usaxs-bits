@@ -22,8 +22,8 @@ from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from ..suspenders.global_suspenders import get_suspend_BeamInHutch
-from ..suspenders.global_suspenders import get_suspend_FE_shutter
+from ..utils.global_suspenders import get_suspend_BeamInHutch
+from ..utils.global_suspenders import get_suspend_FE_shutter
 from .amplifiers_plan import autoscale_amplifiers
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
