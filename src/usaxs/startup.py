@@ -190,5 +190,5 @@ from .utils.setup_new_user import newUser
 # customize the instrument configuration
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_shutter.delay_s = 0.01
-
-newUser()
+if not running_in_queueserver():
+    newUser()
