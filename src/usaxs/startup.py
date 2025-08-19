@@ -23,6 +23,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
+from .suspenders import global_suspenders
 from epics import caget
 
 from usaxs.utils.scalers_setup import setup_scalers
@@ -111,6 +112,9 @@ if not in_operation:
     from usaxs.suspenders.suspender_functions import suspender_in_sim
 
     suspend_FE_shutter, suspend_BeamInHutch = suspender_in_sim()
+
+# Store suspenders globally
+global_suspenders.set_suspenders(suspend_FE_shutter, suspend_BeamInHutch)
 
 ### Baseline stream
 # Beamline configuration stored before/after experiment

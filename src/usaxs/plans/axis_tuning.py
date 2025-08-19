@@ -22,8 +22,8 @@ from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from ..startup import suspend_BeamInHutch
-from ..startup import suspend_FE_shutter
+from ..suspenders.global_suspenders import get_suspend_BeamInHutch
+from ..suspenders.global_suspenders import get_suspend_FE_shutter
 from .amplifiers_plan import autoscale_amplifiers
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
@@ -69,6 +69,8 @@ logger = logging.getLogger(__name__)
 #     m_stage.r2p.post_tune_method = empty_plan
 #     tune_m2rp = empty_plan
 
+suspend_FE_shutter = get_suspend_FE_shutter()
+suspend_BeamInHutch = get_suspend_BeamInHutch()
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)

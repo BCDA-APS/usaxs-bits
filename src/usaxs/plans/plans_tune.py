@@ -15,8 +15,8 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from ..startup import suspend_BeamInHutch
-from ..startup import suspend_FE_shutter
+from ..suspenders.global_suspenders import get_suspend_BeamInHutch
+from ..suspenders.global_suspenders import get_suspend_FE_shutter
 from .axis_tuning import tune_a2rp
 from .axis_tuning import tune_ar
 from .axis_tuning import tune_mr
@@ -44,7 +44,8 @@ scaler0 = oregistry["scaler0"]
 m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
 
-
+suspend_FE_shutter = get_suspend_FE_shutter()
+suspend_BeamInHutch = get_suspend_BeamInHutch()
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
 @plan

@@ -21,8 +21,8 @@ from bluesky.utils import plan
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
 from ..startup import RE
-from ..startup import suspend_BeamInHutch
-from ..startup import suspend_FE_shutter
+from ..suspenders.global_suspenders import get_suspend_BeamInHutch
+from ..suspenders.global_suspenders import get_suspend_FE_shutter
 from ..utils.constants import constants
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
@@ -72,6 +72,9 @@ usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_data"]
 waxs_det = oregistry["waxs_det"]
+
+suspend_FE_shutter = get_suspend_FE_shutter()
+suspend_BeamInHutch = get_suspend_BeamInHutch()
 
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"
 LOCAL_FILE_TEMPLATE = "%s_%04d.hdf"
