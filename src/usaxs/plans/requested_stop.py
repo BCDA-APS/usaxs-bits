@@ -13,8 +13,6 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky.run_engine import RequestAbort
 
-from ..startup import RE
-
 logger = logging.getLogger(__name__)
 
 # Device instances
@@ -26,6 +24,7 @@ user_data = oregistry["user_data"]
 
 def IfRequestedStopBeforeNextScan():
     """plan: wait if requested"""
+    from ..startup import RE
 
     open_the_shutter = False
     t0 = time.time()

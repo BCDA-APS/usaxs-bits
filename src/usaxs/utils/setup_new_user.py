@@ -14,7 +14,6 @@ from apstools.utils import cleanupText
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
 from ..callbacks.nxwriter_usaxs import nxwriter
-from ..startup import RE
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
@@ -43,6 +42,8 @@ def _setSpecFileName(path, scan_id=1):
     """
     SPEC file name
     """
+    from ..startup import RE
+
     fname = os.path.join(path, f"{os.path.basename(path)}.dat")
     if filename_exists(fname):
         logger.warning(">>> file already exists: %s <<<", fname)

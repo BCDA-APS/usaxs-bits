@@ -17,10 +17,8 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-# from ..startup import bec
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
-from ..startup import RE
 from ..utils.global_suspenders import get_suspend_BeamInHutch
 from ..utils.global_suspenders import get_suspend_FE_shutter
 from ..utils.constants import constants
@@ -119,6 +117,8 @@ def saxsExp(
 
     USAGE:  ``RE(SAXS(pos_X, pos_Y, thickness, scan_title))``
     """
+    from ..startup import RE
+
     if md is None:
         md = {}
 
@@ -385,6 +385,8 @@ def waxsExp(
 
     USAGE:  ``RE(WAXS(pos_X, pos_Y, thickness, scan_title))``
     """
+    from ..startup import RE
+
     if md is None:
         md = {}
 

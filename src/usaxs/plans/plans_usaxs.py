@@ -24,8 +24,6 @@ from usaxs.utils.override import user_override
 from usaxs.utils.user_sample_title import getSampleTitle
 from usaxs.utils.utils import techniqueSubdirectory
 
-from ..startup import RE
-from ..startup import bec
 from ..utils.a2q_q2a import q2angle
 from .amplifiers_plan import autoscale_amplifiers
 from .command_list import after_plan
@@ -144,6 +142,10 @@ def USAXSscanStep(
 
     USAGE:  ``RE(USAXSscanStep(pos_X, pos_Y, thickness, scan_title))``
     """
+
+    from ..startup import RE
+    from ..startup import bec
+
     if md is None:
         md = {}
 
@@ -396,6 +398,7 @@ def Flyscan(
 
     USAGE:  ``RE(Flyscan(pos_X, pos_Y, thickness, scan_title))``
     """
+    from ..startup import RE
     if md is None:
         md = {}
 
