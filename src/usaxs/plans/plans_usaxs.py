@@ -18,8 +18,8 @@ from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
 from usaxs.callbacks.spec_data_file_writer import specwriter
-from usaxs.startup import suspend_BeamInHutch
-from usaxs.startup import suspend_FE_shutter
+from utils.global_suspenders import get_suspend_BeamInHutch
+from utils.global_suspenders import get_suspend_FE_shutter
 from usaxs.utils.override import user_override
 from usaxs.utils.user_sample_title import getSampleTitle
 from usaxs.utils.utils import techniqueSubdirectory
@@ -63,6 +63,8 @@ usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_data"]
 
+suspend_FE_shutter = get_suspend_FE_shutter
+suspend_BeamInHutch = get_suspend_BeamInHutch
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
