@@ -49,11 +49,22 @@ def techniqueSubdirectory(technique):
     """
     Create a technique-based subdirectory per table in ``newUser()``.
 
-    NOTE: Assumes CWD is now the directory returned by ``newFile()``
+    NOTE:   Assumes CWD is now the directory returned by ``newFile()``
+            Add a subdirectory based on user_data.sample_name 
     """
-    data_path = get_data_dir()
-    stub = os.path.basename(data_path)
-    path = os.path.join(data_path, f"{stub}_{technique}")
+    data_path = get_data_dir()  # this is typically /share1/USAXS_data/02_05_Username
+
+    sampleFolder = user_data.sample_name.get().strip()  # should be set in newUser(), shoudl return relatively simple name for sample, e.g., Sample1
+    if sampleFolder == "":
+        sampleFolder = "sample"
+    sampleFolder = sampleFolder.replace(" ", "_")       # replace spaces with underscores
+    data_path = os.path.join(data_path, sampleFolder)   # add sample name to path
+    if not os.path.exists(data_path):                   # create sample directory if needed
+        logger.info("Creating sample directory: %s", data_path)
+        os.mkdir(data_path)
+
+    stub = os.path.basename(data_path)                  # should be something like Sample1
+    path = os.path.join(data_path, f"{stub}_{technique}")# shoudl add Sample1_usaxs etc. 
 
     if not os.path.exists(path):
         logger.info("Creating technique directory: %s", path)

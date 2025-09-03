@@ -55,7 +55,7 @@ def _setSpecFileName(path, scan_id=1):
     logger.info(f"File will be {handled} at end of next bluesky scan.")
 
 
-def newUser(user=None, scan_id=1, year=None, month=None, day=None):
+def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     """
     setup for a new user
 
@@ -71,9 +71,9 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     ======================  ========================
     user data folder base   <CWD>/MM_DD_USER
     SPEC data file          <CWD>/MM_DD_USER/MM_DD_USER.dat
-    AD folder - SAXS        <CWD>/MM_DD_USER/MM_DD_USER_saxs/
-    folder - USAXS          <CWD>/MM_DD_USER/MM_DD_USER_usaxs/
-    AD folder - WAXS        <CWD>/MM_DD_USER/MM_DD_USER_waxs/
+    AD folder - SAXS        <CWD>/MM_DD_USER/sample/MM_DD_USER_saxs/
+    folder - USAXS          <CWD>/MM_DD_USER/sample/MM_DD_USER_usaxs/
+    AD folder - WAXS        <CWD>/MM_DD_USER/sample/MM_DD_USER_waxs/
     ======================  ========================
 
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
@@ -92,6 +92,7 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
         with open(filename, "r") as file:
             data = json.load(file)
             user = data.get("user_name")
+            sample = data.get("sample_name")
             year = data.get("year")
             month = data.get("month")
             day = data.get("day")
@@ -102,9 +103,11 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     year = year or dt.year  # lgtm [py/unused-local-variable]
     month = month or dt.month
     day = day or dt.day
+    sample = sample or "sample"
 
     data = {
         "user_name": user,
+        "sample_name":sample,
         "year": year,
         "month": month,
         "day": day,
@@ -116,6 +119,7 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
 
     user_data.user_name.put(user)  # set in the PV
     # user_data.spec_scan.put(scan_id)  # set in the PV
+    user_data.sample_name.put(sample)  # set in the PV
 
     # DATA_DIR_BASE = pathlib.Path("/") / "share1" / "USAXS_data"
     path = (
@@ -138,6 +142,77 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
 
     logger.info(data)
     return str(path.absolute())
+
+def newSample(sample=None):
+    """
+    setup for a new sample name
+
+    Create (if necessary) new user directory in
+    standard directory with month, day, and
+    given user name as shown in the following table.
+    Each technique (SAXS, USAXS, WAXS) will be
+    reponsible for creating its subdirectory
+    as needed.
+
+    ======================  ========================
+    purpose                 folder
+    ======================  ========================
+    user data folder base   <CWD>/MM_DD_USER
+    SPEC data file          <CWD>/MM_DD_USER/MM_DD_USER.dat
+    AD folder - SAXS        <CWD>/MM_DD_USER/sample/MM_DD_USER_saxs/
+    folder - USAXS          <CWD>/MM_DD_USER/sample/MM_DD_USER_usaxs/
+    AD folder - WAXS        <CWD>/MM_DD_USER/sample/MM_DD_USER_waxs/
+    ======================  ========================
+
+    CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
+    """
+    global specwriter
+    filename = ".user_info.json"  # Store if a new user was created
+    cwd = Path.cwd()
+
+    print("Your Path Is : %s", cwd)
+
+    file_exists = Path(filename).is_file()
+
+    #### If the file exists:
+    if file_exists:
+        logger.info("Found existing user info file: %s", filename)
+        with open(filename, "r") as file:
+            data = json.load(file)
+            user = data.get("user_name")
+            sampleOld = data.get("sample_name")
+            year = data.get("year")
+            month = data.get("month")
+            day = data.get("day")
+    else:
+        #abort code execution
+        raise RuntimeError(f"User info file {filename} not found. Please run newUser() first.")
+
+    if sample is None:
+        sample = input("Please provide the name of the new sample: ").strip()
+
+    dt = datetime.datetime.now()
+    user = user or "user"
+    year = year or dt.year  # lgtm [py/unused-local-variable]
+    month = month or dt.month
+    day = day or dt.day
+    sample = sample or "sample"
+
+    data = {
+        "user_name": user,
+        "sample_name":sample,
+        "year": year,
+        "month": month,
+        "day": day,
+    }
+
+    #### Load json data into file
+    with open(filename, "w") as file:
+        json.dump(data, file, indent=4)  # indent=4 for pretty formatting
+
+    user_data.sample_name.put(sample)  # set in the PV
+
+
 
 
 # def _pick_esaf(user, now, cycle):
