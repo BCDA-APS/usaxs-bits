@@ -92,7 +92,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         with open(filename, "r") as file:
             data = json.load(file)
             user = data.get("user_name")
-            sample = data.get("sample_name")
+            sample = data.get("sample_dir")
             year = data.get("year")
             month = data.get("month")
             day = data.get("day")
@@ -107,7 +107,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
 
     data = {
         "user_name": user,
-        "sample_name":sample,
+        "sample_dir":sample,
         "year": year,
         "month": month,
         "day": day,
@@ -119,7 +119,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
 
     user_data.user_name.put(user)  # set in the PV
     # user_data.spec_scan.put(scan_id)  # set in the PV
-    user_data.sample_name.put(sample)  # set in the PV
+    user_data.sample_dir.put(sample)  # set in the PV
 
     # DATA_DIR_BASE = pathlib.Path("/") / "share1" / "USAXS_data"
     path = (
@@ -180,7 +180,7 @@ def newSample(sample=None):
         with open(filename, "r") as file:
             data = json.load(file)
             user = data.get("user_name")
-            sampleOld = data.get("sample_name")
+            sampleOld = data.get("sample_dir")
             year = data.get("year")
             month = data.get("month")
             day = data.get("day")
@@ -200,7 +200,7 @@ def newSample(sample=None):
 
     data = {
         "user_name": user,
-        "sample_name":sample,
+        "sample_dir":sample,
         "year": year,
         "month": month,
         "day": day,
@@ -210,7 +210,7 @@ def newSample(sample=None):
     with open(filename, "w") as file:
         json.dump(data, file, indent=4)  # indent=4 for pretty formatting
 
-    user_data.sample_name.put(sample)  # set in the PV
+    user_data.sample_dir.put(sample)  # set in the PV
 
 
 

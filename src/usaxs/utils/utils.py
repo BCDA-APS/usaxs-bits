@@ -50,11 +50,11 @@ def techniqueSubdirectory(technique):
     Create a technique-based subdirectory per table in ``newUser()``.
 
     NOTE:   Assumes CWD is now the directory returned by ``newFile()``
-            Add a subdirectory based on user_data.sample_name 
+            Add a subdirectory based on user_data.sample_dir 
     """
     data_path = get_data_dir()  # this is typically /share1/USAXS_data/02_05_Username
 
-    sampleFolder = user_data.sample_name.get().strip()  # should be set in newUser(), shoudl return relatively simple name for sample, e.g., Sample1
+    sampleFolder = user_data.sample_dir.get().strip()  # should be set in newUser(), shoudl return relatively simple name for sample, e.g., Sample1
     if sampleFolder == "":
         sampleFolder = "sample"
     sampleFolder = sampleFolder.replace(" ", "_")       # replace spaces with underscores

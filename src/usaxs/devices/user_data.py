@@ -104,6 +104,9 @@ class UserDataDevice(Device):
     sample_title: Component[EpicsSampleNameDevice] = Component(
         EpicsSampleNameDevice, "usxLAX:sampleTitle", string=True
     )
+    sample_dir: Component[EpicsSampleNameDevice] = Component(
+        EpicsSampleNameDevice, "usxLAX:sampleDir", string=True
+    )
     scanning: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:USAXS:scanning")
     scan_macro: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:scanMacro")
     spec_file: Component[EpicsSignal] = Component(
