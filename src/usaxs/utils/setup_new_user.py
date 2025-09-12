@@ -103,7 +103,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     year = year or dt.year  # lgtm [py/unused-local-variable]
     month = month or dt.month
     day = day or dt.day
-    sample = sample or "sample"
+    sample = sample or "data"
 
     data = {
         "user_name": user,
@@ -196,7 +196,7 @@ def newSample(sample=None):
     year = year or dt.year  # lgtm [py/unused-local-variable]
     month = month or dt.month
     day = day or dt.day
-    sample = sample or "sample"
+    sample = sample or "data"
 
     data = {
         "user_name": user,
