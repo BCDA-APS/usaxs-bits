@@ -10,6 +10,7 @@ from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
+from bluesky import plan_stubs as bps
 
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
@@ -26,7 +27,10 @@ APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"
 
 NX_FILE_EXTENSION = ".h5"
-
+#we need these so we can reset order numbers, if we start a new user. 
+saxs_det = oregistry["saxs_det"]
+terms = oregistry["terms"]
+waxs_det = oregistry["waxs_det"]
 
 def _setNeXusFileName(path, scan_id=1):
     """
@@ -83,10 +87,21 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     cwd = Path.cwd()
 
     print("Your Path Is : %s", cwd)
-
+    # check the file exists
     file_exists = Path(filename).is_file()
-
-    #### If the file exists:
+    # if user is set, we are starting a new user and therefore will also reset order numbers:
+    if user is not None :
+        logger.debug("Synchronizing detector order numbers to %d", 1)
+        yield from bps.mv(
+            # fmt: off
+            terms.FlyScan.order_number,         1,
+            saxs_det.hdf1.file_number,          1,
+            waxs_det.hdf1.file_number,          1,
+            # fmt: on
+        )
+  
+    
+    #### If the file exists and user is None, we are running this automatically and therefore restore odl values:
     if user is None and file_exists:
         logger.info("Found existing user info file: %s", filename)
         with open(filename, "r") as file:

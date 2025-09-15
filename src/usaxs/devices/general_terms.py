@@ -26,15 +26,6 @@ class FlyScanParameters(Device):
     setpoint_down = Component(Signal, value=850000)  # increase range
 
 
-class OrderNumbersParams(Device):
-    """Order number parameters for data collection devices"""
-    USAXS_order_number = Component(EpicsSignal, "usxLAX:USAXS:FS_OrderNumber")
-    SAXS_HDF_order_number = Component(EpicsSignal, "usaxs_pilatus3:HDF1:FileNumber")
-    SAXS_CAM_order_number = Component(EpicsSignal, "usaxs_pilatus3:cam1:FileNumber")    
-    WAXS_HDF_order_number = Component(EpicsSignal, "usaxs_eiger1:HDF1:FileNumber")
-    WAXS_CAM_order_number = Component(EpicsSignal, "usaxs_eiger1:cam1:FileNumber")
-
-
 class PreUsaxsTuneParameters(Device):
     """Parameters for pre-USAXS tuning operations."""
 
@@ -331,7 +322,6 @@ class GeneralParameters(Device):
     PauseBeforeNextScan = Component(EpicsSignal, "usxLAX:PauseBeforeNextScan")
     StopBeforeNextScan = Component(EpicsSignal, "usxLAX:StopBeforeNextScan")
 
-    OrderNumbers = Component(OrderNumbersParams)
     # consider refactoring
     FlyScan = Component(FlyScanParameters)
     preUSAXStune = Component(PreUsaxsTuneParameters)
