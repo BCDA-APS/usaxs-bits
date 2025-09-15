@@ -10,7 +10,8 @@ from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
-from bluesky import plan_stubs as bps
+from epics import caput
+
 
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
@@ -92,13 +93,13 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     # if user is set, we are starting a new user and therefore will also reset order numbers:
     if user is not None :
         logger.debug("Synchronizing detector order numbers to %d", 1)
-        yield from bps.mv(
-            # fmt: off
-            terms.FlyScan.order_number,         1,
-            saxs_det.hdf1.file_number,          1,
-            waxs_det.hdf1.file_number,          1,
-            # fmt: on
-        )
+        caput("usxLAX:USAXS:FS_OrderNumber",1)
+        caput("usaxs_eiger1:HDF1:FileNumber",1)
+        caput("usaxs_pilatus3:HDF1:FileNumber",1)        
+        caput("usaxs_eiger1:cam1:FileNumber",1)
+        caput("usaxs_pilatus3:cam1:FileNumber",1)
+
+
   
     
     #### If the file exists and user is None, we are running this automatically and therefore restore odl values:
