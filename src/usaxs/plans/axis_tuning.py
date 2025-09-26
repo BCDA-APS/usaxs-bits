@@ -202,6 +202,90 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
     # return success
 
 
+def find_ar(md: Optional[Dict[str, Any]] = None):
+    """
+    Tune the AR stage with adaptive range.
+
+    This function tunes the analyzer rotation stage by finding the optimal position
+    for maximum signal intensity. It includes setting up the scaler, configuring
+    the detector controls, and performing a lineup scan.
+
+    Uses adaptive scanning to search over originally large range narrowing closer and closer 
+    uses lineup2 algorith and allows for up to 5 scans. 
+
+    Parameters
+    ----------
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary to be added to the scan, by default None
+
+    Yields
+    ------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+    """
+    if md is None:
+        md = {}
+    success = False
+    try:
+        yield from bps.mv(usaxs_shutter, "open")
+        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from bps.mv(upd_controls.auto.mode, "manual")
+        md["plan_name"] = "find_ar"
+        yield from IfRequestedStopBeforeNextScan()
+        logger.info(f"tuning axis: {a_stage.r.name}")
+        # axis_start = a_stage.r.position
+        yield from bps.mv(
+            mono_shutter,
+            "open",
+            usaxs_shutter,
+            "open",
+        )
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
+        trim_plot_by_name(5)
+        scaler0.select_channels(["UPD"])
+        stats = SignalStatsCallback()
+        yield from lineup2(
+            [UPD, scaler0],
+            a_stage.r,
+            -5*a_stage.r.tune_range.get(),
+            5*a_stage.r.tune_range.get(),
+            41,
+            nscans=5,
+            signal_stats=stats,
+            md=md,
+        )
+        print(stats.report())
+        yield from bps.mv(
+            usaxs_shutter,
+            "close",
+            scaler0.count_mode,
+            "AutoCount",
+            upd_controls.auto.mode,
+            "auto+background",
+        )
+        scaler0.select_channels()
+        success = stats.analysis.success
+        print(f"Result: {success}")
+        if success:
+            yield from bps.mv(
+                # fmt: off
+                terms.USAXS.ar_val_center,
+                a_stage.r.position,
+                usaxs_q_calc.channels.B.input_value,
+                a_stage.r.position,
+                # fmt: on
+            )
+            logger.debug(f"final position: {a_stage.r.position}")
+        else:
+            logger.info(f"find_ar failed for {stats.analysis.reasons}")
+
+    except Exception as e:
+        logger.error(f"Error in find_ar: {str(e)}")
+        raise
+
+    # return success
+
+
 def tune_a2rp(md: Optional[Dict[str, Any]] = None):
     """
     Tune the A2RP stage.
