@@ -48,6 +48,9 @@ I0_SIGNAL = oregistry["I0_SIGNAL"]
 I0 = oregistry["I0"]
 scaler0 = oregistry["scaler0"]
 
+upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
+I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
+
 user_data = oregistry["user_data"]
 monochromator = oregistry["monochromator"]
 usaxs_shutter = oregistry["usaxs_shutter"]
@@ -213,6 +216,9 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
     Uses adaptive scanning to search over originally large range narrowing closer and closer 
     uses lineup2 algorith and allows for up to 5 scans. 
 
+    uses upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
+    - optionally this is I0: I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
+
     Parameters
     ----------
     md : Optional[Dict[str, Any]], optional
@@ -239,13 +245,16 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             "open",
             usaxs_shutter,
             "open",
+            upd_controls.auto.mode,
+            "auto+background",  #set UPD amlifier to autorange to auto_background setting so we do not top the UPD
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls])
+        #yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
+        #is this needed? Using calculated signal : upd_photocurrent_calc
         scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD, scaler0],
+            [upd_photocurrent_calc, scaler0],
             a_stage.r,
             -5*a_stage.r.tune_range.get(),
             5*a_stage.r.tune_range.get(),
