@@ -48,7 +48,7 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
     delay1minutes - delay is in minutes
 
     reload by
-    # %run -im user.finite_loop
+    # %run -im usaxs.user.finite_loop
 
     run by
     RE(myFiniteLoop(0, 0, 1, "Sample", 20))
@@ -107,15 +107,26 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
     over list of positions and names
     1. Correct the ListOfSamples
     2. reload by
-    %run -im user.finite_loop
+    %run -im usaxs.user.finite_loop
     3. run:
     RE(myFiniteListLoop(20))
 
     """
     # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
     ListOfSamples = [
-        [21.6, 99.6, 1.0, "Sample_pnt1"],  # Point1
-        [20.9, 119.6, 1.0, "Sample_pnt1"],  # Point2
+    
+	[15, 58, 4.0, "water_blank"],  	# Point1
+	[25, 58, 4.0, "Z_15mgmL_DPEG_1p5mgmL_36hr"],  		# Point2
+	[35, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_36hr"], 	# Point3
+	[45, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_36hr"], 			# Point4
+	[55, 58, 4.0, "Z_15mgmL_DPEG_6gmL_36hr"], 	# Point5
+	[65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"], 	# Point6
+	[75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"], 	# Point7
+	[85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"], 	# Point8
+	[95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"], 	# Point9
+	[105, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_47C_14hr"], 	# Point10
+	[115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"], 	# Point11
+	
     ]
 
     # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
