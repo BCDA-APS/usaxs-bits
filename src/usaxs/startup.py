@@ -140,6 +140,7 @@ from .plans.autocollect_plan import remote_ops
 # these are all tuning plans facing users and staff
 from .plans.axis_tuning import tune_a2rp
 from .plans.axis_tuning import tune_ar
+from .plans.axis_tuning import find_ar
 from .plans.axis_tuning import tune_diode
 from .plans.axis_tuning import tune_dx
 from .plans.axis_tuning import tune_dy

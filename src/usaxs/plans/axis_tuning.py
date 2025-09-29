@@ -249,8 +249,11 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
         )
         #yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
-        #is this needed? Using calculated signal : upd_photocurrent_calc
-        scaler0.select_channels(["UPD"])
+        # control BEC plotting since we use upd_photocurrent_calc
+        upd_photocurrent_calc.kind = "hinted" # set kind to inlcude in plotting by BEC
+        upd_photocurrent_calc.channels.kind = "hinted" # set kind to inlcude in plotting by BEC
+        upd_photocurrent_calc.channels.A.kind = "hinted" # set kind to inlcude in plotting by BEC
+        scaler0.select_channels([])         # no scaler channels to be plotted (sets 'kinnd=normal' for all channels)
         stats = SignalStatsCallback()
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],
