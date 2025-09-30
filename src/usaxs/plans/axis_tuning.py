@@ -47,6 +47,7 @@ UPD = oregistry["UPD"]
 I0_SIGNAL = oregistry["I0_SIGNAL"]
 I0 = oregistry["I0"]
 scaler0 = oregistry["scaler0"]
+upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
 
 upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
 I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
@@ -235,7 +236,7 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
+        #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "find_ar"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r.name}")
@@ -250,8 +251,11 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
         )
         #yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
-        #is this needed? Using calculated signal : upd_photocurrent_calc
-        scaler0.select_channels(["UPD"])
+        # control BEC plotting since we use upd_photocurrent_calc
+        upd_photocurrent_calc.kind = "hinted" # set kind to inlcude in plotting by BEC
+        upd_photocurrent_calc.channels.kind = "hinted" # set kind to inlcude in plotting by BEC
+        upd_photocurrent_calc.channels.A.kind = "hinted" # set kind to inlcude in plotting by BEC
+        scaler0.select_channels([])         # no scaler channels to be plotted (sets 'kinnd=normal' for all channels)
         stats = SignalStatsCallback()
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],

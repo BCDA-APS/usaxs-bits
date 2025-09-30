@@ -1,6 +1,4 @@
-Transient Scan ID: 2     Time: 2025-09-28 09:21:11
-Persistent Unique Scan ID: 'a7c32093-6445-4cb4-82c3-229c9297b0c1'
-New stream: 'label_start_motor'
+
 New stream: 'baseline'
 New stream: 'primary'
 E Sun-09:21:12.758: An exception raised in the callback <function BestEffortCallback.__call__ at 0x7f1a26ce7880> is being suppressed to not interrupt plan execution.  To investigate try setting the BLUESKY_DEBUG_CALLBACKS env to '1'
@@ -527,4 +525,3 @@ Traceback (most recent call last):
 ValueError: Unequal shapes: x.shape=(1,) y.shape=(0,)
 
 
-In [3]: 
