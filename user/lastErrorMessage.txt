@@ -1,3 +1,4 @@
+
 New stream: 'baseline'
 New stream: 'primary'
 E Sun-09:21:12.758: An exception raised in the callback <function BestEffortCallback.__call__ at 0x7f1a26ce7880> is being suppressed to not interrupt plan execution.  To investigate try setting the BLUESKY_DEBUG_CALLBACKS env to '1'
@@ -522,4 +523,5 @@ Traceback (most recent call last):
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/utils/statistics.py:206 in xy_statistics
     raise ValueError(f"Unequal shapes: {x.shape=} {y.shape=}")
 ValueError: Unequal shapes: x.shape=(1,) y.shape=(0,)
+
 

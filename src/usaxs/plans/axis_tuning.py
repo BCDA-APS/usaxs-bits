@@ -49,6 +49,9 @@ I0 = oregistry["I0"]
 scaler0 = oregistry["scaler0"]
 upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
 
+upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
+I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
+
 user_data = oregistry["user_data"]
 monochromator = oregistry["monochromator"]
 usaxs_shutter = oregistry["usaxs_shutter"]
@@ -203,7 +206,6 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
     # return success
 
 
-
 def find_ar(md: Optional[Dict[str, Any]] = None):
     """
     Tune the AR stage with adaptive range.
@@ -295,7 +297,6 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
         raise
 
     # return success
-
 
 
 def tune_a2rp(md: Optional[Dict[str, Any]] = None):

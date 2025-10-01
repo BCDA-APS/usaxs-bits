@@ -183,6 +183,7 @@ from .plans.sim_plans import sim_count_plan
 from .plans.sim_plans import sim_print_plan
 from .plans.sim_plans import sim_rel_scan_plan
 from .utils.setup_new_user import newUser
+from .utils.setup_new_user import newSample
 
 # customize the instrument configuration
 usaxs_shutter = oregistry["usaxs_shutter"]
