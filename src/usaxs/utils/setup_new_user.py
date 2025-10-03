@@ -32,6 +32,7 @@ NX_FILE_EXTENSION = ".h5"
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 waxs_det = oregistry["waxs_det"]
+FlyScan = oregistry["FlyScan"]
 
 def _setNeXusFileName(path, scan_id=1):
     """
@@ -93,11 +94,19 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     # if user is set, we are starting a new user and therefore will also reset order numbers:
     if user is not None :
         logger.debug("Synchronizing detector order numbers to %d", 1)
-        caput("usxLAX:USAXS:FS_OrderNumber",1)
-        caput("usaxs_eiger1:HDF1:FileNumber",1)
-        caput("usaxs_pilatus3:HDF1:FileNumber",1)        
-        caput("usaxs_eiger1:cam1:FileNumber",1)
-        caput("usaxs_pilatus3:cam1:FileNumber",1)
+        # caput("usxLAX:USAXS:FS_OrderNumber",1)
+        # caput("usaxs_eiger1:HDF1:FileNumber",1)
+        # caput("usaxs_pilatus3:HDF1:FileNumber",1)        
+        # caput("usaxs_eiger1:cam1:FileNumber",1)
+        # caput("usaxs_pilatus3:cam1:FileNumber",1)
+        # terms = oregistry["terms"]
+        terms.FlyScan.order_number.put(1)
+        # saxs_det = oregistry["saxs_det"]
+        saxs_det.hdf1.file_number.put(1)
+        saxs_det.cam1.file_number.put(1)
+        #waxs_det = oregistry["waxs_det"]
+        waxs_det.hdf1.file_number.put(1)
+        waxs_det.cam1.file_number.put(1)
 
 
   
