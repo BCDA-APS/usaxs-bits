@@ -31,7 +31,6 @@ NX_FILE_EXTENSION = ".h5"
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 waxs_det = oregistry["waxs_det"]
-FlyScan = oregistry["FlyScan"]
 
 def _setNeXusFileName(path, scan_id=1):
     """
@@ -85,35 +84,20 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     """
     global specwriter
     filename = ".user_info.json"  # Store if a new user was created
-    base_path = Path("~/share1/USAXS_data").expanduser()
 
-    # Change to that directory (optional - you can check files without changing directory)
-    os.chdir(base_path)
-
-    # create YYYY-MM name for working forlder.
-    # if needed, create this folder
-    # set this folder to permission 777
-    # cwd into this folder
-
-    # Create folder name with current year-month
+    custom_path = Path("~/share1/USAXS_data").expanduser()
     folder_name = datetime.now().strftime("%Y-%m")
-    print(f"Folder name: {folder_name}")
+    working_folder = custom_path / folder_name
 
-    # Define the full path (adjust base path as needed)
-    working_folder = base_path / folder_name
+    if working_folder.exists():
+        print(f"Folder already exists: {working_folder}")
+    else:
+        working_folder.mkdir(parents=True)
+        print(f"Folder created: {working_folder}")
 
-    # Create folder if it doesn't exist
-    working_folder.mkdir(parents=True, exist_ok=True)
-    print(f"Folder created/verified at: {working_folder}")
-
-    # Set permissions to 777 (rwxrwxrwx)
+    # Set permissions to 777 regardless
     os.chmod(working_folder, 0o777)
     print(f"Permissions set to 777")
-
-    # Verify
-    print(f"Folder exists: {working_folder.is_dir()}")
-
-    print(f"Your Path Is: {working_folder}")
 
     cwd = Path.cwd()
 
