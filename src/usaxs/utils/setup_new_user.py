@@ -82,7 +82,6 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
 
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
-    global specwriter
 
     base_path = Path("~/share1/USAXS_data").expanduser()
     folder_name = datetime.datetime.now().strftime("%Y-%m")
@@ -147,6 +146,12 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     month = month or dt.month
     day = day or dt.day
     sample = sample or "data"
+
+    year_month = f"{year:04d}-{month:02d}"
+    print(f"Year-Month: {year_month}, Folder Name: {folder_name}")
+    if year_month != folder_name:
+        print("inside wrong folder")
+        pass
 
     data = {
         "user_name": user,
