@@ -1,0 +1,527 @@
+
+New stream: 'baseline'
+New stream: 'primary'
+E Sun-09:21:12.758: An exception raised in the callback <function BestEffortCallback.__call__ at 0x7f1a26ce7880> is being suppressed to not interrupt plan execution.  To investigate try setting the BLUESKY_DEBUG_CALLBACKS env to '1'
+Traceback (most recent call last):
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/callbacks/core.py", line 65, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/callbacks/best_effort.py", line 103, in __call__
+    super().__call__(name, doc, *args, **kwargs)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/callbacks/mpl_plotting.py", line 80, in __call__
+    return CallbackBase.__call__(self, name, doc)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/event_model/__init__.py", line 191, in __call__
+    return self._dispatch(name, doc, validate)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/event_model/__init__.py", line 199, in _dispatch
+    output_doc = getattr(self, name)(doc)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/callbacks/best_effort.py", line 381, in descriptor
+    self._set_up_plots(doc, stream_name, columns)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/callbacks/best_effort.py", line 249, in _set_up_plots
+    dtype = doc["data_keys"][y_key]["dtype"]
+            ~~~~~~~~~~~~~~~~^^^^^^^
+KeyError: 'channels.A'
+E Sun-09:21:12.937: Error in find_ar: Unequal shapes: x.shape=(1,) y.shape=(0,)
+E Sun-09:21:12.938: Run aborted
+Traceback (most recent call last):
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 604, in contingency_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1166, in inner_scan_nd
+    yield from per_step(detectors, step, pos_cache)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1952, in __iter__
+    return (yield from self._iter)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 1729, in one_nd_step
+    yield from take_reading(list(detectors) + list(motors))  # type: ignore  # Movable issue
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1952, in __iter__
+    return (yield from self._iter)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 1471, in trigger_and_read
+    return (yield from rewindable_wrapper(inner_trigger_and_read(), rewindable))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 731, in rewindable_wrapper
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 1466, in inner_trigger_and_read
+    ret = yield from contingency_wrapper(read_plan(), except_plan=exception_path, else_plan=standard_path)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 623, in contingency_wrapper
+    yield from else_plan()
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 1460, in standard_path
+    yield from save()
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1952, in __iter__
+    return (yield from self._iter)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 128, in save
+    return (yield Msg("save"))
+            ^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 259, in msg_mutator
+    _s = yield msg
+         ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  [Previous line repeated 4 more times]
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 1676, in _run
+    new_response = await coro(msg)
+                   ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 2076, in _save
+    await current_run.save(msg)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/bundlers.py", line 570, in save
+    await self.emit(DocumentNames.event, event_doc)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 2679, in emit
+    self.emit_sync(name, doc)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 2676, in emit_sync
+    self.dispatcher.process(name, doc)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 2699, in process
+    exceptions = self.cb_registry.process(name, name.name, doc)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 422, in process
+    func(*args, **kwargs)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 512, in __call__
+    return mtd(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/scan_signal_statistics.py", line 159, in receiver
+    getattr(self, key)(document)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/scan_signal_statistics.py", line 151, in event
+    y = doc["data"][yname]
+        ~~~~~~~~~~~^^^^^^^
+KeyError: 'channels.A'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 1609, in _run
+    msg = self._plan_stack[-1].send(resp)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/labels_to_streams.py", line 231, in label_stream_wrapper
+    return (yield from bpp.plan_mutator(plan, action[when.value]))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1375, in __call__
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1228, in baseline_wrapper
+    return (yield from plan_mutator(plan, insert_baseline))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 845, in monitor_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 907, in fly_during_wrapper
+    return (yield from plan2)
+            ^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/plans/axis_tuning.py", line 256, in find_ar
+    yield from lineup2(
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/alignment.py", line 570, in lineup2
+    yield from _inner()  # Run the scan.
+    ^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 413, in subs_wrapper
+    return (yield from finalize_wrapper(_inner_plan(), _unsubscribe()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 411, in _inner_plan
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/alignment.py", line 567, in _inner
+    yield from bp.rel_scan(detectors, mover, rel_start, rel_end, points, md=_md)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1596, in rel_scan
+    return (yield from inner_rel_scan())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1175, in reset_positions_wrapper
+    return (yield from finalize_wrapper(plan_mutator(plan, insert_reads), reset()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1131, in relative_set_wrapper
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 271, in msg_mutator
+    msg = plan.send(_s)
+          ^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1594, in inner_rel_scan
+    return (yield from scan(detectors, *args, num=num, per_step=per_step, md=_md))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1291, in scan
+    return (yield from scan_nd(detectors, full_cycler, per_step=per_step, md=_md))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1168, in scan_nd
+    return (yield from inner_scan_nd())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 995, in stage_wrapper
+    return (yield from finalize_wrapper(inner(), unstage_devices()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 993, in inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 358, in run_wrapper
+    yield from contingency_wrapper(plan, except_plan=except_plan, else_plan=close_run)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 614, in contingency_wrapper
+    ret = yield from except_plan(e)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 259, in msg_mutator
+    _s = yield msg
+         ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 898, in new_gen
+    yield msg
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 836, in new_gen
+    yield msg
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1218, in post_baseline
+    return (yield msg)
+            ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 1676, in _run
+    new_response = await coro(msg)
+                   ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 1900, in _close_run
+    ret = await current_run.close_run(msg)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/bundlers.py", line 165, in close_run
+    await self.emit(DocumentNames.stop, doc)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 2679, in emit
+    self.emit_sync(name, doc)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 2676, in emit_sync
+    self.dispatcher.process(name, doc)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 2699, in process
+    exceptions = self.cb_registry.process(name, name.name, doc)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 422, in process
+    func(*args, **kwargs)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 512, in __call__
+    return mtd(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/scan_signal_statistics.py", line 159, in receiver
+    getattr(self, key)(document)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/scan_signal_statistics.py", line 206, in stop
+    self.analysis = xy_statistics(
+                    ^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/utils/statistics.py", line 206, in xy_statistics
+    raise ValueError(f"Unequal shapes: {x.shape=} {y.shape=}")
+ValueError: Unequal shapes: x.shape=(1,) y.shape=(0,)
+E Sun-09:21:12.983: Failed to close run <bluesky.bundlers.RunBundler object at 0x7f19b24c0490>.
+Traceback (most recent call last):
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:604 in contingency_wrapper
+    ret = yield from plan
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1166 in inner_scan_nd
+    yield from per_step(detectors, step, pos_cache)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
+    return (yield from self._iter)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py:1729 in one_nd_step
+    yield from take_reading(list(detectors) + list(motors))  # type: ignore  # Movable issue
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
+    return (yield from self._iter)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py:1471 in trigger_and_read
+    return (yield from rewindable_wrapper(inner_trigger_and_read(), rewindable))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:731 in rewindable_wrapper
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py:1466 in inner_trigger_and_read
+    ret = yield from contingency_wrapper(read_plan(), except_plan=exception_path, else_plan=standard_path)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:623 in contingency_wrapper
+    yield from else_plan()
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py:1460 in standard_path
+    yield from save()
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
+    return (yield from self._iter)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py:128 in save
+    return (yield Msg("save"))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:259 in msg_mutator
+    _s = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1676 in _run
+    new_response = await coro(msg)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2076 in _save
+    await current_run.save(msg)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/bundlers.py:570 in save
+    await self.emit(DocumentNames.event, event_doc)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2679 in emit
+    self.emit_sync(name, doc)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2676 in emit_sync
+    self.dispatcher.process(name, doc)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2699 in process
+    exceptions = self.cb_registry.process(name, name.name, doc)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:422 in process
+    func(*args, **kwargs)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:512 in __call__
+    return mtd(*args, **kwargs)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/scan_signal_statistics.py:159 in receiver
+    getattr(self, key)(document)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/scan_signal_statistics.py:151 in event
+    y = doc["data"][yname]
+KeyError: 'channels.A'
+
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  Cell In[2], line 1
+    RE(find_ar())
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:973 in __call__
+    plan_return = self._resume_task(init_func=_build_task)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1120 in _resume_task
+    raise exc
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1755 in _run
+    raise err
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1609 in _run
+    msg = self._plan_stack[-1].send(resp)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/labels_to_streams.py:231 in label_stream_wrapper
+    return (yield from bpp.plan_mutator(plan, action[when.value]))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1375 in __call__
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1228 in baseline_wrapper
+    return (yield from plan_mutator(plan, insert_baseline))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:845 in monitor_during_wrapper
+    return (yield from plan2)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:907 in fly_during_wrapper
+    return (yield from plan2)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/axis_tuning.py:256 in find_ar
+    yield from lineup2(
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/alignment.py:570 in lineup2
+    yield from _inner()  # Run the scan.
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:413 in subs_wrapper
+    return (yield from finalize_wrapper(_inner_plan(), _unsubscribe()))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
+    ret = yield from plan
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:411 in _inner_plan
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/alignment.py:567 in _inner
+    yield from bp.rel_scan(detectors, mover, rel_start, rel_end, points, md=_md)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1596 in rel_scan
+    return (yield from inner_rel_scan())
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1175 in reset_positions_wrapper
+    return (yield from finalize_wrapper(plan_mutator(plan, insert_reads), reset()))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
+    ret = yield from plan
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1131 in relative_set_wrapper
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:271 in msg_mutator
+    msg = plan.send(_s)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1594 in inner_rel_scan
+    return (yield from scan(detectors, *args, num=num, per_step=per_step, md=_md))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1291 in scan
+    return (yield from scan_nd(detectors, full_cycler, per_step=per_step, md=_md))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1168 in scan_nd
+    return (yield from inner_scan_nd())
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:995 in stage_wrapper
+    return (yield from finalize_wrapper(inner(), unstage_devices()))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
+    ret = yield from plan
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:993 in inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:358 in run_wrapper
+    yield from contingency_wrapper(plan, except_plan=except_plan, else_plan=close_run)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:614 in contingency_wrapper
+    ret = yield from except_plan(e)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:259 in msg_mutator
+    _s = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:89 in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:898 in new_gen
+    yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:89 in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:836 in new_gen
+    yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:89 in plan_mutator
+    msg = plan_stack[-1].throw(exception)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1218 in post_baseline
+    return (yield msg)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1676 in _run
+    new_response = await coro(msg)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1900 in _close_run
+    ret = await current_run.close_run(msg)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/bundlers.py:165 in close_run
+    await self.emit(DocumentNames.stop, doc)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2679 in emit
+    self.emit_sync(name, doc)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2676 in emit_sync
+    self.dispatcher.process(name, doc)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:2699 in process
+    exceptions = self.cb_registry.process(name, name.name, doc)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:422 in process
+    func(*args, **kwargs)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:512 in __call__
+    return mtd(*args, **kwargs)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/scan_signal_statistics.py:159 in receiver
+    getattr(self, key)(document)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/callbacks/scan_signal_statistics.py:206 in stop
+    self.analysis = xy_statistics(
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/utils/statistics.py:206 in xy_statistics
+    raise ValueError(f"Unequal shapes: {x.shape=} {y.shape=}")
+ValueError: Unequal shapes: x.shape=(1,) y.shape=(0,)
+
+

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
+from epics import caput
 
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
@@ -24,7 +25,10 @@ APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"
 
 NX_FILE_EXTENSION = ".h5"
-
+#we need these so we can reset order numbers, if we start a new user. 
+saxs_det = oregistry["saxs_det"]
+terms = oregistry["terms"]
+waxs_det = oregistry["waxs_det"]
 
 def _setNeXusFileName(path, scan_id=1):
     """
@@ -56,7 +60,7 @@ def _setSpecFileName(path, scan_id=1):
     logger.info(f"File will be {handled} at end of next bluesky scan.")
 
 
-def newUser(user=None, scan_id=1, year=None, month=None, day=None):
+def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     """
     setup for a new user
 
@@ -72,40 +76,89 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
     ======================  ========================
     user data folder base   <CWD>/MM_DD_USER
     SPEC data file          <CWD>/MM_DD_USER/MM_DD_USER.dat
-    AD folder - SAXS        <CWD>/MM_DD_USER/MM_DD_USER_saxs/
-    folder - USAXS          <CWD>/MM_DD_USER/MM_DD_USER_usaxs/
-    AD folder - WAXS        <CWD>/MM_DD_USER/MM_DD_USER_waxs/
+    AD folder - SAXS        <CWD>/MM_DD_USER/sample/MM_DD_USER_saxs/
+    folder - USAXS          <CWD>/MM_DD_USER/sample/MM_DD_USER_usaxs/
+    AD folder - WAXS        <CWD>/MM_DD_USER/sample/MM_DD_USER_waxs/
     ======================  ========================
 
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
-    global specwriter
-    filename = ".user_info.json"  # Store if a new user was created
-    cwd = Path.cwd()
 
+    base_path = Path("~/share1/USAXS_data").expanduser()
+    folder_name = datetime.datetime.now().strftime("%Y-%m")
+    working_folder = base_path / folder_name
+
+    if working_folder.exists():
+        print(f"Folder already exists: {working_folder}")
+    else:
+        working_folder.mkdir(parents=True)
+        print(f"Folder created: {working_folder}")
+
+    # Set permissions to 777 regardless
+    os.chmod(working_folder, 0o777)
+    print(f"Permissions set to 777")
+
+    os.chdir(working_folder)
+
+    cwd = Path.cwd()
     print("Your Path Is : %s", cwd)
 
-    file_exists = Path(filename).is_file()
+    # # Check if the file exists
+    filename = ".user_info.json"  # Store if a new user was created
+    file_exists = (working_folder / filename).is_file()
+    print(f"File exists: {file_exists}")
 
-    #### If the file exists:
+    print("Your Path Is : %s", working_folder)
+    # check the file exists
+
+    # if user is set, we are starting a new user and therefore will also reset order numbers:
+    if user is not None :
+        logger.debug("Synchronizing detector order numbers to %d", 1)
+        # caput("usxLAX:USAXS:FS_OrderNumber",1)
+        # caput("usaxs_eiger1:HDF1:FileNumber",1)
+        # caput("usaxs_pilatus3:HDF1:FileNumber",1)        
+        # caput("usaxs_eiger1:cam1:FileNumber",1)
+        # caput("usaxs_pilatus3:cam1:FileNumber",1)
+        # terms = oregistry["terms"]
+        terms.FlyScan.order_number.put(1)
+        # saxs_det = oregistry["saxs_det"]
+        saxs_det.hdf1.file_number.put(1)
+        # saxs_det.cam.file_number.put(1)
+        #waxs_det = oregistry["waxs_det"]
+        waxs_det.hdf1.file_number.put(1)
+        # waxs_det.cam.file_number.put(1)
+
+    #### If the file exists and user is None, we are running this automatically and therefore restore odl values:
     if user is None and file_exists:
         logger.info("Found existing user info file: %s", filename)
         with open(filename, "r") as file:
             data = json.load(file)
             user = data.get("user_name")
+            sample = data.get("sample_dir")
             year = data.get("year")
             month = data.get("month")
             day = data.get("day")
     elif user is None and not file_exists:
         user = input("Please provide the name of the new user: ").strip()
+        # dt = input("Please provide the date (YYYY-MM-DD) or press Enter for today: ").strip()
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]
     month = month or dt.month
     day = day or dt.day
+    sample = sample or "data"
+
+    year_month = f"{year:04d}-{month:02d}"
+    print(f"Year-Month: {year_month}, Folder Name: {folder_name}")
+    if year_month != folder_name:
+        print("inside wrong folder")
+        os.chdir(base_path/year_month)
+
+
 
     data = {
         "user_name": user,
+        "sample_dir":sample,
         "year": year,
         "month": month,
         "day": day,
@@ -117,6 +170,7 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
 
     user_data.user_name.put(user)  # set in the PV
     # user_data.spec_scan.put(scan_id)  # set in the PV
+    user_data.sample_dir.put(sample)  # set in the PV
 
     # DATA_DIR_BASE = pathlib.Path("/") / "share1" / "USAXS_data"
     path = (
@@ -139,6 +193,77 @@ def newUser(user=None, scan_id=1, year=None, month=None, day=None):
 
     logger.info(data)
     return str(path.absolute())
+
+def newSample(sample=None):
+    """
+    setup for a new sample name
+
+    Create (if necessary) new user directory in
+    standard directory with month, day, and
+    given user name as shown in the following table.
+    Each technique (SAXS, USAXS, WAXS) will be
+    reponsible for creating its subdirectory
+    as needed.
+
+    ======================  ========================
+    purpose                 folder
+    ======================  ========================
+    user data folder base   <CWD>/MM_DD_USER
+    SPEC data file          <CWD>/MM_DD_USER/MM_DD_USER.dat
+    AD folder - SAXS        <CWD>/MM_DD_USER/sample/MM_DD_USER_saxs/
+    folder - USAXS          <CWD>/MM_DD_USER/sample/MM_DD_USER_usaxs/
+    AD folder - WAXS        <CWD>/MM_DD_USER/sample/MM_DD_USER_waxs/
+    ======================  ========================
+
+    CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
+    """
+    global specwriter
+    filename = ".user_info.json"  # Store if a new user was created
+    cwd = Path.cwd()
+
+    print("Your Path Is : %s", cwd)
+
+    file_exists = Path(filename).is_file()
+
+    #### If the file exists:
+    if file_exists:
+        logger.info("Found existing user info file: %s", filename)
+        with open(filename, "r") as file:
+            data = json.load(file)
+            user = data.get("user_name")
+            sampleOld = data.get("sample_dir")
+            year = data.get("year")
+            month = data.get("month")
+            day = data.get("day")
+    else:
+        #abort code execution
+        raise RuntimeError(f"User info file {filename} not found. Please run newUser() first.")
+
+    if sample is None:
+        sample = input("Please provide the name of the new sample: ").strip()
+
+    dt = datetime.datetime.now()
+    user = user or "user"
+    year = year or dt.year  # lgtm [py/unused-local-variable]
+    month = month or dt.month
+    day = day or dt.day
+    sample = sample or "data"
+
+    data = {
+        "user_name": user,
+        "sample_dir":sample,
+        "year": year,
+        "month": month,
+        "day": day,
+    }
+
+    #### Load json data into file
+    with open(filename, "w") as file:
+        json.dump(data, file, indent=4)  # indent=4 for pretty formatting
+
+    user_data.sample_dir.put(sample)  # set in the PV
+
+
 
 
 # def _pick_esaf(user, now, cycle):
