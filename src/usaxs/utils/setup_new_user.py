@@ -123,10 +123,10 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         terms.FlyScan.order_number.put(1)
         # saxs_det = oregistry["saxs_det"]
         saxs_det.hdf1.file_number.put(1)
-        saxs_det.cam.file_number.put(1)
+        # saxs_det.cam.file_number.put(1)
         #waxs_det = oregistry["waxs_det"]
         waxs_det.hdf1.file_number.put(1)
-        waxs_det.cam.file_number.put(1)
+        # waxs_det.cam.file_number.put(1)
 
     #### If the file exists and user is None, we are running this automatically and therefore restore odl values:
     if user is None and file_exists:
