@@ -97,6 +97,8 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     # Set permissions to 777 regardless
     os.chmod(working_folder, 0o777)
     print(f"Permissions set to 777")
+    
+    os.chdir(working_folder)
 
     cwd = Path.cwd()
     print("Your Path Is : %s", cwd)
