@@ -12,7 +12,6 @@ from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
 from epics import caput
 
-
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
 from ..callbacks.nxwriter_usaxs import nxwriter
@@ -86,9 +85,19 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     """
     global specwriter
     filename = ".user_info.json"  # Store if a new user was created
-    custom_path = Path("~/share1/USAXS_data")
+    custom_path = Path("~/share1/USAXS_data").expanduser()
 
-    # cwd = Path.cwd()
+    # Change to that directory (optional - you can check files without changing directory)
+    os.chdir(custom_path)
+
+    print(f"Your Path Is: {custom_path}")
+
+    # Check if the file exists
+    filename = "your_file.txt"  # Replace with your actual filename
+    file_exists = (custom_path / filename).is_file()
+    cwd = Path.cwd()
+
+    print(f"File exists: {file_exists}")
 
     print("Your Path Is : %s", custom_path)
     # check the file exists
