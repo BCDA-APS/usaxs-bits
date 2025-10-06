@@ -20,7 +20,6 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from ..startup import bec
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
 
@@ -117,6 +116,8 @@ def uascan(
     USAGE:  ``RE(uascan(start, reference, finish, minStep, exponent, intervals,
     count_time, dx0, SDD_mm, ax0, SAD_mm))``
     """
+    from ..startup import bec
+
     if md is None:
         md = {}
 

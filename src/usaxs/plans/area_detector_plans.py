@@ -9,8 +9,7 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 
-from ..startup import RE
-from ..startup import bec
+
 from ..utils.reporter import remaining_time_reporter
 
 logger = logging.getLogger(__name__)
@@ -23,6 +22,8 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
     """
     acquire image(s) from the named area detector
     """
+    from ..startup import RE
+    from ..startup import bec
     _md = md or {}
     acquire_time = det.cam.acquire_time.get()
     # Note: AD's HDF File Writer can use up to 5 seconds to finish writing the file

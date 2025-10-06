@@ -18,15 +18,13 @@ from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
 from usaxs.callbacks.spec_data_file_writer import specwriter
-from usaxs.startup import suspend_BeamInHutch
-from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.override import user_override
 from usaxs.utils.user_sample_title import getSampleTitle
 from usaxs.utils.utils import techniqueSubdirectory
 
-from ..startup import RE
-from ..startup import bec
 from ..utils.a2q_q2a import q2angle
+from ..utils.global_suspenders import get_suspend_BeamInHutch
+from ..utils.global_suspenders import get_suspend_FE_shutter
 from .amplifiers_plan import autoscale_amplifiers
 from .command_list import after_plan
 from .command_list import before_plan
@@ -65,6 +63,8 @@ usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_data"]
 
+suspend_FE_shutter = get_suspend_FE_shutter
+suspend_BeamInHutch = get_suspend_BeamInHutch
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -144,6 +144,10 @@ def USAXSscanStep(
 
     USAGE:  ``RE(USAXSscanStep(pos_X, pos_Y, thickness, scan_title))``
     """
+
+    from ..startup import RE
+    from ..startup import bec
+
     if md is None:
         md = {}
 
@@ -396,6 +400,7 @@ def Flyscan(
 
     USAGE:  ``RE(Flyscan(pos_X, pos_Y, thickness, scan_title))``
     """
+    from ..startup import RE
     if md is None:
         md = {}
 
