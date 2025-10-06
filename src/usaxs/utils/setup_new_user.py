@@ -86,7 +86,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     filename = ".user_info.json"  # Store if a new user was created
 
     custom_path = Path("~/share1/USAXS_data").expanduser()
-    folder_name = datetime.now().strftime("%Y-%m")
+    folder_name = datetime.datetime.now().strftime("%Y-%m")
     working_folder = custom_path / folder_name
 
     if working_folder.exists():
