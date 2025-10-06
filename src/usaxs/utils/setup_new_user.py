@@ -86,11 +86,13 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     """
     global specwriter
     filename = ".user_info.json"  # Store if a new user was created
-    cwd = Path.cwd()
+    custom_path = Path("~/share1/USAXS_data")
 
-    print("Your Path Is : %s", cwd)
+    # cwd = Path.cwd()
+
+    print("Your Path Is : %s", custom_path)
     # check the file exists
-    file_exists = Path(filename).is_file()
+    file_exists = custom_path + Path(filename).is_file()
     # if user is set, we are starting a new user and therefore will also reset order numbers:
     if user is not None :
         logger.debug("Synchronizing detector order numbers to %d", 1)
