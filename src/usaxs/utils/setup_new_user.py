@@ -14,7 +14,7 @@ from apstools.utils import cleanupText
 # from ..callbacks.nxwriter_usaxs import nxwriter
 from ..callbacks.spec_data_file_writer import specwriter
 from ..startup import RE
-from ..startup import nxwriter
+# from ..startup import nxwriter
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
@@ -37,8 +37,8 @@ def _setNeXusFileName(path, scan_id=1):
     """
 
     fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
-    nxwriter.file_name = fname
-    logger.info(f"NeXus file name : {nxwriter.file_name!r}")
+    # nxwriter.file_name = fname
+    # logger.info(f"NeXus file name : {nxwriter.file_name!r}")
     logger.info("File will be written at end of next bluesky scan.")
 
 
