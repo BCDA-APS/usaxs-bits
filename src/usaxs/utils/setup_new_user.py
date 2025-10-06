@@ -84,34 +84,53 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
 
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
-    global specwriter
-    filename = ".user_info.json"  # Store if a new user was created
-    cwd = Path.cwd()
+    #this will revidse main to match what is needed for server...
+    # it is useful for regular operations also...
+    # this is where the data will ALWAYS be
+    base_path = Path("~/share1/USAXS_data").expanduser()
+    folder_name = datetime.datetime.now().strftime("%Y-%m")
+    #this defines current folder: ~/share1/USAXS_data/2025-10/
+    working_folder = base_path / folder_name
 
+    if working_folder.exists():
+        #print(f"Folder already exists: {working_folder}")
+        pass
+    else:
+        working_folder.mkdir(parents=True)
+        print(f"Folder created: {working_folder}")
+
+    # Set permissions to 777 regardless
+    os.chmod(working_folder, 0o777)
+    print(f"Permissions set to 777")
+    # go to the working folder. 
+    os.chdir(working_folder)
+
+    cwd = Path.cwd()
     print("Your Path Is : %s", cwd)
+   
+    
+    #global specwriter
+    filename = ".user_info.json"  # Store if a new user was created
     # check the file exists
-    file_exists = Path(filename).is_file()
+    file_exists = (working_folder / filename).is_file()
+    #print(f"File exists: {file_exists}")
+    
     # if user is set, we are starting a new user and therefore will also reset order numbers:
     if user is not None :
         logger.debug("Synchronizing detector order numbers to %d", 1)
+        # terms = oregistry["terms"]
+        terms.FlyScan.order_number.put(1)
+        # saxs_det = oregistry["saxs_det"]
+        saxs_det.hdf1.file_number.put(1)
+        #waxs_det = oregistry["waxs_det"]
+        waxs_det.hdf1.file_number.put(1)
         # caput("usxLAX:USAXS:FS_OrderNumber",1)
         # caput("usaxs_eiger1:HDF1:FileNumber",1)
         # caput("usaxs_pilatus3:HDF1:FileNumber",1)        
         # caput("usaxs_eiger1:cam1:FileNumber",1)
         # caput("usaxs_pilatus3:cam1:FileNumber",1)
-        # terms = oregistry["terms"]
-        terms.FlyScan.order_number.put(1)
-        # saxs_det = oregistry["saxs_det"]
-        saxs_det.hdf1.file_number.put(1)
-        saxs_det.cam1.file_number.put(1)
-        #waxs_det = oregistry["waxs_det"]
-        waxs_det.hdf1.file_number.put(1)
-        waxs_det.cam1.file_number.put(1)
-
-
-  
-    
-    #### If the file exists and user is None, we are running this automatically and therefore restore odl values:
+         
+    #### If the file exists and user is None, we are running this automatically and therefore restore old values:
     if user is None and file_exists:
         logger.info("Found existing user info file: %s", filename)
         with open(filename, "r") as file:
@@ -130,6 +149,17 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     day = day or dt.day
     sample = sample or "data"
 
+    # now, if we overwrite the input by explicitly setting and month, eg: year=2025, month=9,day=29 
+    # we want to return to prior YYYY-MM folder:
+    year_month = f"{year:04d}-{month:02d}"
+    #print(f"Year-Month: {year_month}, Folder Name: {folder_name}")
+    if year_month != folder_name:
+        print("inside wrong folder, switching to correct one")
+        os.chdir(base_path/year_month)
+        cwd = Path.cwd()
+        print("Your current path is now : %s", cwd)
+    
+    #prepare data for new json file. 
     data = {
         "user_name": user,
         "sample_dir":sample,
@@ -138,19 +168,16 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         "day": day,
     }
 
-    #### Load json data into file
+    #### Load data into the json file
     with open(filename, "w") as file:
         json.dump(data, file, indent=4)  # indent=4 for pretty formatting
 
     user_data.user_name.put(user)  # set in the PV
-    # user_data.spec_scan.put(scan_id)  # set in the PV
     user_data.sample_dir.put(sample)  # set in the PV
 
-    # DATA_DIR_BASE = pathlib.Path("/") / "share1" / "USAXS_data"
     path = (
-        cwd  # instead of DATA_DIR_BASE
+        cwd  # we are in working directory where we want to save the data, that is all doen above. 
         /
-        # f"{year:04d}-{month:02d}" /
         f"{month:02d}_{day:02d}_{cleanupText(user)}"
     )
 
@@ -160,8 +187,10 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     logger.info("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
 
-    _setNeXusFileName(str(path), scan_id=scan_id)
-    _setSpecFileName(str(path), scan_id=scan_id)  # SPEC file name
+    _setNeXusFileName(str(path), scan_id=scan_id)   #this sets the path for Nexus file writer.  
+    _setSpecFileName(str(path), scan_id=scan_id)    # this sets the path for spec file writer. 
+    # user_data? This is likely not needed... 
+    user_data.spec_scan.put(scan_id)  # set in the PV    
     # matchUserInApsbss(user)     # update ESAF & Proposal, if available
     # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
 
