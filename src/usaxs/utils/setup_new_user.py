@@ -83,11 +83,10 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
     global specwriter
-    filename = ".user_info.json"  # Store if a new user was created
 
-    custom_path = Path("~/share1/USAXS_data").expanduser()
+    base_path = Path("~/share1/USAXS_data").expanduser()
     folder_name = datetime.datetime.now().strftime("%Y-%m")
-    working_folder = custom_path / folder_name
+    working_folder = base_path / folder_name
 
     if working_folder.exists():
         print(f"Folder already exists: {working_folder}")
@@ -100,16 +99,15 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     print(f"Permissions set to 777")
 
     cwd = Path.cwd()
+    print("Your Path Is : %s", cwd)
 
     # # Check if the file exists
-    # filename = "your_file.txt"  # Replace with your actual filename
-    # file_exists = (custom_path / filename).is_file()
-    # print(f"File exists: {file_exists}")
+    filename = ".user_info.json"  # Store if a new user was created
+    file_exists = (working_folder / filename).is_file()
+    print(f"File exists: {file_exists}")
 
-    # print("Your Path Is : %s", custom_path)
-    # # check the file exists
-    # file_exists = custom_path + Path(filename).is_file()
-
+    print("Your Path Is : %s", working_folder)
+    # check the file exists
 
     # if user is set, we are starting a new user and therefore will also reset order numbers:
     if user is not None :
@@ -140,6 +138,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
             day = data.get("day")
     elif user is None and not file_exists:
         user = input("Please provide the name of the new user: ").strip()
+        # dt = input("Please provide the date (YYYY-MM-DD) or press Enter for today: ").strip()
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]
