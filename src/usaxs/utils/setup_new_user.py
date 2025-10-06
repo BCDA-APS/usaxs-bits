@@ -85,23 +85,48 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     """
     global specwriter
     filename = ".user_info.json"  # Store if a new user was created
-    custom_path = Path("~/share1/USAXS_data").expanduser()
+    base_path = Path("~/share1/USAXS_data").expanduser()
 
     # Change to that directory (optional - you can check files without changing directory)
-    os.chdir(custom_path)
+    os.chdir(base_path)
 
-    print(f"Your Path Is: {custom_path}")
+    # create YYYY-MM name for working forlder.
+    # if needed, create this folder
+    # set this folder to permission 777
+    # cwd into this folder
 
-    # Check if the file exists
-    filename = "your_file.txt"  # Replace with your actual filename
-    file_exists = (custom_path / filename).is_file()
+    # Create folder name with current year-month
+    folder_name = datetime.now().strftime("%Y-%m")
+    print(f"Folder name: {folder_name}")
+
+    # Define the full path (adjust base path as needed)
+    working_folder = base_path / folder_name
+
+    # Create folder if it doesn't exist
+    working_folder.mkdir(parents=True, exist_ok=True)
+    print(f"Folder created/verified at: {working_folder}")
+
+    # Set permissions to 777 (rwxrwxrwx)
+    os.chmod(working_folder, 0o777)
+    print(f"Permissions set to 777")
+
+    # Verify
+    print(f"Folder exists: {working_folder.is_dir()}")
+
+    print(f"Your Path Is: {working_folder}")
+
     cwd = Path.cwd()
 
-    print(f"File exists: {file_exists}")
+    # # Check if the file exists
+    # filename = "your_file.txt"  # Replace with your actual filename
+    # file_exists = (custom_path / filename).is_file()
+    # print(f"File exists: {file_exists}")
 
-    print("Your Path Is : %s", custom_path)
-    # check the file exists
-    file_exists = custom_path + Path(filename).is_file()
+    # print("Your Path Is : %s", custom_path)
+    # # check the file exists
+    # file_exists = custom_path + Path(filename).is_file()
+
+
     # if user is set, we are starting a new user and therefore will also reset order numbers:
     if user is not None :
         logger.debug("Synchronizing detector order numbers to %d", 1)
@@ -119,9 +144,6 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         waxs_det.hdf1.file_number.put(1)
         waxs_det.cam1.file_number.put(1)
 
-
-  
-    
     #### If the file exists and user is None, we are running this automatically and therefore restore odl values:
     if user is None and file_exists:
         logger.info("Found existing user info file: %s", filename)
