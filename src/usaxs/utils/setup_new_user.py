@@ -151,7 +151,9 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     print(f"Year-Month: {year_month}, Folder Name: {folder_name}")
     if year_month != folder_name:
         print("inside wrong folder")
-        pass
+        os.chdir(base_path/year_month)
+
+
 
     data = {
         "user_name": user,
