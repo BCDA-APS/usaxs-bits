@@ -10,10 +10,10 @@ from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
-from epics import caput
 
-from usaxs.callbacks.spec_data_file_writer import specwriter
-
+from ..calbacks.nxwriter_usaxs import nxwriter
+from ..callbacks.spec_data_file_writer import specwriter
+from ..startup import RE
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
@@ -34,7 +34,6 @@ def _setNeXusFileName(path, scan_id=1):
     """
     NeXus file name
     """
-    from ..startup import nxwriter
 
     fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
     nxwriter.file_name = fname
@@ -46,7 +45,6 @@ def _setSpecFileName(path, scan_id=1):
     """
     SPEC file name
     """
-    from ..startup import RE
 
     fname = os.path.join(path, f"{os.path.basename(path)}.dat")
     if filename_exists(fname):
@@ -116,7 +114,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         logger.debug("Synchronizing detector order numbers to %d", 1)
         # caput("usxLAX:USAXS:FS_OrderNumber",1)
         # caput("usaxs_eiger1:HDF1:FileNumber",1)
-        # caput("usaxs_pilatus3:HDF1:FileNumber",1)        
+        # caput("usaxs_pilatus3:HDF1:FileNumber",1)
         # caput("usaxs_eiger1:cam1:FileNumber",1)
         # caput("usaxs_pilatus3:cam1:FileNumber",1)
         # terms = oregistry["terms"]
@@ -186,9 +184,9 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     logger.info("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
 
-    _setNeXusFileName(str(path), scan_id=scan_id)
+    # _setNeXusFileName(str(path), scan_id=scan_id)
     _setSpecFileName(str(path), scan_id=scan_id)  # SPEC file name
-    # matchUserInApsbss(user)     # update ESAF & Proposal, if available
+    # # matchUserInApsbss(user)     # update ESAF & Proposal, if available
     # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
 
     logger.info(data)
