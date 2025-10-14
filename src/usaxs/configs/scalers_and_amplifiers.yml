@@ -4,7 +4,8 @@ ophyd.scaler.ScalerCH:
   - { name: scaler0, prefix: "usxLAX:vsc:c0" }
   - { name: scaler1, prefix: "usxLAX:vsc:c1" }
 
-usaxs.devices.amplifiers.ModifiedSwaitRecord:
+#usaxs.devices.amplifiers.ModifiedSwaitRecord:
+usaxs.devices.amplifiers.usaxs_calculated_signal:
   - { name: I0_photocurrent_calc, prefix: "usxLAX:USAXS:I0" }
   - { name: I00_photocurrent_calc, prefix: "usxLAX:USAXS:I00" }
   - { name: I000_photocurrent_calc, prefix: "usxLAX:USAXS:I000" }

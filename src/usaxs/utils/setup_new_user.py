@@ -32,7 +32,6 @@ NX_FILE_EXTENSION = ".h5"
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 waxs_det = oregistry["waxs_det"]
-FlyScan = oregistry["FlyScan"]
 
 def _setNeXusFileName(path, scan_id=1):
     """

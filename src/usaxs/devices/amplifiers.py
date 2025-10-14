@@ -48,6 +48,13 @@ class ModifiedSwaitRecord(SwaitRecord):
 
     enable = None  # remove this Component
 
+class usaxs_calculated_signal(Device):
+    """Device for USAXS calculated signal."""
+
+    #_default_configuration_attrs = ()
+    #_default_read_attrs = ("VAL",)
+
+    value = Component(EpicsSignalRO, ".VAL", kind="hinted")
 
 def _gain_to_str_(gain):  # convenience function
     return ("%.0e" % gain).replace("+", "").replace("e0", "e")
