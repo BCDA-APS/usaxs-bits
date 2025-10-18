@@ -235,7 +235,7 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
     success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from bps.mv(scaler0.preset_time, 0.2)
         #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "find_ar"
         yield from IfRequestedStopBeforeNextScan()
@@ -247,14 +247,11 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
             upd_controls.auto.mode,
-            "auto+background",  #set UPD amlifier to autorange to auto_background setting so we do not top the UPD
+            "automatic",  #set UPD amlifier to autorange to automatic so we do not top the UPD
         )
-        #yield from autoscale_amplifiers([upd_controls, I0_controls])
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
         # control BEC plotting since we use upd_photocurrent_calc
-        #upd_photocurrent_calc.kind = "hinted" # set kind to inlcude in plotting by BEC
-        #upd_photocurrent_calc.channels.kind = "hinted" # set kind to inlcude in plotting by BEC
-        #upd_photocurrent_calc.channels.A.kind = "hinted" # set kind to inlcude in plotting by BEC
         scaler0.kind = "normal"
         scaler0.select_channels([])         # no scaler channels to be plotted (sets 'kinnd=normal' for all channels)
         stats = SignalStatsCallback()
@@ -263,7 +260,7 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             a_stage.r,
             -5*a_stage.r.tune_range.get(),
             5*a_stage.r.tune_range.get(),
-            41,
+            61,
             nscans=5,
             signal_stats=stats,
             md=md,
