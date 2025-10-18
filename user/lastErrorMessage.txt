@@ -1,14 +1,8 @@
-Transient Scan ID: 3677     Time: 2025-10-17 23:10:08
-Persistent Unique Scan ID: 'd3ce2ff4-f841-4366-97de-14c7037b7655'
-I Fri-23:10:15.309: Finished SAXS/WAXS data collection in 6.65 seconds.
-I Fri-23:10:15.356: Collected WAXS with HDF5 file: /share1/USAXS_data/2025-10/10_15_FanLinkam/MSI07/MSI07_waxs/MSI07_841C_187min_1311.hdf
-I Fri-23:10:15.371: Collecting USAXS for MSI07_841C_187min
-I Fri-23:10:15.395: Moving to USAXS mode ... please wait ...
-I Fri-23:10:22.500: Ensuring technique directory exists: /share1/USAXS_data/2025-10/10_15_FanLinkam/MSI07/MSI07_usaxs
-I Fri-23:10:22.500: Flyscan HDF5 data file: /share1/USAXS_data/2025-10/10_15_FanLinkam/MSI07/MSI07_usaxs MSI07_841C_187min_1312.h5
-I Fri-23:10:28.350: Measured USAXS transmission values : Diode = 1313839 with gain 1e+06 and I0 = 537192 with gain 1e+08
-I Fri-23:10:28.880: Ensuring technique directory exists: /share1/USAXS_data/2025-10/10_15_FanLinkam/MSI07/MSI07_usaxs
-E Fri-23:10:59.861: Run aborted
+In [3]: RE(tune_usaxs_optics())
+I Sat-06:48:42.080: tuning axis: m_stage_r
+E Sat-06:49:12.758: Error in tune_mr: dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68f37ded8736877bce4908d1, topology_type: Unknown, servers: [<ServerDescription ('dbbluesky1.xray.aps.anl.gov', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+E Sat-06:49:12.769: Error in tune_usaxs_optics: dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68f37ded8736877bce4908d1, topology_type: Unknown, servers: [<ServerDescription ('dbbluesky1.xray.aps.anl.gov', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+E Sat-06:49:12.770: Run aborted
 Traceback (most recent call last):
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py", line 1609, in _run
     msg = self._plan_stack[-1].send(resp)
@@ -58,56 +52,103 @@ Traceback (most recent call last):
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
     msg = plan_stack[-1].send(ret)
           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/user/linkam.py", line 736, in Fan625Plan
-    yield from collectAllThree(isDebugMode)
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/user/linkam.py", line 689, in collectAllThree
-    yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/plans/axis_tuning.py", line 574, in tune_usaxs_optics
+    yield from tune_mr(md=md)
+  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/plans/axis_tuning.py", line 92, in tune_mr
+    yield from lineup2(
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1952, in __iter__
+    return (yield from self._iter)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/alignment.py", line 575, in lineup2
+    yield from _inner()  # Run the scan.
+    ^^^^^^^^^^^^^^^^^^^
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
     return (yield from plan)
             ^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 448, in suspend_wrapper
-    return (yield from finalize_wrapper(_inner_plan(), _remove()))
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 413, in subs_wrapper
+    return (yield from finalize_wrapper(_inner_plan(), _unsubscribe()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
     ret = yield from plan
           ^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 446, in _inner_plan
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 411, in _inner_plan
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/alignment.py", line 572, in _inner
+    yield from bp.rel_scan(detectors, mover, rel_start, rel_end, points, md=_md)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1596, in rel_scan
+    return (yield from inner_rel_scan())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1175, in reset_positions_wrapper
+    return (yield from finalize_wrapper(plan_mutator(plan, insert_reads), reset()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 1131, in relative_set_wrapper
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 271, in msg_mutator
+    msg = plan.send(_s)
+          ^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 181, in plan_mutator
+    raise ex
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 134, in plan_mutator
+    msg = plan_stack[-1].send(ret)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1594, in inner_rel_scan
+    return (yield from scan(detectors, *args, num=num, per_step=per_step, md=_md))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1291, in scan
+    return (yield from scan_nd(detectors, full_cycler, per_step=per_step, md=_md))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py", line 1168, in scan_nd
+    return (yield from inner_scan_nd())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
+    return (yield from plan)
+            ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 995, in stage_wrapper
+    return (yield from finalize_wrapper(inner(), unstage_devices()))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
+    ret = yield from plan
+          ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 993, in inner
     return (yield from plan)
             ^^^^^^^^^^^^^^^
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1258, in dec_inner
     return (yield from plan)
             ^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 448, in suspend_wrapper
-    return (yield from finalize_wrapper(_inner_plan(), _remove()))
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 536, in finalize_wrapper
-    ret = yield from plan
-          ^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 446, in _inner_plan
-    return (yield from plan)
-            ^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1952, in __iter__
-    return (yield from self._iter)
-            ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py", line 109, in USAXSscan
-    yield from Flyscan(x, y, thickness_mm, title, md=_md)
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1952, in __iter__
-    return (yield from self._iter)
-            ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py", line 604, in Flyscan
-    yield from Flyscan_internal_plan(md=_md)  # flyscan proper
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1952, in __iter__
-    return (yield from self._iter)
-            ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/beams11/USAXS/bits_usaxs/src/usaxs/plans/fly_scan_plan.py", line 200, in Flyscan_internal_plan
-    yield from bps.open_run(md=_md)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 350, in run_wrapper
+    rs_uid = yield from open_run(md)
+             ^^^^^^^^^^^^^^^^^^^^^^^
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py", line 1952, in __iter__
     return (yield from self._iter)
             ^^^^^^^^^^^^^^^^^^^^^
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py", line 1352, in open_run
     return (yield Msg("open_run", **(md or {})))
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 259, in msg_mutator
+    _s = yield msg
+         ^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 206, in plan_mutator
+    inner_ret = yield msg
+                ^^^^^^^^^
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py", line 89, in plan_mutator
     msg = plan_stack[-1].throw(exception)
           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -224,11 +265,11 @@ Traceback (most recent call last):
                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/pymongo/synchronous/topology.py", line 344, in _select_servers_loop
     raise ServerSelectionTimeoutError(
-pymongo.errors.ServerSelectionTimeoutError: dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68f0ebaaab3c71e69ef44832, topology_type: Single, servers: [<ServerDescription ('dbbluesky1.xray.aps.anl.gov', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
-E Fri-23:11:30.441: Failed to close run <bluesky.bundlers.RunBundler object at 0x7f819263b990>.
+pymongo.errors.ServerSelectionTimeoutError: dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68f37ded8736877bce4908d1, topology_type: Unknown, servers: [<ServerDescription ('dbbluesky1.xray.aps.anl.gov', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+E Sat-06:49:42.821: Failed to close run <bluesky.bundlers.RunBundler object at 0x7f7b1e7bbb10>.
 Traceback (most recent call last):
-  Cell In[70], line 1
-    RE(Fan625Plan(0,0,0.135,"MSI07",841,200,720,40,200))
+  Cell In[3], line 1
+    RE(tune_usaxs_optics())
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:973 in __call__
     plan_return = self._resume_task(init_func=_build_task)
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/run_engine.py:1120 in _resume_task
@@ -271,42 +312,74 @@ Traceback (most recent call last):
     raise ex
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
     msg = plan_stack[-1].send(ret)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/user/linkam.py:736 in Fan625Plan
-    yield from collectAllThree(isDebugMode)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/user/linkam.py:689 in collectAllThree
-    yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/axis_tuning.py:574 in tune_usaxs_optics
+    yield from tune_mr(md=md)
+  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/axis_tuning.py:92 in tune_mr
+    yield from lineup2(
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
+    return (yield from self._iter)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/alignment.py:575 in lineup2
+    yield from _inner()  # Run the scan.
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
     return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:448 in suspend_wrapper
-    return (yield from finalize_wrapper(_inner_plan(), _remove()))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:413 in subs_wrapper
+    return (yield from finalize_wrapper(_inner_plan(), _unsubscribe()))
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
     ret = yield from plan
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:446 in _inner_plan
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:411 in _inner_plan
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/plans/alignment.py:572 in _inner
+    yield from bp.rel_scan(detectors, mover, rel_start, rel_end, points, md=_md)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1596 in rel_scan
+    return (yield from inner_rel_scan())
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1175 in reset_positions_wrapper
+    return (yield from finalize_wrapper(plan_mutator(plan, insert_reads), reset()))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
+    ret = yield from plan
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:1131 in relative_set_wrapper
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:271 in msg_mutator
+    msg = plan.send(_s)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:181 in plan_mutator
+    raise ex
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:134 in plan_mutator
+    msg = plan_stack[-1].send(ret)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1594 in inner_rel_scan
+    return (yield from scan(detectors, *args, num=num, per_step=per_step, md=_md))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1291 in scan
+    return (yield from scan_nd(detectors, full_cycler, per_step=per_step, md=_md))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plans.py:1168 in scan_nd
+    return (yield from inner_scan_nd())
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
+    return (yield from plan)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:995 in stage_wrapper
+    return (yield from finalize_wrapper(inner(), unstage_devices()))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
+    ret = yield from plan
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:993 in inner
     return (yield from plan)
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1258 in dec_inner
     return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:448 in suspend_wrapper
-    return (yield from finalize_wrapper(_inner_plan(), _remove()))
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:536 in finalize_wrapper
-    ret = yield from plan
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:446 in _inner_plan
-    return (yield from plan)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py:109 in USAXSscan
-    yield from Flyscan(x, y, thickness_mm, title, md=_md)
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/plans_usaxs.py:604 in Flyscan
-    yield from Flyscan_internal_plan(md=_md)  # flyscan proper
-  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
-    return (yield from self._iter)
-  File /home/beams11/USAXS/bits_usaxs/src/usaxs/plans/fly_scan_plan.py:200 in Flyscan_internal_plan
-    yield from bps.open_run(md=_md)
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:350 in run_wrapper
+    rs_uid = yield from open_run(md)
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:1952 in __iter__
     return (yield from self._iter)
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/plan_stubs.py:1352 in open_run
     return (yield Msg("open_run", **(md or {})))
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:259 in msg_mutator
+    _s = yield msg
+  File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:206 in plan_mutator
+    inner_ret = yield msg
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/preprocessors.py:89 in plan_mutator
     msg = plan_stack[-1].throw(exception)
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/bluesky/utils/__init__.py:192 in single_gen
@@ -391,7 +464,7 @@ Traceback (most recent call last):
     server_descriptions = self._select_servers_loop(
   File ~/.conda/envs/bits_usaxs/lib/python3.11/site-packages/pymongo/synchronous/topology.py:344 in _select_servers_loop
     raise ServerSelectionTimeoutError(
-ServerSelectionTimeoutError: dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68f0ebaaab3c71e69ef44832, topology_type: Single, servers: [<ServerDescription ('dbbluesky1.xray.aps.anl.gov', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
+ServerSelectionTimeoutError: dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms), Timeout: 30s, Topology Description: <TopologyDescription id: 68f37ded8736877bce4908d1, topology_type: Unknown, servers: [<ServerDescription ('dbbluesky1.xray.aps.anl.gov', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('dbbluesky1.xray.aps.anl.gov:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 20000.0ms, connectTimeoutMS: 20000.0ms)')>]>
 
 
-In
+In [4]: 
