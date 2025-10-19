@@ -249,7 +249,7 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             upd_controls.auto.mode,
             "automatic",  #set UPD amlifier to autorange to automatic so we do not top the UPD
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls])
+        #yield from autoscale_amplifiers([upd_controls, I0_controls]) would set to manual mode... 
         trim_plot_by_name(5)
         # control BEC plotting since we use upd_photocurrent_calc
         scaler0.kind = "normal"

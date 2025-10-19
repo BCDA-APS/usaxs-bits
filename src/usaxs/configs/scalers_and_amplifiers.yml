@@ -44,4 +44,5 @@ usaxs.devices.amplifiers.AmplifierAutoDevice:
     # prefix: "usxLAX:pd01:seq01:"  # DLCPA200
     labels: [baseline]
 
+
 # Autorange devices are loaded _after_ the above devices.
