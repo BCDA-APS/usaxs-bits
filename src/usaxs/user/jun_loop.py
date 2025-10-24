@@ -1,20 +1,18 @@
 """
-BS plan to run infinte data collection same as spec used to do.
+BS plan to run finte data collection same as spec used to do.
 
 load this way:
 
      %run -im usaxs.user.jun_loop
 
     Then execute as :
-    RE(junFiniteMultiPosLoop(delay1minutes))
 
-* file: /USAXS_data/bluesky_plans/finite_loop.py
-* aka:  ~/.ipython/user/finite_loop.py
+    RE(junFiniteMultiPosLoop(delay1minutes))        # adds XYZmin in title
+    RE(myFiniteListLoop(delay1minutes))             # adds order number in title
 
-* JIL, 2022-11-17 : first release
-* JIL, 2022-11-18 : added different modes
-* JIL, 2025-5-28 : fixs for BITS
-* JIL, 7/9/2025 user changes
+* file: usaxs/user/jun_loop.py
+
+* JIL, 10/20/2025 specific user needs, based on myFiniteListLoop in finite_loop.py
 """
 
 import logging
@@ -62,25 +60,26 @@ def junFiniteMultiPosLoop(delay1minutes, md={}):
     # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
     ListOfSamples = [
     
-        [15, 58, 4.0, "water_blank"],  	                    # Point1
-        [25, 58, 4.0, "Z_15mgmL_DPEG_1p5mgmL_36hr"],  		# Point2
-        [35, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_36hr"], 	        # Point3
-        [45, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_36hr"], 		# Point4
-        [55, 58, 4.0, "Z_15mgmL_DPEG_6gmL_36hr"], 	        # Point5
-        [65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"], 	    # Point6
-        [75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"], 	    # Point7
-        [85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"], 	    # Point8
-        [95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"], 	# Point9
-        [105, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_47C_14hr"], 	# Point10
-        [115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"], 	    # Point11
+    #    [15, 55, 4.0, "DIwater_blank_4RD"],  	                    # Point1
+         [25, 50, 4.0, "XY-20Mg2Co-insitu"],  		# Point2
+         [35, 50, 4.0, "XY-20Mg2Co-2-INSITU"], 	    # Point3
+    #    [45, 50, 4.0, "PEI15-CA55-130-dup"], 		# Point4
+    #    [55, 34, 4.0, "NB_50CaSO4_pH8-2_dup"], 	        # Point5
+    #    [65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"], 	    # Point6
+    #    [75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"], 	    # Point7
+    #    [85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"], 	    # Point8
+    #    [95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"], 	# Point9
+    #    [105, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_47C_14hr"], 	# Point10
+    #    [115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"], 	    # Point11
 	
     ]
+    
 
     # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
     #                 ]
 
     def setSampleName():
-        return f"{scan_title}" f"_{(time.time()-t0)/60:.0f}min"
+        return f"{scan_title}" f"_{(time.time()-t0):.0f}sec"
 
     def collectAllThree():
             sampleMod = setSampleName()
@@ -93,6 +92,7 @@ def junFiniteMultiPosLoop(delay1minutes, md={}):
             md["title"] = sampleMod
             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
+    #here starts execution
     yield from before_command_list()  # this will run usual startup scripts for scans
 
     t0 = time.time()  # mark start time of data collection.
@@ -108,20 +108,21 @@ def junFiniteMultiPosLoop(delay1minutes, md={}):
     ):  # collects USAXS/SAXS/WAXS data while holding at temp1
         for pos_X, pos_Y, thickness, scan_title in ListOfSamples:
             yield from collectAllThree()
+            #yield from bps.sleep(3*60)
 
     logger.info("finished")  # record end.
 
     yield from after_command_list()  # runs standard after scan scripts.
 
-
-def myFiniteListLoop(delay1minutes, StartTime, md={}):
+#####################################################################################
+def myFiniteListLoop(delay1minutes, md={}):
     """
     Will run finite loop for delay1minutes - delay is in minutes
     over list of positions and names
     Runs all USAXS, then all SAXS, and then all WAXS
     1. Correct the ListOfSamples
     2. reload by
-    %run -im user.finite_loop
+    %run -im usaxs.user.jun_loop
     3. run:
     RE(myFiniteListLoop(20))
 
