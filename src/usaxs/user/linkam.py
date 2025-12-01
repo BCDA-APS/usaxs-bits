@@ -185,6 +185,125 @@ def myLinkamPlan_template(
 
 
 
+def fanAlLinkamPlan(
+    pos_X,
+    pos_Y,
+    thickness,
+    scan_title,
+    temp1,
+    temp2,
+    md={},
+):
+    """
+    TODO: Check code in /USAXS_data/bluesky_plans/linkam.py (this file)
+     is using tc1, edit and reload if necessary ***
+
+    0. use linkam_tc1
+    1. collect 40C (~RT) USAXS/SAXS/WAXS
+    2. change temperature T to temp1 with rate1=150C/min collect waxs data
+    3. when temp1 reached, hold for delay 60 minutes, collecting data repeatedly
+    4. loop on cooling to temp2 with 5degC steps, collect data 2x at each temp. 
+    5. From temp2 cool to 40C with 200C/min collect waxs only
+    6. cool down, collect final data
+    and it will end here...
+    Temp is in C, delay is in minutes
+
+    reload by
+    # %run -im usaxs.user.linkam
+    
+    run: RE(fanAlLinkamPlan(0,0,1.2,"Whatever",580, 470))
+    
+    """
+
+    def setSampleName():
+        return (
+            f"{scan_title}"
+            f"_{linkam.temperature.position:.0f}C"
+            f"_{(time.time()-t0)/60:.0f}min"
+        )
+
+    def collectAllThree():
+            yield from sync_order_numbers()
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    def collectWAXS():
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    def change_rate_and_temperature(rate, t, wait=False):
+        yield from bps.mv(
+            linkam.ramprate.setpoint, rate
+        )  # ramp rate for next temperature change in degC/min
+        yield from linkam.set_target(
+            t, wait=wait
+        )  # sets the temp of to t, wait = True waits until we get there (no data collection), wait = False does not wait and enables data collection
+
+
+    linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
+    logger.info(f"Linkam controller PV prefix={linkam.prefix}")
+    isDebugMode = linkam_debug.get()
+
+    if isDebugMode is not True:
+        yield from before_command_list()  # this will run usual startup scripts for scans
+
+    # Collect data at 40C as Room temperature data.
+    yield from change_rate_and_temperature(150, 40, wait=True)  # rate for next ramp, default 150C/min,sets the temp of to 40C, waits until we get there (no data collection)
+    t0 = time.time()  # set this moment as the start time of data collection.
+    yield from collectAllThree()  # collect the data at RT
+
+    # Heating cycle 1 - ramp up and collect WAXS
+    yield from change_rate_and_temperature(150, temp1, wait=False)        # change rate/T and wait until there, rate shoudl be high here.
+    logger.info("Ramped temperature to %s C", temp1)  # for the log file
+    t0 = time.time()  # mark start time of data collection at temperature 1.
+    while not linkam.temperature.inposition:  # data collection until we reach temp2.
+        yield from collectWAXS()
+ 
+
+    # Hold cycle 1 - ramp up and collect WAXS
+    t0 = time.time()  # mark start time of data collection at temperature 1.
+    checkpoint = time.time() + 60 * 60  # hold for 1 hour (60min * 60 sec)
+    while (time.time() < checkpoint):  # collects USAXS/SAXS/WAXS data while holding at temp1
+        yield from collectAllThree()
+
+
+  # Collect data at 4start temperature 
+    iteration = 0
+    temp = temp1
+    while temp > temp2 : 
+        yield from change_rate_and_temperature(150, temp, wait=True)
+        #t0 = time.time()  # set this moment as the start time of data collection.
+        yield from collectAllThree()  # collect the data at RT
+        yield from collectAllThree()  # collect the data at RT
+        iteration +=1
+        temp = temp1-5*iteration
+    # *******
+  
+    # Cooling cycle - cool down
+    logger.info("Waited for %s minutes, now changing temperature to 40 C", delay1min)
+    yield from change_rate_and_temperature(150, 40, wait=False)
+    t0 = time.time()  # mark start time of data collection at temperature 1.
+    while not linkam.temperature.inposition:  # data collection until we reach 40C.
+        yield from collectWAXS()
+    
+    logger.info("reached 40 C")  # record we reached tmep2
+
+ 
+    # End run data collection - after cooling
+    yield from collectAllThree()  # collect USAXS/SAXS/WAXS data at the end, typically temp2 is 40C
+    logger.info("finished")  # record end.
+    if isDebugMode is not True:
+        yield from after_command_list()  # runs standard after scan scripts.
+
+
    
 
 def FanTemperatureRamp(
@@ -258,6 +377,87 @@ q
 
 
 
+
+def fanRampAndHold(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,md={},):
+    """
+
+    0. use linkam_tc1
+    1. collect 40C (~RT) USAXS/SAXS/WAXS
+    2. change temperature T to temp1 with rate1 do not collect data (too fast)
+    3. when temp1 reached, hold for delay temp1 minutes, collecting data repeatedly
+    4. Cool down to 40C, collecting data during cooling
+    and it will end here...
+    Temp is in C, delay is in minutes
+
+    reload by
+    # %run -im usaxs.user.linkam
+    
+    RE(fanRampAndHold(0,0,0.21,"Whatever",750,200,4*60) #4 hours at 750 C, look upin manual proper temp setting. 
+    """
+
+    def setSampleName():
+        return (
+            f"{scan_title}"
+            f"_{linkam.temperature.position:.0f}C"
+            f"_{(time.time()-t0)/60:.0f}min"
+        )
+
+    def collectAllThree(debug=False):
+        sampleMod = setSampleName()
+        if debug:
+            # for testing purposes, set debug=True
+            print(sampleMod)
+            yield from bps.sleep(20)
+        else:
+            md["title"] = sampleMod
+            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    def change_rate_and_temperature(rate, t, wait=False):
+        yield from bps.mv(linkam.ramprate.setpoint, rate)   # ramp rate for next temperature change in degC/min
+        yield from linkam.set_target(t, wait=wait)          # sets the temp of to t, wait = True waits until we get there (no data collection), wait = False does not wait and enables data collection
+
+    linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
+    logger.info(f"Linkam controller PV prefix={linkam.prefix}")
+    isDebugMode = linkam_debug.get()
+
+    if isDebugMode is not True:
+        yield from before_command_list()                        # this will run usual startup scripts for scans
+
+    # Collect data at 40C as Room temperature data.
+    yield from change_rate_and_temperature(150, 40, wait=True)  # rate for next ramp, default 150C/min,sets the temp of to 40C, waits until we get there (no data collection)
+    t0 = time.time()                                            # set this moment as the start time of data collection.
+    yield from collectAllThree(isDebugMode)                     # collect the data at RT
+
+    # Heating cycle - ramp up and hold
+    yield from change_rate_and_temperature(rate1, temp1, wait=True)  
+                                                            # change rate/T and wait until there, rate shoudl be high here.
+    logger.info("Ramped temperature to %s C", temp1)        #  for the log file
+    t0 = time.time()                                        # mark start time of data collec  tion at temperature 1.
+    checkpoint = time.time() + delay1min * 60               # time to end ``delay1min`` hold period
+    logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
+    while (time.time() < checkpoint):  
+        # collects USAXS/SAXS/WAXS data while holding at temp1
+        yield from collectAllThree(isDebugMode)
+
+    # Cooling cycle - cool down
+    logger.info("Waited for %s minutes, now changing temperature to 40 C", delay1min)
+    yield from change_rate_and_temperature(150, 40, wait=False)
+    while not linkam.temperature.inposition:  # data collection until we reach 40C.
+        yield from collectAllThree(isDebugMode)
+ 
+    logger.info("finished")  # record end.
+    if isDebugMode is not True:
+        yield from after_command_list()  # runs standard after scan scripts.
+
+
+
+
 def fanLinkamPlan(
     pos_X,
     pos_Y,
@@ -272,8 +472,6 @@ def fanLinkamPlan(
     md={},
 ):
     """
-    TODO: Check code in /USAXS_data/bluesky_plans/linkam.py (this file)
-     is using tc1, edit and reload if necessary ***
 
     0. use linkam_tc1
     1. collect 40C (~RT) USAXS/SAXS/WAXS
@@ -287,7 +485,7 @@ def fanLinkamPlan(
     Temp is in C, delay is in minutes
 
     reload by
-    # %run -im user.linkam
+    # %run -im usaxs.user.linkam
     """
 
     def setSampleName():
@@ -336,16 +534,14 @@ def fanLinkamPlan(
     yield from collectAllThree(isDebugMode)  # collect the data at RT
 
     # Heating cycle 1 - ramp up and hold
-    yield from change_rate_and_temperature(
-        rate1, temp1, wait=True
-    )  # change rate/T and wait until there, rate shoudl be high here.
+    yield from change_rate_and_temperature(rate1, temp1, wait=True)  
+    # change rate/T and wait until there, rate shoudl be high here.
     logger.info("Ramped temperature to %s C", temp1)  # for the log file
     t0 = time.time()  # mark start time of data collection at temperature 1.
     checkpoint = time.time() + delay1min * 60  # time to end ``delay1min`` hold period
     logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
-    while (
-        time.time() < checkpoint
-    ):  # collects USAXS/SAXS/WAXS data while holding at temp1
+    while (time.time() < checkpoint):  
+        # collects USAXS/SAXS/WAXS data while holding at temp1
         yield from collectAllThree(isDebugMode)
 
     # Cooling cycle - cool down
