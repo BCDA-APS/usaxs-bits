@@ -82,8 +82,8 @@ def techniqueSubdirectory(technique):
 
    # Technique directory
     stub = data_path.name                           # should be something like Sample1
-    path = data_path / f"{stub}_{technique}"        # shoudl add Sample1_usaxs etc.
-    logger.info("Ensuring technique directory exists: %s", path)
+    path = data_path / f"{stub}_{technique}"        # should add Sample1_usaxs etc.
+    #logger.info("Ensuring technique directory exists: %s", path)
     path.mkdir(parents=True, exist_ok=True)
 
-    return path.resolve()
+    return str(path.resolve())

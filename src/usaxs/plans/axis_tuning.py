@@ -218,8 +218,9 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
     for maximum signal intensity. It includes setting up the scaler, configuring
     the detector controls, and performing a lineup scan.
 
-    Uses adaptive scanning to search over originally large range narrowing closer and closer 
-    uses lineup2 algorith and allows for up to 5 scans. 
+    Uses adaptive scanning to search over originally large range = 5* range for tune_ar,
+    narrowing closer and closer. Uses longer time and 61 scan points, so it takes significantly longer than tune_ar. 
+    uses lineup2 algoritmus and allows for up to 4 scans. It then runs code which is basically tune_ar
 
     uses upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
     - optionally this is I0: I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
@@ -234,12 +235,14 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
     Generator[Any, None, None]
         A generator that yields plan steps
     """
+    howWiderRangeToScan = 5
+    howManyPoints = 61
     if md is None:
         md = {}
     success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from bps.mv(scaler0.preset_time, 0.2)
         #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "find_ar"
         yield from IfRequestedStopBeforeNextScan()
@@ -251,27 +254,50 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
             upd_controls.auto.mode,
-            "auto+background",  #set UPD amlifier to autorange to auto_background setting so we do not top the UPD
+            "automatic",  #set UPD amlifier to autorange to automatic so we do not top the UPD
         )
-        #yield from autoscale_amplifiers([upd_controls, I0_controls])
+        #yield from autoscale_amplifiers([upd_controls, I0_controls]) - do NOT use, would set to manual mode... 
         trim_plot_by_name(5)
         # control BEC plotting since we use upd_photocurrent_calc
-        upd_photocurrent_calc.kind = "hinted" # set kind to inlcude in plotting by BEC
-        upd_photocurrent_calc.channels.kind = "hinted" # set kind to inlcude in plotting by BEC
-        upd_photocurrent_calc.channels.A.kind = "hinted" # set kind to inlcude in plotting by BEC
-        scaler0.select_channels([])         # no scaler channels to be plotted (sets 'kinnd=normal' for all channels)
-        stats = SignalStatsCallback()
+        scaler0.kind = "normal"
+        scaler0.select_channels([])         # no scaler channels to be plotted (sets 'kind=normal' for all channels)
+        stats = SignalStatsCallback()       # init stats to return stuff back. 
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],
             a_stage.r,
-            -5*a_stage.r.tune_range.get(),
-            5*a_stage.r.tune_range.get(),
-            41,
-            nscans=5,
+            -1*howWiderRangeToScan*a_stage.r.tune_range.get(),
+            howWiderRangeToScan*a_stage.r.tune_range.get(),
+            howManyPoints,
+            nscans=4,
             signal_stats=stats,
             md=md,
         )
         print(stats.report())
+        #now we need to setup regular tune_ar and run that here.
+        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from bps.mv(
+            mono_shutter,
+            "open",
+            usaxs_shutter,
+            "open",
+        )
+        yield from autoscale_amplifiers([upd_controls, I0_controls])    #sets the range, should be on top range now. 
+        trim_plot_by_name(5)                                            #reduced displayed number of lines in graph
+        scaler0.select_channels(["UPD"])                                # select UPD as counter
+        stats = SignalStatsCallback()
+                                                                        # run the lineup2
+        yield from lineup2(
+            [UPD, scaler0],
+            a_stage.r,
+            -a_stage.r.tune_range.get(),
+            a_stage.r.tune_range.get(),
+            31,
+            nscans=1,
+            signal_stats=stats,
+            md=md,
+        )
+        print(stats.report())
+        #done with tune_ar part, 
         yield from bps.mv(
             usaxs_shutter,
             "close",
@@ -280,8 +306,8 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()
-        success = stats.analysis.success
+        scaler0.select_channels()                                       # unset counters
+        success = stats.analysis.success                                # did we find center? 
         print(f"Result: {success}")
         if success:
             yield from bps.mv(

@@ -42,6 +42,76 @@ loop_debug = Signal(name="loop_debug", value=False)
 # loop_debug.put(True)
 
 
+def larryLoop(numIterattions, yOffset, md={}):
+    """
+    Will run loop for number of iterations with yOffset shift in y
+    Runs over list of positions 
+    USAXS-SAXS-WAXS on pos1, then on pos2, etc until returns and starts from beggining
+
+    over list of positions and names
+    1. Correct the ListOfSamples
+    2. reload by
+    %run -im usaxs.user.finite_loop
+    3. run:
+    RE(larryLoop(50,0.06)) which will run 50 iterations with 0.06 yOffset =3mm total shift
+    keep in mind that last y position is y0+20*0.1 - you moved each sample up by total 2mm
+    yofset = totalYmotion/numItenrations
+    """
+    # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
+    ListOfSamples = [
+        [42.9,  19.8, 0.48, "NaCl6m_LE"],  	    # Point1
+        [43.9,  48.2, 0.48, "RbCl6m_LE"],  	    # Point1
+        [44.9,  76.7, 0.48, "NaNO3p5m_LE"],  	    # Point1
+        [43.3, 105.1, 0.48, "RbNO3p5m_LE"],  	    # Point1
+        [89.0,  23.6, 0.48, "BoeNaCl6m_LE"],  		# Point2
+        [89.0,  50.4, 0.48, "BoeRbCl6m_LE"],  		# Point2
+        [88.8,  78.4, 0.48, "BoeNaNO3p5m_LE"],  	    # Point1
+        [89.0, 105.8, 0.48, "BoeRbNO3p5m_LE"],  	    # Point1
+    ]
+
+    # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
+    #                 ]
+
+    def setSampleName():
+        return f"{scan_title}" f"_{i}"
+
+    def collectAllThree(debug=False):
+        if debug:
+            # for testing purposes, set debug=True
+            print(sampleMod)
+            yield from bps.sleep(20)
+        else:
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    isDebugMode = loop_debug.get()
+    #isDebugMode = False
+
+    if isDebugMode is not True:
+        yield from before_command_list()  # this will run usual startup scripts for scans
+
+    t0 = time.time()  # mark start time of data collection.
+
+    for i in range(numIterattions):
+        logger.info("Starting iteration %s", i+1)
+
+        for pos_X, pos_Yo, thickness, scan_title in ListOfSamples:
+            pos_Y = pos_Yo + i * yOffset
+            yield from collectAllThree(isDebugMode)
+
+    logger.info("finished")  # record end.
+
+    if isDebugMode is not True:
+        yield from after_command_list()  # runs standard after scan scripts.
+
+
 def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
     """
     Will run finite loop
@@ -55,7 +125,7 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
     """
 
     def setSampleName():
-        return f"{scan_title}" f"_{(time.time()-t0):.0f}sec"
+        return f"{scan_title}" f"_{((time.time()-t0)/60):.0f}min"
 
     def collectAllThree(debug=False):
         if debug:
@@ -66,9 +136,9 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
-            # sampleMod = setSampleName()
-            # md["title"]=sampleMod
-            # yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            #sampleMod = setSampleName()
+            md["title"]=sampleMod
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
             # sampleMod = setSampleName()
             # md["title"]=sampleMod
             # yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -87,9 +157,80 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
 
     logger.info("Collecting data for %s minutes", delay1minutes)
 
-    while (
-        time.time() < checkpoint
-    ):  # collects USAXS/SAXS/WAXS data while holding at temp1
+    while (time.time() < checkpoint):  
+        # collects USAXS/SAXS/WAXS data while holding at temp1
+        yield from collectAllThree(isDebugMode)
+
+    logger.info("finished")  # record end.
+
+    if isDebugMode is not True:
+        yield from after_command_list()  # runs standard after scan scripts.
+
+
+def myTwoPosFiniteLoop(pos_XA,thicknessA, scan_titleA, pos_XB, thicknessB, scan_titleB, delay1minutes, md={}):
+    """
+    Will run finite loop at two positions in alternance using LAXm2 motor
+    delay1minutes - delay is in minutes
+    pos_XA and pos_XB are in mm - these are SAMX satge positions
+    thicknessA and thicknessB are in mm
+
+    reload by
+    # %run -im usaxs.user.finite_loop
+
+    run by
+    RE(myTwoPosFiniteLoop(0, 1,"SampleA", 5, 2, "SampleB", 20))
+    will run data collection at SAMX = 0 with thickness 1mm and sample name SampleA
+    then at SAMX = 5 and thickness 2mm with SampleB name
+    and will alternate between these two for delay1minutes time
+    """
+    from apsbits.core.instrument_init import oregistry
+    samx = oregistry["LAXm2"]
+
+    def setSampleName():
+        return f"{scan_title}" f"_{((time.time()-t0)/60):.0f}min"
+
+    def collectAllThree(debug=False):
+        if debug:
+            # for testing purposes, set debug=True
+            print(sampleMod)
+            yield from bps.sleep(20)
+        else:
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+            #sampleMod = setSampleName()
+            md["title"]=sampleMod
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            # sampleMod = setSampleName()
+            # md["title"]=sampleMod
+            # yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    isDebugMode = loop_debug.get()
+    # isDebugMode = False
+
+    if isDebugMode is not True:
+        yield from before_command_list()  # this will run usual startup scripts for scans
+
+    t0 = time.time()  # mark start time of data collection.
+
+    checkpoint = (
+        time.time() + delay1minutes * MINUTE
+    )  # time to end ``delay1min`` hold period
+
+    logger.info("Collecting data for %s minutes", delay1minutes)
+
+    pos_X=0
+    pos_Y=0
+    
+    while (time.time() < checkpoint):  
+        # collects USAXS/SAXS/WAXS data while holding at temp1
+        thickness=thicknessA
+        scan_title = scan_titleA
+        yield from bps.mv(samx, pos_XA) 
+        yield from collectAllThree(isDebugMode)
+        thickness=thicknessB
+        scan_title = scan_titleB
+        yield from bps.mv(samx, pos_XB) 
         yield from collectAllThree(isDebugMode)
 
     logger.info("finished")  # record end.
@@ -115,17 +256,17 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
     # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
     ListOfSamples = [
     
-	[15, 58, 4.0, "water_blank"],  	# Point1
-	[25, 58, 4.0, "Z_15mgmL_DPEG_1p5mgmL_36hr"],  		# Point2
-	[35, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_36hr"], 	# Point3
-	[45, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_36hr"], 			# Point4
-	[55, 58, 4.0, "Z_15mgmL_DPEG_6gmL_36hr"], 	# Point5
-	[65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"], 	# Point6
-	[75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"], 	# Point7
-	[85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"], 	# Point8
-	[95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"], 	# Point9
-	[105, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_47C_14hr"], 	# Point10
-	[115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"], 	# Point11
+        [15, 58, 4.0, "water_blank"],  	                    # Point1
+        [25, 58, 4.0, "Z_15mgmL_DPEG_1p5mgmL_36hr"],  		# Point2
+        [35, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_36hr"], 	        # Point3
+        [45, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_36hr"], 		# Point4
+        [55, 58, 4.0, "Z_15mgmL_DPEG_6gmL_36hr"], 	        # Point5
+        [65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"], 	    # Point6
+        [75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"], 	    # Point7
+        [85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"], 	    # Point8
+        [95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"], 	# Point9
+        [105, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_47C_14hr"], 	# Point10
+        [115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"], 	    # Point11
 	
     ]
 

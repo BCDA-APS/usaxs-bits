@@ -59,6 +59,10 @@ ophyd.EpicsSignalRO:
   read_pv: usxLAX:vsc:c2.S2
 - name: scaler2_I000_cps
   read_pv: usxLAX:vsc:c2_cts1.B
+- name: upd_valid
+  read_pv: usxLAX:userCalc3
+  #labels: ["mask"]
+
 
 ophyd.EpicsMotor:
 - name: LAXm1
