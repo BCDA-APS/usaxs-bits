@@ -1,3 +1,4 @@
+
 """
 user-facing scans
 """
@@ -61,7 +62,6 @@ def preUSAXStune(md={}):  # noqa: B006
     Generator[Any, None, None]
         A generator that yields plan steps
 
-    USAGE:  ``RE(preUSAXStune())``
     """
 
     yield from MONO_FEEDBACK_ON()
@@ -190,7 +190,6 @@ def allUSAXStune(
     Generator[Any, None, None]
         A generator that yields plan steps
 
-    USAGE:  ``RE(allUSAXStune())``
     """
 
     yield from MONO_FEEDBACK_ON()
@@ -312,7 +311,6 @@ def preSWAXStune(
     Generator[Any, None, None]
         A generator that yields plan steps
 
-    USAGE:  ``RE(preSWAXStune())``
     """
     if md is None:
         md = {}
@@ -388,3 +386,4 @@ def preSWAXStune(
     #     timeout=MASTER_TIMEOUT,
     # )
     yield from user_data.set_state_plan("pre-SWAXS optics tune")
+

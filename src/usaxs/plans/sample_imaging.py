@@ -1,3 +1,4 @@
+
 """
 take an image of the sample
 """
@@ -103,12 +104,6 @@ def image_sample(
         Count time in seconds, by default 1.0
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -131,3 +126,4 @@ def image_sample(
         yield from bps.wait(group="imaging")
 
     return (yield from _inner())
+
