@@ -1,3 +1,4 @@
+
 """Stage tuning plans for the USAXS instrument.
 
 This module provides plans for tuning various stages of the USAXS instrument,
@@ -30,12 +31,6 @@ def tune(
         The stage motor to tune
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -90,3 +85,4 @@ def tune(
             yield from self.post_tune_hook()
 
     return (yield from _inner())
+

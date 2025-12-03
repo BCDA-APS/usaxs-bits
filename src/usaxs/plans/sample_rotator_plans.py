@@ -1,3 +1,4 @@
+
 """
 rotate the sample with PI C867 motor
 """
@@ -106,12 +107,6 @@ def rotate_sample(
         Target angle in degrees
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -134,3 +129,4 @@ def rotate_sample(
         yield from bps.wait(group="rotation")
 
     return (yield from _inner())
+

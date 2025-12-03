@@ -1,3 +1,4 @@
+
 """
 User can set a PV to request scanning to stop
 
@@ -8,12 +9,9 @@ import datetime
 import logging
 import time
 
-import bluesky
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky.run_engine import RequestAbort
-
-from ..startup import RE
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +24,8 @@ user_data = oregistry["user_data"]
 
 def IfRequestedStopBeforeNextScan():
     """plan: wait if requested"""
-
     open_the_shutter = False
     t0 = time.time()
-
-    RE.pause_msg = bluesky.run_engine.PAUSE_MSG  # sloppy
 
     pv_txt = "Pausing for user for %g s"
     while terms.PauseBeforeNextScan.get():
@@ -58,14 +53,11 @@ def IfRequestedStopBeforeNextScan():
         yield from bps.mv(*mv_args)
         yield from user_data.set_state_plan("Aborted data collection")
 
-        # RE.pause_msg = "DEBUG: stopped the scans, ignore the (informative) exception
-        # trace"
         raise RequestAbort(msg)  # long exception trace?
 
     if open_the_shutter:
         yield from bps.mv(mono_shutter, "open")  # waits until complete
         # yield from bps.sleep(2)         # so, sleep not needed
-
 
 # def IfRequestedStopBeforeNextScan():
 #     """

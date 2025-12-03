@@ -25,7 +25,6 @@ from bluesky.utils import plan
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
 from ..devices.amplifiers import AutorangeSettings
-from ..startup import RE
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
 logger = logging.getLogger(__name__)
@@ -67,6 +66,8 @@ def Flyscan_internal_plan(
     Yields:
         Generator: Control flow for the fly scan execution
     """
+    from ..startup import RE
+
     if md is None:
         md = {}
 

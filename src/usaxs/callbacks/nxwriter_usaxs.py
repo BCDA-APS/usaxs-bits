@@ -12,12 +12,14 @@ import os
 import apstools
 import numpy as np
 from apsbits.core.instrument_init import oregistry
+from apsbits.utils.config_loaders import get_config
 from apstools.callbacks import NXWriterAPS
 from apstools.utils import cleanupText
 
-from ..startup import RE
 from ..utils.utils import techniqueSubdirectory
 
+# Get the configuration
+iconfig = get_config()
 terms = oregistry["terms"]
 user_data = oregistry["user_data"]
 
@@ -385,6 +387,20 @@ class NXWriterUascan(OurCustomNXWriterBase):
                 slit[key] = self.get_stream_link(f"{pre}_{key}")
 
 
-nxwriter = NXWriterUascan()
-#
-RE.subscribe(nxwriter.receiver)
+def nxwriter_init(RE):
+    """Initialize the Nexus data file writer callback."""
+    nxwriter = NXWriterUascan()
+    """The NeXus file writer object."""
+
+    if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+        RE.subscribe(nxwriter.receiver)  # write data to NeXus files
+
+    nxwriter.file_extension = iconfig.get("NEXUS_DATA_FILES", {}).get(
+        "FILE_EXTENSION", "hdf"
+    )
+
+    print(nxwriter.file_extension)
+    warn_missing = iconfig.get("NEXUS_DATA_FILES", {}).get("WARN_MISSING", False)
+    nxwriter.warn_on_missing_content = warn_missing
+
+    return nxwriter

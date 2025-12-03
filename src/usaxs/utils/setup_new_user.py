@@ -10,13 +10,11 @@ from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
-from epics import caput
 
-
-from usaxs.callbacks.spec_data_file_writer import specwriter
-
-from ..callbacks.nxwriter_usaxs import nxwriter
+# from ..callbacks.nxwriter_usaxs import nxwriter
+from ..callbacks.spec_data_file_writer import specwriter
 from ..startup import RE
+# from ..startup import nxwriter
 from .check_file_exists import filename_exists
 
 # from ..devices import user_data
@@ -39,8 +37,8 @@ def _setNeXusFileName(path, scan_id=1):
     """
 
     fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
-    nxwriter.file_name = fname
-    logger.info(f"NeXus file name : {nxwriter.file_name!r}")
+    # nxwriter.file_name = fname
+    # logger.info(f"NeXus file name : {nxwriter.file_name!r}")
     logger.info("File will be written at end of next bluesky scan.")
 
 
@@ -48,6 +46,7 @@ def _setSpecFileName(path, scan_id=1):
     """
     SPEC file name
     """
+
     fname = os.path.join(path, f"{os.path.basename(path)}.dat")
     if filename_exists(fname):
         logger.warning(">>> file already exists: %s <<<", fname)
@@ -125,7 +124,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         waxs_det.hdf1.file_number.put(1)
         # caput("usxLAX:USAXS:FS_OrderNumber",1)
         # caput("usaxs_eiger1:HDF1:FileNumber",1)
-        # caput("usaxs_pilatus3:HDF1:FileNumber",1)        
+        # caput("usaxs_pilatus3:HDF1:FileNumber",1)
         # caput("usaxs_eiger1:cam1:FileNumber",1)
         # caput("usaxs_pilatus3:cam1:FileNumber",1)
          
@@ -141,6 +140,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
             day = data.get("day")
     elif user is None and not file_exists:
         user = input("Please provide the name of the new user: ").strip()
+        # dt = input("Please provide the date (YYYY-MM-DD) or press Enter for today: ").strip()
 
     dt = datetime.datetime.now()
     year = year or dt.year  # lgtm [py/unused-local-variable]

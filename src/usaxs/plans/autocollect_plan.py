@@ -1,3 +1,4 @@
+
 """Automatic data collection plans for the USAXS instrument.
 
 This module provides plans for automatic data collection in the USAXS instrument,
@@ -44,7 +45,6 @@ def remote_ops():
     -------
     None
 
-    USAGE:  ``RE(remote_ops())``
     """
 
     yield from bps.mv(auto_collect.permit, "yes")
@@ -96,3 +96,4 @@ def remote_ops():
 
     print()  # next line if emerging from idle_reporter()
     logger.info("auto_collect is ending")
+

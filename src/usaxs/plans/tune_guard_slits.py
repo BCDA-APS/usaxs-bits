@@ -18,7 +18,6 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 from ophyd import Kind
 
-from ..startup import RE
 from ..utils.derivative import numerical_derivative
 from ..utils.peak_centers import peak_center
 from .filter_plans import insertTransmissionFilters
@@ -65,6 +64,7 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
     Generator[Any, None, None]
         A generator that yields plan steps
     """
+    from ..startup import RE
 
     yield from IfRequestedStopBeforeNextScan(oregistry)
     title = "tuning USAXS Gslit center"
