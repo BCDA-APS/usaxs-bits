@@ -1,3 +1,4 @@
+
 """
 user-facing scans
 """
@@ -17,14 +18,13 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from usaxs.callbacks.spec_data_file_writer import specwriter
-from usaxs.utils.override import user_override
-from usaxs.utils.user_sample_title import getSampleTitle
-from usaxs.utils.utils import techniqueSubdirectory
-
+from ..callbacks.spec_data_file_writer import specwriter
 from ..utils.a2q_q2a import q2angle
 from ..utils.global_suspenders import get_suspend_BeamInHutch
 from ..utils.global_suspenders import get_suspend_FE_shutter
+from ..utils.override import user_override
+from ..utils.user_sample_title import getSampleTitle
+from ..utils.utils import techniqueSubdirectory
 from .amplifiers_plan import autoscale_amplifiers
 from .command_list import after_plan
 from .command_list import before_plan
@@ -65,6 +65,7 @@ user_data = oregistry["user_data"]
 
 suspend_FE_shutter = get_suspend_FE_shutter
 suspend_BeamInHutch = get_suspend_BeamInHutch
+
 
 @bpp.suspend_decorator(suspend_FE_shutter)
 @bpp.suspend_decorator(suspend_BeamInHutch)
@@ -145,9 +146,6 @@ def USAXSscanStep(
     USAGE:  ``RE(USAXSscanStep(pos_X, pos_Y, thickness, scan_title))``
     """
 
-    from ..startup import RE
-    from ..startup import bec
-
     if md is None:
         md = {}
 
@@ -192,7 +190,7 @@ def USAXSscanStep(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1  # update with next number
+    SCAN_N = user_data.spec_scan.get() + 1  # update with next number
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
@@ -262,7 +260,7 @@ def USAXSscanStep(
     yield from user_data.set_state_plan("Running USAXS step scan")
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1  # update with next number
+    SCAN_N = user_data.spec_scan.get() + 1  # update with next number
     yield from bps.mv(
         # fmt: off
         user_data.scanning,
@@ -298,7 +296,6 @@ def USAXSscanStep(
     endAngle = terms.USAXS.ar_val_center.get() - q2angle(
         terms.USAXS.finish.get(), monochromator.dcm.wavelength.position
     )
-    bec.disable_plots()
 
     yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
@@ -320,7 +317,6 @@ def USAXSscanStep(
         useDynamicTime=use_dynamic_time,
         md=_md,
     )
-    bec.enable_plots()
 
     yield from bps.mv(
         # fmt: off
@@ -400,7 +396,6 @@ def Flyscan(
 
     USAGE:  ``RE(Flyscan(pos_X, pos_Y, thickness, scan_title))``
     """
-    from ..startup import RE
     if md is None:
         md = {}
 
@@ -461,10 +456,10 @@ def Flyscan(
     # print("scan_title_clean:", scan_title_clean)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1
+    SCAN_N = user_data.spec_scan.get() + 1
 
     flyscan_path = techniqueSubdirectory("usaxs")
-    if not os.path.exists(flyscan_path) and RE.state != "idle":
+    if not os.path.exists(flyscan_path) and user_data.collection_in_progress.get():
         os.mkdir(flyscan_path)
     flyscan_file_name = (
         f"{scan_title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
@@ -580,7 +575,7 @@ def Flyscan(
     )
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1
+    SCAN_N = user_data.spec_scan.get() + 1
     yield from bps.mv(
         # fmt: off
         user_data.scanning,
@@ -604,8 +599,6 @@ def Flyscan(
 
     yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
 
-    # bec.disable_table()
-
     yield from Flyscan_internal_plan(md=_md)  # flyscan proper
 
     yield from bps.mv(
@@ -617,9 +610,11 @@ def Flyscan(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-
-    diff = flyscan_trajectories.num_pulse_positions.get() - struck.current_channel.get()
-    if diff > 5 and RE.state != "idle":
+    diff = (
+        flyscan_trajectories.num_pulse_positions.get()
+        - struck.current_channel.get()
+    )
+    if diff > 5 and user_data.collection_in_progress.get():
         msg = "WARNING: Flyscan finished with %g less points" % diff
         logger.info("*") * 20
         logger.info(msg)
@@ -669,3 +664,4 @@ def Flyscan(
     yield from user_data.set_state_plan("Flyscan finished")
 
     yield from after_plan(weight=3)
+
