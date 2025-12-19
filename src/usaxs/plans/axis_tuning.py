@@ -435,7 +435,7 @@ def find_a2rp(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "find_a2rp"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r2p.name}")
-        # axis_start = a_stage.r.position
+        axis_start = a_stage.r2p.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -452,8 +452,8 @@ def find_a2rp(md: Optional[Dict[str, Any]] = None):
         stats = SignalStatsCallback()       # init stats to return stuff back. 
         tune_start = -1*howWiderRangeToScan*a_stage.r2p.tune_range.get()
         tune_end = howWiderRangeToScan*a_stage.r2p.tune_range.get()
-        #tune_start must be larger than 0
-        #tune_start =  max(tune_start, 0)
+        #tune_start must be larger than -1*axis_start
+        tune_start =  max(tune_start, -1*axis_start)
         tune_end =  min(tune_end, 88)
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],
