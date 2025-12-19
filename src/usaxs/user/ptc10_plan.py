@@ -306,16 +306,18 @@ def myPTC10Plan(
 
     logger.info(f"Ramping temperature to {temp1} C")
 
+    t0 = time.time()
     while (
         not ptc10.temperature.inposition
     ):  # runs data collection until next temp or sleeps. Change as needed.
-        yield from bps.sleep(5)
+        #yield from bps.sleep(5)
         logger.info(f"Still Ramping temperature to {temp1} C")
-        yield from collectWAXS()
+        yield from collectAllThree()
 
     # logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
     logger.info("Reached temperature, now collecting data for %s seconds", delay1)
     t1 = time.time()
+    t0 = time.time()
 
     while time.time() - t1 < delay1:  # collects data for delay1 seconds
         # yield from bps.sleep(5)

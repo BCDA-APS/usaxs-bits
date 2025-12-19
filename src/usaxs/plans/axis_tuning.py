@@ -423,7 +423,7 @@ def find_a2rp(md: Optional[Dict[str, Any]] = None):
     Generator[Any, None, None]
         A generator that yields plan steps
     """
-    howWiderRangeToScan = 4
+    howWiderRangeToScan = 2.5
     howManyPoints = 61
     if md is None:
         md = {}
@@ -453,7 +453,7 @@ def find_a2rp(md: Optional[Dict[str, Any]] = None):
         tune_start = -1*howWiderRangeToScan*a_stage.r2p.tune_range.get()
         tune_end = howWiderRangeToScan*a_stage.r2p.tune_range.get()
         #tune_start must be larger than 0
-        tune_start =  max(tune_start, 0)
+        #tune_start =  max(tune_start, 0)
         tune_end =  min(tune_end, 88)
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],
