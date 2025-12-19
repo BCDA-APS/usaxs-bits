@@ -264,7 +264,7 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             -1*howWiderRangeToScan*a_stage.r.tune_range.get(),
             howWiderRangeToScan*a_stage.r.tune_range.get(),
             howManyPoints,
-            nscans=4,
+            nscans=3,
             signal_stats=stats,
             md=md,
         )
@@ -393,6 +393,116 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
 
     except Exception as e:
         logger.error(f"Error in tune_a2rp: {str(e)}")
+        raise
+
+    # return success
+
+
+def find_a2rp(md: Optional[Dict[str, Any]] = None):
+    """
+    Tune the AR stage a2rp angle with adaptive range.
+
+    This function tunes the analyzer rotation stage by finding the optimal position
+    for maximum signal intensity. It includes setting up the scaler, configuring
+    the detector controls, and performing a lineup scan.
+
+    Uses adaptive scanning to search over originally large range = 5* range for tune_ar,
+    narrowing closer and closer. Uses longer time and 61 scan points, so it takes significantly longer than tune_ar. 
+    uses lineup2 algoritmus and allows for up to 3 scans. It then runs code which is basically tune_ar
+
+    uses upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
+    - optionally this is I0: I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
+
+    Parameters
+    ----------
+    md : Optional[Dict[str, Any]], optional
+        Metadata dictionary to be added to the scan, by default None
+
+    Yields
+    ------
+    Generator[Any, None, None]
+        A generator that yields plan steps
+    """
+    howWiderRangeToScan = 4
+    howManyPoints = 61
+    if md is None:
+        md = {}
+    success = False
+    try:
+        yield from bps.mv(usaxs_shutter, "open")
+        yield from bps.mv(scaler0.preset_time, 0.2)
+        #yield from bps.mv(upd_controls.auto.mode, "manual")
+        md["plan_name"] = "find_a2rp"
+        yield from IfRequestedStopBeforeNextScan()
+        logger.info(f"tuning axis: {a_stage.r2p.name}")
+        # axis_start = a_stage.r.position
+        yield from bps.mv(
+            mono_shutter,
+            "open",
+            usaxs_shutter,
+            "open",
+            upd_controls.auto.mode,
+            "automatic",  #set UPD amlifier to autorange to automatic so we do not top the UPD
+        )
+        #yield from autoscale_amplifiers([upd_controls, I0_controls]) - do NOT use, would set to manual mode... 
+        trim_plot_by_name(5)
+        # control BEC plotting since we use upd_photocurrent_calc
+        scaler0.kind = "normal"
+        scaler0.select_channels([])         # no scaler channels to be plotted (sets 'kind=normal' for all channels)
+        stats = SignalStatsCallback()       # init stats to return stuff back. 
+        tune_start = -1*howWiderRangeToScan*a_stage.r2p.tune_range.get()
+        tune_end = howWiderRangeToScan*a_stage.r2p.tune_range.get()
+        #tune_start must be larger than 0
+        tune_start =  max(tune_start, 0)
+        tune_end =  min(tune_end, 88)
+        yield from lineup2(
+            [upd_photocurrent_calc, scaler0],
+            a_stage.r2p,tune_start, tune_end,howManyPoints,
+            nscans=3,signal_stats=stats,
+            md=md,
+        )
+        print(stats.report())
+        #now we need to setup regular tune_ar and run that here.
+        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from bps.mv(
+            mono_shutter,
+            "open",
+            usaxs_shutter,
+            "open",
+        )
+
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
+        scaler0.select_channels(["UPD"])
+        trim_plot_by_name(5)
+        stats = SignalStatsCallback()
+        yield from lineup2(
+            [UPD, scaler0],
+            a_stage.r2p,
+            -a_stage.r2p.tune_range.get(),
+            a_stage.r2p.tune_range.get(),
+            31,
+            nscans=1,
+            signal_stats=stats,
+            md=md,
+        )
+        print(stats.report())
+        yield from bps.mv(
+            usaxs_shutter,
+            "close",
+            scaler0.count_mode,
+            "AutoCount",
+            upd_controls.auto.mode,
+            "auto+background",
+        )
+        scaler0.select_channels()
+        # success = stats.analysis.success
+        if stats.analysis.success:
+            logger.debug(f"final position: {a_stage.r2p.position}")
+        else:
+            print(f"tune_a2rp failed for {stats.analysis.reasons}")
+
+    except Exception as e:
+        logger.error(f"Error in find_ar: {str(e)}")
         raise
 
     # return success
