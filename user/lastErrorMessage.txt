@@ -422,3 +422,26 @@ Traceback (most recent call last):
     raise RuntimeError("shutter is operating")
 RuntimeError: shutter is operating
 
+
+
+When shutter isNOT opened even ModeRadiography throws this error and BS must be restarted
+
+In [4]: RE(mode_Radiography())
+I Sun-10:23:39.353: Moving to Radiography mode ... please wait ...
+I Sun-10:23:42.966: Instrument is configured for Radiography now.
+Exception in thread Thread-8239 (move_it):
+Traceback (most recent call last):
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 1045, in _bootstrap_inner
+    self.run()
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/threading.py", line 982, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/devices/shutters.py", line 215, in move_it
+    self.open()
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/devices/shutters.py", line 650, in open
+    self.wait_for_state(self.pss_state_open_values, timeout=timeout)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/devices/shutters.py", line 642, in wait_for_state
+    raise TimeoutError(msg)
+TimeoutError: Timeout (10 s) waiting for shutter state to reach a value in [1, 'O', 'N']
+
+
+
