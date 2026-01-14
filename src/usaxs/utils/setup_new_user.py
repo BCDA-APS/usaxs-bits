@@ -13,7 +13,7 @@ from apstools.utils import cleanupText
 from epics import caput
 
 
-from usaxs.callbacks.spec_data_file_writer import specwriter
+from usaxs.callbacks.demo_spec_callback import specwriter
 
 from ..callbacks.nxwriter_usaxs import nxwriter
 from ..startup import RE
@@ -105,7 +105,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     os.chdir(working_folder)
 
     cwd = Path.cwd()
-    print("Your Path Is : %s", cwd)
+    print(f"Your Path Is : {cwd}")
    
     
     #global specwriter
@@ -223,7 +223,7 @@ def newSample(sample=None):
     filename = ".user_info.json"  # Store if a new user was created
     cwd = Path.cwd()
 
-    print("Your Path Is : %s", cwd)
+    print(f"Your Path Is : {cwd}")
 
     file_exists = Path(filename).is_file()
 
