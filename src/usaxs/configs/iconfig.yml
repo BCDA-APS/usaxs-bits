@@ -1,12 +1,13 @@
 # Configuration for the Bluesky instrument package.
 
 # identify the version of this iconfig.yml file
-ICONFIG_VERSION: 2.0.0
+ICONFIG_VERSION: 2.0.1
 
 # Add additional configuration for use with your instrument.
 
-### The short name for the databroker catalog.
-DATABROKER_CATALOG: &databroker_catalog usaxs
+# DATABROKER_CATALOG: &databroker_catalog usaxs
+TILED_PROFILE_NAME: raw
+TILED_PATH_NAME: /raw
 
 ### RunEngine configuration
 RUN_ENGINE:
@@ -14,7 +15,6 @@ RUN_ENGINE:
         beamline_id: 12IDE
         instrument_name: APS USAXS/SAXS/WAXS
         proposal_id: Beamline
-        databroker_catalog: *databroker_catalog
 
     ### EPICS PV to use for the `scan_id`.
     ### Default: `RE.md["scan_id"]` (not using an EPICS PV)
@@ -22,7 +22,6 @@ RUN_ENGINE:
 
     ### Where to "autosave" the RE.md dictionary.
     ### Defaults:
-    MD_STORAGE_HANDLER: StoredDict
     MD_PATH: .re_md_dict.yml
 
     ### The progress bar is nice to see,
@@ -33,6 +32,12 @@ RUN_ENGINE:
 # Command-line tools, such as %wa, %ct, ...
 USE_BLUESKY_MAGICS: true
 
+### Baseline stream
+### When ENABLE=true, all ophyd objects with a "baseline" label
+### will be added to the baseline stream.
+BASELINE_LABEL:
+    ENABLE: true
+
 ### Best Effort Callback Configurations
 ### Defaults: all true
 ### except no plots in queueserver
@@ -41,13 +46,6 @@ BEC:
     HEADING: true
     PLOTS: true
     TABLE: true
-
-### Baseline stream
-### When ENABLE=true, all ophyd objects with a "baseline" label
-### will be added to the baseline stream.
-BASELINE_LABEL:
-    LABEL: baseline
-    ENABLE: true
 
 ### Support for known output file formats.
 ### Uncomment to use.  If undefined, will not write that type of file.
@@ -62,16 +60,9 @@ SPEC_DATA_FILES:
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
-DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
+# DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"
 
-### Local OPHYD Device Control Yaml
-DEVICES_FILES:
-- devices.yml
-- ad_devices.yml
-- shutters_sim.yml
-APS_DEVICES_FILES:
-- devices_aps_only.yml
-
+# TODO: Is this used anywhere?
 # Log when devices are added to console (__main__ namespace)
 MAKE_DEVICES:
     LOG_LEVEL: info
