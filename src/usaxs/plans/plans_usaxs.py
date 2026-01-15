@@ -17,7 +17,7 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from usaxs.callbacks.spec_data_file_writer import specwriter
+from usaxs.callbacks.demo_spec_callback import specwriter
 from usaxs.startup import suspend_BeamInHutch
 from usaxs.startup import suspend_FE_shutter
 from usaxs.utils.override import user_override

@@ -18,7 +18,7 @@ from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
 # from ..startup import bec
-from usaxs.callbacks.spec_data_file_writer import specwriter
+from usaxs.callbacks.demo_spec_callback import specwriter
 
 from ..startup import RE
 from ..startup import suspend_BeamInHutch

@@ -22,7 +22,7 @@ from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
-from usaxs.callbacks.spec_data_file_writer import specwriter
+from usaxs.callbacks.demo_spec_callback import specwriter
 
 from ..devices.amplifiers import AutorangeSettings
 from ..startup import RE

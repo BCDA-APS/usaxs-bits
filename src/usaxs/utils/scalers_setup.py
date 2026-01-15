@@ -2,11 +2,11 @@
 
 import sys
 
-from apsbits.core.instrument_init import oregistry
-
 
 def setup_scalers():
     """Make specific scaler channels available in oregistry & console."""
+    from apsbits.core.instrument_init import oregistry
+
     main_namespace = sys.modules["__main__"]  # "console"
     scaler0 = oregistry["scaler0"]  # See scalers.yml
 
