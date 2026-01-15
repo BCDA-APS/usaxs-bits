@@ -108,7 +108,7 @@ else:
 
 # Experiment specific logic, device and plan loading. # Create the devices.
 make_devices(clear=False, file="scalers_and_amplifiers.yml", device_manager=instrument)
-setup_scalers(oregistry)
+setup_scalers()
 
 make_devices(file="devices.yml", clear=False, device_manager=instrument)
 make_devices(file="devices_aps_only.yml", clear=False, device_manager=instrument)
