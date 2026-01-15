@@ -1,5 +1,5 @@
-"""
-Plans for USAXS scan operations.
+
+"""Plans for USAXS scan operations.
 
 This module provides plans for performing USAXS (Ultra Small Angle X-ray
 Scattering) scans, including both standard USAXS and side-bounce USAXS (SBUSAXS)
@@ -20,7 +20,6 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from ..startup import bec
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
 
@@ -102,12 +101,6 @@ def uascan(
         Whether to use dynamic time adjustment, by default True
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -117,6 +110,7 @@ def uascan(
     USAGE:  ``RE(uascan(start, reference, finish, minStep, exponent, intervals,
     count_time, dx0, SDD_mm, ax0, SAD_mm))``
     """
+
     if md is None:
         md = {}
 
@@ -190,8 +184,6 @@ def uascan(
         I00_controls.auto.reqrange,
         trd_controls.auto.reqrange,
     ]
-
-    bec.enable_table()
 
     # do not report the "quiet" detectors/stages during a uascan
     quiet_detectors = [
@@ -375,3 +367,4 @@ def uascan(
         user_data.collection_in_progress,
         0,  # despite the label, 0 means not collecting
     )
+

@@ -23,6 +23,7 @@ from apsbits.utils.config_loaders import get_config
 from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
+from .utils import global_suspenders
 from epics import caget
 
 from usaxs.utils.scalers_setup import setup_scalers
@@ -57,7 +58,7 @@ RE, sd = init_RE(iconfig, bec_instance=bec, cat_instance=cat)
 
 # Import optional components based on configuration
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.nexus_data_file_writer import nxwriter_init
+    from .callbacks.nxwriter_usaxs import nxwriter_init
 
     nxwriter = nxwriter_init(RE)
 
@@ -74,7 +75,7 @@ if running_in_queueserver():
     ### To make all the standard plans available in QS, import by '*', otherwise import
     ### plan by plan.
     from apstools.plans import lineup2  # noqa: F401
-    from bluesky.plans import *  # noqa: F403
+    # from bluesky.plans import *  # noqa: F403
 
 else:
     # Import bluesky plans and stubs with prefixes set by common conventions.
@@ -111,6 +112,9 @@ if not in_operation:
     from usaxs.suspenders.suspender_functions import suspender_in_sim
 
     suspend_FE_shutter, suspend_BeamInHutch = suspender_in_sim()
+
+# Store suspenders globally
+global_suspenders.set_suspenders(suspend_FE_shutter, suspend_BeamInHutch)
 
 ### Baseline stream
 # Beamline configuration stored before/after experiment
@@ -189,5 +193,5 @@ from .utils.setup_new_user import newSample
 # customize the instrument configuration
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_shutter.delay_s = 0.01
-
-newUser()
+if not running_in_queueserver():
+    newUser()

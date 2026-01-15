@@ -1,3 +1,4 @@
+
 """
 user-facing scans
 """
@@ -14,6 +15,8 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
+from ..utils.global_suspenders import get_suspend_BeamInHutch
+from ..utils.global_suspenders import get_suspend_FE_shutter
 from .axis_tuning import tune_a2rp
 from .axis_tuning import tune_ar
 from .axis_tuning import tune_mr
@@ -59,7 +62,6 @@ def preUSAXStune(md={}):  # noqa: B006
     Generator[Any, None, None]
         A generator that yields plan steps
 
-    USAGE:  ``RE(preUSAXStune())``
     """
 
     yield from MONO_FEEDBACK_ON()
@@ -188,7 +190,6 @@ def allUSAXStune(
     Generator[Any, None, None]
         A generator that yields plan steps
 
-    USAGE:  ``RE(allUSAXStune())``
     """
 
     yield from MONO_FEEDBACK_ON()
@@ -310,7 +311,6 @@ def preSWAXStune(
     Generator[Any, None, None]
         A generator that yields plan steps
 
-    USAGE:  ``RE(preSWAXStune())``
     """
     if md is None:
         md = {}
@@ -386,3 +386,4 @@ def preSWAXStune(
     #     timeout=MASTER_TIMEOUT,
     # )
     yield from user_data.set_state_plan("pre-SWAXS optics tune")
+

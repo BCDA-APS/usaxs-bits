@@ -17,12 +17,10 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-# from ..startup import bec
 from usaxs.callbacks.spec_data_file_writer import specwriter
 
-from ..startup import RE
-from ..startup import suspend_BeamInHutch
-from ..startup import suspend_FE_shutter
+from ..utils.global_suspenders import get_suspend_BeamInHutch
+from ..utils.global_suspenders import get_suspend_FE_shutter
 from ..utils.constants import constants
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
@@ -73,6 +71,9 @@ usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_data"]
 waxs_det = oregistry["waxs_det"]
 
+suspend_FE_shutter = get_suspend_FE_shutter()
+suspend_BeamInHutch = get_suspend_BeamInHutch()
+
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"
 LOCAL_FILE_TEMPLATE = "%s_%04d.hdf"
 MASTER_TIMEOUT = 60
@@ -118,6 +119,8 @@ def saxsExp(
 
     USAGE:  ``RE(SAXS(pos_X, pos_Y, thickness, scan_title))``
     """
+    from ..startup import RE
+
     if md is None:
         md = {}
 
@@ -384,6 +387,8 @@ def waxsExp(
 
     USAGE:  ``RE(WAXS(pos_X, pos_Y, thickness, scan_title))``
     """
+    from ..startup import RE
+
     if md is None:
         md = {}
 

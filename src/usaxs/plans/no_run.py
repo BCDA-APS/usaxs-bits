@@ -1,3 +1,4 @@
+
 """No-run plans for the USAXS instrument.
 
 This module provides plans for operations that don't require a full run,
@@ -17,7 +18,6 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
-from ..startup import bec
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,6 @@ def no_run_trigger_and_wait(
     The primary use case is to count detectors (on a scaler card)
     when measuring sample transmission.
     """
-    bec.disable_table()
     if not isinstance(objects, (tuple, set, list)):
         objects = [objects]
     group = bps._short_uid("trigger_and_wait_no_run")
@@ -60,12 +59,6 @@ def no_run_operation(
     ----------
     md : Optional[Dict[str, Any]], optional
         Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
 
     Returns
     -------
@@ -86,3 +79,4 @@ def no_run_operation(
         yield from bps.sleep(1)  # Simulate operation time
 
     return (yield from _inner())
+
