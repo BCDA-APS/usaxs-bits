@@ -6,4 +6,15 @@ USAXS instrument old Bluesky code is here: https://github.com/APS-USAXS/usaxs-bl
 
 New USAXS instrument is located at APS 12ID beamline, hutch E. This is code used for operations of this instrument and is specific to existing hardware.
 
+## (Re)install conda environment
 
+```py
+export CONDA_ENV=bits_usaxs
+conda create -y -n "${CONDA_ENV}" python=3.11 pyepics
+conda activate "${CONDA_ENV}"
+cd ~/bits_usaxs
+pip install -e .
+
+# install pre-release support for aps cycle exception
+pip install git+https://github.com/BCDA-APS/apstools
+```
