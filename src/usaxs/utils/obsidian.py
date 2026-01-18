@@ -110,7 +110,7 @@ def appendToMdFile(text: str):
     # appends text to the end of the md file created above
     md_file_path = createMdFile()
     with open(md_file_path, "a") as f:
-        if text is not None:
+        if len(text.strip()) > 0:
             f.write(text + "\n")
     #print(f"Appended to {md_file_path}: {text}")
     return

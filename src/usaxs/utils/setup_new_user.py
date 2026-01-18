@@ -190,7 +190,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         recordUserStart()   #if the path did not exist, we need to create a new md file also. 
     else:
         logger.info("User directory already exists: %s", path)
-        appendToMdFile() # just ensure the md file exists. If needed, create it. 
+        appendToMdFile("") # just ensure the md file exists. If needed, create it. 
 
     logger.info("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
