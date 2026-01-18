@@ -75,20 +75,20 @@ def createMdFile():
     working_folder = createMonthFolder()
     data_path = user_data.user_dir.get()
     # this returns something like /share1/USAXS_data/2026-01/1_14_setup 
-    # we need the last folder name from data_path which will be the name of md file
-    # we need to merge the working_folder/last folder name + ".md"
+    # the last folder name from data_path which will be the name of md file
+    # merge the working_folder/last folder name + ".md"
     last_folder_name = os.path.basename(os.path.normpath(data_path))
-    # this returns "1_14_setup"
+    # this returns last_folder_name = "1_14_setup"
     md_filename = f"{last_folder_name}.md"
     md_file_path = working_folder / md_filename
-    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    #start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if md_file_path.exists():
         #print(f"Markdown file already exists: {md_file_path}")
         pass
     else:
         with open(md_file_path, "w") as f:
             f.write(f"# Experiment Notes by USAXS instrument\n")
-            f.write(f"Date Time: {start_time}\n")
+            #f.write(f"Date Time: {start_time}\n")
         #print(f"Markdown file created: {md_file_path}")
     return md_file_path
 
@@ -120,13 +120,19 @@ def recordNewSample():
     #undulator_energy = Component(EpicsSignalRO, "ID12ds:Energy")
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     text = f"## New Sample directory created\n\
-- **Sample dir:** {sample_dir}\n\
+- **Sample directory:** {sample_dir}\n\
 - **APS Current (mA):** {aps_current.get()}\n\
-- **Undulator Energy [keV]:** {und_energy.get()}\n\
-- **Mono X-ray Energy [keV]:** {mono_energy.get()}\n\
+- **Undulator Energy (keV):** {und_energy.get()}\n\
+- **Mono X-ray Energy (keV):** {mono_energy.get()}\n\
 - **Date Time:** {time_now}\n"
     appendToMdFile(text)
     return
 
+def recordRunCommandFile(command_list str):
+    # called by run_command_file() and records list of samples queued.
+    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = f"## Run Command File executed\n**Date Time:** {time_now}\n{command_list}\n"
+    appendToMdFile(text)
+    return
 
 
