@@ -175,9 +175,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     user_data.user_name.put(user)  # set in the PV
     user_data.sample_dir.put(sample)  # set in the PV
 
-    # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
-    print(f"Recording user start for user: {user}")
-    recordUserStart()
+   
 
     path = (
         cwd  # we are in working directory where we want to save the data, that is all done above. 
@@ -188,6 +186,9 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     if not path.exists():
         logger.info("Creating user directory: %s", path)
         path.mkdir(parents=True)
+        # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
+        recordUserStart()   #if the path did not exist, we need to create a new md file also. 
+
     logger.info("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
 
@@ -256,9 +257,6 @@ def newSample(sample=None):
     day = day or dt.day
     sample = sample or "data"
 
-    # Obsidian recording, recordNewSample, md file if needed, make recoding about new sample.
-    recordNewSample()
-
     data = {
         "user_name": user,
         "sample_dir":sample,
@@ -266,6 +264,9 @@ def newSample(sample=None):
         "month": month,
         "day": day,
     }
+
+    # Obsidian recording, recordNewSample, md file if needed, make recoding about new sample.
+    recordNewSample()
 
     #### Load json data into file
     with open(filename, "w") as file:
