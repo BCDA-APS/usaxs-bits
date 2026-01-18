@@ -4,6 +4,7 @@ reload by
 ...:  %run -im usaxs.user.ptc10_plan
 
 * 2025-6-13 : JIL : fix for BITS
+** ADD appendToMdFile calls to log temperature changes
 """
 
 import logging
@@ -23,6 +24,7 @@ from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list
 from usaxs.plans.command_list import before_command_list
+from usaxs.utils.obsidian import appendToMdFile
 
 ptc10 = oregistry["ptc10"]
 

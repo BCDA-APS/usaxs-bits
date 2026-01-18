@@ -29,6 +29,7 @@ from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
+from usaxs.utils.obsidian import appendToMdFile 
 
 # define conversions from seconds
 SECOND = 1
@@ -102,6 +103,7 @@ def junFiniteMultiPosLoop(delay1minutes, md={}):
     )  # time to end ``delay1min`` hold period
 
     logger.info("Collecting data for %s minutes", delay1minutes)
+    appendToMdFile(f"Collecting data for {delay1minutes} minutes")
 
     while (
         time.time() < checkpoint
@@ -170,6 +172,7 @@ def myFiniteListLoop(delay1minutes, md={}):
     )  # time to end ``delay1min`` hold period
 
     logger.info("Collecting data for %s minutes", delay1minutes)
+    appendToMdFile(f"Collecting data for {delay1minutes} minutes")
 
     while (
         time.time() < checkpoint

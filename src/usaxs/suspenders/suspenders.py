@@ -4,6 +4,7 @@ suspenders : conditions that will interrupt the RunEngine execution
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
+from usaxs.utils.obsidian import recordBeamDump, recordBeamRecovery
 
 monochromator = oregistry["monochromator"]
 
@@ -33,6 +34,8 @@ class FeedbackHandlingDuringSuspension:
         Turn feedback on after beam loss.
         """
         # self.previous  = monochromator.feedback.on.get()
+        #record in Obsidian
+        recordBeamDump()
         yield from self.turn_feedback_on()
 
     def mono_beam_just_came_back_but_after_sleep_plan(self):
@@ -45,4 +48,6 @@ class FeedbackHandlingDuringSuspension:
         #         timeout=self.timeout,
         #     )
         #     self.previous = None
+        #record in Obsidian
+        recordBeamRecovery()
         yield from self.turn_feedback_on()

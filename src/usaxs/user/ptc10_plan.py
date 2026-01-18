@@ -23,6 +23,7 @@ from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list
 from usaxs.plans.command_list import before_command_list
+from usaxs.utils.obsidian import appendToMdFile
 
 ptc10 = oregistry["ptc10"]
 
@@ -149,6 +150,7 @@ def myPTC10HoldList(temp1, delay1min, md={}):
 
     # ramp to temperature
     logger.info(f"Ramping temperature to {temp1} C")
+    appendToMdFile(f"Ramping temperature to {temp1} C")
     yield from bps.mv(
         # ptc10.ramp, rate1Cmin / 60.0,       # user wants C/min, controller wants C/s
         ptc10.temperature.setpoint,
@@ -168,9 +170,8 @@ def myPTC10HoldList(temp1, delay1min, md={}):
         #     pos_X, pos_Y, thickness, scan_title = tmpVal
         #     yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)  # collect data during heating
 
-    logger.info(
-        f"Reached temperature {temp1} C, now collecting data for {delay1min} min"
-    )
+    logger.info(f"Reached temperature {temp1} C, now collecting data for {delay1min} min")
+    appendToMdFile(f"Reached temperature {temp1} C, now collecting data for {delay1min} min")
 
     # reset time in experiment here. This is the time we start collecting data.
     t0 = time.time()
@@ -178,6 +179,7 @@ def myPTC10HoldList(temp1, delay1min, md={}):
     # Main data collection loop - for delay1min collect on each sample from the SampleList USAXS, SAXS, and WAXS
     while time.time() - t0 < delay1min * 60:  # collects data for delay1 seconds
         logger.info(f"Collecting data for {delay1min} min")
+        appendToMdFile(f"Collecting data for {delay1min} min")
         for tmpVal in SampleList:
             pos_X, pos_Y, thickness, scan_title = tmpVal
             yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)
@@ -228,6 +230,7 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
     t0 = time.time()
 
     logger.info("Collecting data for %s min", delayMin)
+    appendToMdFile(f"Collecting data for {delayMin} min")
 
     while time.time() - t0 < delayMin * 60:  # collects data for delay1 seconds
         yield from collectAllThree()
@@ -237,9 +240,7 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
     yield from after_command_list()  # runs standard after scan scripts.
 
 
-def myPTC10Plan(
-    pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}
-):
+def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}):
     """
     collect RT USAXS/SAXS/WAXS - or not, change code
     change temperature T to temp1 with rate1
@@ -305,6 +306,7 @@ def myPTC10Plan(
     yield from setheaterOn()
 
     logger.info(f"Ramping temperature to {temp1} C")
+    appendToMdFile(f"Ramping temperature to {temp1} C")
 
     t0 = time.time()
     while (
@@ -316,6 +318,7 @@ def myPTC10Plan(
 
     # logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
     logger.info("Reached temperature, now collecting data for %s seconds", delay1)
+    appendToMdFile(f"Reached temperature, now collecting data for {delay1} seconds")
     t1 = time.time()
     t0 = time.time()
 
@@ -324,9 +327,8 @@ def myPTC10Plan(
         logger.info("Collecting data for %s ", delay1)
         yield from collectAllThree()
 
-    logger.info(
-        "waited for %s seconds, now changing temperature to %s C", delay1, temp2
-    )
+    logger.info("waited for %s seconds, now changing temperature to %s C", delay1, temp2)
+    appendToMdFile(f"waited for {delay1} seconds, now changing temperature to {temp2} C")
 
     yield from bps.mv(ptc10.ramp, rate2 / 60.0)  # sets the rate of next ramp
     yield from bps.mv(
@@ -334,6 +336,7 @@ def myPTC10Plan(
     )  # Change the temperature and wait to get there
 
     logger.info(f"reached {temp2} C")
+    appendToMdFile(f"reached {temp2} C")
     yield from setheaterOff()
 
     yield from after_command_list()  # runs standard after scan scripts.
@@ -399,6 +402,7 @@ def myPTC10List(rate1Cmin, md={}):
         yield from setheaterOn()
 
         logger.info(f"Ramping temperature to {temp1} C")
+        appendToMdFile(f"Ramping temperature to {temp1} C")
 
         while (
             not ptc10.temperature.inposition
@@ -410,6 +414,7 @@ def myPTC10List(rate1Cmin, md={}):
 
         # logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
         logger.info("Reached temperature, now collecting data for %s min", delay1)
+        appendToMdFile(f"Reached temperature, now collecting data for {delay1} min")    
         t1 = time.time()
         t0 = time.time()
 
@@ -486,6 +491,7 @@ def myPTC10List2(rate1Cmin, delay1min, md={}):
         yield from setheaterOn()
 
         logger.info(f"Ramping temperature to {temp1} C")
+        appendToMdFile(f"Ramping temperature to {temp1} C")
 
         while (
             not ptc10.temperature.inposition
@@ -497,6 +503,7 @@ def myPTC10List2(rate1Cmin, delay1min, md={}):
 
         # logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
         logger.info("Reached temperature, now collecting data for %s min", delay1min)
+        appendToMdFile(f"Reached temperature, now collecting data for {delay1min} min")
         t1 = time.time()
 
         while time.time() - t1 < delay1min * 60:  # collects data for delay1 seconds
@@ -514,9 +521,7 @@ def myPTC10List2(rate1Cmin, delay1min, md={}):
     logger.info("finished")
 
 
-def FanPTC10Plan(
-    pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}
-):
+def FanPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}):
     """
     collect RT USAXS/SAXS/WAXS - or not, change code
     change temperature T to temp1 with rate1
@@ -582,6 +587,7 @@ def FanPTC10Plan(
     yield from setheaterOn()
 
     logger.info(f"Ramping temperature to {temp1} C")
+    appendToMdFile(f"Ramping temperature to {temp1} C")
 
     while (
         not ptc10.temperature.inposition
@@ -592,6 +598,7 @@ def FanPTC10Plan(
 
     # logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
     logger.info("Reached temperature, now collecting data for %s seconds", delay1)
+    appendToMdFile(f"Reached temperature, now collecting data for {delay1} seconds")
     t1 = time.time()
 
     while time.time() - t1 < delay1 * 60:  # collects data for delay1 seconds
@@ -599,6 +606,7 @@ def FanPTC10Plan(
         yield from collectAllThree()
 
     logger.info("waited for %s seconds, now changing temperature to %s C", rate2, temp2)
+    appendToMdFile(f"waited for {delay1} seconds, now changing temperature to {temp2} C")
 
     yield from bps.mv(ptc10.ramp, rate2 / 60.0)  # sets the rate of next ramp
     yield from bps.mv(
@@ -612,6 +620,7 @@ def FanPTC10Plan(
         yield from collectWAXS()
 
     logger.info(f"reached {temp2} C")
+    appendToMdFile(f"reached {temp2} C")
     yield from collectAllThree()
 
     yield from setheaterOff()
@@ -621,9 +630,7 @@ def FanPTC10Plan(
     logger.info("finished")
 
 
-def FanPTC10OvernightPlan(
-    pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}
-):
+def FanPTC10OvernightPlan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}):
     """
     collect RT USAXS/SAXS/WAXS - or not, change code
     change temperature T to temp1 with rate1
@@ -690,6 +697,7 @@ def FanPTC10OvernightPlan(
     yield from setheaterOn()
 
     logger.info(f"Ramping temperature to {temp1} C")
+    appendToMdFile(f"Ramping temperature to {temp1} C")
 
     while (
         not ptc10.temperature.inposition
@@ -700,6 +708,7 @@ def FanPTC10OvernightPlan(
 
     # logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
     logger.info("Reached temperature, now collecting data for %s seconds", delay1)
+    appendToMdFile(f"Reached temperature, now collecting data for {delay1} seconds")
     t1 = time.time()
 
     while time.time() - t1 < delay1 * 60:  # collects data for delay1 seconds
@@ -707,6 +716,7 @@ def FanPTC10OvernightPlan(
         yield from collectAllThree()
 
     logger.info("waited for %s seconds, now changing temperature to %s C", rate2, temp2)
+    appendToMdFile(f"waited for {delay1} seconds, now changing temperature to {temp2} C")
 
     yield from bps.mv(ptc10.ramp, rate2 / 60.0)  # sets the rate of next ramp
     yield from bps.mv(
@@ -720,6 +730,7 @@ def FanPTC10OvernightPlan(
         yield from collectAllThree()
 
     logger.info(f"reached {temp2} C")
+    appendToMdFile(f"reached {temp2} C")
     yield from collectAllThree()
     # run2
     t0 = time.time()
@@ -733,6 +744,7 @@ def FanPTC10OvernightPlan(
     )  # Change the temperature and not wait
 
     logger.info(f"Ramping temperature to {temp1} C")
+    appendToMdFile(f"Ramping temperature to {temp1} C")
 
     while (
         not ptc10.temperature.inposition
@@ -743,6 +755,7 @@ def FanPTC10OvernightPlan(
 
     # logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
     logger.info("Reached temperature, now collecting data for %s seconds", delay1)
+    appendToMdFile(f"Reached temperature, now collecting data for {delay1} seconds")
     t1 = time.time()
 
     while time.time() - t1 < delay1 * 60:  # collects data for delay1 seconds
@@ -750,6 +763,7 @@ def FanPTC10OvernightPlan(
         yield from collectAllThree()
 
     logger.info("waited for %s seconds, now changing temperature to %s C", rate2, temp2)
+    appendToMdFile(f"waited for {delay1} seconds, now changing temperature to {temp2} C")
 
     yield from bps.mv(ptc10.ramp, rate2 / 60.0)  # sets the rate of next ramp
     yield from bps.mv(
@@ -763,6 +777,7 @@ def FanPTC10OvernightPlan(
         yield from collectWAXS()
 
     logger.info(f"reached {temp2} C")
+    appendToMdFile(f"reached {temp2} C")
     yield from collectAllThree()
     # run3
     t0 = time.time()
@@ -776,6 +791,7 @@ def FanPTC10OvernightPlan(
     )  # Change the temperature and not wait
 
     logger.info(f"Ramping temperature to {temp1} C")
+    appendToMdFile(f"Ramping temperature to {temp1} C")
 
     while (
         not ptc10.temperature.inposition
@@ -786,6 +802,7 @@ def FanPTC10OvernightPlan(
 
     # logger.info("Reached temperature, now collecting data for %s minutes", delay1min)
     logger.info("Reached temperature, now collecting data for %s seconds", delay1)
+    appendToMdFile(f"Reached temperature, now collecting data for {delay1} seconds")
     t1 = time.time()
 
     while time.time() - t1 < delay1 * 60:  # collects data for delay1 seconds
@@ -793,6 +810,7 @@ def FanPTC10OvernightPlan(
         yield from collectAllThree()
 
     logger.info("waited for %s seconds, now changing temperature to %s C", rate2, temp2)
+    appendToMdFile(f"waited for {delay1} seconds, now changing temperature to {temp2} C")
 
     yield from bps.mv(ptc10.ramp, rate2 / 60.0)  # sets the rate of next ramp
     yield from bps.mv(
@@ -806,6 +824,8 @@ def FanPTC10OvernightPlan(
         yield from collectWAXS()
 
     logger.info(f"reached {temp2} C")
+    appendToMdFile(f"reached {temp2} C")
+    
     yield from collectAllThree()
 
     yield from setheaterOff()

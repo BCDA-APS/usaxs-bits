@@ -14,6 +14,7 @@ from epics import caput
 
 
 from usaxs.callbacks.demo_spec_callback import specwriter
+from usaxs.utils.obsidian import recordUserStart, recordNewSample
 
 from ..callbacks.nxwriter_usaxs import nxwriter
 from ..startup import RE
@@ -158,6 +159,8 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         cwd = Path.cwd()
         print("Your current path is now : %s", cwd)
     
+    # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
+    recordUserStart()
     #prepare data for new json file. 
     data = {
         "user_name": user,
@@ -250,6 +253,9 @@ def newSample(sample=None):
     month = month or dt.month
     day = day or dt.day
     sample = sample or "data"
+
+    # Obsidian recording, recordNewSample, md file if needed, make recoding about new sample.
+    recordNewSample()
 
     data = {
         "user_name": user,

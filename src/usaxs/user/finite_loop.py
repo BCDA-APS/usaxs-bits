@@ -28,6 +28,7 @@ from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
+from usaxs.utils.obsidian import recordFunctionRun
 
 # define conversions from seconds
 SECOND = 1

@@ -25,6 +25,20 @@ Now, to do this obsidian.py will need to import from oregistry instrument detail
 
 Eventually we need to add this through the code itself to make sure the records are made.
 
+here is list of functions provided below:
+
+createMonthFolder()
+createMdFile()
+appendToMdFile(text: str)
+recordUserStart()
+recordNewSample()
+recordRunCommandFile(command_list: str)
+recordBeamDump()
+recordBeamRecovery()
+recordFunctionRun()
+recordQserverRun(command_line: str)
+recordUserAbort()
+recordProperEnd()
 '''
 
 #imports:
@@ -135,4 +149,61 @@ def recordRunCommandFile(command_list: str):
     appendToMdFile(text)
     return
 
+def recordBeamDump():
+    # records beam dump, called by suspenders
+    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = f"## Beam Dumped\n**Date Time:** {time_now}\n"
+    appendToMdFile(text)
+    return
+
+def recordBeamRecovery():
+    # records beam recovery, called by suspenders
+    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = f"## Beam Recovered\n**Date Time:** {time_now}\n"
+    appendToMdFile(text)
+    return
+
+#def recordFunctionRun(function_name: str, command_line: str):
+def recordFunctionRun():
+    # called by python function runs, need to record the command line which was used to execute the function.
+    # can we get have a name and parameters used to run of the calling function?
+    import inspect
+    import shlex
+    # Get the previous frame in the stack, that is, the caller's frame
+    previous_frame = inspect.currentframe().f_back
+    # Get the function name from the previous frame
+    function_name = previous_frame.f_code.co_name
+    # Get the arguments and their values from the previous frame
+    args, _, _, values = inspect.getargvalues(previous_frame)
+    # Create a command line representation
+    arg_list = []
+    for arg in args:
+        arg_list.append(f"--{arg} {values[arg]}")
+    command_line = f"{function_name} " + " ".join(arg_list) 
+    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = f"## Function Run: {function_name}\n- **Command Line:** {command_line}\n- **Date Time:** {time_now}\n"
+    appendToMdFile(text)
+    return command_line
+
+def recordQserverRun(command_line: str):
+    # used by QueServer to record line by line what QueServer runs.
+    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = f"## QueServer Command Run\n- **Command Line:** {command_line}\n- **Date Time:** {time_now}\n"
+    appendToMdFile(text)
+    return
+
+def recordUserAbort():
+    # records user abort event
+    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = f"## User Abort Event\n**Date Time:** {time_now}\n"
+    appendToMdFile(text)
+    return
+
+def recordProperEnd():
+    # records proper end of experiment
+    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = f"## Proper End of Experiment\n**Date Time:** {time_now}\n"
+    appendToMdFile(text)
+    return
+# End of obsidian.py
 
