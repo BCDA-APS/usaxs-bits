@@ -175,7 +175,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     user_data.sample_dir.put(sample)  # set in the PV
 
     path = (
-        cwd  # we are in working directory where we want to save the data, that is all doen above. 
+        cwd  # we are in working directory where we want to save the data, that is all done above. 
         /
         f"{month:02d}_{day:02d}_{cleanupText(user)}"
     )
