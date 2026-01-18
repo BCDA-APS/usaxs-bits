@@ -106,19 +106,28 @@ def recordUserStart():
     sample_dir = user_data.sample_dir.get()
     #user_email = user_data.user_email.get()
     start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## User Experiment Start\n- **User Name:** {user_name}\n- *Sample Dir:** {sample_dir}\n- **Start Time:** {start_time}\n"
+    text = f"## User Experiment Start\n \
+            - **User Name:** {user_name}\n \
+            - **Sample Dir:** {sample_dir}\n \
+            - **Date Time:** {start_time}\n"
     appendToMdFile(text)
     return
 
 
 def recordNewSample():
     # called by newSample(), records basic instrument settings
-    wavelength = monochromator.dcm.wavelength.position
-    aps_current = Component(EpicsSignalRO, "S:SRCurrentAI")
+    mono_energy = monochromator.dcm.energy.readback
+    aps_current = EpicsSignalRO("XFD:srCurrent", name="aps_current")    #this is how we get PV values from epics if needed. 
+    und_energy = EpicsSignalRO("S12ID:USID:EnergyM.VAL", name="undualtor_energy")  #undulator energy in keV
     sample_dir = user_data.sample_dir.get()
     #undulator_energy = Component(EpicsSignalRO, "ID12ds:Energy")
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## New Sample directory created\n- **Sample dir:** {sample_dir}\n- **Wavelength (Angstroms):** {wavelength}\n- **APS Current (mA):** {aps_current}\n- **Time:** {time_now}\n"
+    text = f"## New Sample directory created\n \
+            - **Sample dir:** {sample_dir}\n \
+            - **APS Current (mA):** {aps_current.get()}\n  \
+            - **Undulator Energy [keV]:** {und_energy.get()}\n \
+            - **Mono X-ray Energy [keV]:** {mono_energy.get()}\n \
+            - **Date Time:** {time_now}\n"
     appendToMdFile(text)
     return
 
