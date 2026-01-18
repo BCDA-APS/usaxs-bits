@@ -65,8 +65,8 @@ def createMonthFolder():
         #print(f"Folder already exists: {working_folder}")
         pass
     else:
-        #working_folder.mkdir(parents=True)
-        print(f"Folder created: {working_folder}")    
+        working_folder.mkdir(parents=True)
+        #print(f"Folder created: {working_folder}")    
 
     return working_folder
 
