@@ -128,7 +128,7 @@ def recordNewSample():
     appendToMdFile(text)
     return
 
-def recordRunCommandFile(command_list str):
+def recordRunCommandFile(command_list: str):
     # called by run_command_file() and records list of samples queued.
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     text = f"## Run Command File executed\n**Date Time:** {time_now}\n{command_list}\n"
