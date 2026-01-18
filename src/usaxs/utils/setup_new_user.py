@@ -14,7 +14,7 @@ from epics import caput
 
 
 from usaxs.callbacks.demo_spec_callback import specwriter
-from usaxs.utils.obsidian import recordUserStart, recordNewSample
+from usaxs.utils.obsidian import appendToMdFile, recordUserStart, recordNewSample
 
 from ..callbacks.nxwriter_usaxs import nxwriter
 from ..startup import RE
@@ -188,6 +188,9 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         path.mkdir(parents=True)
         # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
         recordUserStart()   #if the path did not exist, we need to create a new md file also. 
+    else:
+        logger.info("User directory already exists: %s", path)
+        appendToMdFile() # just ensure the md file exists. If needed, create it. 
 
     logger.info("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
