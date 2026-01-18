@@ -87,7 +87,8 @@ def createMdFile():
         pass
     else:
         with open(md_file_path, "w") as f:
-            f.write(f"# Experiment Notes by USAXS instrument, Date Time: {start_time}\n\n")
+            f.write(f"# Experiment Notes by USAXS instrument\n")
+            f.write(f"Date Time: {start_time}\n")
         #print(f"Markdown file created: {md_file_path}")
     return md_file_path
 
@@ -96,7 +97,7 @@ def appendToMdFile(text: str):
     md_file_path = createMdFile()
     with open(md_file_path, "a") as f:
         f.write(text + "\n")
-    print(f"Appended to {md_file_path}: {text}")
+    #print(f"Appended to {md_file_path}: {text}")
     return
 
 def recordUserStart():
