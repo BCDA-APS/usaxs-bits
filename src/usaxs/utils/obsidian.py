@@ -136,8 +136,7 @@ def recordNewSample():
     sample_dir = user_data.sample_dir.get()
     #undulator_energy = Component(EpicsSignalRO, "ID12ds:Energy")
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"### New Sample directory created\n\
-- **Sample directory:** {sample_dir}\n\
+    text = f"### New Sample directory {sample_dir} created\n\
 - **APS Current (mA):** {aps_current.get()}\n\
 - **Undulator Energy (keV):** {und_energy.get()}\n\
 - **Mono X-ray Energy (keV):** {mono_energy.get()}\n\
