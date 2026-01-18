@@ -122,6 +122,7 @@ def recordUserStart():
     start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     text = f"## User Experiment Start\n- **User Name:** {user_name}\n- **Sample Dir:** {sample_dir}\n- **Date Time:** {start_time}\n"
     appendToMdFile(text)
+    print(f"Recorded user start for user: {user_name}")
     return
 
 

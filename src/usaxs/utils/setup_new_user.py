@@ -159,9 +159,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         cwd = Path.cwd()
         print("Your current path is now : %s", cwd)
     
-    # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
-    recordUserStart()
-    #prepare data for new json file. 
+     #prepare data for new json file. 
     data = {
         "user_name": user,
         "sample_dir":sample,
@@ -176,6 +174,10 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
 
     user_data.user_name.put(user)  # set in the PV
     user_data.sample_dir.put(sample)  # set in the PV
+
+    # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
+    print(f"Recording user start for user: {user}")
+    recordUserStart()
 
     path = (
         cwd  # we are in working directory where we want to save the data, that is all done above. 
