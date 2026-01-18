@@ -58,14 +58,14 @@ def createMonthFolder():
     # create in folder /share1/Obsidian/Experiments folder in form of "YYYY-MM" with folder InstrumentRecords (e.g., 2026-02/InstrumentRecords) this is where the notes go
     base_path = Path("~/share1/Obsidian/Experiments").expanduser()
     folder_name = datetime.datetime.now().strftime("%Y-%m")
-    #this defines current folder, e.g.: ~/share1/Obsidian/Experiments/InstrumentRecords/2025-10/
-    working_folder = base_path / folder_name / "InstrumentRecords"
+    #this defines current folder, e.g.: ~/share1/Obsidian/Experiments/2025-10/Instrument_Records
+    working_folder = base_path / folder_name / "Instrument_Records"
 
     if working_folder.exists():
-        print(f"Folder already exists: {working_folder}")
+        #print(f"Folder already exists: {working_folder}")
         pass
     else:
-        working_folder.mkdir(parents=True)
+        #working_folder.mkdir(parents=True)
         print(f"Folder created: {working_folder}")    
 
     return working_folder
@@ -81,13 +81,14 @@ def createMdFile():
     # this returns "1_14_setup"
     md_filename = f"{last_folder_name}.md"
     md_file_path = working_folder / md_filename
+    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if md_file_path.exists():
         #print(f"Markdown file already exists: {md_file_path}")
         pass
     else:
         with open(md_file_path, "w") as f:
-            f.write(f"# Experiment Notes for {last_folder_name}\n\n")
-        print(f"Markdown file created: {md_file_path}")
+            f.write(f"# Experiment Notes by USAXS instrument, Date Time: {start_time}\n\n")
+        #print(f"Markdown file created: {md_file_path}")
     return md_file_path
 
 def appendToMdFile(text: str):
