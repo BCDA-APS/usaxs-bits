@@ -106,10 +106,7 @@ def recordUserStart():
     sample_dir = user_data.sample_dir.get()
     #user_email = user_data.user_email.get()
     start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## User Experiment Start\n\
-    - **User Name:** {user_name}\n\
-    - **Sample Dir:** {sample_dir}\n\
-    - **Date Time:** {start_time}\n"
+    text = f"## User Experiment Start\n- **User Name:** {user_name}\n- **Sample Dir:** {sample_dir}\n- **Date Time:** {start_time}\n"
     appendToMdFile(text)
     return
 
@@ -123,11 +120,11 @@ def recordNewSample():
     #undulator_energy = Component(EpicsSignalRO, "ID12ds:Energy")
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     text = f"## New Sample directory created\n\
-    - **Sample dir:** {sample_dir}\n\
-    - **APS Current (mA):** {aps_current.get()}\n\
-    - **Undulator Energy [keV]:** {und_energy.get()}\n\
-    - **Mono X-ray Energy [keV]:** {mono_energy.get()}\n\
-    - **Date Time:** {time_now}\n"
+- **Sample dir:** {sample_dir}\n\
+- **APS Current (mA):** {aps_current.get()}\n\
+- **Undulator Energy [keV]:** {und_energy.get()}\n\
+- **Mono X-ray Energy [keV]:** {mono_energy.get()}\n\
+- **Date Time:** {time_now}\n"
     appendToMdFile(text)
     return
 
