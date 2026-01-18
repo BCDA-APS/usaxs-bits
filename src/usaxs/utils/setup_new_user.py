@@ -269,15 +269,16 @@ def newSample(sample=None):
         "day": day,
     }
 
-    # Obsidian recording, recordNewSample, md file if needed, make recoding about new sample.
-    recordNewSample()
-
     #### Load json data into file
     with open(filename, "w") as file:
         json.dump(data, file, indent=4)  # indent=4 for pretty formatting
 
     user_data.sample_dir.put(sample)  # set in the PV
+    
+    # Obsidian recording, recordNewSample, md file if needed, make recoding about new sample.
+    recordNewSample()
 
+    return
 
 
 
