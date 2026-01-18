@@ -186,6 +186,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     if not path.exists():
         logger.info("Creating user directory: %s", path)
         path.mkdir(parents=True)
+        user_data.user_dir.put(str(path))  # set in the PV, we need this in recordUserStart
         # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
         recordUserStart()   #if the path did not exist, we need to create a new md file also. 
     else:
