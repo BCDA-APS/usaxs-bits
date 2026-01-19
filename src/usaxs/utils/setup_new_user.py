@@ -41,8 +41,8 @@ def _setNeXusFileName(path, scan_id=1):
 
     fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
     nxwriter.file_name = fname
-    logger.info(f"NeXus file name : {nxwriter.file_name!r}")
-    logger.info("File will be written at end of next bluesky scan.")
+    logger.debug(f"NeXus file name : {nxwriter.file_name!r}")
+    logger.debug("File will be written at end of next bluesky scan.")
 
 
 def _setSpecFileName(path, scan_id=1):
@@ -57,8 +57,8 @@ def _setSpecFileName(path, scan_id=1):
     else:
         specwriter.newfile(fname, scan_id=scan_id, RE=RE)
         handled = "created"
-    logger.info(f"SPEC file name : {specwriter.spec_filename}")
-    logger.info(f"File will be {handled} at end of next bluesky scan.")
+    logger.debug(f"SPEC file name : {specwriter.spec_filename}")
+    logger.debug(f"File will be {handled} at end of next bluesky scan.")
 
 
 def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
@@ -132,7 +132,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
          
     #### If the file exists and user is None, we are running this automatically and therefore restore old values:
     if user is None and file_exists:
-        logger.info("Found existing user info file: %s", filename)
+        logger.debug("Found existing user info file: %s", filename)
         with open(filename, "r") as file:
             data = json.load(file)
             user = data.get("user_name")
@@ -184,16 +184,16 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     )
 
     if not path.exists():
-        logger.info("Creating user directory: %s", path)
+        logger.debug("Creating user directory: %s", path)
         path.mkdir(parents=True)
         user_data.user_dir.put(str(path))  # set in the PV, we need this in recordUserStart
         # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
         recordUserStart()   #if the path did not exist, we need to create a new md file also. 
     else:
-        logger.info("User directory already exists: %s", path)
+        logger.debug("User directory already exists: %s", path)
         appendToMdFile("") # just ensure the md file exists. If needed, create it. 
 
-    logger.info("Current working directory: %s", cwd)
+    logger.debug("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
 
     _setNeXusFileName(str(path), scan_id=scan_id)   #this sets the path for Nexus file writer.  
