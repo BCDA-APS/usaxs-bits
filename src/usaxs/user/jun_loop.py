@@ -26,7 +26,7 @@ from bluesky import plan_stubs as bps
 from usaxs.plans.plans_user_facing import saxsExp
 from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
-from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
 from usaxs.utils.obsidian import appendToMdFile 
@@ -83,6 +83,7 @@ def junFiniteMultiPosLoop(delay1minutes, md={}):
         return f"{scan_title}" f"_{(time.time()-t0):.0f}sec"
 
     def collectAllThree():
+            yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -146,6 +147,7 @@ def myFiniteListLoop(delay1minutes, md={}):
         return f"{scan_titlePar}" f"_{counter}"
 
     def collectAllThree():
+        yield from sync_order_numbers()
         for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
             sampleMod = setSampleName(sampleName)
             md["title"] = sampleMod

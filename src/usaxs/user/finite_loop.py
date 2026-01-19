@@ -25,7 +25,7 @@ from bluesky import plan_stubs as bps
 from usaxs.plans.plans_user_facing import saxsExp
 from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
-from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
 from usaxs.utils.obsidian import recordFunctionRun
@@ -82,6 +82,7 @@ def larryLoop(numIterattions, yOffset, md={}):
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -134,6 +135,7 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -196,6 +198,7 @@ def myTwoPosFiniteLoop(pos_XA,thicknessA, scan_titleA, pos_XB, thicknessB, scan_
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -283,6 +286,7 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})

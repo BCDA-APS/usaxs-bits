@@ -22,7 +22,7 @@ import time
 from usaxs.plans.plans_user_facing import saxsExp
 from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
-from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
 from usaxs.utils.obsidian import appendToMdFile
@@ -88,6 +88,7 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(0, 0, thickness, sampleMod, md={})

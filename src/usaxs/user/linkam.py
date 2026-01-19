@@ -53,9 +53,7 @@ linkam_debug = Signal(name="linkam_debug", value=False)
 
 # ***************************************************************
 # DO NOT MODIFY THE TEMPLATE, COPY AND EDIT OR MAKE A NEW FILE...
-def myLinkamPlan_template(
-    pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min, temp2, rate2, md={}
-):
+def myLinkamPlan_template(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min, temp2, rate2, md={}):
     """
     0. uses linkam_tc1
     1. collect data 40C (~RT) USAXS/SAXS/WAXS
@@ -93,6 +91,7 @@ def myLinkamPlan_template(
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
@@ -341,6 +340,7 @@ q
         )
 
     def collectAllThree():
+        yield from sync_order_numbers()
         sampleMod = setSampleName()
         md["title"] = sampleMod
         yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -423,6 +423,7 @@ def fanRampAndHold(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,md={},
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
@@ -507,6 +508,7 @@ def fanLinkamPlan(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,temp2,r
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
@@ -620,6 +622,7 @@ def Fan718LinkamPlan(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,temp
         )
 
     def collectAllThree(debug=False):
+        yield from sync_order_numbers()
         sampleMod = setSampleName()
         if debug:
             # for testing purposes, set debug=True
@@ -766,6 +769,7 @@ def Fan174Plan(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,temp2,rate
         yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = setSampleName()
         md["title"] = sampleMod
+        yield from sync_order_numbers()
         yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
         md["title"] = sampleMod
         yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -1096,6 +1100,7 @@ collect WAXS data at defined temperatures
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            #yield from sync_order_numbers()
             #md["title"] = sampleMod
             #yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             #sampleMod = setSampleName()
@@ -1183,6 +1188,7 @@ def myLinkamPlan(pos_X, pos_Y, thickness, scan_title, temp1, temp2, delay2min, m
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
