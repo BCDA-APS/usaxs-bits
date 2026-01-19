@@ -137,9 +137,9 @@ def recordNewSample():
     #undulator_energy = Component(EpicsSignalRO, "ID12ds:Energy")
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     text = f"### New Sample directory \"{sample_dir}\" created\n\
-- **APS Current (mA):** {aps_current.get()}\n\
-- **Undulator Energy (keV):** {und_energy.get()}\n\
-- **Mono X-ray Energy (keV):** {mono_energy.get()}\n\
+- **APS Current (mA):** {aps_current.get():.2f}\n\
+- **Undulator Energy (keV):** {und_energy.get():.2f}\n\
+- **Mono X-ray Energy (keV):** {mono_energy.get():.2f}\n\
 - **Date Time:** {time_now}\n"
     appendToMdFile(text)
     return
