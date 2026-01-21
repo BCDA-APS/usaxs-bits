@@ -299,55 +299,75 @@ def matchUserInApsBss(user):
     # get gredentials:
     credfile = Path("~/.config/dmcredentials").expanduser()
     uname, pwd, stationname, uri = credfile.read_text().splitlines()
-    print("uname, pwd, stationname, uri:", uname, pwd, stationname, uri)
+    year = now[0:4]
+    # construct cycle from year and moth, it is string representation of year as 4 digits+ "-"+ months 1-4 are 1, 5 to 8 are 2, and 9-12 are 3:
+    month_int = int(now[5:7])
+    if month_int in [1, 2, 3, 4]:
+        cycle = f"{year}-1"
+    elif month_int in [5, 6, 7, 8]:
+        cycle = f"{year}-2"
+    else:
+        cycle = f"{year}-3"
+    # for testing, we can hardcode cycle:
+    #cycle = 2026-1
+    print(cycle)
+
+    #print("uname, pwd, stationname, uri:", uname, pwd, stationname, uri)
     bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
-    esafs = bss.esafs(beamline="12-ID-E", year="2026")
-    props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
-    print(esafs[0].esaf_id, esafs[0].title)
-    print(props[0].proposal_id, props[0].title)
+    esafs_all = bss.esafs(beamline="12-ID-E", year=year)
+    #props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
 
-# def _pick_esaf(user, now, cycle):
-#     """
-#     Pick the first matching ESAF
+    now = str(datetime.datetime.now())
+    esaf_id = _pick_esaf(esafs_all, user, now)
+    print(esaf_id)
+     #print(esafs[0].esaf_id, esafs[0].title)
+    #print(props[0].proposal_id, props[0].title)
 
-#     Criteria:
 
-#     * match user name
-#     * has not yet expired
-#     * earliest start
 
-#     RETURNS
+def _pick_esaf(esafs_all, user, now):
+    """
+    Pick the first matching ESAF
 
-#     esaf_id or None
-#     """
-#     def esafSorter(obj):
-#         return obj["experimentStartDate"]
+    Criteria:
 
-#     get_esafs = apsbss.getCurrentEsafs
-#     esafs = [
-#         esaf["esafId"]
-#         for esaf in sorted(get_esafs(APSBSS_SECTOR), key=esafSorter)
-#         # pick those that have not yet expired
-#         if esaf["experimentEndDate"] > now
-#         # and match user last name
-#         if user in [
-#             entry["lastName"]
-#             for entry in esaf["experimentUsers"]
-#         ]
-#     ]
+    * match user name
+    * has not yet expired
+    * earliest start
 
-#     if len(esafs) == 0:
-#         logger.warning(
-#             "No unexpired ESAFs found that match user %s",
-#             user
-#         )
-#         return None
-#     elif len(esafs) > 1:
-#         logger.warning(
-#             "ESAF(s) %s match user %s at this time, picking first one",
-#             str(esafs), user)
+    RETURNS
 
-#     return str(esafs[0])
+    esaf_id or None
+    """
+    def esafSorter(obj):
+        return obj["experimentStartDate"]
+
+    esafs = [
+        esaf["esafId"]
+        for esaf in sorted(esafs_all, key=esafSorter)
+        # pick those that have not yet expired
+        if esaf["experimentEndDate"] > now
+        # and match user last name
+        if user in [
+            entry["lastName"]
+            for entry in esaf["experimentUsers"]
+        ]
+    ]
+
+    if len(esafs) == 0:
+        #logger.warning(
+        print(
+            "No unexpired ESAFs found that match user %s",
+            user
+        )
+        return None
+    elif len(esafs) > 1:
+        #logger.warning(
+        print(
+            "ESAF(s) %s match user %s at this time, picking first one",
+            str(esafs), user)
+
+    return str(esafs[0])
 
 
 # def _pick_proposal(user, now, cycle):
