@@ -184,7 +184,7 @@ class BssApi:
     * double base64 encoded bytestring
     """
 
-    _client: httpx.AsyncClient
+    _client: httpx.Client
     base_uri: str
     parser = BSSParser()
     auth: httpx.Auth
@@ -204,49 +204,49 @@ class BssApi:
         self.station_name = encode(station_name)
 
     @property
-    def client(self) -> httpx.AsyncClient:
+    def client(self) -> httpx.Client:
         if not hasattr(self, "_client"):
             # API certificates are not signed by a trusted local issuer
             # If that changes, set `verify=True`
-            self._client = httpx.AsyncClient(
+            self._client = httpx.Client(
                 base_url=self.base_uri, auth=self.auth, verify=False
             )
         return self._client
 
     @stamina.retry(on=httpx.HTTPError, attempts=3)
-    async def _http_get(
+    def _http_get(
         self, url: str, params: Mapping | None = None
     ) -> httpx.Response:
         # Clean up the URL in case there are missing parameters
         url = url.removesuffix("/b''")
-        response = await self.client.get(url, params=params)
+        response = self.client.get(url, params=params)
         return raise_for_status(response)
 
-    async def esafs(self, beamline: str = "", year: str | None = None) -> list[Esaf]:
+    def esafs(self, beamline: str = "", year: str | None = None) -> list[Esaf]:
         """Load the ESAF's for the given *beamline* and *year*."""
         url = f"esaf/stationEsafs/{self.station_name!r}/{encode(beamline)!r}"
         params = {"year": year} if year else None
-        response = await self._http_get(url, params=params)
+        response = self._http_get(url, params=params)
         return self.parser.esafs(response.text)
 
-    async def esaf(self, esaf_id: str) -> Esaf:
+    def esaf(self, esaf_id: str) -> Esaf:
         """Load the ESAF's for the given *sector* and *year*."""
         url = f"esaf/stationEsafsById/{self.station_name!r}/{esaf_id}"
-        response = await self._http_get(url)
+        response = self._http_get(url)
         return self.parser.esaf(response.text)
 
-    async def proposals(self, beamline: str = "", cycle: str | None = None):
+    def proposals(self, beamline: str = "", cycle: str | None = None):
         """Load the proposals for a given *beamline* during a given *cycle*."""
         url = f"bss/stationProposals/{self.station_name!r}/{encode(beamline)!r}"
         params = {"runName": cycle} if cycle else None
-        response = await self._http_get(url, params=params)
+        response = self._http_get(url, params=params)
         return self.parser.proposals(response.text)
 
-    async def proposal(self, proposal_id: str, cycle: str | None = None):
+    def proposal(self, proposal_id: str, cycle: str | None = None):
         """Load the given proposal on a given *beamline* during a given *cycle*."""
         url = f"bss/stationProposalsById/{self.station_name!r}/{proposal_id}"
         params = {"runName": cycle} if cycle else None
-        response = await self._http_get(url, params=params)
+        response = self._http_get(url, params=params)
         return self.parser.proposal(response.text)
 
 
