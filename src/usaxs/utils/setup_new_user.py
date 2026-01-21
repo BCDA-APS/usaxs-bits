@@ -291,13 +291,13 @@ def newSample(sample=None):
 # this works fine:
 #  
 
-def matchUserInApsbss(user):
+def matchUserInApsBss(user):
     """
     FInd proposals and ESAFs for user from APS BSS system
     and set up BSS object.
     """
-    uname, pwd, stationname, uri = open(os.path.expanduser("~/.config/dmcredentials") ).read().split()
-    bss = BssApi(username=os.uname.strip(), password=pwd.strip(), station_name=stationname.strip(), uri=uri.strip())
+    uname, pwd, stationname, uri = open(os.path.expanduser("~/.config/dmcredentials") ).read_text().splitlines()
+    bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
     esafs = bss.esafs(beamline="12-ID-E", year="2026")
     props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
     print(esafs[0].esaf_id, esafs[0].title)
