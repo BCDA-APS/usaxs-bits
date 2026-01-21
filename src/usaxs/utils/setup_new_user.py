@@ -7,6 +7,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import pwd
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
@@ -14,7 +15,9 @@ from epics import caput
 
 
 from usaxs.callbacks.demo_spec_callback import specwriter
+from usaxs.utils import bss
 from usaxs.utils.obsidian import appendToMdFile, recordUserStart, recordNewSample
+from usaxs.utils.bss import BssApi
 
 from ..callbacks.nxwriter_usaxs import nxwriter
 from ..startup import RE
@@ -203,6 +206,9 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     # matchUserInApsbss(user)     # update ESAF & Proposal, if available
     # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
 
+
+
+
     logger.info(data)
     return str(path.absolute())
 
@@ -281,6 +287,21 @@ def newSample(sample=None):
     return
 
 
+## now Bss 
+# this works fine:
+#  
+
+def matchUserInApsbss(user) 
+    """
+    FInd proposals and ESAFs for user from APS BSS system
+    and set up BSS object.
+    """
+    uname, pwd, stationname, uri = open(os.path.expanduser("~/.config/dmcredentials") ).read().split()
+    bss = BssApi(username=os.uname.strip(), password=pwd.strip(), station_name=stationname.strip(), uri=uri.strip())
+    esafs = bss.esafs(beamline="12-ID-E", year="2026")
+    props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
+    print(esafs[0].esaf_id, esafs[0].title)
+    print(props[0].proposal_id, props[0].title)
 
 # def _pick_esaf(user, now, cycle):
 #     """
