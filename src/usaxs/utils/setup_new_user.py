@@ -17,7 +17,7 @@ from epics import caput
 from usaxs.callbacks.demo_spec_callback import specwriter
 from usaxs.utils import bss
 from usaxs.utils.obsidian import appendToMdFile, recordUserStart, recordNewSample
-from usaxs.utils.bss import BssApi
+from usaxs.utils.bss import BssApi, User
 
 from ..callbacks.nxwriter_usaxs import nxwriter
 from ..startup import RE
@@ -311,7 +311,6 @@ def matchUserInApsBss(user):
         cycle = f"{year}-3"
     # for testing, we can hardcode cycle:
     #cycle = 2026-1
-    print(cycle)
 
     #print("uname, pwd, stationname, uri:", uname, pwd, stationname, uri)
     bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
@@ -319,6 +318,19 @@ def matchUserInApsBss(user):
     #props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
     print (f"Total ESAFs found: {len(esafs_all)}")
     print(esafs_all[0] if esafs_all else "No ESAFs found")
+    # this is esaf structure we get:
+    # esaf_id='289320' 
+    # description='Initial setup and setup between different experiments.  Only the standard beamline equipment and equipment from the APS detector pool will be used. The listed metal foils(~5µm thick, commercial standard EXAFS reference foil sets) will be used for the energy calibration.\r\n\r\nIn addition to normal procedure for commissioning, mail-in samples from user groups will be performed; mounting samples in person, and taking the measurement on their behalf remotely.' 
+    # sector='12' 
+    # title='12-BM Commissioning and Experimental Setup (2026-1)' 
+    # start=datetime.datetime(2026, 2, 2, 8, 0) 
+    # end=datetime.datetime(2026, 4, 22, 8, 0) 
+    # status='Pending' 
+    # users=[User(badge='57623', first_name='Sungsik', last_name='Lee', email='sungsiklee@anl.gov', is_pi=True, institution=None), 
+    #       User(badge='55332', first_name='Benjamin', last_name='Reinhart', email='reinhart@aps.anl.gov', is_pi=False, institution=None), 
+    #       User(badge='34965', first_name='Charles', last_name='Kurtz', email='ckurtz@anl.gov', is_pi=False, institution=None)]
+
+
     #esaf_id = _pick_esaf(esafs_all, user, now)
     #print(esaf_id)
      #print(esafs[0].esaf_id, esafs[0].title)
