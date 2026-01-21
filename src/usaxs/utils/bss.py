@@ -213,6 +213,19 @@ class BssApi:
             )
         return self._client
 
+    def close(self) -> None:
+        if hasattr(self, "_client"):
+            self._client.close()
+
+    def __enter__(self):
+        _ = self.client  # ensure client is created
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.close()
+
+
+
     @stamina.retry(on=httpx.HTTPError, attempts=3)
     def _http_get(
         self, url: str, params: Mapping | None = None
