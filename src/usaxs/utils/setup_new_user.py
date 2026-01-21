@@ -318,6 +318,7 @@ def matchUserInApsBss(user):
     #props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
     print (f"Total ESAFs found: {len(esafs_all)}")
     print(esafs_all[0] if esafs_all else "No ESAFs found")
+    print("finish me") #TODO
     # this is esaf structure we get:
     # esaf_id='289320' 
     # description='Initial setup and setup between different experiments.  Only the standard beamline equipment and equipment from the APS detector pool will be used. The listed metal foils(~5µm thick, commercial standard EXAFS reference foil sets) will be used for the energy calibration.\r\n\r\nIn addition to normal procedure for commissioning, mail-in samples from user groups will be performed; mounting samples in person, and taking the measurement on their behalf remotely.' 
@@ -336,51 +337,107 @@ def matchUserInApsBss(user):
      #print(esafs[0].esaf_id, esafs[0].title)
     #print(props[0].proposal_id, props[0].title)
 
+# this shoudl find esafs 
+# import datetime as dt
+# from typing import Sequence
 
+# def filter_esafs(
+#     esafs: Sequence["Esaf"],
+#     *,
+#     name: str,
+#     status: str,
+#     now: dt.datetime | None = None,
+#     case_insensitive: bool = True,
+# ) -> list["Esaf"]:
+#     """
+#     Keep ESAFs where:
+#       1) `name` is contained in any user's first_name or last_name
+#       2) esaf.start >= now - 1 day
+#       3) esaf.end >= now
+#       4) esaf.status matches `status`
+#     Return sorted by start ascending (closest to now first).
 
-def _pick_esaf(esafs_all, user, now):
-    """
-    Pick the first matching ESAF
+#     Assumes all datetimes are naive and in local time.
+#     """
+#     if now is None:
+#         now = dt.datetime.now()  # local, naive
 
-    Criteria:
+#     cutoff = now - dt.timedelta(days=1)
 
-    * match user name
-    * has not yet expired
-    * earliest start
+#     def norm(s: str) -> str:
+#         return s.casefold() if case_insensitive else s
 
-    RETURNS
+#     name_n = norm(name.strip())
+#     status_n = norm(status.strip())
 
-    esaf_id or None
-    """
-    def esafSorter(obj):
-        return obj["experimentStartDate"]
+#     out: list["Esaf"] = []
 
-    esafs = [
-        esaf["esafId"]
-        for esaf in sorted(esafs_all, key=esafSorter)
-        # pick those that have not yet expired
-        if esaf["experimentEndDate"] > now
-        # and match user last name
-        if user in [
-            entry["lastName"]
-            for entry in esaf["experimentUsers"]
-        ]
-    ]
+#     for e in esafs:
+#         if e.start < cutoff:
+#             continue
+#         if e.end < now:
+#             continue
+#         if norm(e.status) != status_n:
+#             continue
 
-    if len(esafs) == 0:
-        #logger.warning(
-        print(
-            "No unexpired ESAFs found that match user %s",
-            user
-        )
-        return None
-    elif len(esafs) > 1:
-        #logger.warning(
-        print(
-            "ESAF(s) %s match user %s at this time, picking first one",
-            str(esafs), user)
+#         if not any(
+#             (
+#                 u.first_name and name_n in norm(u.first_name)
+#             ) or (
+#                 u.last_name and name_n in norm(u.last_name)
+#             )
+#             for u in (e.users or [])
+#         ):
+#             continue
 
-    return str(esafs[0])
+#         out.append(e)
+
+#     out.sort(key=lambda e: e.start)
+#     return out
+
+# def _pick_esaf(esafs_all, user, now):
+#     """
+#     Pick the first matching ESAF
+
+#     Criteria:
+
+#     * match user name
+#     * has not yet expired
+#     * earliest start
+
+#     RETURNS
+
+#     esaf_id or None
+#     """
+#     def esafSorter(obj):
+#         return obj["experimentStartDate"]
+
+#     esafs = [
+#         esaf["esafId"]
+#         for esaf in sorted(esafs_all, key=esafSorter)
+#         # pick those that have not yet expired
+#         if esaf["experimentEndDate"] > now
+#         # and match user last name
+#         if user in [
+#             entry["lastName"]
+#             for entry in esaf["experimentUsers"]
+#         ]
+#     ]
+
+#     if len(esafs) == 0:
+#         #logger.warning(
+#         print(
+#             "No unexpired ESAFs found that match user %s",
+#             user
+#         )
+#         return None
+#     elif len(esafs) > 1:
+#         #logger.warning(
+#         print(
+#             "ESAF(s) %s match user %s at this time, picking first one",
+#             str(esafs), user)
+
+#     return str(esafs[0])
 
 
 # def _pick_proposal(user, now, cycle):
