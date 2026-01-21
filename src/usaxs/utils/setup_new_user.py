@@ -296,7 +296,9 @@ def matchUserInApsBss(user):
     FInd proposals and ESAFs for user from APS BSS system
     and set up BSS object.
     """
-    uname, pwd, stationname, uri = open(os.path.expanduser("~/.config/dmcredentials") ).read_text().splitlines()
+    # get gredentials:
+    credfile = Path("~/.config/dmcredentials").expanduser()
+    uname, pwd, stationname, uri = credfile.read_text().splitlines()
     bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
     esafs = bss.esafs(beamline="12-ID-E", year="2026")
     props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
