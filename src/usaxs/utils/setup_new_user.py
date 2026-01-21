@@ -317,10 +317,10 @@ def matchUserInApsBss(user):
     bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
     esafs_all = bss.esafs(beamline="12-ID-E", year=year)
     #props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
-
-    now = str(datetime.datetime.now())
-    esaf_id = _pick_esaf(esafs_all, user, now)
-    print(esaf_id)
+    print (f"Total ESAFs found: {len(esafs_all)}")
+    print(esafs_all[0] if esafs_all else "No ESAFs found")
+    #esaf_id = _pick_esaf(esafs_all, user, now)
+    #print(esaf_id)
      #print(esafs[0].esaf_id, esafs[0].title)
     #print(props[0].proposal_id, props[0].title)
 
