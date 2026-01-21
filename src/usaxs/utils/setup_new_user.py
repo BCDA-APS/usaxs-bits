@@ -291,7 +291,7 @@ def newSample(sample=None):
 # this works fine:
 #  
 
-def matchUserInApsbss(user) 
+def matchUserInApsbss(user):
     """
     FInd proposals and ESAFs for user from APS BSS system
     and set up BSS object.
