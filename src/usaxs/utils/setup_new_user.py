@@ -300,11 +300,11 @@ def matchUserInApsBss(user):
     credfile = Path("~/.config/dmcredentials").expanduser()
     uname, pwd, stationname, uri = credfile.read_text().splitlines()
     print("uname, pwd, stationname, uri:", uname, pwd, stationname, uri)
-    #bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
-    #esafs = bss.esafs(beamline="12-ID-E", year="2026")
-    #props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
-    #print(esafs[0].esaf_id, esafs[0].title)
-    #print(props[0].proposal_id, props[0].title)
+    bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
+    esafs = bss.esafs(beamline="12-ID-E", year="2026")
+    props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
+    print(esafs[0].esaf_id, esafs[0].title)
+    print(props[0].proposal_id, props[0].title)
 
 # def _pick_esaf(user, now, cycle):
 #     """
