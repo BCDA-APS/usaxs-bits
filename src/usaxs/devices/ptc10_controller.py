@@ -12,6 +12,17 @@ from ophyd import EpicsSignalWithRBV
 from ophyd import PVPositioner
 
 
+class PTC10AioChannelFixed(PTC10AioChannel):
+    # we need to change how one channel is definded, to fix a bug in apstools
+    # changed version of support points to voltage = usxTEMP:tc1:5A:voltage_RBV 
+    # while proper PV for new ioc is usxTEMP:tc1:5A:output_RBV
+    # pid = Component(PTC10AioChannel, "5A:")
+    # so we have ptc10.pid.voltage = "usxTEMP:tc1:5A:voltage_RBV which does nto exist, we need to change that to output_RBV
+    voltage: Component[EpicsSignalRO] = Component(
+        EpicsSignalRO, "output_RBV", kind="config"
+    )   
+
+
 class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     """
     PTC10 as seen from the GUI screen.
@@ -108,7 +119,7 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
     # rtdB = Component(PTC10RtdChannel, "3B:")  # unused now
 
     # PTC10 AIO module
-    pid = Component(PTC10AioChannel, "5A:")
+    pid = Component(PTC10AioChannelFixed, "5A:")
     # pidB = Component(PTC10AioChannel, "5B:")  # unused now
     # pidC = Component(PTC10AioChannel, "5C:")  # unused now
     # pidD = Component(PTC10AioChannel, "5D:")  # unused now
