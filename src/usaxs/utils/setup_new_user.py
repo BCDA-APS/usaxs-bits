@@ -299,6 +299,7 @@ def matchUserInApsBss(user):
     # get gredentials:
     credfile = Path("~/.config/dmcredentials").expanduser()
     uname, pwd, stationname, uri = credfile.read_text().splitlines()
+    now = str(datetime.datetime.now())
     year = now[0:4]
     # construct cycle from year and moth, it is string representation of year as 4 digits+ "-"+ months 1-4 are 1, 5 to 8 are 2, and 9-12 are 3:
     month_int = int(now[5:7])
