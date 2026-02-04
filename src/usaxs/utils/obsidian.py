@@ -71,7 +71,18 @@ APSBSS_BEAMLINE = "12-ID-E"
 def createMonthFolder():
     # create in folder /share1/Obsidian/Experiments folder in form of "YYYY-MM" with folder InstrumentRecords (e.g., 2026-02/InstrumentRecords) this is where the notes go
     base_path = Path("/share1/Obsidian/Experiments")
-    folder_name = datetime.datetime.now().strftime("%Y-%m")
+    # folder_name = f"{now.year}-{suffix}"
+    # define folder name based on current date in form of YYYY-QQ where QQ is quarter 01,02,03 
+    # now = datetime.datetime.now()
+    # if now.month <= 4:
+    #     suffix = "01"
+    # elif now.month <= 8:
+    #     suffix = "02"
+    # else:
+    #     suffix = "03"
+    # this is much more elegant:
+    now = datetime.datetime.now()
+    folder_name = f"{now.year}-{((now.month - 1)//4 + 1):02d}"
     #this defines current folder, e.g.: ~/share1/Obsidian/Experiments/2025-10/Instrument_Records
     working_folder = base_path / folder_name / "Instrument_Records"
 
