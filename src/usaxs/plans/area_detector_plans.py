@@ -11,6 +11,8 @@ from bluesky import plans as bp
 
 from ..startup import RE
 from ..startup import bec
+from ..utils.area_detector import area_detector_file_plugins
+from ..utils.area_detector import path_template_fixer
 from ..utils.reporter import remaining_time_reporter
 
 logger = logging.getLogger(__name__)
@@ -50,6 +52,9 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
         image_mode = "Single"
     det.cam.stage_sigs["image_mode"] = image_mode
 
+    for plugin in area_detector_file_plugins(det):
+        path_template_fixer(plugin)
+
     # Remember what we've got now and reset it after the bp.count().
     original_detector_staging = dict(cam=det.cam.stage_sigs.copy())
     # Since we have set certain detector parameters in EPICS,
@@ -63,9 +68,8 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
             det.cam.stage_sigs.pop(k)
 
     bec.disable_table()
-    yield from bp.count(
-        [det], md=_md
-    )  # TODO: SPEC showed users incremental progress (1 Hz updates) #175
+    # TODO: SPEC showed users incremental progress (1 Hz updates) #175
+    yield from bp.count([det], md=_md)
     bec.enable_table()
 
     # Restore the original detector staging.
