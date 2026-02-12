@@ -93,11 +93,18 @@ def postCommandsListfile2WWW(commands):
     """Post list of commands to WWW and archive the list for posterity."""
     # tbl_file = "commands.txt"
     tbl_file = "specmacro.txt"
-    tbl = command_list_as_table(commands)
     timestamp = datetime.datetime.now().isoformat().replace("T", " ")
     file_contents = "bluesky command sequence\n"
     file_contents += f"written: {timestamp}\n"
-    file_contents += str(tbl.reST())
+
+    # Check if commands is a string (function declaration) or a list (command data)
+    if isinstance(commands, str):
+        # If it's a string, append it directly
+        file_contents += commands
+    else:
+        # If it's a list, convert to table and then to reST format
+        tbl = command_list_as_table(commands)
+        file_contents += str(tbl.reST())
 
     # post for livedata page
     # path = "/tmp"
@@ -174,7 +181,7 @@ def before_command_list(md=None, commands=None):
     else:
         # run_command_list which generates table of commands already recorded this, 
         # so we are catching only when running other way. In this case we need to
-        # record thus as function run. The fiunction also returns the command line for www.
+        # record thus as function run. The function also returns the command line for www.
         #command_line = recordFunctionRun()    
         #yield from postCommandsListfile2WWW(command_line)
         pass
