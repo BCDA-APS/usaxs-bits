@@ -1,7 +1,6 @@
 """
 BS plan template to control Linkam temperature during data collection same as spec used to do.
 
-???: Assumes all objects from ./heater_profile.py are imported!
 load this way:
     %run -im usaxs.user.linkam
 

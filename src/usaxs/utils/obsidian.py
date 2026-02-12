@@ -122,7 +122,8 @@ def appendToMdFile(text: str):
     md_file_path = createMdFile()
     with open(md_file_path, "a") as f:
         if len(text.strip()) > 0:
-            f.write(text + "\n")
+            time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(time_now+" "+text + "\n")
     #print(f"Appended to {md_file_path}: {text}")
     return
 

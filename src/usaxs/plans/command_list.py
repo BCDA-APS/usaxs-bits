@@ -175,8 +175,9 @@ def before_command_list(md=None, commands=None):
         # run_command_list which generates table of commands already recorded this, 
         # so we are catching only when running other way. In this case we need to
         # record thus as function run. The fiunction also returns the command line for www.
-        command_line = recordFunctionRun()    
-        yield from postCommandsListfile2WWW(command_line)
+        #command_line = recordFunctionRun()    
+        #yield from postCommandsListfile2WWW(command_line)
+        pass
 
     # force the next FlyScan to reload the metadata configuration
     # which forces a (re)connection to the EPICS PVs
