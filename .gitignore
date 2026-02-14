@@ -180,3 +180,4 @@ qserver/existing_plans_and_devices.yaml
 #new user file
 .new_user.json
 .user_info.json
+.loglogin
