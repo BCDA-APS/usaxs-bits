@@ -4,7 +4,7 @@ usaxs.devices.shutters.My12IdPssShutter:
   prefix: "12ida2:rShtrA:"
   labels: ["shutters"]
 
-apstools.devices.ApsPssShutterWithStatus:
+usaxs.devices.shutters.My12IdPssShutter:
 - name: mono_shutter
   state_pv: "PA:12ID:STA_C_SCS_OPEN_PL"
   prefix: "PA:12ID:"
