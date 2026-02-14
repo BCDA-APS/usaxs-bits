@@ -228,9 +228,7 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
     yield from after_command_list()  # runs standard after scan scripts.
 
 
-def myPTC10Plan(
-    pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}
-):
+def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}):
     """
     collect RT USAXS/SAXS/WAXS - or not, change code
     change temperature T to temp1 with rate1

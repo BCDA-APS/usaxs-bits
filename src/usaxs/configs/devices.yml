@@ -158,6 +158,3 @@ usaxs.devices.stages.SaxsDetectorStageDevice:
 usaxs.devices.usaxs_fly_scan.UsaxsFlyScanDevice:
 - name: usaxs_flyscan
 
-ophyd.EpicsSignal:
-- name: galil_voltage
-  prefix:usxRIO:GalilAo_SP.VAL

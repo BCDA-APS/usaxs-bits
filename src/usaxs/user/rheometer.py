@@ -62,7 +62,7 @@ def rheoLoop(scan_title, delay1minutes, md={}):
     """
     pos_X =0
     pos_Y =0  
-    thickness = 0.8
+    thickness = 1.0
     
     def setSampleName():
         return f"{scan_title}" f"_{((time.time()-t0)/60):.0f}min"

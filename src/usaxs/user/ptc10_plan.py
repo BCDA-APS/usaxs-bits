@@ -45,21 +45,21 @@ TimeList = [720]  # minutes
 # edit this list with list fo samples. Each sample has new line as below
 # [sx,sy,th,"sampleName"],
 
+#For Andrew:
+# RE(myPTC10PlanThreeStep(0,0,1.3,"sampleName", temp1C, rate1degC/min,delay1Sec, temp2,rate2,delay2,temp3, rate3,delay3))
+
+# and
+
+#edit the SampleList below, reload the file 
+#  %run -im usaxs.user.ptc10_plan
+#  and 
+# RE(myPTC10HoldList(temp1C, delay1min))
 
 SampleList = [
-    [45.5, 47, 4, "Fcure"],
-    [55.5, 47, 4, "Bcure"],
-    [65.5, 48, 4, "Acure"],
-    [75.5, 52, 4, "BptBC"],
-    [85.5, 50, 4, "BPtAC"],
-    [95.5, 50, 4, "APtBC"],
-    [105.5, 53, 4, "BPtBC"],
-    [115.5, 14, 4, "ACure2"],
-    [125.5, 14, 4, "BCure2"],
-    [135.5, 14, 4, "FCure2"],
-    [145.5, 69, 4, "BlankCure"],
+    [0, 0, 1.3, "AlFN2Pos1"],
+    [1, 0, 1.3, "AlFN2Pos2"],
+    [2, 0, 1.3, "AlFN2Pos3"],
 ]
-
 
 # utility functions to use in heater, ignore me...
 
@@ -145,24 +145,19 @@ def myPTC10HoldList(temp1, delay1min, md={}):
     t0 = time.time()
     for tmpVal in SampleList:
         pos_X, pos_Y, thickness, scan_title = tmpVal
-        yield from collectAllThree(
-            pos_X, pos_Y, thickness, scan_title, isDebugMode
-        )  # collect RT data
+        yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)  # collect RT data
 
     # ramp to temperature
     logger.info(f"Ramping temperature to {temp1} C")
     appendToMdFile(f"Ramping temperature to {temp1} C")
     yield from bps.mv(
         # ptc10.ramp, rate1Cmin / 60.0,       # user wants C/min, controller wants C/s
-        ptc10.temperature.setpoint,
-        temp1,  # Change the temperature and not wait
+        ptc10.temperature.setpoint,temp1,     # Change the temperature and not wait
     )
     yield from setheaterOn()
 
     # wait until PTC10 heats to temp1
-    while (
-        not ptc10.temperature.inposition
-    ):  # sleep for now, check every 10 seconds. Change as needed.
+    while (not ptc10.temperature.inposition):  # sleep for now, check every 10 seconds. Change as needed.
         yield from bps.sleep(5)  # sleep for 10 seconds combined with loger info mid way
         logger.info(f"Still Ramping temperature to {temp1} C")
         yield from bps.sleep(5)
@@ -179,8 +174,6 @@ def myPTC10HoldList(temp1, delay1min, md={}):
 
     # Main data collection loop - for delay1min collect on each sample from the SampleList USAXS, SAXS, and WAXS
     while time.time() - t0 < delay1min * 60:  # collects data for delay1 seconds
-        logger.info(f"Collecting data for {delay1min} min")
-        appendToMdFile(f"Collecting data for {delay1min} min")
         for tmpVal in SampleList:
             pos_X, pos_Y, thickness, scan_title = tmpVal
             yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)
@@ -194,7 +187,7 @@ def myPTC10HoldList(temp1, delay1min, md={}):
         logger.info("debug mode, would be running standard after scan scripts.")
 
     logger.info("finished with myPTC10HoldList")
-
+    appendToMdFile("finished with myPTC10HoldList")
 
 def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
     """
@@ -312,9 +305,7 @@ def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2
     appendToMdFile(f"Ramping temperature to {temp1} C")
 
     t0 = time.time()
-    while (
-        not ptc10.temperature.inposition
-    ):  # runs data collection until next temp or sleeps. Change as needed.
+    while (not ptc10.temperature.inposition):  # runs data collection until next temp or sleeps. Change as needed.
         #yield from bps.sleep(5)
         logger.info(f"Still Ramping temperature to {temp1} C")
         yield from collectAllThree()
@@ -334,9 +325,7 @@ def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2
     appendToMdFile(f"waited for {delay1} seconds, now changing temperature to {temp2} C")
 
     yield from bps.mv(ptc10.ramp, rate2 / 60.0)  # sets the rate of next ramp
-    yield from bps.mv(
-        ptc10.temperature, temp2
-    )  # Change the temperature and wait to get there
+    yield from bps.mv(ptc10.temperature, temp2)  # Change the temperature and wait to get there
 
     logger.info(f"reached {temp2} C")
     appendToMdFile(f"reached {temp2} C")
@@ -345,6 +334,134 @@ def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2
     yield from after_command_list()  # runs standard after scan scripts.
 
     logger.info("finished")
+
+
+def myPTC10PlanThreeStep(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2,delay2,temp3, rate3, delay3, md={}):
+    """
+    collect RT USAXS/SAXS/WAXS - or not, change code
+    change temperature T to temp1 with rate1
+    collect USAXS/SAXS/WAXS while heating or sleep= change code...
+    when temp1 reached, hold for delay1 seconds, collecting data repeatedly
+    change T to temp2 with rate2, hold for delay2 seconds collect USAXS/SAXS/WAXS while changing temp and hold
+    change T to temp3 with rate3 collect data while chaging temp, hold for delay3 collecting data data
+    and it will end here...
+
+    reload by
+     %run -im usaxs.user.ptc10_plan
+    run:
+    RE(myPTC10PlanThreeStep(0,0,1.3,"sampleName", temp1C, rate1degC/min,delay1Sec, temp2,rate2,delay2,temp3, rate3,delay3))
+    """
+
+    def getSampleName():
+        """
+        return the name of the sample
+        """
+        return f"{scan_title}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
+
+    def collectAllThree(debug=False):
+        """
+        documentation here
+        """
+        sampleMod = getSampleName()
+        if debug:
+            # for testing purposes, set debug=True
+            print(sampleMod)
+            yield from bps.sleep(20)
+        else:
+            yield from sync_order_numbers()
+            sampleMod = getSampleName()
+            md["title"] = sampleMod
+            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = getSampleName()
+            md["title"] = sampleMod
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = getSampleName()
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    def collectWAXS(debug=False):
+        """
+        documentation here
+        """
+        sampleMod = getSampleName()
+        if debug:
+            # for testing purposes, set debug=True
+            print(sampleMod)
+            yield from bps.sleep(20)
+        else:
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+    
+    ## rt MEASUREMENTS
+    yield from before_command_list()  # this will run usual startup scripts for scans
+    t0 = time.time()
+    yield from collectAllThree()  # collect RT data
+    ## TEMP1 BLOCK
+    yield from bps.mv(ptc10.ramp, rate1 / 60.0)  # user wants C/min, controller wants C/s
+    yield from bps.mv(ptc10.temperature.setpoint, temp1)  # Change the temperature and not wait
+    yield from setheaterOn()
+    logger.info(f"Ramping temperature to {temp1} C")
+    appendToMdFile(f"Ramping temperature to {temp1} C")
+    t0 = time.time()    #SAMPLE NAME USES t0
+    while (not ptc10.temperature.inposition):  # runs data collection until next temp or sleeps. Change as needed.
+        # yield from bps.sleep(5)
+        logger.info(f"Still Ramping temperature to {temp1} C")
+        yield from collectAllThree()
+    logger.info("Reached temperature, now collecting data for %s seconds", delay1)
+    appendToMdFile(f"Reached temperature, now collecting data for {delay1} seconds")
+    t1 = time.time()    # for delay time
+    #t0 = time.time()    # for sample name
+    while time.time() - t1 < delay1:  # collects data for delay1 seconds
+        # yield from bps.sleep(5)
+        logger.info("Collecting data for %s ", delay1)
+        yield from collectAllThree()
+    
+    # TEMP2 BLOCK
+    logger.info("waited for %s seconds, now changing temperature to %s C", delay1, temp2)
+    appendToMdFile(f"waited for {delay1} seconds, now changing temperature to {temp2} C")
+    yield from bps.mv(ptc10.ramp, rate2 / 60.0)  # sets the rate of next ramp
+    yield from bps.mv(ptc10.setpoint, temp2)     # Change the temperature setpoint
+    #t0 = time.time()    # used for sample name
+    while (not ptc10.temperature.inposition):  # runs data collection until next temp or sleeps. Change as needed.
+        #yield from bps.sleep(5)
+        logger.info(f"Still Ramping temperature to {temp2} C")
+        yield from collectAllThree()
+    logger.info("Reached temperature, now collecting data for %s seconds", delay2)
+    appendToMdFile(f"Reached temperature, now collecting data for {delay2} seconds")
+    t1 = time.time()
+    #t0 = time.time()
+    while time.time() - t1 < delay2:  # collects data for delay2 seconds
+        # yield from bps.sleep(5)
+        logger.info("Collecting data for %s ", delay2)
+        yield from collectAllThree()
+
+    # TEMP3 BLOCK
+    logger.info("waited for %s seconds, now changing temperature to %s C", delay2, temp3)
+    appendToMdFile(f"waited for {delay2} seconds, now changing temperature to {temp3} C")
+    yield from bps.mv(ptc10.ramp, rate3 / 60.0)  # sets the rate of next ramp
+    yield from bps.mv(ptc10.setpoint, temp3)     # Change the temperature setpoint
+    #t0 = time.time()
+    while (not ptc10.temperature.inposition):  # runs data collection until next temp or sleeps. Change as needed.
+        #yield from bps.sleep(5)
+        logger.info(f"Still Ramping temperature to {temp3} C")
+        yield from collectAllThree()
+    logger.info("Reached temperature, now collecting data for %s seconds", delay3)
+    appendToMdFile(f"Reached temperature, now collecting data for {delay3} seconds")
+    t1 = time.time()
+    #t0 = time.time()
+    while time.time() - t1 < delay3:  # collects data for delay2 seconds
+        # yield from bps.sleep(5)
+        logger.info("Collecting data for %s ", delay3)
+        yield from collectAllThree()
+    logger.info(f"Done with {temp3} C")
+    appendToMdFile(f"Finsihed measurements at {temp3} C")
+    yield from setheaterOff()
+
+    yield from after_command_list()  # runs standard after scan scripts.
+
+    logger.info("finished")
+    appendToMdFile(f"Heater run done")
+
 
 
 def myPTC10List(rate1Cmin, md={}):
