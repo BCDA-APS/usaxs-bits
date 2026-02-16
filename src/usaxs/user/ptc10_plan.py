@@ -290,10 +290,10 @@ def myPTC10Step(pos_X, pos_Y, thickness, scan_title, startTC, endTC,stepTC, rate
 
     yield from before_command_list()  # this will run usual startup scripts for scans
 
-    t0 = time.time()
-
-    yield from bps.mv(ptc10.ramp, rateTmin / 60.0)  # user wants C/min, controller wants C/s
     yield from setheaterOn()
+    yield from bps.mv(ptc10.ramp, rateTmin / 60.0)  # user wants C/min, controller wants C/s
+
+    t0 = time.time()
 
     # Temperature loop - iterate from startTC to endTC with stepTC increments
     for currentTemp in range(startTC, endTC + stepTC, stepTC):
@@ -302,12 +302,9 @@ def myPTC10Step(pos_X, pos_Y, thickness, scan_title, startTC, endTC,stepTC, rate
 
         # Set temperature and wait to reach it
         yield from bps.mv(ptc10.temperature.setpoint, currentTemp)
-
         # Wait until temperature is reached
         while not ptc10.temperature.inposition:
-            yield from bps.sleep(5)
-            logger.info(f"Still ramping to {currentTemp} C")
-            yield from bps.sleep(5)
+            yield from bps.sleep(3)
 
         logger.info(f"Reached {currentTemp} C, waiting {delayTimeMin} min before collecting")
         appendToMdFile(f"Reached {currentTemp} C, waiting {delayTimeMin} min before collecting")
@@ -316,13 +313,21 @@ def myPTC10Step(pos_X, pos_Y, thickness, scan_title, startTC, endTC,stepTC, rate
         yield from bps.sleep(delayTimeMin * 60)
 
         # Collect data at this temperature
-        sampleMod = getSampleName()
         yield from collectAllThree()
 
     logger.info("finished")
     appendToMdFile(f"Temperature step measurements completed")
 
+    yield from bps.mv(ptc10.ramp, 2)  # user wants C/min, controller wants C/s
+    yield from bps.mv(ptc10.temperature.setpoint, startTC)
+        # Wait until temperature is reached
+    while not ptc10.temperature.inposition:
+        yield from bps.sleep(3)
+    
+    yield from collectAllThree()
+
     yield from setheaterOff()
+
     yield from after_command_list()  # runs standard after scan scripts.
 
 
