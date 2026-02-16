@@ -56,9 +56,9 @@ TimeList = [720]  # minutes
 # RE(myPTC10HoldList(temp1C, delay1min))
 
 SampleList = [
-    [0, 0, 1.3, "AlFN2Pos1"],
-    [1, 0, 1.3, "AlFN2Pos2"],
-    [2, 0, 1.3, "AlFN2Pos3"],
+    [0, 0, 1.3, "LewatsmgN2bPos1"],
+    [1, 0, 1.3, "LewatsmgN2bPos2"],
+    [2, 0, 1.3, "LewatsmgN2bPos3"],
 ]
 
 # utility functions to use in heater, ignore me...
@@ -141,6 +141,10 @@ def myPTC10HoldList(temp1, delay1min, md={}):
         yield from bps.sleep(5)
 
     # collect data at RT
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using myPTC10HoldList")
+    appendToMdFile("using myPTC10HoldList")
     logger.info(f"Collecting data at RT")
     t0 = time.time()
     for tmpVal in SampleList:
@@ -186,8 +190,11 @@ def myPTC10HoldList(temp1, delay1min, md={}):
     else:
         logger.info("debug mode, would be running standard after scan scripts.")
 
-    logger.info("finished with myPTC10HoldList")
-    appendToMdFile("finished with myPTC10HoldList")
+    appendToMdFile(f"Finished collecting data for Sample {scan_title}")
+    appendToMdFile("  ***  ")
+    logger.info("finished")
+
+
 
 def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
     """
@@ -224,6 +231,11 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
 
     t0 = time.time()
 
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using myPTC10Loop")
+    appendToMdFile("using myPTC10Loop")
+
     logger.info("Collecting data for %s min", delayMin)
     appendToMdFile(f"Collecting data for {delayMin} min")
 
@@ -233,6 +245,86 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
     logger.info("finished")
 
     yield from after_command_list()  # runs standard after scan scripts.
+
+def myPTC10Step(pos_X, pos_Y, thickness, scan_title, startTC, endTC,stepTC, rateTmin, delayTimeMin, md={}):
+    """
+    Collects USAXS/SAXS/WAXS in steps from starT to endT steppnig by stepT
+    at each condition it waits for detayTime and then collects USAXS/SAXS/WAXS
+    at the end, switch off the heating and end. 
+
+    Append to name time and temperature.
+
+    To run example:
+    RE(myPTC10Step(0,0,1.28,"testExp",30, 500, 10, 50, 2))
+    this will run sample in sx= 0, sy=0, thickness=1.28mm in steps from 30 to 5500C, step is 10C.
+    heating rate is 50C/min
+    delay before measurement at temperature is 2 minutes. 
+    Sample names will look similar to :  testExp_120C_25min
+
+    reload by
+    # %run -im user.ptc10_plan
+    """
+
+    def getSampleName():
+        """
+        return the name of the sample
+        """
+        return f"{scan_title}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
+
+    def collectAllThree(debug=False):
+        yield from sync_order_numbers()
+        md["title"] = sampleMod
+        yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+        sampleMod = getSampleName()
+        md["title"] = sampleMod
+        yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+        sampleMod = getSampleName()
+        md["title"] = sampleMod
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    logger.info("Collecting data for sample %s", scan_title)
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using myPTC10Step")
+    appendToMdFile("using myPTC10Step")
+
+    yield from before_command_list()  # this will run usual startup scripts for scans
+
+    t0 = time.time()
+
+    yield from bps.mv(ptc10.ramp, rateTmin / 60.0)  # user wants C/min, controller wants C/s
+    yield from setheaterOn()
+
+    # Temperature loop - iterate from startTC to endTC with stepTC increments
+    for currentTemp in range(startTC, endTC + stepTC, stepTC):
+        logger.info(f"Setting temperature to {currentTemp} C")
+        appendToMdFile(f"Setting temperature to {currentTemp} C")
+
+        # Set temperature and wait to reach it
+        yield from bps.mv(ptc10.temperature.setpoint, currentTemp)
+
+        # Wait until temperature is reached
+        while not ptc10.temperature.inposition:
+            yield from bps.sleep(5)
+            logger.info(f"Still ramping to {currentTemp} C")
+            yield from bps.sleep(5)
+
+        logger.info(f"Reached {currentTemp} C, waiting {delayTimeMin} min before collecting")
+        appendToMdFile(f"Reached {currentTemp} C, waiting {delayTimeMin} min before collecting")
+
+        # Wait for delayTimeMin before collecting
+        yield from bps.sleep(delayTimeMin * 60)
+
+        # Collect data at this temperature
+        sampleMod = getSampleName()
+        yield from collectAllThree()
+
+    logger.info("finished")
+    appendToMdFile(f"Temperature step measurements completed")
+
+    yield from setheaterOff()
+    yield from after_command_list()  # runs standard after scan scripts.
+
 
 
 def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}):
@@ -288,6 +380,12 @@ def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2
         else:
             md["title"] = sampleMod
             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using myPTC10Plan")
+    appendToMdFile("using myPTC10HPlan")
 
     yield from before_command_list()  # this will run usual startup scripts for scans
     t0 = time.time()
@@ -392,6 +490,11 @@ def myPTC10PlanThreeStep(pos_X, pos_Y, thickness, scan_title, temp1, rate1, dela
             md["title"] = sampleMod
             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
     
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using myPTC10PlanThreeStep")
+    appendToMdFile("using myPTC10PlanThreeStep")
+
     ## rt MEASUREMENTS
     yield from before_command_list()  # this will run usual startup scripts for scans
     t0 = time.time()
@@ -506,6 +609,10 @@ def myPTC10List(rate1Cmin, md={}):
 
     if isDebugMode is not True:
         yield from before_command_list()  # this will run usual startup scripts for scans
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using myPTC10List")
+    appendToMdFile("using myPTC10List")
 
     t0 = time.time()
     # yield from collectAllThree(isDebugMode)                    #collect RT data
@@ -593,6 +700,11 @@ def myPTC10List2(rate1Cmin, delay1min, md={}):
     isDebugMode = ptc10_debug.get()
 
     # TODO: what about HeaterStopAndHoldRequested?
+
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using myPTC10List2")
+    appendToMdFile("using myPTC10List2")
 
     if isDebugMode is not True:
         yield from before_command_list()  # this will run usual startup scripts for scans
@@ -696,6 +808,11 @@ def FanPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp
         else:
             md["title"] = sampleMod
             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using FanPTC10Plan")
+    appendToMdFile("using FanPTC10Plan")
 
     yield from before_command_list()  # this will run usual startup scripts for scans
     t0 = time.time()
@@ -806,6 +923,11 @@ def FanPTC10OvernightPlan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, del
         else:
             md["title"] = sampleMod
             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    appendToMdFile("  ***  ")
+    appendToMdFile(f"Collecting data for Sample {scan_title}")
+    logger.info("using FanPTC10OvernightPlan")
+    appendToMdFile("using FanPTC10OvernightPlan")
 
     # run #1
     yield from before_command_list()  # this will run usual startup scripts for scans
@@ -955,5 +1077,6 @@ def FanPTC10OvernightPlan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, del
     yield from setheaterOff()
 
     yield from after_command_list()  # runs standard after scan scripts.
-
+    appendToMdFile(f"Finished collecting data for Sample {scan_title}")
+    appendToMdFile("  ***  ")
     logger.info("finished")
