@@ -273,6 +273,7 @@ def myPTC10Step(pos_X, pos_Y, thickness, scan_title, startTC, endTC,stepTC, rate
 
     def collectAllThree(debug=False):
         yield from sync_order_numbers()
+        sampleMod = getSampleName()
         md["title"] = sampleMod
         yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = getSampleName()

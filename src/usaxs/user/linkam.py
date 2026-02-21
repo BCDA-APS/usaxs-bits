@@ -317,6 +317,94 @@ def fanAlLinkamPlan(pos_X,pos_Y,thickness,scan_title,temp1,temp2,md={},):
         yield from after_command_list()  # runs standard after scan scripts.
 
 
+def fanAlLinkamStepPlan(pos_X,pos_Y,thickness,scan_title,temp1,temp2,step,md={},):
+    """
+    TODO: Check code in /USAXS_data/bluesky_plans/linkam.py (this file)
+     is using tc1, edit and reload if necessary ***
+
+    0. use linkam_tc1
+    1. go to temperature 1 at 150C/min, wait until get there
+    2. collect 2 sets of USAXS, SAXS, WAXS
+    3. increase temperature with a temperature "step" at 150C/min
+    4. collect two sets of USAXS, SAXS, and WAXS
+    5. repeat steps 3 and 4 until temperature 2 is reached.
+    6. return to 30 C, collect 2 sets of USAXS, SAXS, WAXS, with a cooling rate of 100 C/min
+    7. ned
+    Temp is in C, delay is in minutes
+
+    reload by
+    # %run -im usaxs.user.linkam
+    
+    run: RE(fanAlLinkamPlan(0,0,1.2,"Whatever",580, 470))
+    
+    """
+
+    def setSampleName():
+        return (
+            f"{scan_title}"
+            f"_{linkam.temperature.position:.0f}C"
+            f"_{(time.time()-t0)/60:.0f}min"
+        )
+
+    def collectAllThree():
+            yield from sync_order_numbers()
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    def collectWAXS():
+            sampleMod = setSampleName()
+            md["title"] = sampleMod
+            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+
+    def change_rate_and_temperature(rate, t, wait=False):
+        yield from bps.mv(linkam.ramprate.setpoint, rate)  # ramp rate for next temperature change in degC/min
+        yield from linkam.set_target(t, wait=wait)  # sets the temp of to t, wait = True waits until we get there (no data collection), wait = False does not wait and enables data collection
+
+
+    linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
+    logger.info(f"Linkam controller PV prefix={linkam.prefix}")
+    isDebugMode = linkam_debug.get()
+    
+    appendToMdFile("   ***   ")
+    appendToMdFile("Using fanAlLinkamStepPlan()")
+    appendToMdFile(f"Measuring sample {scan_title}")
+    if isDebugMode is not True:
+        yield from before_command_list()  # this will run usual startup scripts for scans
+
+    t0 = time.time()  # set this moment as the start time of data collection.
+  
+    
+    # Collect data at 4start temperature 
+    temp = temp1
+    while temp < temp2+step/2 : 
+        yield from change_rate_and_temperature(150, temp, wait=True)
+        appendToMdFile(f"Measuring temperature to {temp} C")
+        yield from collectAllThree()  # collect the data at temp
+        yield from collectAllThree()  # collect the data at temp
+        temp = temp + step
+        # *******
+        
+        
+        
+        
+ 
+    yield from change_rate_and_temperature(150, 30, wait=True)
+    appendToMdFile(f"Measuring temperature to {temp} C")
+    yield from collectAllThree()  # collect the data at RT
+    yield from collectAllThree()  # collect the data at RT
+
+    logger.info("finished")  # record end.
+    if isDebugMode is not True:
+        yield from after_command_list()  # runs standard after scan scripts.
+
+
    
 
 def FanTemperatureRamp(pos_X, pos_Y, thickness, scan_title, md={}):

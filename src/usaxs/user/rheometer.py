@@ -55,10 +55,10 @@ def rheoLoop(scan_title, delay1minutes, md={}):
     delay1minutes - delay is in minutes
 
     reload by
-    # %run -im usaxs.user.finite_loop
+    # %run -im usaxs.user.rheometer
 
     run by
-    RE(myFiniteLoop(0, 0, 1, "Sample", 20))
+    RE(rheoLoop(0, 0, 1, "Sample", 20))
     """
     pos_X =0
     pos_Y =0  
