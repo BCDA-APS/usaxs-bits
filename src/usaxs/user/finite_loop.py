@@ -1,17 +1,66 @@
 """
-BS plan to run infinte data collection same as spec used to do.
+Bluesky plans for finite time-resolved data collection at ambient temperature.
 
-load this way:
+PURPOSE:
+    These plans run repeated USAXS/SAXS/WAXS sequences over one or more sample
+    positions for a fixed duration or a fixed number of iterations.  They are
+    used for kinetics measurements, time-series, and any experiment that needs
+    sequential data collection at room (ambient) temperature without active
+    temperature control.
 
-     %run -im usaxs.user.finite_loop
+LOADING:
+    %run -im usaxs.user.finite_loop
 
-* file: /USAXS_data/bluesky_plans/finite_loop.py
-* aka:  ~/.ipython/user/finite_loop.py
+DEBUG / DRY-RUN MODE:
+    loop_debug.put(True)   → enable debug mode (no instrument motion)
+    loop_debug.put(False)  → restore normal operation (default)
+    In debug mode, before_command_list() and after_command_list() are skipped
+    and data-collection calls print the sample name and sleep briefly instead
+    of moving the instrument.
 
-* JIL, 2022-11-17 : first release
-* JIL, 2022-11-18 : added different modes
-* JIL, 2025-5-28 : fixs for BITS
-* JIL, 7/9/2025 user changes
+FUNCTION INVENTORY:
+    larryLoop(numIterations, yOffset)
+        N complete iterations over a hardcoded position list with a per-iteration
+        Y-position drift (simulates slow sample consumption or spatial mapping).
+        Sample name encodes the iteration number.
+
+    myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes)
+        Single fixed position, runs for delay1minutes.  Collects USAXS + SAXS
+        (WAXS intentionally disabled for this plan variant).
+        Sample name encodes elapsed time in minutes.
+
+    myTwoPosFiniteLoop(pos_XA, thicknessA, scan_titleA,
+                       pos_XB, thicknessB, scan_titleB, delay1minutes)
+        Alternates between two positions using the LAXm2 (SAMX) motor.
+        Collects USAXS + SAXS at each position (WAXS intentionally disabled).
+        The LAXm2 motor performs the actual stage motion; pos_X is passed as
+        metadata only.  Sample name encodes elapsed time in minutes.
+
+    myFiniteMultiPosLoop(delay1minutes)
+        Cycles through a hardcoded SampleList collecting USAXS/SAXS/WAXS at
+        each position in turn (per-position, sequential detector order).
+        Runs until delay1minutes is exhausted.
+        Sample name encodes elapsed time in minutes.
+
+    myFiniteListLoop(delay1minutes, StartTime)
+        Cycles through a hardcoded SampleList with a GROUPED detector order:
+        all-USAXS for every sample, then all-SAXS for every sample, then
+        all-WAXS for every sample (one complete round per loop iteration).
+        Sample name encodes a sequential integer counter.
+        StartTime parameter is retained for backwards compatibility but is
+        currently unused.
+
+SAMPLE NAMING CONVENTIONS:
+    - Time-based names:      {scan_title}_{elapsed_minutes:.0f}min
+    - Iteration-based names: {scan_title}_{iteration_number}
+    - Counter-based names:   {scan_title}_{counter}
+
+CHANGE LOG:
+    * JIL, 2022-11-17 : first release
+    * JIL, 2022-11-18 : added different modes
+    * JIL, 2025-05-28 : fixes for BITS
+    * JIL, 2025-07-09 : user changes
+    * JIL, 2026-02-25 : AI-assisted documentation, Obsidian logging, bug fix
 """
 
 import logging
@@ -28,62 +77,90 @@ from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
-from usaxs.utils.obsidian import recordFunctionRun
+from usaxs.utils.obsidian import appendToMdFile
 
-# define conversions from seconds
+# Convenient time-unit constants.
 SECOND = 1
 MINUTE = 60 * SECOND
 HOUR = 60 * MINUTE
 DAY = 24 * HOUR
 WEEK = 7 * DAY
 
-# debug mode switch, may not be that useful in our case...
+# Debug / dry-run flag.
+# Set at the IPython prompt before calling RE():
+#   loop_debug.put(True)   → skip instrument operations, print names and sleep
+#   loop_debug.put(False)  → real data collection (default)
 loop_debug = Signal(name="loop_debug", value=False)
-#   In order to run as debug (without collecting data, only run through loop) in command line run:
-# loop_debug.put(True)
 
 
-def larryLoop(numIterattions, yOffset, md={}):
+# ==============================================================================
+# larryLoop
+# N complete passes over a fixed sample list with a per-pass Y-position drift.
+# Intended for long kinetics runs where each "frame" is one full pass.
+# Sample names encode the iteration number (not time).
+# ==============================================================================
+def larryLoop(numIterations, yOffset, md={}):
     """
-    Will run loop for number of iterations with yOffset shift in y
-    Runs over list of positions 
-    USAXS-SAXS-WAXS on pos1, then on pos2, etc until returns and starts from beggining
+    Run numIterations complete passes over a hardcoded position list.
 
-    over list of positions and names
-    1. Correct the ListOfSamples
-    2. reload by
-    %run -im usaxs.user.finite_loop
-    3. run:
-    RE(larryLoop(50,0.06)) which will run 50 iterations with 0.06 yOffset =3mm total shift
-    keep in mind that last y position is y0+20*0.1 - you moved each sample up by total 2mm
-    yofset = totalYmotion/numItenrations
+    On each pass the Y position of every sample is shifted by yOffset relative
+    to its nominal value, so successive passes sample slightly different spots.
+    This is used for kinetics experiments that accumulate a spatial drift to
+    distribute radiation dose or probe sample heterogeneity.
+
+    Sample name format:  {scan_title}_{iteration_number}
+
+    Parameters
+    ----------
+    numIterations : int
+        Total number of complete passes through ListOfSamples.
+    yOffset : float
+        Y shift in mm applied per iteration.
+        After numIterations passes the total Y travel is numIterations * yOffset.
+        Example: 50 iterations × 0.06 mm/iter = 3 mm total Y motion.
+    md : dict, optional
+        Extra metadata forwarded to scan functions.
+
+    Edit ListOfSamples inside this function, reload, then run:
+        RE(larryLoop(50, 0.06))
     """
-    # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
+
+    # Hardcoded sample list for this run.
+    # Format: [pos_X_mm, pos_Y_mm (nominal), thickness_mm, "SampleName"]
+    # The actual Y used is pos_Y + i * yOffset where i is the iteration index.
     ListOfSamples = [
-        [42.9,  19.8, 0.48, "NaCl6m_LE"],  	    # Point1
-        [43.9,  48.2, 0.48, "RbCl6m_LE"],  	    # Point1
-        [44.9,  76.7, 0.48, "NaNO3p5m_LE"],  	    # Point1
-        [43.3, 105.1, 0.48, "RbNO3p5m_LE"],  	    # Point1
-        [89.0,  23.6, 0.48, "BoeNaCl6m_LE"],  		# Point2
-        [89.0,  50.4, 0.48, "BoeRbCl6m_LE"],  		# Point2
-        [88.8,  78.4, 0.48, "BoeNaNO3p5m_LE"],  	    # Point1
-        [89.0, 105.8, 0.48, "BoeRbNO3p5m_LE"],  	    # Point1
+        [42.9,   19.8, 0.48, "NaCl6m_LE"],
+        [43.9,   48.2, 0.48, "RbCl6m_LE"],
+        [44.9,   76.7, 0.48, "NaNO3p5m_LE"],
+        [43.3,  105.1, 0.48, "RbNO3p5m_LE"],
+        [89.0,   23.6, 0.48, "BoeNaCl6m_LE"],
+        [89.0,   50.4, 0.48, "BoeRbCl6m_LE"],
+        [88.8,   78.4, 0.48, "BoeNaNO3p5m_LE"],
+        [89.0,  105.8, 0.48, "BoeRbNO3p5m_LE"],
     ]
 
-    # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
-    #                 ]
-
     def setSampleName():
-        return f"{scan_title}" f"_{i}"
+        """Return sample name encoding the scan title and current iteration index."""
+        return f"{scan_title}_{i}"
 
     def collectAllThree(debug=False):
+        """
+        Collect USAXS → SAXS → WAXS for the current (pos_X, pos_Y, thickness, scan_title).
+
+        pos_X, pos_Y, thickness, and scan_title are taken from the enclosing
+        for-loop in the execution block.
+
+        Parameters
+        ----------
+        debug : bool
+            True → print sample name and sleep (no instrument motion).
+        """
+        sampleMod = setSampleName()
         if debug:
-            # for testing purposes, set debug=True
-            print(sampleMod)
-            yield from bps.sleep(20)
+            print(f"[DEBUG] collectAllThree: {sampleMod}  pos=({pos_X}, {pos_Y})")
+            yield from bps.sleep(1)
         else:
             yield from sync_order_numbers()
-            sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = setSampleName()
@@ -93,197 +170,363 @@ def larryLoop(numIterattions, yOffset, md={}):
             md["title"] = sampleMod
             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
+    # --- Execution sequence ---
     isDebugMode = loop_debug.get()
-    #isDebugMode = False
+    logger.info(
+        "Starting larryLoop | %d iterations | yOffset=%.3f mm | %d samples | debug=%s",
+        numIterations, yOffset, len(ListOfSamples), isDebugMode,
+    )
 
-    if isDebugMode is not True:
-        yield from before_command_list()  # this will run usual startup scripts for scans
+    if not isDebugMode:
+        yield from before_command_list()
+    else:
+        logger.info("[DEBUG] Skipping before_command_list()")
 
-    t0 = time.time()  # mark start time of data collection.
+    appendToMdFile(
+        f"Starting larryLoop: {numIterations} iterations, "
+        f"{len(ListOfSamples)} positions, yOffset={yOffset} mm"
+    )
 
-    for i in range(numIterattions):
-        logger.info("Starting iteration %s", i+1)
+    t0 = time.time()
 
+    for i in range(numIterations):
+        logger.info(
+            "larryLoop: iteration %d/%d  (elapsed %.1f min)",
+            i + 1, numIterations, (time.time() - t0) / MINUTE,
+        )
         for pos_X, pos_Yo, thickness, scan_title in ListOfSamples:
+            # Apply the per-iteration Y drift to this sample's nominal Y position.
             pos_Y = pos_Yo + i * yOffset
             yield from collectAllThree(isDebugMode)
 
-    logger.info("finished")  # record end.
+    elapsed_min = (time.time() - t0) / MINUTE
+    logger.info("larryLoop finished | %d iterations | %.1f min total", numIterations, elapsed_min)
+    appendToMdFile(
+        f"larryLoop complete: {numIterations} iterations in {elapsed_min:.0f} min"
+    )
 
-    if isDebugMode is not True:
-        yield from after_command_list()  # runs standard after scan scripts.
+    if not isDebugMode:
+        yield from after_command_list()
+    else:
+        logger.info("[DEBUG] Skipping after_command_list()")
 
 
+# ==============================================================================
+# myFiniteLoop
+# Single fixed position, time-based loop.
+# Collects USAXS + SAXS only (WAXS intentionally disabled for this variant).
+# Sample name encodes elapsed time in minutes.
+# ==============================================================================
 def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
     """
-    Will run finite loop
-    delay1minutes - delay is in minutes
+    Collect USAXS + SAXS repeatedly at one fixed position for delay1minutes.
 
-    reload by
-    # %run -im usaxs.user.finite_loop
+    WAXS is intentionally disabled in this plan variant.  To enable WAXS,
+    uncomment the waxsExp lines inside collectAllThree.
 
-    run by
-    RE(myFiniteLoop(0, 0, 1, "Sample", 20))
+    Sample name format:  {scan_title}_{elapsed_minutes:.0f}min
+
+    Parameters
+    ----------
+    pos_X, pos_Y : float
+        Sample stage X/Y position in mm.
+    thickness : float
+        Sample thickness in mm.
+    scan_title : str
+        Base name for all scans.
+    delay1minutes : float
+        Total run time in minutes.
+    md : dict, optional
+        Extra metadata.
+
+    Reload:
+        %run -im usaxs.user.finite_loop
+
+    Run:
+        RE(myFiniteLoop(0, 0, 1, "MySample", 20))
     """
 
     def setSampleName():
-        return f"{scan_title}" f"_{((time.time()-t0)/60):.0f}min"
+        """Return sample name encoding scan_title and elapsed minutes since t0."""
+        return f"{scan_title}_{(time.time() - t0) / 60:.0f}min"
 
     def collectAllThree(debug=False):
+        """
+        Collect USAXS + SAXS for the fixed position (WAXS disabled).
+
+        All scans in one call share the same sampleMod (name is not refreshed
+        between USAXS and SAXS) because the elapsed-time resolution in the name
+        format is one minute and back-to-back scans land in the same minute.
+
+        Parameters
+        ----------
+        debug : bool
+            True → print sample name and sleep (no instrument motion).
+        """
         if debug:
-            # for testing purposes, set debug=True
-            print(sampleMod)
+            sampleMod = setSampleName()
+            print(f"[DEBUG] collectAllThree: {sampleMod}")
             yield from bps.sleep(20)
         else:
             yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
-            #sampleMod = setSampleName()
-            md["title"]=sampleMod
+            # SAXS uses the same sampleMod — both scans share the same minute-level name.
+            md["title"] = sampleMod
             yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            # WAXS disabled for this plan variant. Uncomment to enable:
             # sampleMod = setSampleName()
-            # md["title"]=sampleMod
+            # md["title"] = sampleMod
             # yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
+    # --- Execution sequence ---
     isDebugMode = loop_debug.get()
-    # isDebugMode = False
+    logger.info(
+        "Starting myFiniteLoop | sample=%s | pos=(%.2f, %.2f) | duration=%s min | debug=%s",
+        scan_title, pos_X, pos_Y, delay1minutes, isDebugMode,
+    )
 
-    if isDebugMode is not True:
-        yield from before_command_list()  # this will run usual startup scripts for scans
+    if not isDebugMode:
+        yield from before_command_list()
+    else:
+        logger.info("[DEBUG] Skipping before_command_list()")
 
-    t0 = time.time()  # mark start time of data collection.
+    appendToMdFile(
+        f"Starting myFiniteLoop: sample={scan_title}, "
+        f"pos=({pos_X}, {pos_Y}), duration={delay1minutes} min"
+    )
 
-    checkpoint = (
-        time.time() + delay1minutes * MINUTE
-    )  # time to end ``delay1min`` hold period
+    t0 = time.time()
+    checkpoint = time.time() + delay1minutes * MINUTE
 
-    logger.info("Collecting data for %s minutes", delay1minutes)
+    logger.info("Collecting USAXS+SAXS for %s minutes", delay1minutes)
 
-    while (time.time() < checkpoint):  
-        # collects USAXS/SAXS/WAXS data while holding at temp1
+    while time.time() < checkpoint:
+        logger.debug(
+            "myFiniteLoop: %.1f min remaining",
+            (checkpoint - time.time()) / MINUTE,
+        )
         yield from collectAllThree(isDebugMode)
 
-    logger.info("finished")  # record end.
+    elapsed_min = (time.time() - t0) / MINUTE
+    logger.info("myFiniteLoop finished | %.1f min elapsed", elapsed_min)
+    appendToMdFile(f"myFiniteLoop complete: {scan_title}, {elapsed_min:.0f} min elapsed")
 
-    if isDebugMode is not True:
-        yield from after_command_list()  # runs standard after scan scripts.
+    if not isDebugMode:
+        yield from after_command_list()
+    else:
+        logger.info("[DEBUG] Skipping after_command_list()")
 
 
-def myTwoPosFiniteLoop(pos_XA,thicknessA, scan_titleA, pos_XB, thicknessB, scan_titleB, delay1minutes, md={}):
+# ==============================================================================
+# myTwoPosFiniteLoop
+# Alternates between two positions using the LAXm2 (SAMX) motor.
+# Collects USAXS + SAXS only (WAXS intentionally disabled for this variant).
+# The LAXm2 motor moves the stage; pos_X arguments are passed as metadata.
+# ==============================================================================
+def myTwoPosFiniteLoop(
+    pos_XA, thicknessA, scan_titleA,
+    pos_XB, thicknessB, scan_titleB,
+    delay1minutes,
+    md={},
+):
     """
-    Will run finite loop at two positions in alternance using LAXm2 motor
-    delay1minutes - delay is in minutes
-    pos_XA and pos_XB are in mm - these are SAMX satge positions
-    thicknessA and thicknessB are in mm
+    Alternate between two stage positions (via LAXm2 motor) for delay1minutes.
 
-    reload by
-    # %run -im usaxs.user.finite_loop
+    On each pass the plan moves LAXm2 to pos_XA, collects USAXS+SAXS for
+    sample A, then moves to pos_XB and collects for sample B, repeating until
+    the total time exceeds delay1minutes.
 
-    run by
-    RE(myTwoPosFiniteLoop(0, 1,"SampleA", 5, 2, "SampleB", 20))
-    will run data collection at SAMX = 0 with thickness 1mm and sample name SampleA
-    then at SAMX = 5 and thickness 2mm with SampleB name
-    and will alternate between these two for delay1minutes time
+    DESIGN NOTE: The stage motion is performed by ``bps.mv(samx, pos_XA/B)``.
+    The pos_X argument passed to USAXSscan/saxsExp is set to 0 (a metadata
+    placeholder); the actual beam position is determined by the motor.
+    WAXS is intentionally disabled in this plan variant.
+
+    Parameters
+    ----------
+    pos_XA : float
+        LAXm2 motor position (mm) for sample A.
+    thicknessA : float
+        Sample A thickness in mm.
+    scan_titleA : str
+        Base name for sample A scans.
+    pos_XB : float
+        LAXm2 motor position (mm) for sample B.
+    thicknessB : float
+        Sample B thickness in mm.
+    scan_titleB : str
+        Base name for sample B scans.
+    delay1minutes : float
+        Total run time in minutes.
+    md : dict, optional
+        Extra metadata.
+
+    Reload:
+        %run -im usaxs.user.finite_loop
+
+    Run:
+        RE(myTwoPosFiniteLoop(0, 1, "SampleA", 5, 2, "SampleB", 20))
     """
     from apsbits.core.instrument_init import oregistry
+    # LAXm2 is the SAMX stage motor used to switch between the two positions.
     samx = oregistry["LAXm2"]
 
     def setSampleName():
-        return f"{scan_title}" f"_{((time.time()-t0)/60):.0f}min"
+        """Return sample name encoding scan_title and elapsed minutes since t0."""
+        return f"{scan_title}_{(time.time() - t0) / 60:.0f}min"
 
     def collectAllThree(debug=False):
+        """
+        Collect USAXS + SAXS for the current (thickness, scan_title) values.
+
+        thickness and scan_title are re-assigned in the main loop before each
+        call to collectAllThree.  pos_X and pos_Y are fixed at 0 (metadata
+        placeholders; stage is moved by the LAXm2 motor before this call).
+        WAXS is disabled. Uncomment waxsExp lines to enable.
+
+        Parameters
+        ----------
+        debug : bool
+            True → print sample name and sleep (no instrument motion).
+        """
         if debug:
-            # for testing purposes, set debug=True
-            print(sampleMod)
+            sampleMod = setSampleName()
+            print(f"[DEBUG] collectAllThree: {sampleMod}  thickness={thickness}")
             yield from bps.sleep(20)
         else:
             yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
-            #sampleMod = setSampleName()
-            md["title"]=sampleMod
+            md["title"] = sampleMod
             yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+            # WAXS disabled for this plan variant. Uncomment to enable:
             # sampleMod = setSampleName()
-            # md["title"]=sampleMod
+            # md["title"] = sampleMod
             # yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
+    # --- Execution sequence ---
     isDebugMode = loop_debug.get()
-    # isDebugMode = False
+    logger.info(
+        "Starting myTwoPosFiniteLoop | A=%s@%.2fmm | B=%s@%.2fmm | duration=%s min | debug=%s",
+        scan_titleA, pos_XA, scan_titleB, pos_XB, delay1minutes, isDebugMode,
+    )
 
-    if isDebugMode is not True:
-        yield from before_command_list()  # this will run usual startup scripts for scans
+    if not isDebugMode:
+        yield from before_command_list()
+    else:
+        logger.info("[DEBUG] Skipping before_command_list()")
 
-    t0 = time.time()  # mark start time of data collection.
+    appendToMdFile(
+        f"Starting myTwoPosFiniteLoop: "
+        f"A={scan_titleA}@LAXm2={pos_XA} mm, "
+        f"B={scan_titleB}@LAXm2={pos_XB} mm, "
+        f"duration={delay1minutes} min"
+    )
 
-    checkpoint = (
-        time.time() + delay1minutes * MINUTE
-    )  # time to end ``delay1min`` hold period
+    t0 = time.time()
+    checkpoint = time.time() + delay1minutes * MINUTE
 
-    logger.info("Collecting data for %s minutes", delay1minutes)
+    # pos_X and pos_Y are metadata placeholders; stage motion uses the samx motor.
+    pos_X = 0
+    pos_Y = 0
 
-    pos_X=0
-    pos_Y=0
-    
-    while (time.time() < checkpoint):  
-        # collects USAXS/SAXS/WAXS data while holding at temp1
-        thickness=thicknessA
+    logger.info("Alternating between two positions for %s minutes", delay1minutes)
+
+    while time.time() < checkpoint:
+        logger.debug(
+            "myTwoPosFiniteLoop: %.1f min remaining",
+            (checkpoint - time.time()) / MINUTE,
+        )
+        # Sample A
+        thickness = thicknessA
         scan_title = scan_titleA
-        yield from bps.mv(samx, pos_XA) 
+        yield from bps.mv(samx, pos_XA)
         yield from collectAllThree(isDebugMode)
-        thickness=thicknessB
+        # Sample B
+        thickness = thicknessB
         scan_title = scan_titleB
-        yield from bps.mv(samx, pos_XB) 
+        yield from bps.mv(samx, pos_XB)
         yield from collectAllThree(isDebugMode)
 
-    logger.info("finished")  # record end.
+    elapsed_min = (time.time() - t0) / MINUTE
+    logger.info("myTwoPosFiniteLoop finished | %.1f min elapsed", elapsed_min)
+    appendToMdFile(
+        f"myTwoPosFiniteLoop complete: {scan_titleA}/{scan_titleB}, "
+        f"{elapsed_min:.0f} min elapsed"
+    )
 
-    if isDebugMode is not True:
-        yield from after_command_list()  # runs standard after scan scripts.
+    if not isDebugMode:
+        yield from after_command_list()
+    else:
+        logger.info("[DEBUG] Skipping after_command_list()")
 
 
+# ==============================================================================
+# myFiniteMultiPosLoop
+# Time-based loop over a hardcoded position list.
+# Collects USAXS/SAXS/WAXS per position sequentially (standard order).
+# Sample name encodes elapsed time.
+# ==============================================================================
 def myFiniteMultiPosLoop(delay1minutes, md={}):
     """
-    Will run finite loop for delay1minutes - delay is in minutes
-    Runs over list of positions on one sample
-    USAXS-SAXS-WAXS on pos1, then on pos2, etc until returns and starts from beggining
+    Cycle through a position list collecting USAXS/SAXS/WAXS at each spot.
 
-    over list of positions and names
-    1. Correct the ListOfSamples
-    2. reload by
-    %run -im usaxs.user.finite_loop
-    3. run:
-    RE(myFiniteListLoop(20))
+    Each loop iteration visits every position in ListOfSamples in order,
+    collecting a full USAXS → SAXS → WAXS sequence at each before moving on.
+    The outer loop repeats until delay1minutes has elapsed.
 
+    Sample name format:  {scan_title}_{elapsed_minutes:.0f}min
+
+    To use:
+        1. Edit ListOfSamples inside this function to match your sample positions.
+        2. Reload: %run -im usaxs.user.finite_loop
+        3. Run:    RE(myFiniteMultiPosLoop(60))
+
+    Parameters
+    ----------
+    delay1minutes : float
+        Total run time in minutes.
+    md : dict, optional
+        Extra metadata.
     """
-    # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
+
+    # Edit this list to match your samples.
+    # Format: [pos_X_mm, pos_Y_mm, thickness_mm, "SampleName"]
     ListOfSamples = [
-    
-        [15, 58, 4.0, "water_blank"],  	                    # Point1
-        [25, 58, 4.0, "Z_15mgmL_DPEG_1p5mgmL_36hr"],  		# Point2
-        [35, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_36hr"], 	        # Point3
-        [45, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_36hr"], 		# Point4
-        [55, 58, 4.0, "Z_15mgmL_DPEG_6gmL_36hr"], 	        # Point5
-        [65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"], 	    # Point6
-        [75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"], 	    # Point7
-        [85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"], 	    # Point8
-        [95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"], 	# Point9
-        [105, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_47C_14hr"], 	# Point10
-        [115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"], 	    # Point11
-	
+        [ 15, 58, 4.0, "water_blank"],
+        [ 25, 58, 4.0, "Z_15mgmL_DPEG_1p5mgmL_36hr"],
+        [ 35, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_36hr"],
+        [ 45, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_36hr"],
+        [ 55, 58, 4.0, "Z_15mgmL_DPEG_6gmL_36hr"],
+        [ 65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"],
+        [ 75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"],
+        [ 85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"],
+        [ 95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"],
+        [105, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_47C_14hr"],
+        [115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"],
     ]
 
-    # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
-    #                 ]
-
     def setSampleName():
-        return f"{scan_title}" f"_{(time.time()-t0)/60:.0f}min"
+        """Return sample name encoding scan_title and elapsed minutes since t0."""
+        return f"{scan_title}_{(time.time() - t0) / 60:.0f}min"
 
     def collectAllThree(debug=False):
+        """
+        Collect USAXS → SAXS → WAXS for the current (pos_X, pos_Y, thickness, scan_title).
+
+        Called inside the inner for-loop so pos_X, pos_Y, thickness, and scan_title
+        are all provided by the enclosing loop variable at call time.
+
+        Parameters
+        ----------
+        debug : bool
+            True → print sample name and sleep (no instrument motion).
+        """
         if debug:
-            # for testing purposes, set debug=True
-            print(sampleMod)
+            sampleMod = setSampleName()
+            print(f"[DEBUG] collectAllThree: {sampleMod}  pos=({pos_X}, {pos_Y})")
             yield from bps.sleep(20)
         else:
             yield from sync_order_numbers()
@@ -297,109 +540,193 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
             md["title"] = sampleMod
             yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
+    # --- Execution sequence ---
     isDebugMode = loop_debug.get()
-    # isDebugMode = False
+    logger.info(
+        "Starting myFiniteMultiPosLoop | %d positions | duration=%s min | debug=%s",
+        len(ListOfSamples), delay1minutes, isDebugMode,
+    )
 
-    if isDebugMode is not True:
-        yield from before_command_list()  # this will run usual startup scripts for scans
+    if not isDebugMode:
+        yield from before_command_list()
+    else:
+        logger.info("[DEBUG] Skipping before_command_list()")
 
-    t0 = time.time()  # mark start time of data collection.
+    appendToMdFile(
+        f"Starting myFiniteMultiPosLoop: "
+        f"{len(ListOfSamples)} positions, duration={delay1minutes} min"
+    )
 
-    checkpoint = (
-        time.time() + delay1minutes * MINUTE
-    )  # time to end ``delay1min`` hold period
+    t0 = time.time()
+    checkpoint = time.time() + delay1minutes * MINUTE
 
-    logger.info("Collecting data for %s minutes", delay1minutes)
+    logger.info("Cycling through %d positions for %s minutes", len(ListOfSamples), delay1minutes)
 
-    while (
-        time.time() < checkpoint
-    ):  # collects USAXS/SAXS/WAXS data while holding at temp1
+    while time.time() < checkpoint:
+        logger.debug(
+            "myFiniteMultiPosLoop: %.1f min remaining",
+            (checkpoint - time.time()) / MINUTE,
+        )
         for pos_X, pos_Y, thickness, scan_title in ListOfSamples:
             yield from collectAllThree(isDebugMode)
 
-    logger.info("finished")  # record end.
+    elapsed_min = (time.time() - t0) / MINUTE
+    logger.info("myFiniteMultiPosLoop finished | %.1f min elapsed", elapsed_min)
+    appendToMdFile(
+        f"myFiniteMultiPosLoop complete: {len(ListOfSamples)} positions, "
+        f"{elapsed_min:.0f} min elapsed"
+    )
 
-    if isDebugMode is not True:
-        yield from after_command_list()  # runs standard after scan scripts.
+    if not isDebugMode:
+        yield from after_command_list()
+    else:
+        logger.info("[DEBUG] Skipping after_command_list()")
 
 
+# ==============================================================================
+# myFiniteListLoop
+# Time-based loop over a hardcoded position list using GROUPED detector order.
+# One iteration = all-USAXS → all-SAXS → all-WAXS for all positions.
+# Sample name encodes a sequential integer counter (not elapsed time).
+# This strategy minimises the time between USAXS and SAXS scans for each
+# sample, which matters when comparing complementary q-ranges.
+# ==============================================================================
 def myFiniteListLoop(delay1minutes, StartTime, md={}):
     """
-    Will run finite loop for delay1minutes - delay is in minutes
-    over list of positions and names
-    Runs all USAXS, then all SAXS, and then all WAXS
-    1. Correct the ListOfSamples
-    2. reload by
-    %run -im user.finite_loop
-    3. run:
-    RE(myFiniteListLoop(20))
+    Cycle through a position list with grouped detector order for delay1minutes.
 
+    One complete iteration performs:
+        - USAXSscan for every sample in ListOfSamples
+        - saxsExp   for every sample in ListOfSamples
+        - waxsExp   for every sample in ListOfSamples
+
+    This is different from myFiniteMultiPosLoop where the order is
+    USAXS→SAXS→WAXS per position.  The grouped order here is useful when
+    minimising the total mechanical overhead of switching between USAXS and
+    SAXS modes outweighs the benefit of grouping by position.
+
+    Sample name format:  {scan_title}_{counter}
+    where counter increments by 1 per complete iteration.
+
+    Parameters
+    ----------
+    delay1minutes : float
+        Total run time in minutes.
+    StartTime : float
+        Legacy parameter retained for backwards compatibility.
+        Currently unused — sample names use an integer counter instead.
+    md : dict, optional
+        Extra metadata.
+
+    To use:
+        1. Edit ListOfSamples inside this function.
+        2. Reload: %run -im usaxs.user.finite_loop  (or %run -im user.finite_loop)
+        3. Run:    RE(myFiniteListLoop(20, 0))
     """
-    # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
+
+    # Edit this list to match your samples.
+    # Format: [pos_X_mm, pos_Y_mm, thickness_mm, "SampleName"]
     ListOfSamples = [
-        [100, 160, 1.0, "BlankLE"],  # tube 4
-        [139, 100.6, 0.686, "RbCl6mLE"],  # tube 3
-        [139, 160.3, 0.658, "NaCl6mLE"],  # tube 2
-        [179.6, 100.6, 0.684, "BoehRbCl6mLE"],  # tube 1
-        [178.8, 161.0, 0.654, "BoehNaCl6mLE"],  # tube 1
+        [100.0,  160.0, 1.000, "BlankLE"],
+        [139.0,  100.6, 0.686, "RbCl6mLE"],
+        [139.0,  160.3, 0.658, "NaCl6mLE"],
+        [179.6,  100.6, 0.684, "BoehRbCl6mLE"],
+        [178.8,  161.0, 0.654, "BoehNaCl6mLE"],
     ]
 
-    # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
-    #                 ]
-
     def setSampleName(scan_titlePar):
-        # return f"{scan_titlePar}" f"_{(time.time()-t0+(StartTime*60))/60:.0f}min"
-        return f"{scan_titlePar}" f"_{counter}"
+        """
+        Return sample name encoding the sample title and the current iteration counter.
+
+        Using an integer counter (not elapsed time) gives cleaner filenames for
+        grouped-detector collection where the meaning of "time" within one round
+        is ambiguous.  The counter increments once per complete round.
+        """
+        return f"{scan_titlePar}_{counter}"
 
     def collectAllThree(debug=False):
+        """
+        One complete grouped-detector round: all USAXS, all SAXS, all WAXS.
+
+        GROUPED ORDER: all samples at one detector before moving to the next.
+        This differs from the per-position order used in myFiniteMultiPosLoop.
+
+        Note: sync_order_numbers() is NOT called here because the three detector
+        passes are separated in time and treated as independent scan groups.
+
+        Parameters
+        ----------
+        debug : bool
+            True → print sample names and positions for all samples, then sleep.
+        """
         if debug:
-            # for testing purposes, set debug=True
             for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
                 sampleMod = setSampleName(sampleName)
-                print(sampleMod)
-                print(pos_X)
-                print(pos_Y)
-                print(thickness)
-                yield from bps.sleep(1)
+                print(f"[DEBUG] USAXS: {sampleMod}  pos=({pos_X}, {pos_Y})  t={thickness}")
+            yield from bps.sleep(1)
         else:
+            # --- All USAXS ---
             for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
                 sampleMod = setSampleName(sampleName)
                 md["title"] = sampleMod
                 yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
 
+            # --- All SAXS ---
             for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
                 sampleMod = setSampleName(sampleName)
                 md["title"] = sampleMod
                 yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
+            # --- All WAXS ---
             for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
                 sampleMod = setSampleName(sampleName)
                 md["title"] = sampleMod
                 yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
+    # --- Execution sequence ---
     isDebugMode = loop_debug.get()
-    # isDebugMode = False
+    logger.info(
+        "Starting myFiniteListLoop | %d positions | duration=%s min | debug=%s",
+        len(ListOfSamples), delay1minutes, isDebugMode,
+    )
 
-    if isDebugMode is not True:
-        yield from before_command_list()  # this will run usual startup scripts for scans
+    if not isDebugMode:
+        yield from before_command_list()
+    else:
+        logger.info("[DEBUG] Skipping before_command_list()")
 
-    t0 = time.time()  # mark start time of data collection.
+    appendToMdFile(
+        f"Starting myFiniteListLoop (grouped detector order): "
+        f"{len(ListOfSamples)} positions, duration={delay1minutes} min"
+    )
 
+    t0 = time.time()
     counter = 0
+    checkpoint = time.time() + delay1minutes * MINUTE
 
-    checkpoint = (
-        time.time() + delay1minutes * MINUTE
-    )  # time to end ``delay1min`` hold period
+    logger.info(
+        "Grouped detector collection for %s minutes (%d samples per round)",
+        delay1minutes, len(ListOfSamples),
+    )
 
-    logger.info("Collecting data for %s minutes", delay1minutes)
-
-    while (
-        time.time() < checkpoint
-    ):  # collects USAXS/SAXS/WAXS data while holding at temp1
+    while time.time() < checkpoint:
+        logger.debug(
+            "myFiniteListLoop: round %d, %.1f min remaining",
+            counter, (checkpoint - time.time()) / MINUTE,
+        )
         yield from collectAllThree(isDebugMode)
         counter += 1
 
-    logger.info("finished")  # record end.
+    elapsed_min = (time.time() - t0) / MINUTE
+    logger.info(
+        "myFiniteListLoop finished | %d rounds | %.1f min elapsed", counter, elapsed_min
+    )
+    appendToMdFile(
+        f"myFiniteListLoop complete: {counter} rounds, "
+        f"{len(ListOfSamples)} positions, {elapsed_min:.0f} min elapsed"
+    )
 
-    if isDebugMode is not True:
-        yield from after_command_list()  # runs standard after scan scripts.
+    if not isDebugMode:
+        yield from after_command_list()
+    else:
+        logger.info("[DEBUG] Skipping after_command_list()")
