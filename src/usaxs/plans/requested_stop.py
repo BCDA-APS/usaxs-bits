@@ -12,6 +12,7 @@ import bluesky
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky.run_engine import RequestAbort
+from usaxs.utils.obsidian import recordUserAbort
 
 from ..startup import RE
 
@@ -57,6 +58,9 @@ def IfRequestedStopBeforeNextScan():
         ]
         yield from bps.mv(*mv_args)
         yield from user_data.set_state_plan("Aborted data collection")
+
+        #record for Obsidian
+        recordUserAbort()
 
         # RE.pause_msg = "DEBUG: stopped the scans, ignore the (informative) exception
         # trace"

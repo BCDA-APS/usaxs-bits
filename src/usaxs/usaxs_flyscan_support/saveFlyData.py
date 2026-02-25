@@ -338,10 +338,11 @@ def makeDataset(parent: h5py.Group, name: str, data: Any) -> Optional[h5py.Datas
         return dset
     except Exception as _exc:
         logger.error(
-            "Could not create dataset: %s:%s, %s",
+            "Could not create dataset: %s:%s, %s  (parent=%s)",
             parent.name,
             name,
             str(_exc),
+            parent,  # TODO: diagnostic only, remove for production.  Why is parent.name None?  Issue 101.
         )
         return None
 

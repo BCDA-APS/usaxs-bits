@@ -22,9 +22,10 @@ import time
 from usaxs.plans.plans_user_facing import saxsExp
 from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
-from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
+from usaxs.utils.obsidian import appendToMdFile
 
 
 # # this is using simply adding strain and load as EpicsMotor and EpicsSignal
@@ -87,6 +88,7 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             sampleMod = setSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(0, 0, thickness, sampleMod, md={})
@@ -125,6 +127,7 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
     )
     # now do the loop.
     logger.info("Starting Frame collection")
+    appendToMdFile("Starting Frame collection")
 
     for StrainPos in ListOfStrains:
         # first is move to vertically to correct for extension by half distance
@@ -132,11 +135,12 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
         #  LoadFrame.y, frame_y are in mm
         #  this should be what we need as change    frame_y-(StrainPos)/(2*1000)
         # basically, is we extend the sample by 1000um = 1mm (StrainPos), dividng by 2000 will give 0.5mm
-        # and we need to mvoe by 0.5mm down, so frame_y - 0.5
+        # and we need to move by 0.5mm down, so frame_y - 0.5
         yield from bps.mv(LoadFrame.y, frame_y - (StrainPos / (2 * 1000)))
 
         # move frame strain position, in example above, this extends the sample up by 1000um, 1mm up.
         yield from bps.mv(LoadFrame.strain, StrainPos)
+        appendToMdFile(f"Moved to strain position {StrainPos} um")
         # reset time to know we started measurement at this strain. This is convenience information.
         t0 = time.time()
         # collect NumOfScans data sets, 2min each, 4 are about 8 minutes

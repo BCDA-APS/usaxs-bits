@@ -7,6 +7,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import pwd
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
@@ -14,6 +15,9 @@ from epics import caput
 
 
 from usaxs.callbacks.demo_spec_callback import specwriter
+from usaxs.utils import bss
+from usaxs.utils.obsidian import appendToMdFile, recordUserStart, recordNewSample
+from usaxs.utils.bss import BssApi, User
 
 from ..callbacks.nxwriter_usaxs import nxwriter
 from ..startup import RE
@@ -40,8 +44,8 @@ def _setNeXusFileName(path, scan_id=1):
 
     fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
     nxwriter.file_name = fname
-    logger.info(f"NeXus file name : {nxwriter.file_name!r}")
-    logger.info("File will be written at end of next bluesky scan.")
+    logger.debug(f"NeXus file name : {nxwriter.file_name!r}")
+    logger.debug("File will be written at end of next bluesky scan.")
 
 
 def _setSpecFileName(path, scan_id=1):
@@ -56,8 +60,8 @@ def _setSpecFileName(path, scan_id=1):
     else:
         specwriter.newfile(fname, scan_id=scan_id, RE=RE)
         handled = "created"
-    logger.info(f"SPEC file name : {specwriter.spec_filename}")
-    logger.info(f"File will be {handled} at end of next bluesky scan.")
+    logger.debug(f"SPEC file name : {specwriter.spec_filename}")
+    logger.debug(f"File will be {handled} at end of next bluesky scan.")
 
 
 def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
@@ -131,7 +135,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
          
     #### If the file exists and user is None, we are running this automatically and therefore restore old values:
     if user is None and file_exists:
-        logger.info("Found existing user info file: %s", filename)
+        logger.debug("Found existing user info file: %s", filename)
         with open(filename, "r") as file:
             data = json.load(file)
             user = data.get("user_name")
@@ -158,7 +162,7 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         cwd = Path.cwd()
         print("Your current path is now : %s", cwd)
     
-    #prepare data for new json file. 
+     #prepare data for new json file. 
     data = {
         "user_name": user,
         "sample_dir":sample,
@@ -174,16 +178,25 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     user_data.user_name.put(user)  # set in the PV
     user_data.sample_dir.put(sample)  # set in the PV
 
+   
+
     path = (
-        cwd  # we are in working directory where we want to save the data, that is all doen above. 
+        cwd  # we are in working directory where we want to save the data, that is all done above. 
         /
         f"{month:02d}_{day:02d}_{cleanupText(user)}"
     )
 
     if not path.exists():
-        logger.info("Creating user directory: %s", path)
+        logger.debug("Creating user directory: %s", path)
         path.mkdir(parents=True)
-    logger.info("Current working directory: %s", cwd)
+        user_data.user_dir.put(str(path))  # set in the PV, we need this in recordUserStart
+        # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
+        recordUserStart()   #if the path did not exist, we need to create a new md file also. 
+    else:
+        logger.debug("User directory already exists: %s", path)
+        appendToMdFile("") # just ensure the md file exists. If needed, create it. 
+
+    logger.debug("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
 
     _setNeXusFileName(str(path), scan_id=scan_id)   #this sets the path for Nexus file writer.  
@@ -192,6 +205,9 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     user_data.spec_scan.put(scan_id)  # set in the PV    
     # matchUserInApsbss(user)     # update ESAF & Proposal, if available
     # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
+
+
+
 
     logger.info(data)
     return str(path.absolute())
@@ -264,11 +280,122 @@ def newSample(sample=None):
         json.dump(data, file, indent=4)  # indent=4 for pretty formatting
 
     user_data.sample_dir.put(sample)  # set in the PV
+    
+    # Obsidian recording, recordNewSample, md file if needed, make recoding about new sample.
+    recordNewSample()
+
+    return
 
 
+## now Bss 
+# this works fine:
+#  
+
+def matchUserInApsBss(user):
+    """
+    FInd proposals and ESAFs for user from APS BSS system
+    and set up BSS object.
+    """
+    # get gredentials:
+    credfile = Path("~/.config/dmcredentials").expanduser()
+    uname, pwd, stationname, uri = credfile.read_text().splitlines()
+    now = str(datetime.datetime.now())
+    year = now[0:4]
+    # construct cycle from year and moth, it is string representation of year as 4 digits+ "-"+ months 1-4 are 1, 5 to 8 are 2, and 9-12 are 3:
+    month_int = int(now[5:7])
+    if month_int in [1, 2, 3, 4]:
+        cycle = f"{year}-1"
+    elif month_int in [5, 6, 7, 8]:
+        cycle = f"{year}-2"
+    else:
+        cycle = f"{year}-3"
+    # for testing, we can hardcode cycle:
+    #cycle = 2026-1
+
+    #print("uname, pwd, stationname, uri:", uname, pwd, stationname, uri)
+    bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
+    esafs_all = bss.esafs(beamline="12-ID-E", year=year)
+    #props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
+    print (f"Total ESAFs found: {len(esafs_all)}")
+    print(esafs_all[0] if esafs_all else "No ESAFs found")
+    print("finish me") #TODO
+    # this is esaf structure we get:
+    # esaf_id='289320' 
+    # description='Initial setup and setup between different experiments.  Only the standard beamline equipment and equipment from the APS detector pool will be used. The listed metal foils(~5µm thick, commercial standard EXAFS reference foil sets) will be used for the energy calibration.\r\n\r\nIn addition to normal procedure for commissioning, mail-in samples from user groups will be performed; mounting samples in person, and taking the measurement on their behalf remotely.' 
+    # sector='12' 
+    # title='12-BM Commissioning and Experimental Setup (2026-1)' 
+    # start=datetime.datetime(2026, 2, 2, 8, 0) 
+    # end=datetime.datetime(2026, 4, 22, 8, 0) 
+    # status='Pending' 
+    # users=[User(badge='57623', first_name='Sungsik', last_name='Lee', email='sungsiklee@anl.gov', is_pi=True, institution=None), 
+    #       User(badge='55332', first_name='Benjamin', last_name='Reinhart', email='reinhart@aps.anl.gov', is_pi=False, institution=None), 
+    #       User(badge='34965', first_name='Charles', last_name='Kurtz', email='ckurtz@anl.gov', is_pi=False, institution=None)]
 
 
-# def _pick_esaf(user, now, cycle):
+    #esaf_id = _pick_esaf(esafs_all, user, now)
+    #print(esaf_id)
+     #print(esafs[0].esaf_id, esafs[0].title)
+    #print(props[0].proposal_id, props[0].title)
+
+# this shoudl find esafs 
+# import datetime as dt
+# from typing import Sequence
+
+# def filter_esafs(
+#     esafs: Sequence["Esaf"],
+#     *,
+#     name: str,
+#     status: str,
+#     now: dt.datetime | None = None,
+#     case_insensitive: bool = True,
+# ) -> list["Esaf"]:
+#     """
+#     Keep ESAFs where:
+#       1) `name` is contained in any user's first_name or last_name
+#       2) esaf.start >= now - 1 day
+#       3) esaf.end >= now
+#       4) esaf.status matches `status`
+#     Return sorted by start ascending (closest to now first).
+
+#     Assumes all datetimes are naive and in local time.
+#     """
+#     if now is None:
+#         now = dt.datetime.now()  # local, naive
+
+#     cutoff = now - dt.timedelta(days=1)
+
+#     def norm(s: str) -> str:
+#         return s.casefold() if case_insensitive else s
+
+#     name_n = norm(name.strip())
+#     status_n = norm(status.strip())
+
+#     out: list["Esaf"] = []
+
+#     for e in esafs:
+#         if e.start < cutoff:
+#             continue
+#         if e.end < now:
+#             continue
+#         if norm(e.status) != status_n:
+#             continue
+
+#         if not any(
+#             (
+#                 u.first_name and name_n in norm(u.first_name)
+#             ) or (
+#                 u.last_name and name_n in norm(u.last_name)
+#             )
+#             for u in (e.users or [])
+#         ):
+#             continue
+
+#         out.append(e)
+
+#     out.sort(key=lambda e: e.start)
+#     return out
+
+# def _pick_esaf(esafs_all, user, now):
 #     """
 #     Pick the first matching ESAF
 
@@ -285,10 +412,9 @@ def newSample(sample=None):
 #     def esafSorter(obj):
 #         return obj["experimentStartDate"]
 
-#     get_esafs = apsbss.getCurrentEsafs
 #     esafs = [
 #         esaf["esafId"]
-#         for esaf in sorted(get_esafs(APSBSS_SECTOR), key=esafSorter)
+#         for esaf in sorted(esafs_all, key=esafSorter)
 #         # pick those that have not yet expired
 #         if esaf["experimentEndDate"] > now
 #         # and match user last name
@@ -299,13 +425,15 @@ def newSample(sample=None):
 #     ]
 
 #     if len(esafs) == 0:
-#         logger.warning(
+#         #logger.warning(
+#         print(
 #             "No unexpired ESAFs found that match user %s",
 #             user
 #         )
 #         return None
 #     elif len(esafs) > 1:
-#         logger.warning(
+#         #logger.warning(
+#         print(
 #             "ESAF(s) %s match user %s at this time, picking first one",
 #             str(esafs), user)
 

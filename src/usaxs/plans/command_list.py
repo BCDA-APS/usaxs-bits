@@ -37,6 +37,8 @@ from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
 from .sample_rotator_plans import PI_onR
 
+from usaxs.utils.obsidian import recordRunCommandFile, recordProperEnd,recordFunctionRun
+
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 s_stage = oregistry["s_stage"]
 saxs_det = oregistry["saxs_det"]
@@ -91,11 +93,18 @@ def postCommandsListfile2WWW(commands):
     """Post list of commands to WWW and archive the list for posterity."""
     # tbl_file = "commands.txt"
     tbl_file = "specmacro.txt"
-    tbl = command_list_as_table(commands)
     timestamp = datetime.datetime.now().isoformat().replace("T", " ")
     file_contents = "bluesky command sequence\n"
     file_contents += f"written: {timestamp}\n"
-    file_contents += str(tbl.reST())
+
+    # Check if commands is a string (function declaration) or a list (command data)
+    if isinstance(commands, str):
+        # If it's a string, append it directly
+        file_contents += commands
+    else:
+        # If it's a list, convert to table and then to reST format
+        tbl = command_list_as_table(commands)
+        file_contents += str(tbl.reST())
 
     # post for livedata page
     # path = "/tmp"
@@ -106,10 +115,8 @@ def postCommandsListfile2WWW(commands):
     # post to EPICS
     yield from bps.mv(
         # fmt: off
-        user_data.macro_file,
-        os.path.split(tbl_file)[-1],
-        user_data.macro_file_time,
-        timestamp,
+        user_data.macro_file,         os.path.split(tbl_file)[-1],
+        user_data.macro_file_time,                      timestamp,
         # fmt: on
     )
 
@@ -133,10 +140,8 @@ def before_command_list(md=None, commands=None):
 
     yield from bps.mv(
         # fmt: off
-        user_data.time_stamp,
-        str(datetime.datetime.now()),
-        user_data.collection_in_progress,
-        1,
+        user_data.time_stamp,           str(datetime.datetime.now()),
+        user_data.collection_in_progress,                           1,
         # fmt: on
     )
 
@@ -144,14 +149,10 @@ def before_command_list(md=None, commands=None):
 
     yield from bps.mv(
         # fmt: off
-        usaxs_shutter,
-        "close",
-        terms.SAXS.collecting,
-        0,
-        terms.WAXS.collecting,
-        0,
-        a_shutter_autoopen,
-        1,
+        usaxs_shutter,           "close",
+        terms.SAXS.collecting,         0,
+        terms.WAXS.collecting,         0,
+        a_shutter_autoopen,            1,
         # fmt: on
     )
 
@@ -177,6 +178,13 @@ def before_command_list(md=None, commands=None):
 
     if commands is not None:
         yield from postCommandsListfile2WWW(commands)
+    else:
+        # run_command_list which generates table of commands already recorded this, 
+        # so we are catching only when running other way. In this case we need to
+        # record thus as function run. The function also returns the command line for www.
+        #command_line = recordFunctionRun()    
+        #yield from postCommandsListfile2WWW(command_line)
+        pass
 
     # force the next FlyScan to reload the metadata configuration
     # which forces a (re)connection to the EPICS PVs
@@ -260,6 +268,8 @@ def after_command_list(md=None):
         "close",
         # fmt: on
     )
+    # record Obsidian
+    recordProperEnd() 
     yield from user_data.set_state_plan("USAXS macro file done")
 
 
@@ -488,6 +498,9 @@ def execute_command_list(filename, commands, md=None):
     logger.info(text)
     # logger.info("memory report: %s", rss_mem())
 
+    #record Obsidian, using recordRunCommandFile(command_list: str)
+    recordRunCommandFile(text)
+
     # save the command list as a separate Bluesky run for documentation purposes
     # yield from documentation_run(text)
 
@@ -611,6 +624,7 @@ def execute_command_list(filename, commands, md=None):
 
         if exit_requested:
             break
+    
 
     yield from after_command_list(md=md)
     # logger.info("memory report: %s", rss_mem())

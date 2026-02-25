@@ -191,6 +191,16 @@ from .plans.sim_plans import sim_print_plan
 from .plans.sim_plans import sim_rel_scan_plan
 from .utils.setup_new_user import newUser
 from .utils.setup_new_user import newSample
+from usaxs.utils.obsidian import appendToMdFile
+from usaxs.utils.obsidian import recordUserStart
+from usaxs.utils.obsidian import recordNewSample
+from usaxs.utils.obsidian import recordRunCommandFile
+from usaxs.utils.obsidian import recordBeamDump
+from usaxs.utils.obsidian import recordBeamRecovery
+from usaxs.utils.obsidian import recordFunctionRun
+from usaxs.utils.obsidian import recordQserverRun
+from usaxs.utils.obsidian import recordUserAbort
+from usaxs.utils.obsidian import recordProperEnd
 
 # customize the instrument configuration
 oregistry["usaxs_shutter"].delay_s = 0.01

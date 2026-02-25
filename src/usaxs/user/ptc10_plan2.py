@@ -4,6 +4,7 @@ reload by
 ...:  %run -im usaxs.user.ptc10_plan
 
 * 2025-6-13 : JIL : fix for BITS
+** ADD appendToMdFile calls to log temperature changes
 """
 
 import logging
@@ -21,8 +22,9 @@ from ophyd import Signal
 from usaxs.plans.plans_user_facing import saxsExp
 from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
-from usaxs.plans.command_list import after_command_list
+from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
+from usaxs.utils.obsidian import appendToMdFile
 
 ptc10 = oregistry["ptc10"]
 
@@ -99,6 +101,7 @@ def myPTC10HoldList(temp1, rate1Cmin, delay1min, md={}):
         Collects USAXS/SAXS/WAXS data for given input conditions.
         """
         if isDebugMode is not True:
+            yield from sync_order_numbers()
             sampleMod = getSampleName(scan_title)
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -201,6 +204,7 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
         return f"{scan_title}_{ptc10.position:.0f}C_{(time.time()-t0)/60:.0f}min"
 
     def collectAllThree(debug=False):
+        yield from sync_order_numbers()
         md["title"] = sampleMod
         yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
         sampleMod = getSampleName()
@@ -224,9 +228,7 @@ def myPTC10Loop(pos_X, pos_Y, thickness, scan_title, delayMin, md={}):
     yield from after_command_list()  # runs standard after scan scripts.
 
 
-def myPTC10Plan(
-    pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}
-):
+def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1, temp2, rate2, md={}):
     """
     collect RT USAXS/SAXS/WAXS - or not, change code
     change temperature T to temp1 with rate1
@@ -257,6 +259,7 @@ def myPTC10Plan(
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
@@ -363,6 +366,7 @@ def myPTC10RampListPos(temp1, rate1, delay1min, temp2, rate2, md={}):
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             sampleMod = getSampleName(scan_title)
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -469,6 +473,7 @@ def myPTC10List(rate1Cmin, md={}):
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             sampleMod = getSampleName()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
@@ -557,6 +562,7 @@ def myPTC10List2(rate1Cmin, delay1min, md={}):
             # print(pos_X)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             md["title"] = sampleMod
             # yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
@@ -650,6 +656,7 @@ def FanPTC10Plan(
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()
@@ -757,6 +764,7 @@ def FanPTC10OvernightPlan(
             print(sampleMod)
             yield from bps.sleep(20)
         else:
+            yield from sync_order_numbers()
             md["title"] = sampleMod
             yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
             sampleMod = getSampleName()

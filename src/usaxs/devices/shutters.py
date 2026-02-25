@@ -34,6 +34,21 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
     pss_state_open_values: List[Union[int, str]] = [1, "ON"]
     pss_state_closed_values: List[Union[int, str]] = [0, "OFF"]
 
+    # Configurable default timeout (can be overridden per instance)
+    default_timeout = 20  # seconds
+
+    def open(self, timeout=None):
+        """request the shutter to open with configurable timeout"""
+        if timeout is None:
+            timeout = self.default_timeout
+        return super().open(timeout=timeout)
+
+    def close(self, timeout=None):
+        """request the shutter to close with configurable timeout"""
+        if timeout is None:
+            timeout = self.default_timeout
+        return super().close(timeout=timeout)
+
 
 # class PssShutters(Device):
 #     """

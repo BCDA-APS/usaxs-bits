@@ -34,6 +34,7 @@ from usaxs.plans.command_list import after_command_list
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
 from usaxs.plans.command_list import sync_order_numbers
+from usaxs.utils.obsidian import appendToMdFile, recordFunctionRun
 
 linkam_tc1 = oregistry["linkam_tc1"]
 
@@ -105,7 +106,7 @@ def myLinkamPlan_template(
 
     # Normal startup scripts (skip in debug mode)
     if not isDebugMode:
-        yield from before_command_list()
+        yield from before_command_list()            #records also Obsidian start
 
     # 1. Acquire room‑temperature data
     yield from change_rate_and_temperature(150, 40, wait=True)
@@ -114,15 +115,18 @@ def myLinkamPlan_template(
 
     # 2. Ramp to *temp1*, hold, and collect during the hold
     logger.info(f"Ramping temperature to {temp1} C")
+    appendToMdFile(f"Ramping temperature to {temp1} C")
     yield from change_rate_and_temperature(rate1, temp1, wait=True)
     t0 = time.time()  # reset elapsed‑time counter
 
     logger.info(f"Reached temperature, collecting data for {delay1min} minutes")
+    appendToMdFile(f"Reached temperature, collecting data for {delay1min} minutes")
     hold_until = time.time() + delay1min * 60
     while time.time() < hold_until:
         yield from collectAllThree(isDebugMode)
 
     logger.info(f"Waited {delay1min} minutes, now changing temperature to {temp2} C")
+    appendToMdFile(f"Waited {delay1min} minutes, now changing temperature to {temp2} C")    
 
     # 3. Ramp to *temp2* while collecting data
     yield from change_rate_and_temperature(rate2, temp2, wait=False)
@@ -130,9 +134,11 @@ def myLinkamPlan_template(
         yield from collectAllThree(isDebugMode)
 
     logger.info(f"Reached {temp2} C")
+    appendToMdFile(f"Reached {temp2} C")
     yield from collectAllThree(isDebugMode)  # final set
 
     logger.info("finished")
+    appendToMdFile("finished")
 
     # Normal cleanup scripts (skip in debug mode)
     if not isDebugMode:

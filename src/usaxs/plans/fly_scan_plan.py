@@ -281,7 +281,7 @@ def Flyscan_internal_plan(
         # fmt: on
     )
 
-    yield from write_stream([struck.mca1, struck.mca2, struck.mca3], "mca")
+    #yield from write_stream([struck.mca1, struck.mca2, struck.mca3], "mca")
     logger.debug(f"after return: {time.time() - usaxs_flyscan.t0}s")
 
     yield from user_data.set_state_plan("fly scan finished")

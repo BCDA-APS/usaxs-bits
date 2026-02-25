@@ -5,9 +5,9 @@ ICONFIG_VERSION: 2.0.1
 
 # Add additional configuration for use with your instrument.
 
-# DATABROKER_CATALOG: &databroker_catalog usaxs
-TILED_PROFILE_NAME: raw
-TILED_PATH_NAME: /raw
+DATABROKER_CATALOG: &databroker_catalog usaxs
+# TILED_PROFILE_NAME: raw
+# TILED_PATH_NAME: /raw
 
 ### RunEngine configuration
 RUN_ENGINE:

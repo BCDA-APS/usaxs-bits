@@ -12,6 +12,8 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
+from usaxs.utils.area_detector import area_detector_file_plugins
+from usaxs.utils.area_detector import path_template_fixer
 from usaxs.utils.utils import techniqueSubdirectory
 
 logger = logging.getLogger(__name__)
@@ -61,6 +63,9 @@ def record_sample_image_on_demand(
             waxs=waxs_det.hdf1.file_number,
         )
         order_number = xref.get(technique_name, xref["usaxs"]).get()
+
+        for plugin in area_detector_file_plugins(det):
+            path_template_fixer(plugin)
 
         try:
             yield from det.image_prep(path, filename_base, order_number)
