@@ -77,7 +77,7 @@ from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
-from usaxs.utils.obsidian import appendToMdFile
+from usaxs.utils.obsidian import appendToMdFile, recordFunctionRun
 
 # Convenient time-unit constants.
 SECOND = 1
@@ -172,6 +172,7 @@ def larryLoop(numIterations, yOffset, md={}):
 
     # --- Execution sequence ---
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting larryLoop | %d iterations | yOffset=%.3f mm | %d samples | debug=%s",
         numIterations, yOffset, len(ListOfSamples), isDebugMode,
@@ -282,6 +283,7 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
 
     # --- Execution sequence ---
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myFiniteLoop | sample=%s | pos=(%.2f, %.2f) | duration=%s min | debug=%s",
         scan_title, pos_X, pos_Y, delay1minutes, isDebugMode,
@@ -408,6 +410,7 @@ def myTwoPosFiniteLoop(
 
     # --- Execution sequence ---
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myTwoPosFiniteLoop | A=%s@%.2fmm | B=%s@%.2fmm | duration=%s min | debug=%s",
         scan_titleA, pos_XA, scan_titleB, pos_XB, delay1minutes, isDebugMode,
@@ -542,6 +545,7 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
 
     # --- Execution sequence ---
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myFiniteMultiPosLoop | %d positions | duration=%s min | debug=%s",
         len(ListOfSamples), delay1minutes, isDebugMode,
@@ -685,6 +689,7 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
 
     # --- Execution sequence ---
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myFiniteListLoop | %d positions | duration=%s min | debug=%s",
         len(ListOfSamples), delay1minutes, isDebugMode,

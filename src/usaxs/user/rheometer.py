@@ -47,7 +47,7 @@ from usaxs.plans.plans_tune import preUSAXStune
 from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal, EpicsSignal
-from usaxs.utils.obsidian import appendToMdFile
+from usaxs.utils.obsidian import appendToMdFile, recordFunctionRun
 
 # Time-unit constants for building delay expressions.
 SECOND = 1
@@ -152,6 +152,7 @@ def rheoLoop(scan_title, delay1minutes, md={}):
         yield from bps.mv(galil_voltage, 0)
         yield from bps.sleep(1)
 
+    recordFunctionRun()
     yield from before_command_list()  # runs standard startup scripts for scans
 
     t0 = time.time()  # mark start time of data collection

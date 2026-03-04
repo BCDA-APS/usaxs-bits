@@ -178,7 +178,7 @@ from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
-from usaxs.utils.obsidian import appendToMdFile
+from usaxs.utils.obsidian import appendToMdFile, recordFunctionRun
 
 # Convenient time-unit constants.
 SECOND = 1
@@ -288,6 +288,7 @@ def myFiniteLoop_AI_template(
     # ------------------------------------------------------------------
 
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myFiniteLoop_AI_template | sample=%s | pos=(%.2f, %.2f) "
         "| duration=%s min | debug=%s",
@@ -417,6 +418,7 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
     # ------------------------------------------------------------------
 
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myFiniteMultiPosLoop_AI_template | %d positions | "
         "duration=%s min | debug=%s",
@@ -567,6 +569,7 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
     # ------------------------------------------------------------------
 
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myFiniteListLoop_AI_template (grouped detectors) | "
         "%d positions | duration=%s min | debug=%s",
@@ -713,6 +716,7 @@ def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
     # ------------------------------------------------------------------
 
     isDebugMode = loop_debug.get()
+    recordFunctionRun()
     total_y = numIterations * yOffset
     logger.info(
         "Starting myFiniteYDriftLoop_AI_template | %d iterations | "

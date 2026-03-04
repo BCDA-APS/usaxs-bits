@@ -429,6 +429,7 @@ def myLinkamPlan_AI_template(
 
     # Read the debug flag once so behaviour is consistent for the entire plan.
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myLinkamPlan_AI_template | sample=%s | debug=%s",
         scan_title, isDebugMode,

@@ -228,6 +228,7 @@ def myLinkamPlan_template(
 
     # Read debug flag once at plan start so behaviour is consistent throughout.
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     # --- Block 1: Startup ------------------------------------------------
     # before_command_list() runs the standard instrument startup checklist and

@@ -207,7 +207,7 @@ from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
-from usaxs.utils.obsidian import appendToMdFile
+from usaxs.utils.obsidian import appendToMdFile, recordFunctionRun
 
 # PTC10 temperature controller from the ophyd device registry.
 ptc10 = oregistry["ptc10"]
@@ -433,6 +433,7 @@ def myPTC10Plan_AI_template(
 
     # Read debug flag once so behaviour is consistent throughout the plan.
     isDebugMode = ptc10_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myPTC10Plan_AI_template | sample=%s | target=%s C | debug=%s",
         scan_title, temp_target, isDebugMode,
@@ -690,6 +691,7 @@ def myPTC10PlanList_AI_template(
     # =========================================================================
 
     isDebugMode = ptc10_debug.get()
+    recordFunctionRun()
     logger.info(
         "Starting myPTC10PlanList_AI_template | %d samples | %d temperatures | debug=%s",
         len(SampleList), len(TemperatureList), isDebugMode,
@@ -815,6 +817,7 @@ def myPTC10PlanList_AI_template(
 #     """Step from start_T to end_T in step_T increments, collecting at each step."""
 #     # ... (inner helper functions) ...
 #     isDebugMode = ptc10_debug.get()
+#     recordFunctionRun()
 #     if not isDebugMode:
 #         yield from before_command_list()
 #     t0 = time.time()

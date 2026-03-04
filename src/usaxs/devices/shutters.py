@@ -37,6 +37,10 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
     # Configurable default timeout (can be overridden per instance)
     default_timeout = 20  # seconds
 
+    def __init__(self, *args, default_timeout:float=20, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.default_timeout = default_timeout
+
     def open(self, timeout=None):
         """request the shutter to open with configurable timeout"""
         if timeout is None:

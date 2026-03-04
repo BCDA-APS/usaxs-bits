@@ -57,7 +57,7 @@ from usaxs.plans.plans_user_facing import waxsExp
 from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
-from usaxs.utils.obsidian import appendToMdFile
+from usaxs.utils.obsidian import appendToMdFile, recordFunctionRun
 
 
 class LoadFrameDevice(Device):
@@ -188,6 +188,7 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
 
     # Set to True to skip instrument operations and simulate data collection.
     isDebugMode = False
+    recordFunctionRun()
 
     if not isDebugMode:
         yield from before_command_list()  # runs standard startup scripts for scans
