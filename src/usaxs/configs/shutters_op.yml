@@ -3,8 +3,6 @@ usaxs.devices.shutters.My12IdPssShutter:
   state_pv: "PA:12ID:STA_A_FES_OPEN_PL"
   prefix: "12ida2:rShtrA:"
   labels: ["shutters"]
-
-usaxs.devices.My12IdPssShutter:
 - name: mono_shutter
   state_pv: "PA:12ID:STA_C_SCS_OPEN_PL"
   prefix: "PA:12ID:"
