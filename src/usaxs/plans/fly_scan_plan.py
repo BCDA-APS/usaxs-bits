@@ -265,8 +265,12 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
         RuntimeError
             If called before ``prepare_HDF5_file()`` (i.e. ``saveFlyData`` is None).
         """
+        # prepare_HDF5_file() runs concurrently; wait for it to set saveFlyData.
+        t_end = time.time() + 60  # 60-second timeout
+        while usaxs_flyscan.saveFlyData is None and time.time() < t_end:
+            time.sleep(0.05)
         if usaxs_flyscan.saveFlyData is None:
-            raise RuntimeError("Must first call prepare_HDF5_file()")
+            raise RuntimeError("prepare_HDF5_file() did not complete in time")
         usaxs_flyscan.saveFlyData.saveFile()
 
         logger.info(f"HDF5 file complete: {usaxs_flyscan._output_HDF5_file_}")

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import inspect; from apstools.devices import ApsPssShutterWithStatus; print\\(inspect.getsource\\(ApsPssShutterWithStatus\\)\\)\")",
+      "Bash(python3 -c \"import inspect; from apstools.devices import ApsPssShutter; print\\(inspect.getsource\\(ApsPssShutter\\)\\)\")",
+      "Bash(python3 -c \"import inspect; import guarneri; from guarneri.instrument import Instrument; src = inspect.getsource\\(Instrument._build_device\\); print\\(src\\)\")",
+      "Bash(python3 -c \"import usaxs.devices.shutters; print\\(usaxs.devices.shutters.__file__\\)\")",
+      "Bash(python3 -c \"import inspect; from ophyd import FormattedComponent; print\\(inspect.getsource\\(FormattedComponent\\)\\)\")",
+      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python3 -c \":*)",
+      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python3 -c \" import inspect from apstools.devices.shutters import ShutterBase print\\(inspect.getsource\\(ShutterBase\\)\\) \")",
+      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python3 2)",
+      "Bash(/dev/null:*)",
+      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python3 -W ignore -c \":*)",
+      "Bash(grep -v \"^$\")"
+    ]
+  }
+}
