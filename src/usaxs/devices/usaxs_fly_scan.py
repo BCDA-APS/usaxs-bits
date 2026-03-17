@@ -52,8 +52,8 @@ class UsaxsFlyScanDevice(Device):
         self.update_time = None
         self.update_interval_s = 5
         self.ar0 = None
-        self.ay0 = None
-        self.dy0 = None
+        self.ax0 = None
+        self.dx0 = None
         self.saveFlyData = None
         self.saveFlyData_config = XML_CONFIGURATION_FILE
         self.saveFlyData_HDF5_dir = hdf5_dir

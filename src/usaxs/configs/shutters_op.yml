@@ -3,13 +3,12 @@ usaxs.devices.shutters.My12IdPssShutter:
   state_pv: "PA:12ID:STA_A_FES_OPEN_PL"
   prefix: "12ida2:rShtrA:"
   labels: ["shutters"]
-
-apstools.devices.ApsPssShutterWithStatus:
 - name: mono_shutter
   state_pv: "PA:12ID:STA_C_SCS_OPEN_PL"
   prefix: "PA:12ID:"
   open_pv: "12ida2:rShtrC:Open"
   close_pv: "12ida2:rShtrC:Close"
+  default_timeout: 30
   labels: ["shutters"]
 
 apstools.devices.ApsPssShutter:

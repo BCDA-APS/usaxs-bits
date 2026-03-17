@@ -25,8 +25,13 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
     """
 
     # bo records that reset after a short time, set to 1 to move
-    open_signal: Component[EpicsSignal] = Component(EpicsSignal, "Open")
-    close_signal: Component[EpicsSignal] = Component(EpicsSignal, "Close")
+    # Use FormattedComponent so open_pv/close_pv can be set per instance via YAML config
+    open_signal: FormattedComponent[EpicsSignal] = FormattedComponent(
+        EpicsSignal, "{self.open_pv}"
+    )
+    close_signal: FormattedComponent[EpicsSignal] = FormattedComponent(
+        EpicsSignal, "{self.close_pv}"
+    )
     # bi record ZNAM=OFF, ONAM=ON
     pss_state: FormattedComponent[EpicsSignalRO] = FormattedComponent(
         EpicsSignalRO, "{self.state_pv}"
@@ -36,6 +41,12 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
 
     # Configurable default timeout (can be overridden per instance)
     default_timeout = 20  # seconds
+
+    def __init__(self, prefix, state_pv, *args, default_timeout: float = 20, **kwargs):
+        # open_pv and close_pv are passed through **kwargs to ApsPssShutter.__init__,
+        # which sets self.open_pv and self.close_pv before Device.__init__ creates signals.
+        super().__init__(prefix, state_pv, *args, **kwargs)
+        self.default_timeout = default_timeout
 
     def open(self, timeout=None):
         """request the shutter to open with configurable timeout"""

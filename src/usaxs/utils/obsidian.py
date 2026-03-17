@@ -1,66 +1,106 @@
-'''
-Docstring for usaxs.utils.obsidian
+"""
+Instrument-automated notes in Obsidian Markdown for the 12-ID-E USAXS beamline.
 
-This code will support automatic recording of user operations in human language into Obsidian Vault
-called experiments, located on /share1/Obsidian/Experiments
-Notes will be in form of Markdown files used by Obsidian (filename.md)
-These notes will have human language record of important events, suitabel for human and AI consumption with readable formating.
+==============================================================================
+OVERVIEW
+==============================================================================
 
-We need:
-createMonthFolder(): if needed, create in folder /share1/Obsidian/Experiments folder in form of "YYYY-MM" with folder InstrumentRecords (e.g., 2026-02/InstrumentRecords) this is where the notes go.
-createMdFile(): create MM-DD-username.md file if needed, inside YYYY-MM/InstrumentRecords folder. These functions need to create the folder/file only if needed, or just pass. 
+Obsidian is a file-based Markdown note-taking application.  This module
+writes machine-generated log entries into the shared Obsidian vault at
+/share1/Obsidian/Experiments so that instrument events are interleaved with
+notes taken by beamline staff.
 
-Other functions will use above functions and append to the end of the md file. It needs to be always end of the file, since staff may decide to append stuff into the file manually, 
-which is really useful in case notes are needed. 
-To keep proper flow, code needs to append after staff additional notes :
-a. recordUserStart() called on newUser(), records basic user metadata in human language.
-b. recordNewSample() called by newSample(), records basic instrument settings
-c. recordBeamDump()/RecordBeamRecovery(), records beam dump/recovery, called by suspenders
-d. recordStaticSamples() - called by run_command_file() and records list of samples queued.
-e. recordFunctionRun() - called by python function runs, need to record the command line which was used to execute the function. Not sure how to do this.
-f. recordQserverRun() used by QueServer to record line by line what QueServer runs.
-g. Do we need to record tuning? May be if run automatically? But, this info is in Database, so this may be unnneded for humans.
-etc. record of recordUserAbort, recordProperEnd, ... Any other records needed? Making record of each scan seems excessive, that is also in database in case it is needed.
-Now, to do this obsidian.py will need to import from oregistry instrument details (user info, folder info, wavelength, APS current ring, etc). We may need to pass some parameters from calling function to make life easier for the function to know proper data...
+Notes are standard Markdown and are designed to be:
+    - Human-readable in Obsidian (headings, bold labels, bullet lists)
+    - AI-parseable (consistent structure, clear labels, ISO timestamps)
+    - Concise — each entry records the event and essential parameters only
 
-Eventually we need to add this through the code itself to make sure the records are made.
+Staff may append their own notes at any time.  Instrument entries are always
+written at the end of the file so that hand-written notes are preserved.
 
-here is list of functions provided below:
+==============================================================================
+FILE ORGANISATION
+==============================================================================
 
-createMonthFolder()
-createMdFile()
-appendToMdFile(text: str)
-recordUserStart()
-recordNewSample()
-recordRunCommandFile(command_list: str)
-recordBeamDump()
-recordBeamRecovery()
-recordFunctionRun()
-recordQserverRun(command_line: str)
-recordUserAbort()
-recordProperEnd()
-'''
+Vault root   : /share1/Obsidian/Experiments
+Period folder: YYYY-P  where P = 01 (Jan–Apr), 02 (May–Aug), 03 (Sep–Dec)
+Notes folder : YYYY-P/Instrument_Records/
+Note file    : <user_data_dir_basename>.md
+               e.g. session folder "1_14_setup" → "1_14_setup.md"
 
-#imports:
+Each note file is created once and then only appended to.
+
+==============================================================================
+TIMESTAMP FORMAT
+==============================================================================
+
+All entries are stamped with an ISO-8601 timestamp (YYYY-MM-DD HH:MM:SS).
+
+    - Simple one-line entries: timestamp and text on the same line.
+          2026-02-26 10:30:00 Starting plan: sample=MySample ...
+
+    - Structured entries that open with a Markdown heading (##/###): timestamp
+      on its own line immediately before the heading so the heading renders
+      correctly in Obsidian.
+          2026-02-26 10:30:00
+          ## Beam Dumped
+
+==============================================================================
+FUNCTIONS
+==============================================================================
+
+    createPeriodFolder()             → Path : ensure YYYY-P period folder exists
+    createMdFile()                   → Path : ensure note file exists
+    appendToMdFile(text)                    : append one timestamped entry
+    recordUserStart()                       : log new-user session start
+    recordNewSample()                       : log instrument state for new sample
+    recordRunCommandFile(command_list)      : log a command-file execution
+    recordBeamDump()                        : log APS ring beam dump
+    recordBeamRecovery()                    : log APS ring beam recovery
+    recordFunctionRun()                     : log the calling function and its args
+    recordQserverRun(command_line)          : log a QueueServer command
+    recordUserAbort()                       : log a user-initiated abort
+    recordProperEnd()                       : log a clean experiment end
+
+==============================================================================
+SUGGESTED IMPROVEMENTS
+==============================================================================
+
+    - recordUserStart() reads user_name and sample_dir from user_data but does
+      not yet include them in the note text.  Adding them would make the
+      "User Experiment Start" entry much more useful.
+
+    - EpicsSignalRO instances created inline inside recordNewSample() may not
+      have completed Channel Access connection before .get() is called,
+      potentially returning stale or zero values.  Consider creating them at
+      module level (like monochromator) and calling .wait_for_connection().
+
+==============================================================================
+CHANGE LOG
+==============================================================================
+
+    * JIL, 2026-02-26 : Reformatted and documented.  Fixed double-timestamp
+                        bug in all record*() functions; fixed broken Markdown
+                        heading formatting in appendToMdFile(); removed unused
+                        imports (json, Component, Device, cleanupText,
+                        filename_exists); removed dead variable start_time in
+                        recordUserStart(); removed unused shlex import inside
+                        recordFunctionRun(); corrected "QueServer" → "QueueServer".
+"""
+
 import datetime
-import json
 import logging
 import os
 from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
-from apstools.utils import cleanupText
-from .check_file_exists import filename_exists
 from ophyd import EpicsSignalRO
-from ophyd import Component
-from ophyd.device import Device
+
+from .check_file_exists import filename_exists  # available for callers; not used here
 
 
-# from ..devices import user_data
 user_data = oregistry["user_data"]
 monochromator = oregistry["monochromator"]
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -68,156 +108,247 @@ APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"
 
 
-def createMonthFolder():
-    # create in folder /share1/Obsidian/Experiments folder in form of "YYYY-MM" with folder InstrumentRecords (e.g., 2026-02/InstrumentRecords) this is where the notes go
+def createPeriodFolder():
+    """
+    Ensure the current 4-month period folder exists and return its path.
+
+    The vault organises notes into three periods per calendar year, each
+    spanning four months.  The period number P is derived from the month:
+
+        P = 01 → January – April
+        P = 02 → May – August
+        P = 03 → September – December
+
+    The folder path created (or reused) is:
+        /share1/Obsidian/Experiments/YYYY-P/Instrument_Records/
+
+    Returns
+    -------
+    Path
+        Absolute path to the Instrument_Records folder for the current period.
+    """
     base_path = Path("/share1/Obsidian/Experiments")
-    # folder_name = f"{now.year}-{suffix}"
-    # define folder name based on current date in form of YYYY-QQ where QQ is quarter 01,02,03 
-    # now = datetime.datetime.now()
-    # if now.month <= 4:
-    #     suffix = "01"
-    # elif now.month <= 8:
-    #     suffix = "02"
-    # else:
-    #     suffix = "03"
-    # this is much more elegant:
     now = datetime.datetime.now()
-    folder_name = f"{now.year}-{((now.month - 1)//4 + 1):02d}"
-    #this defines current folder, e.g.: ~/share1/Obsidian/Experiments/2025-10/Instrument_Records
+    # (month-1)//4 + 1 maps months 1-4 → 1, 5-8 → 2, 9-12 → 3
+    period = (now.month - 1) // 4 + 1
+    folder_name = f"{now.year}-{period:02d}"
     working_folder = base_path / folder_name / "Instrument_Records"
 
-    if working_folder.exists():
-        #print(f"Folder already exists: {working_folder}")
-        pass
-    else:
+    if not working_folder.exists():
         working_folder.mkdir(parents=True)
-        #print(f"Folder created: {working_folder}")    
 
     return working_folder
 
+
+# Keep the original name as an alias so existing call sites are not broken.
+createMonthFolder = createPeriodFolder
+
+
 def createMdFile():
-    # create MM-DD-username.md file if needed, inside YYYY-MM/InstrumentRecords folder. These functions need to create the folder/file only if needed, or just pass. 
-    working_folder = createMonthFolder()
+    """
+    Ensure the note file for the current session exists and return its path.
+
+    The file name is derived from the last component of user_data.user_dir
+    (the session data directory), so each beamtime session gets its own note
+    file.  For example, if user_dir is ``/share1/USAXS_data/2026-01/1_14_setup``
+    the note file is ``1_14_setup.md``.
+
+    The file is created with a single ``# Experiment Notes`` heading on first
+    use.  Subsequent calls return the existing path without modification.
+
+    Returns
+    -------
+    Path
+        Absolute path to the session Markdown note file.
+    """
+    working_folder = createPeriodFolder()
     data_path = user_data.user_dir.get()
-    # this returns something like /share1/USAXS_data/2026-01/1_14_setup 
-    # the last folder name from data_path which will be the name of md file
-    # merge the working_folder/last folder name + ".md"
     last_folder_name = os.path.basename(os.path.normpath(data_path))
-    # this returns last_folder_name = "1_14_setup"
     md_filename = f"{last_folder_name}.md"
     md_file_path = working_folder / md_filename
-    #start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    if md_file_path.exists():
-        #print(f"Markdown file already exists: {md_file_path}")
-        pass
-    else:
+
+    if not md_file_path.exists():
         with open(md_file_path, "w") as f:
-            f.write(f"# Experiment Notes by USAXS instrument\n")
-            #f.write(f"Date Time: {start_time}\n")
-        #print(f"Markdown file created: {md_file_path}")
+            f.write("# Experiment Notes by USAXS instrument\n")
+
     return md_file_path
 
+
 def appendToMdFile(text: str):
-    # appends text to the end of the md file created above
+    """
+    Append one timestamped entry to the current session note file.
+
+    The entry is stamped with the current wall-clock time
+    (``YYYY-MM-DD HH:MM:SS``).  Formatting depends on whether the text opens
+    with a Markdown heading:
+
+        - Plain text: ``{timestamp} {text}``  (single line)
+        - Heading (``#…``): timestamp on its own line, then the heading,
+          so that Obsidian renders the heading correctly.
+
+    Empty or whitespace-only text is silently ignored.
+
+    Parameters
+    ----------
+    text : str
+        The text to append.  May be a single line or a multi-line block
+        (e.g. heading + bullet list).  Leading/trailing whitespace is stripped
+        before writing.
+    """
     md_file_path = createMdFile()
+    stripped = text.strip()
+    if not stripped:
+        return
     with open(md_file_path, "a") as f:
-        if len(text.strip()) > 0:
-            time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(time_now+" "+text + "\n")
-    #print(f"Appended to {md_file_path}: {text}")
-    return
+        time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if stripped.startswith("#"):
+            # Markdown headings must start at the beginning of a line.
+            # Write the timestamp on its own preceding line.
+            f.write(f"\n{time_now}\n{stripped}\n")
+        else:
+            f.write(f"{time_now} {stripped}\n")
+
 
 def recordUserStart():
-    # called on newUser(), records basic user metadata in human language.
-    user_name = user_data.user_name.get()
-    sample_dir = user_data.sample_dir.get()
-    #user_email = user_data.user_email.get()
-    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## User Experiment Start\n"
-    appendToMdFile(text)
+    """
+    Record the start of a new user session in the note file.
+
+    Called by newUser().  Writes a ``## User Experiment Start`` heading and
+    then delegates to recordNewSample() to capture the current instrument
+    state.
+
+    Note: user_name and sample_dir are available from user_data but are not
+    yet included in the note text.  Adding them here would make this entry
+    more informative (see SUGGESTED IMPROVEMENTS in the module docstring).
+    """
+    user_name = user_data.user_name.get()    # read but not yet used in note
+    sample_dir = user_data.sample_dir.get()  # read but not yet used in note
+    appendToMdFile("## User Experiment Start\n")
     recordNewSample()
-    #print(f"Recorded user start for user: {user_name}")
-    return
 
 
 def recordNewSample():
-    # called by newSample(), records basic instrument settings
+    """
+    Record the current instrument state when a new sample directory is created.
+
+    Called by newSample().  Captures APS ring current, undulator energy, and
+    monochromator energy at the moment of the call and writes them as a
+    Markdown sub-section.
+
+    Warning: ``aps_current`` and ``und_energy`` are created as inline
+    EpicsSignalRO objects.  Channel Access connection is not explicitly awaited,
+    so the first ``.get()`` call may return a stale or default value if the
+    IOC is slow to respond (see SUGGESTED IMPROVEMENTS in the module docstring).
+    """
     mono_energy = monochromator.dcm.energy.readback
-    aps_current = EpicsSignalRO("XFD:srCurrent", name="aps_current")    #this is how we get PV values from epics if needed. 
-    und_energy = EpicsSignalRO("S12ID:USID:EnergyM.VAL", name="undulator_energy")  #undulator energy in keV
+    aps_current = EpicsSignalRO("XFD:srCurrent", name="aps_current")
+    und_energy = EpicsSignalRO("S12ID:USID:EnergyM.VAL", name="undulator_energy")
     sample_dir = user_data.sample_dir.get()
-    #undulator_energy = Component(EpicsSignalRO, "ID12ds:Energy")
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"### New Sample directory \"{sample_dir}\" created\n\
-- **APS Current (mA):** {aps_current.get():.2f}\n\
-- **Undulator Energy (keV):** {und_energy.get():.2f}\n\
-- **Mono X-ray Energy (keV):** {mono_energy.get():.2f}\n\
-- **Date Time:** {time_now}\n"
+    text = (
+        f"### New Sample directory \"{sample_dir}\" created\n"
+        f"- **APS Current (mA):** {aps_current.get():.2f}\n"
+        f"- **Undulator Energy (keV):** {und_energy.get():.2f}\n"
+        f"- **Mono X-ray Energy (keV):** {mono_energy.get():.2f}\n"
+    )
     appendToMdFile(text)
-    return
+
 
 def recordRunCommandFile(command_list: str):
-    # called by run_command_file() and records list of samples queued.
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## Run Command File executed\n**Date Time:** {time_now}\n{command_list}\n"
+    """
+    Record the execution of a command file (called by run_command_file()).
+
+    Parameters
+    ----------
+    command_list : str
+        Text representation of the queued sample/command list.
+    """
+    text = f"## Run Command File executed\n{command_list}\n"
     appendToMdFile(text)
-    return
+
 
 def recordBeamDump():
-    # records beam dump, called by suspenders
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## Beam Dumped\n**Date Time:** {time_now}\n"
-    appendToMdFile(text)
-    return
+    """
+    Record an APS ring beam dump event (called by suspenders).
+    """
+    appendToMdFile("## Beam Dumped\n")
+
 
 def recordBeamRecovery():
-    # records beam recovery, called by suspenders
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## Beam Recovered\n**Date Time:** {time_now}\n"
-    appendToMdFile(text)
-    return
+    """
+    Record APS ring beam recovery after a dump (called by suspenders).
+    """
+    appendToMdFile("## Beam Recovered\n")
 
-#def recordFunctionRun(function_name: str, command_line: str):
+
 def recordFunctionRun():
-    # called by python function runs, need to record the command line which was used to execute the function.
-    # can we get have a name and parameters used to run of the calling function?
+    """
+    Record the name and arguments of the function that called this one.
+
+    Uses ``inspect`` to walk one frame up the call stack and reconstruct a
+    Python-style call representation of the caller:
+        ``functionName(arg1=value1, arg2=value2, ...)``
+
+    Values are formatted with ``repr()`` so strings appear quoted, booleans
+    appear as ``True``/``False``, and the result can be read back as valid
+    Python syntax.
+
+    Call this as a plain function (NOT ``yield from``) at the very start of a
+    plan body, before the first ``yield``, so it fires when the RunEngine
+    begins executing the plan:
+
+        linkam = linkam_tc1
+        isDebugMode = linkam_debug.get()
+        recordFunctionRun()          # ← call here
+        if not isDebugMode:
+            yield from before_command_list()
+
+    The Obsidian note entry produced looks like::
+
+        2026-02-26 10:30:00
+        ## Function Run: myLinkamPlan_AI_template
+        - **Call:** myLinkamPlan_AI_template(pos_X=0, pos_Y=0, thickness=1.0, scan_title='MySample', temp_target=200, ...)
+
+    Returns
+    -------
+    str
+        The reconstructed call string (also written to the note file).
+    """
     import inspect
-    import shlex
-    # Get the previous frame in the stack, that is, the caller's frame
     previous_frame = inspect.currentframe().f_back
-    # Get the function name from the previous frame
     function_name = previous_frame.f_code.co_name
-    # Get the arguments and their values from the previous frame
     args, _, _, values = inspect.getargvalues(previous_frame)
-    # Create a command line representation
-    arg_list = []
-    for arg in args:
-        arg_list.append(f"--{arg} {values[arg]}")
-    command_line = f"{function_name} " + " ".join(arg_list) 
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## Function Run: {function_name}\n- **Command Line:** {command_line}\n- **Date Time:** {time_now}\n"
+    arg_list = [f"{arg}={repr(values[arg])}" for arg in args]
+    command_line = f"{function_name}({', '.join(arg_list)})"
+    text = (
+        f"## Function Run: {function_name}\n"
+        f"- **Call:** {command_line}\n"
+    )
     appendToMdFile(text)
     return command_line
 
+
 def recordQserverRun(command_line: str):
-    # used by QueServer to record line by line what QueServer runs.
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## QueServer Command Run\n- **Command Line:** {command_line}\n- **Date Time:** {time_now}\n"
+    """
+    Record a command dispatched by the QueueServer (called by QueueServer).
+
+    Parameters
+    ----------
+    command_line : str
+        The command string exactly as submitted to the QueueServer.
+    """
+    text = f"## QueueServer Command Run\n- **Command Line:** {command_line}\n"
     appendToMdFile(text)
-    return
+
 
 def recordUserAbort():
-    # records user abort event
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## User Abort Event\n**Date Time:** {time_now}\n"
-    appendToMdFile(text)
-    return
+    """
+    Record a user-initiated abort (Ctrl-C or RunEngine abort).
+    """
+    appendToMdFile("## User Abort Event\n")
+
 
 def recordProperEnd():
-    # records proper end of experiment
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = f"## Proper End of Experiment\n**Date Time:** {time_now}\n"
-    appendToMdFile(text)
-    return
-# End of obsidian.py
-
+    """
+    Record a clean, successful end of the experiment.
+    """
+    appendToMdFile("## Proper End of Experiment\n")

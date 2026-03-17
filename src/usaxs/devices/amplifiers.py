@@ -114,7 +114,7 @@ class FemtoAmplifierDevice(CurrentAmplifierDevice):
         acceptable += [float(s.split()[0]) for s in acceptable]
         acceptable += range(num_gains)
         self.num_gains = num_gains
-        self.acceptable_range_values = acceptable
+        self.acceptable_gain_values = acceptable
 
         # assume gain labels are formatted "{float} {other_text}"
         s = acceptable[0]

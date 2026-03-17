@@ -1,4 +1,32 @@
-"""Amplifier support"""
+"""Amplifier autoscale and background-measurement plans for USAXS detectors.
+
+This module provides Bluesky plans that drive the Femto current-amplifier
+autorange sequence programs.  The main public entry points are:
+
+* ``autoscale_amplifiers`` — iterate each amplifier's gain until the scaler
+  count rate is within the acceptable window (``min_count_rate`` to
+  ``max_count_rate``).
+* ``measure_background`` — sweep every gain setting and record the dark
+  current at each one for later baseline subtraction.
+
+Both plans delegate per-scaler work to internal helpers
+(``_scaler_autoscale_`` and ``_scaler_background_measurement_``) so that
+multiple detectors sharing the same scaler are handled as a group.
+
+Supporting utilities
+--------------------
+* ``group_controls_by_scaler`` — partition a flat list of
+  ``DetectorAmplifierAutorangeDevice`` objects by their common scaler.
+* ``OrderedDefaultDict`` — ``defaultdict`` variant that preserves insertion
+  order (used to track the last known gain per channel across calls).
+* ``_gain_to_str_`` — format an integer gain index as ``"10^n"`` for logging.
+* ``UPDRange`` — thin wrapper that reads the current UPD autorange gain index.
+
+Stubs (not yet implemented)
+---------------------------
+* ``setup_amplifier_count_time``
+* ``setup_amplifier_auto_background``
+"""
 
 import logging
 from collections import OrderedDict
@@ -26,7 +54,14 @@ from ..devices.amplifiers import DetectorAmplifierAutorangeDevice
 # Add these imports at the top of the file
 # Imports from local plans
 
-# Device instances
+# ---------------------------------------------------------------------------
+# Module-level device instances.
+# NOTE: Many of these (I0, I00, I000, I0_controls, I00_controls, a_stage,
+# d_stage, m_stage, monochromator, s_stage, scaler0, terms, usaxs_shutter,
+# trd_controls) are loaded here but not referenced by any function in this
+# file.  They may be legacy from a prior version or expected to be imported
+# by other modules via ``from amplifiers_plan import <device>``.
+# ---------------------------------------------------------------------------
 I0 = oregistry["I0"]
 I00 = oregistry["I00"]
 I000 = oregistry["I000"]
@@ -39,7 +74,7 @@ monochromator = oregistry["monochromator"]
 s_stage = oregistry["s_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
-upd_controls = oregistry["upd_controls"]
+upd_controls = oregistry["upd_controls"]   # used by UPDRange()
 usaxs_shutter = oregistry["usaxs_shutter"]
 trd_controls = oregistry["trd_controls"]
 
@@ -47,8 +82,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_amplifier_count_time():
-    """
-    Set up the count time for the amplifier.
+    """Set up the count time for the amplifier.
 
     This function configures the count time settings for the amplifier
     and ensures proper synchronization with the scaler.
@@ -57,8 +91,7 @@ def setup_amplifier_count_time():
 
 
 def setup_amplifier_auto_background():
-    """
-    Set up automatic background measurement for the amplifier.
+    """Set up automatic background measurement for the amplifier.
 
     This function configures the amplifier for automatic background
     measurement and updates the necessary parameters.
@@ -67,33 +100,32 @@ def setup_amplifier_auto_background():
 
 
 @plan
-def autoscale_amplifiers(
-    controls: list[DetectorAmplifierAutorangeDevice],
-    shutter: Optional[Any] = None,
-    count_time: float = 0.05,
-    max_iterations: int = 9,
-    RE: Optional[RunEngine] = None,
-):
-    """
-    Bluesky plan: autoscale detector amplifiers simultaneously.
+def autoscale_amplifiers(controls: list[DetectorAmplifierAutorangeDevice], shutter: Optional[Any] = None, count_time: float = 0.05, max_iterations: int = 9, RE: Optional[RunEngine] = None):
+    """Bluesky plan: autoscale detector amplifiers simultaneously.
+
+    Groups the supplied controls by scaler (so devices sharing hardware are
+    handled together), then calls ``_scaler_autoscale_`` for each group in
+    sequence.  Autoscale errors are caught and logged as warnings rather than
+    aborting the scan so that a single bad channel does not block the others.
 
     Parameters
     ----------
     controls : list[DetectorAmplifierAutorangeDevice]
-        list (or tuple) of ``DetectorAmplifierAutorangeDevice``
-    shutter : Optional[Any], optional
-        Shutter device to control, by default None
-    count_time : float, optional
-        Time to count for each measurement, by default 0.05
-    max_iterations : int, optional
-        Maximum number of iterations to try, by default 9
-    RE : Optional[RunEngine], optional
-        RunEngine instance to use, by default None
+        List (or tuple) of amplifier control devices to autoscale.
+    shutter : optional
+        If supplied, opened before autoscaling begins (left open afterwards).
+    count_time : float
+        Integration time per trial count, seconds.  Default 0.05.
+    max_iterations : int
+        Maximum gain-adjustment cycles before giving up.  Default 9.
+    RE : RunEngine, optional
+        RunEngine instance; passed through to ``_scaler_autoscale_`` where it
+        is used to suppress the ``AutoscaleError`` raise during dry-runs
+        (``summarize_plan``).
 
-    Returns
-    -------
-    Generator[Any, None, Any]
-        Bluesky plan
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
 
     assert isinstance(controls, (tuple, list)), "controls must be a list"
@@ -103,7 +135,8 @@ def autoscale_amplifiers(
         yield from bps.mv(shutter, "open")
 
     for control_list in scaler_dict.values():
-        # do amplifiers in sequence, in case same hardware used multiple times
+        # Process each scaler group sequentially in case the same physical
+        # hardware appears more than once in the controls list.
         if len(control_list) > 0:
             try:
                 yield from _scaler_autoscale_(
@@ -113,6 +146,7 @@ def autoscale_amplifiers(
                     RE=RE,
                 )
             except AutoscaleError as exc:
+                # Gain convergence failed — warn and continue, do not abort.
                 logger.warning(
                     "%s: %s - will continue despite warning",
                     control_list[0].nickname,
@@ -127,31 +161,57 @@ def autoscale_amplifiers(
 
 
 @plan
-def _scaler_autoscale_(
-    controls: list[DetectorAmplifierAutorangeDevice],
-    count_time: float = 0.05,
-    max_iterations: int = 9,
-    RE: Optional[RunEngine] = None,
-):
-    """
-    Plan: internal: autoscale amplifiers for signals sharing a common scaler.
+def _scaler_autoscale_(controls: list[DetectorAmplifierAutorangeDevice], count_time: float = 0.05, max_iterations: int = 9, RE: Optional[RunEngine] = None):
+    """Plan (internal): autoscale amplifiers for signals sharing a common scaler.
 
-    Args:
-        controls: list of DetectorAmplifierAutorangeDevice instances
-        count_time: Time to count for each measurement
-        max_iterations: Maximum number of iterations to try
-        RE: RunEngine instance to use
+    Algorithm
+    ---------
+    1. Save and override scaler timing settings (preset_time, delay, count_mode).
+    2. Set all controls to ``automatic`` gain mode, seeding from the last known
+       good gain to reduce convergence time.
+    3. Repeatedly trigger the scaler and check whether any gains changed AND
+       whether all count rates fall within [min_count_rate, max_count_rate].
+    4. Once all convergence flags are True, switch controls back to ``manual``
+       mode and restore the scaler settings.
+    5. If the loop exhausts ``max_iterations`` without converging and the APS
+       is in user-operations mode, raise ``AutoscaleError``.
 
-    Yields:
-        Generator: Control flow for the autoscale operation
+    The ``_last_autorange_gain_`` module-level dict persists the last known gain
+    between calls so successive autoscales converge faster.
+
+    Parameters
+    ----------
+    controls : list[DetectorAmplifierAutorangeDevice]
+        All controls must share the same scaler (``controls[0].scaler``).
+    count_time : float
+        Scaler integration time per trial count, seconds.
+    max_iterations : int
+        Maximum gain-adjustment loop iterations.
+    RE : RunEngine, optional
+        Used at the end to suppress ``AutoscaleError`` during ``summarize_plan``
+        (when RE.state == "idle").
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+
+    Raises
+    ------
+    AutoscaleError
+        If convergence fails during live user operations.
+    RuntimeError
+        If signal type is ``EpicsSignalRO`` (divide-by-time path not implemented).
+    ValueError
+        If ``control.signal`` is an unexpected type.
     """
 
     aps = oregistry["aps"]
-    global _last_autorange_gain_
+    global _last_autorange_gain_   # accesses module-level OrderedDefaultDict; global is not strictly needed since we only mutate, not rebind — but kept for clarity
 
     scaler = controls[0].scaler
     originals = {}
 
+    # Save current scaler configuration so it can be restored afterwards.
     originals["preset_time"] = scaler.preset_time.get()
     originals["delay"] = scaler.delay.get()
     originals["count_mode"] = scaler.count_mode.get()
@@ -166,6 +226,10 @@ def _scaler_autoscale_(
 
     last_gain_dict = _last_autorange_gain_[scaler.name]
 
+    # ------------------------------------------------------------------
+    # Seed each amplifier from the previously converged gain so the loop
+    # starts close to the correct value, then record the starting gain.
+    # ------------------------------------------------------------------
     settling_time = AMPLIFIER_MINIMUM_SETTLING_TIME
     for control in controls:
         yield from bps.mv(control.auto.mode, AutorangeSettings.automatic)
@@ -178,6 +242,14 @@ def _scaler_autoscale_(
 
     yield from bps.sleep(settling_time)
 
+    # ------------------------------------------------------------------
+    # Convergence loop.
+    # ``converged`` is rebuilt each iteration and must be all-True to exit.
+    # Convergence requires:
+    #   (a) no gain changed since the last iteration, AND
+    #   (b) actual count rate <= max_count_rate (not saturated), AND
+    #   (c) if the gain *did* change, actual rate >= min_count_rate (not too low).
+    # ------------------------------------------------------------------
     # Autoscale has converged if no gains change
     # Also, make sure no detector count rates are stuck at max
     complete = False
@@ -225,6 +297,9 @@ def _scaler_autoscale_(
             # logger.debug(f"converged: {converged}")
             break  # no changes
 
+    # ------------------------------------------------------------------
+    # Always restore the scaler to its original timing configuration.
+    # ------------------------------------------------------------------
     # scaler.stage_sigs = stage_sigs["scaler"]
     # restore starting conditions
     yield from bps.mv(
@@ -239,16 +314,25 @@ def _scaler_autoscale_(
     if not complete and aps.inUserOperations:  # bailed out early from loop
         logger.warning(f"converged={converged}")
         msg = f"FAILED TO FIND CORRECT GAIN IN {max_iterations} AUTOSCALE ITERATIONS"
-        if RE.state != "idle":  # don't raise if in summarize_plan()
+        if RE is not None and RE.state != "idle":  # don't raise if in summarize_plan()
             raise AutoscaleError(msg)
 
 
 def group_controls_by_scaler(controls):
-    """
-    Return dictionary of [controls] keyed by common scaler support.
+    """Return a dict of control lists keyed by their common scaler name.
 
-    controls [obj]
-        list (or tuple) of ``DetectorAmplifierAutorangeDevice``
+    Used to batch amplifiers that share a scaler so they can be handled
+    together in a single set of scaler trigger/read operations.
+
+    Parameters
+    ----------
+    controls : list or tuple of DetectorAmplifierAutorangeDevice
+        Flat list of amplifier control objects to partition.
+
+    Returns
+    -------
+    OrderedDefaultDict
+        ``{scaler.name: [control, ...]}`` preserving insertion order.
     """
     assert isinstance(controls, (tuple, list)), "controls must be a list"
     scaler_dict = OrderedDefaultDict(list)  # sort the list of controls by scaler
@@ -268,8 +352,30 @@ def group_controls_by_scaler(controls):
 
 @plan
 def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8):
-    """
-    Measure amplifier backgrounds for signals that share a common scaler.
+    """Plan (internal): measure amplifier dark currents for one scaler group.
+
+    For every gain setting (from highest to lowest index), triggers the scaler
+    ``num_readings`` times and records the mean and standard deviation of the
+    count rate into the corresponding ``AmplfierGainDevice`` background PVs.
+
+    Parameters
+    ----------
+    control_list : list of DetectorAmplifierAutorangeDevice
+        Controls must all share the same scaler (``control_list[0].scaler``).
+    count_time : float
+        Scaler integration time per reading, seconds.
+    num_readings : int
+        Number of scaler triggers per gain setting used to compute statistics.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+
+    Notes
+    -----
+    All controls are put into ``manual`` mode before sweeping gains so that
+    the autorange IOC sequence program does not override the set gain during
+    measurement.
     """
     scaler = control_list[0].scaler
     signals = [c.signal for c in control_list]
@@ -281,9 +387,11 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
     original["scaler.auto_count_delay"] = scaler.auto_count_delay.get()
     yield from bps.mv(scaler.preset_time, count_time, scaler.auto_count_delay, 0)
 
+    # Put all controls into manual mode so the IOC does not change gain mid-sweep.
     for control in control_list:
         yield from bps.mv(control.auto.mode, AutorangeSettings.manual)
 
+    # Sweep gains in reverse order (highest index = lowest gain first).
     for n in range(NUM_AUTORANGE_GAINS - 1, -1, -1):  # reverse order
         # set gains
         settling_time = AMPLIFIER_MINIMUM_SETTLING_TIME
@@ -293,6 +401,7 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
         yield from bps.sleep(settling_time)
 
         def getScalerChannelPvname(scaler_channel):
+            """Return the PV name for a scaler channel, handling both ScalerCH and EpicsScaler variants."""
             try:
                 return scaler_channel.pvname  # EpicsScaler channel
             except AttributeError:
@@ -317,6 +426,7 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
                 value = value / count_time  # looks like we did not read value/sec here?
                 readings[pvname].append(value)
 
+        # Write mean ± std of count rate to the background PVs for this gain range.
         s_range_name = f"gain{n}"
         for control in control_list:
             g = getattr(control.auto.ranges, s_range_name)
@@ -345,12 +455,28 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
     )
 
 
+@plan
 def measure_background(controls, shutter=None, count_time=0.2, num_readings=5):
-    """
-    plan: measure detector backgrounds simultaneously
+    """Plan: measure detector dark currents simultaneously for all controls.
 
-    controls [obj]
-        list (or tuple) of ``DetectorAmplifierAutorangeDevice``
+    Closes the shutter (if supplied), then calls
+    ``_scaler_background_measurement_`` for each scaler group so that all
+    gain settings are swept and the background PVs are populated.
+
+    Parameters
+    ----------
+    controls : list or tuple of DetectorAmplifierAutorangeDevice
+        Amplifier controls whose backgrounds should be measured.
+    shutter : optional
+        If supplied, closed before measurements begin.
+    count_time : float
+        Scaler integration time per reading, seconds.  Default 0.2.
+    num_readings : int
+        Readings per gain setting used to compute mean/std.  Default 5.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     assert isinstance(controls, (tuple, list)), "controls must be a list"
     scaler_dict = group_controls_by_scaler(controls)
@@ -370,52 +496,83 @@ def measure_background(controls, shutter=None, count_time=0.2, num_readings=5):
             )
 
 
-def UPDRange(self) -> int:
-    """
-    Get the UPD range value.
+def UPDRange() -> int:
+    """Get the current UPD autorange gain index.
 
-    Returns:
-        int: The UPD range value
+    Returns
+    -------
+    int
+        The UPD last-used range index from the autorange sequence program.
+
     """
     return upd_controls.auto.lurange.get()  # TODO: check return value is int
 
 
 def _gain_to_str_(gain: int) -> str:
-    """
-    Convert a gain value to a string representation.
+    """Format a gain index as a human-readable power-of-ten string.
 
-    Args:
-        gain: The gain value to convert
+    Used for log messages in ``_scaler_background_measurement_``.
 
-    Returns:
-        str: String representation of the gain
+    Parameters
+    ----------
+    gain : int
+        Integer gain index (e.g. 3).
+
+    Returns
+    -------
+    str
+        e.g. ``"10^3"``.
+
+    Notes
+    -----
+    This is a *different* function from ``_gain_to_str_`` in
+    ``devices/amplifiers.py``.  That version converts a float gain value to
+    scientific notation (``"1e5"``); this one formats an integer index as
+    ``"10^n"``.  The two functions are not interchangeable.
     """
     return f"10^{gain}"
 
 
 class OrderedDefaultDict(OrderedDict):
-    """A defaultdict that maintains insertion order."""
+    """``defaultdict`` that preserves insertion order.
+
+    Combines the missing-key auto-creation of ``collections.defaultdict``
+    with the deterministic iteration order of ``collections.OrderedDict``.
+    Used by ``_last_autorange_gain_`` to track the most recently converged
+    gain per scaler/channel across successive autoscale calls.
+    """
 
     def __init__(self, default_factory=None, *args, **kwargs):
-        """
-        Initialize the OrderedDefaultDict.
+        """Initialise with an optional factory callable.
 
-        Args:
-            default_factory: Factory function to create default values
-            *args: Additional positional arguments for OrderedDict
-            **kwargs: Additional keyword arguments for OrderedDict
+        Parameters
+        ----------
+        default_factory : callable or None
+            Called with no arguments to supply a default value for missing
+            keys, exactly as with ``collections.defaultdict``.
+        *args, **kwargs
+            Forwarded to ``OrderedDict.__init__``.
         """
         super().__init__(*args, **kwargs)
         self.default_factory = default_factory
 
     def __missing__(self, key):
-        """Handle missing keys by creating a default value.
+        """Create and return a default value for an absent key.
 
-        Args:
-            key: The missing key
+        Parameters
+        ----------
+        key : hashable
+            The key that was not found.
 
-        Returns:
-            The default value for the key
+        Returns
+        -------
+        object
+            The new default value (also stored under ``key``).
+
+        Raises
+        ------
+        KeyError
+            If ``default_factory`` is None (matching ``dict`` behaviour).
         """
         if self.default_factory is None:
             raise KeyError(key)
@@ -423,4 +580,6 @@ class OrderedDefaultDict(OrderedDict):
         return value
 
 
+# Module-level cache: maps scaler name → {gain_signal_name → last gain value}.
+# Persists across plan calls so autoscale starts from a warm initial gain.
 _last_autorange_gain_ = OrderedDefaultDict(dict)

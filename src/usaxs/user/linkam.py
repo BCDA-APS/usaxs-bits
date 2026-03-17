@@ -126,6 +126,7 @@ def myLinkamPlan_template(pos_X, pos_Y, thickness, scan_title, temp1, rate1, del
     linkam = linkam_tc1  
     # read if we are using debug mode. 
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
     # run usual startup scripts for scans. This MUST be included at the start of the data collection routine. 
     if isDebugMode is not True:
         yield from before_command_list()  # this will run usual startup scripts for scans, records start in Obsidian
@@ -259,6 +260,7 @@ def fanAlLinkamPlan(pos_X,pos_Y,thickness,scan_title,temp1,temp2,md={},):
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     if isDebugMode is not True:
         yield from before_command_list()  # this will run usual startup scripts for scans
@@ -371,6 +373,7 @@ def fanAlLinkamStepPlan(pos_X,pos_Y,thickness,scan_title,temp1,temp2,step,md={},
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
     
     appendToMdFile("   ***   ")
     appendToMdFile("Using fanAlLinkamStepPlan()")
@@ -451,6 +454,7 @@ q
 
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
 
+    recordFunctionRun()
     # run usual startup scripts for scans.
     yield from before_command_list()  # this will run usual startup scripts for scans
 
@@ -527,6 +531,7 @@ def fanRampAndHold(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,md={},
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     if isDebugMode is not True:
         yield from before_command_list()                        # this will run usual startup scripts for scans
@@ -616,6 +621,7 @@ def fanLinkamPlan(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,temp2,r
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     if isDebugMode is not True:
         yield from before_command_list()  # this will run usual startup scripts for scans
@@ -736,6 +742,7 @@ def Fan718LinkamPlan(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,temp
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     if isDebugMode is not True:
         yield from before_command_list()  # this will run usual startup scripts for scans
@@ -880,6 +887,7 @@ def Fan174Plan(pos_X,pos_Y,thickness,scan_title,temp1,rate1,delay1min,temp2,rate
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     # data collection starts here...
     if isDebugMode is not True:
@@ -994,6 +1002,7 @@ def Fan625Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min, tem
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     # data collection starts here...
     if isDebugMode is not True:
@@ -1096,6 +1105,7 @@ def FanTwoTempPlan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min,
     linkam = linkam_tc1  # New Linkam from windows ioc (all except NIST 1500).
     logger.info(f"Linkam controller PV prefix={linkam.prefix}")
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     # data collection starts here...
     if isDebugMode is not True:
@@ -1211,6 +1221,7 @@ collect WAXS data at defined temperatures
     # define name of the Linkam from linux ioc (all except NIST 1500).
     linkam = linkam_tc1
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     # run usual startup scripts for scans.
     if isDebugMode is not True:
@@ -1299,6 +1310,7 @@ def myLinkamPlan(pos_X, pos_Y, thickness, scan_title, temp1, temp2, delay2min, m
     # define name of the Linkam from linux ioc (all except NIST 1500).
     linkam = linkam_tc1
     isDebugMode = linkam_debug.get()
+    recordFunctionRun()
 
     # run usual startup scripts for scans.
     if isDebugMode is not True:

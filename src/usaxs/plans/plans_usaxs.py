@@ -616,9 +616,9 @@ def Flyscan(
     diff = flyscan_trajectories.num_pulse_positions.get() - struck.current_channel.get()
     if diff > 5 and RE.state != "idle":
         msg = "WARNING: Flyscan finished with %g less points" % diff
-        logger.info("*") * 20
+        logger.info("*" * 20)
         logger.info(msg)
-        logger.info("*") * 20
+        logger.info("*" * 20)
         # if NOTIFY_ON_BAD_FLY_SCAN:
         #     subject = "!!! bad number of PSO pulses !!!"
         #     email_notices.send(subject, msg)
