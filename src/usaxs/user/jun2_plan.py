@@ -81,9 +81,23 @@ loop_debug = Signal(name="loop_debug", value=False)
 # ==============================================================================
 
 SampleList = [
-    [0.0,  0.0, 1.0, "jun2_sample1"],
-    [5.0,  0.0, 1.0, "jun2_sample2"],
-    [10.0, 0.0, 1.0, "jun2_sample3"],
+    [  0.4,   0.0, 1.0, "reference1"],
+    [ 71.0,   1.0, 1.0, "X10hr_80_2"],
+    [170.0,   0.0, 1.0, "X10hr_60_1"],
+    [270.0,   0.0, 1.0, "X15hr_80_2"],
+    [  0.8, 100.0, 1.0, "reference2"],
+    [ 70.8, 100.5, 1.0, "X10hr_80_1"],
+    [169.6,  99.7, 1.0, "X10hr_60_2"],
+    [270.6,  99.7, 1.0, "X15hr_80_1"],
+    [270.4, 199.7, 1.0, "X15hr_100"],
+    [170.7, 199.7, 1.0, "deep_100"],
+    [ 70.0, 200.3, 1.0, "X10hr_100_2"],
+    [  0.0, 200.0, 1.0, "reference3"],
+    [  1.0, 299.0, 1.0, "reference4"],
+    [ 70.8, 300.0, 1.0, "X10hr_100_1"],
+    [170.5, 299.7, 1.0, "deep_80_1"],
+    [271.0, 299.7, 1.0, "deep_80_2"],
+    #[10.0, 0.0, 1.0, "jun2_sample3"],
     # Add or remove rows as needed; number of samples is set by this list.
 ]
 
@@ -133,7 +147,7 @@ def jun2MultiSampleLoop(delay_min, sleep_min, md={}):
         Return scan name encoding scan_title and elapsed minutes since t0.
         Format: {scan_title}_{elapsed_minutes:.0f}min
         """
-        return f"{scan_title}_{(time.time() - t0) / 60:.0f}min"
+        return f"{scan_title}_{(time.time() - t0)/60:.0f}min"
 
     def collectAllThree(pos_X, pos_Y, thickness, scan_title, debug=False):
         """
