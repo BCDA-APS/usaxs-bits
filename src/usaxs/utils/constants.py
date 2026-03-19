@@ -1,4 +1,9 @@
 """
+Instrument-wide numerical constants for the 12-ID-E USAXS beamline.
+
+These values are calibrated hardware offsets, thresholds, and operational
+flags.  They are collected here so that a single edit propagates everywhere
+they are used.  Update the inline comments when a value is re-calibrated.
 
 # Instrument Constants
 CONSTANTS:

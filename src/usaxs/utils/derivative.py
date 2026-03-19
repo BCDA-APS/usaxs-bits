@@ -1,15 +1,40 @@
 """
-derivative of two vectors: y(x), returns y'(x)
+Numerical first derivative of two vectors y(x).
+
+Returns y'(x) evaluated at midpoints of the input x array using a
+central finite-difference scheme.
 """
 
 import numpy as np
 
 
 def numerical_derivative(x, y):
-    """
-    computes first derivative yp(xp) of y(x), returns tuple (xp, yp)
+    """Compute the first derivative dy/dx at midpoints of x.
 
-    here, xp is at midpoints of x
+    Uses a simple finite-difference formula: yp[i] = (y[i+1] - y[i]) / (x[i+1] - x[i]).
+    The returned xp array has one fewer element than the input and sits at
+    the midpoints between adjacent x values.
+
+    Parameters
+    ----------
+    x : array-like
+        Independent variable values (must be monotonic for meaningful results).
+        At least 10 points are required; fewer points produce unreliable
+        derivatives for the peak-fitting routines that call this function.
+    y : array-like
+        Dependent variable values, same length as x.
+
+    Returns
+    -------
+    xp : ndarray
+        Midpoints of adjacent x values, length len(x) - 1.
+    yp : ndarray
+        Slope (dy/dx) at each midpoint, length len(x) - 1.
+
+    Raises
+    ------
+    ValueError
+        If len(x) < 10 or len(x) != len(y).
     """
     if len(x) < 10:
         raise ValueError(f"Need more points to analyze, received {len(x)}")

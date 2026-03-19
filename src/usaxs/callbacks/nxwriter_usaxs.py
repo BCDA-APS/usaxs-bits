@@ -1,11 +1,29 @@
 """
-define a custom NeXus file writer base for uascan raw data files
+Custom NeXus/HDF5 file writers for the 12-ID-E USAXS instrument.
 
-See ``instrument.utils.setup_new_user.newFile()``
-to replace ``instrument.framework.callbacks.newSpecFile()``
+This module defines a hierarchy of NeXus writers, each handling a specific
+scan type.  All writers inherit from ``OurCustomNXWriterBase``, which itself
+subclasses ``apstools.callbacks.NXWriterAPS``.
+
+Writer classes
+--------------
+OurCustomNXWriterBase
+    Shared base: instrument name, file naming (via ``techniqueSubdirectory``),
+    monochromator group, sample title, and stream-writing helpers.
+NXWriterFlyScan
+    For ``Flyscan`` plans.  Aliases the ``mca`` stream as ``primary`` when
+    the latter is absent.
+NXWriterSaxsWaxs
+    For ``SAXS`` and ``WAXS`` area-detector plans.  Remaps resource file
+    paths from ``/mnt/usaxscontrol/USAXS_data/`` to ``/share1/USAXS_data/``.
+NXWriterUascan
+    For ``uascan`` step-scan plans.  The module-level ``nxwriter`` instance
+    of this class is subscribed to the RunEngine at import time.
+
+See ``usaxs.utils.setup_new_user.newUser()`` for the companion function that
+sets the per-session file paths written here.
 """
 
-import datetime
 import logging
 import os
 
@@ -59,7 +77,7 @@ class OurCustomNXWriterBase(NXWriterAPS):
     """
 
     instrument_name = "APS 12-ID-E USAXS"
-    supported_plans = ("name", "the", "supported", "plans")
+    supported_plans = ()  # subclasses must override with the actual plan names
     # File extension for NeXus files
     file_extension = "h5"
     config_version = "1.0"
@@ -141,7 +159,7 @@ class OurCustomNXWriterBase(NXWriterAPS):
         doc : dict
             The start document from Bluesky.
         """
-        "ensure we only collect data for plans we are prepared to handle"
+        # only collect data for plans we are prepared to handle
         if doc.get("plan_name") in self.supported_plans:
             # pay attention to this run of documents
             super().start(doc)
@@ -161,7 +179,6 @@ class OurCustomNXWriterBase(NXWriterAPS):
         """
         Write the data if the current plan is supported.
         """
-        "write the data if this plan is supported"
         plan = self.metadata.get("plan_name")
         if plan not in self.supported_plans:
             return
@@ -287,7 +304,7 @@ class NXWriterSaxsWaxs(OurCustomNXWriterBase):
         resource_id : str
             The resource identifier (UID).
 
-        ReturnsIfRequestedStopBeforeNextScan
+        Returns
         -------
         str
             The full path to the resource file.
@@ -321,51 +338,12 @@ class NXWriterUascan(OurCustomNXWriterBase):
 
     # convention: methods written in alphabetical order
 
-    def save_reduced_as_nxdata(self, addr, data):
-        """
-        Save the reduced ``data`` to NXdata group ``addr``.
-
-        Parameters
-        ----------
-        addr : str
-            HDF5 address for the NXdata group.
-        data : dict
-            Data to save in the group.
-        """
-        nxdata = self.root.create_group(addr)
-        nxdata.attrs["NX_class"] = "NXdata"
-        nxdata.attrs["Q_indices"] = 0
-        nxdata.attrs["axes"] = "Q"
-        nxdata.attrs["signal"] = "R"
-        nxdata.attrs["timestamp"] = str(datetime.datetime.now())
-
-        for k, v in data.items():
-            nxdata.create_dataset(k, data=v)
-        nxdata["Q"].attrs["units"] = "1/A"
-        nxdata["R"].attrs["units"] = "none"
-
     def write_entry(self):
         """
         Write reduced SAXS data from here, after calling the base class method.
         """
         super().write_entry()  # write the raw data
 
-        # https://github.com/APS-USAXS/usaxs-bluesky/issues/588
-        # logger.info("DIAGNOSTIC: this is when to write reduced 1-D data")
-        # logger.info("DIAGNOSTIC: HDF5 file='%s'", self.root.filename)
-        # logger.info("DIAGNOSTIC: Is HDF5 file open? %s", self.root.id.valid == 1)
-        # if self.root.id.valid == 1:
-        #    logger.info("DIAGNOSTIC: HDF5 file access mode=%s", self.root.mode)
-
-        try:
-            from .calculate_reduced_data import reduce_uascan
-
-            data = reduce_uascan(self.root)
-            h5_address = "/entry/uascan_reduced_full"
-            logger.info("TODO: save reduced uascan data to group: %s", h5_address)
-            self.save_reduced_as_nxdata(h5_address, data)
-        except Exception as exinfo:
-            logger.warning("Did not write reduced uascan data: %s", exinfo)
 
     def write_slits(self, parent):
         """
@@ -386,5 +364,4 @@ class NXWriterUascan(OurCustomNXWriterBase):
 
 
 nxwriter = NXWriterUascan()
-#
 RE.subscribe(nxwriter.receiver)

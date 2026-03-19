@@ -1,4 +1,9 @@
-"""Support the scaler devices."""
+"""Support the scaler devices.
+
+Called once during instrument startup to configure ``scaler0`` and expose its
+individual channels (I0, I00, UPD, TRD, I000) in the ``oregistry`` and the
+interactive console namespace.
+"""
 
 import sys
 

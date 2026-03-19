@@ -45,10 +45,22 @@ class Ustep(object):
     """
 
     def __init__(self, start, center, finish, numPts, exponent, minStep):
-        """Initialize the ustep configuration.
+        """Initialise and solve for the scaling factor.
 
-        Args:
-            filename: Path to the configuration file
+        Parameters
+        ----------
+        start : float
+            First position in the series.
+        center : float
+            Position at which the step size is smallest (minStep).
+        finish : float
+            Last position in the series.
+        numPts : int
+            Number of points in the series.
+        exponent : float
+            η — controls how rapidly the step size grows away from center.
+        minStep : float
+            Smallest allowed step size (at the center position).
         """
         self.start = start
         self.center = center

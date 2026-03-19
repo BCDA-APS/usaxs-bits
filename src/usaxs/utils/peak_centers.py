@@ -1,13 +1,38 @@
 """
-center-of-mass and sqrt(variance) of y(x)
+Center-of-mass and RMS width of a peak y(x).
+
+Used to characterise tuning peaks on the USAXS Bonse-Hart instrument.
 """
 
 import numpy as np
 
 
 def peak_center(x, y, use_area=False):
-    """
-    calculate center-of-mass and sqrt(variance) of y vs. x
+    """Calculate center-of-mass and RMS width (2σ) of a peak.
+
+    Parameters
+    ----------
+    x : array-like
+        Independent variable (e.g. motor positions).  At least 10 points required.
+    y : array-like
+        Peak intensity values, same length as x.
+    use_area : bool, optional
+        If True, weight by trapezoidal bin areas (∫ y dx per interval) rather
+        than raw y values.  Default is False.
+
+    Returns
+    -------
+    x_bar : float
+        Center-of-mass position along x.
+    width : float
+        2 * sqrt(|variance|), a measure of peak width.
+        Uses absolute value to guard against numerical noise giving a tiny
+        negative variance; however, if sum(y) == 0 the result will be nan.
+
+    Raises
+    ------
+    ValueError
+        If len(x) < 10 or len(x) != len(y).
     """
     if len(x) < 10:
         raise ValueError(f"Need more points to analyze, received {len(x)}")

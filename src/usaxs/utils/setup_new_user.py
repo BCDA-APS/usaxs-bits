@@ -1,5 +1,24 @@
 """
-manage the user folder
+User and sample session management for the 12-ID-E USAXS instrument.
+
+The two main entry points are:
+
+``newUser(user, sample, ...)``
+    Called once per beamtime to create the top-level user data directory,
+    reset detector order numbers, initialise NeXus and SPEC file writers,
+    and record a session-start note in the Obsidian logbook.
+
+``newSample(sample)``
+    Called whenever the user changes samples.  Updates the sample directory
+    PV and appends a new-sample note to the Obsidian logbook.
+
+Session state is persisted in a hidden JSON file ``~/.user_info.json``
+so that instrument-control scripts can restore the current user/sample
+context after a restart without user interaction.
+
+``matchUserInApsBss(user)`` queries the APS Beamtime Scheduling System REST
+API to locate the matching ESAF for the current user.  This function is
+partially implemented (ends with TODO).
 """
 
 import datetime
@@ -7,7 +26,6 @@ import json
 import logging
 import os
 from pathlib import Path
-import pwd
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
@@ -65,16 +83,36 @@ def _setSpecFileName(path, scan_id=1):
 
 
 def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
-    """
-    setup for a new user
+    """Set up the instrument for a new user beamtime session.
 
-    Create (if necessary) new user directory in
-    standard directory with month, day, and
-    given user name as shown in the following table.
-    Each technique (SAXS, USAXS, WAXS) will be
-    reponsible for creating its subdirectory
-    as needed.
+    Creates (if necessary) the monthly base folder and the user data directory,
+    resets detector file/order numbers to 1, configures NeXus and SPEC file
+    writers, and records a session-start note in the Obsidian logbook.
 
+    If called without arguments and a ``.user_info.json`` file exists from a
+    previous session, those values are restored automatically (no prompts).
+    If no state file exists, the user is prompted interactively for a name.
+
+    Parameters
+    ----------
+    user : str, optional
+        User name (used in the directory name and EPICS PV).  Prompts if None
+        and no prior session file is found.
+    sample : str, optional
+        Initial sample directory name.  Defaults to ``"data"``.
+    scan_id : int, optional
+        Starting scan ID for SPEC file.  Default is 1.
+    year, month, day : int, optional
+        Override the current date.  Useful for recovering a prior session's
+        folder without creating a new one.
+
+    Returns
+    -------
+    str
+        Absolute path to the user data directory.
+
+    Directory layout
+    ----------------
     ======================  ========================
     purpose                 folder
     ======================  ========================
@@ -214,14 +252,19 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
 
 def newSample(sample=None):
     """
-    setup for a new sample name
+    Setup for a new sample name.
 
-    Create (if necessary) new user directory in
-    standard directory with month, day, and
-    given user name as shown in the following table.
-    Each technique (SAXS, USAXS, WAXS) will be
-    reponsible for creating its subdirectory
-    as needed.
+    Updates the sample directory PV and records the new sample in the
+    Obsidian log.  Reads user/date info from the ``.user_info.json`` state
+    file written by :func:`newUser`; raises ``RuntimeError`` if that file is
+    not present (i.e. ``newUser()`` has not been called yet).
+
+    Parameters
+    ----------
+    sample : str, optional
+        Sample directory name.  If None, prompts the user interactively.
+
+    Directory layout created by the combined newUser/newSample workflow:
 
     ======================  ========================
     purpose                 folder
@@ -235,7 +278,6 @@ def newSample(sample=None):
 
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
-    global specwriter
     filename = ".user_info.json"  # Store if a new user was created
     cwd = Path.cwd()
 
