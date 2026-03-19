@@ -1,5 +1,5 @@
 """
-IOC statistics: synApps iocStats
+IOC statistics device wrapping the synApps iocStats module.
 """
 
 from ophyd import Component
@@ -8,15 +8,13 @@ from ophyd import EpicsSignalRO
 
 
 class IocInfoDevice(Device):
-    """Device for monitoring IOC statistics.
+    """Read-only access to synApps iocStats PVs.
 
-    This device provides read-only access to IOC statistics including
-    timestamp and uptime information.
-
-    Attributes:
-        iso8601: Read-only EpicsSignal for ISO8601 formatted timestamp
-        uptime: Read-only EpicsSignal for IOC uptime
+    ``iso8601``
+        Current IOC timestamp in ISO-8601 format (string).
+    ``uptime``
+        IOC uptime string (e.g. ``"0 days, 01:23:45"``).
     """
 
-    iso8601: Component[EpicsSignalRO] = Component(EpicsSignalRO, "iso8601")
-    uptime: Component[EpicsSignalRO] = Component(EpicsSignalRO, "UPTIME")
+    iso8601 = Component(EpicsSignalRO, "iso8601")
+    uptime = Component(EpicsSignalRO, "UPTIME")

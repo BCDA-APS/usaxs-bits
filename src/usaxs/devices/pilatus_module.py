@@ -1,17 +1,26 @@
 """
-Dectris Pilatus area detectors.
-"""
-# TODO: THis is an ad
+Dectris Pilatus and Eiger area detector support for the 12-ID-E USAXS instrument.
 
-# TODO review for newer code in APS tools
+``MyPilatusDetectorCam``
+    Pilatus camera mixin with ADCore V3.4 staging defaults.
+``CustomHDF5Plugin``
+    HDF5 plugin with EPICS-controlled file names and ``file_write_mode='Single'``.
+    Builds on ``AD_EpicsFileNameMixin`` + ``FileStoreHDF5SingleIterativeWrite``.
+``MyPilatusDetector``
+    Complete Pilatus detector device (cam + image + HDF5).
+``MyEigerDetector``
+    Complete Eiger 2X detector device (cam + image + bad-pixel + HDF5).
+
+File-system paths
+-----------------
+* SAXS (Pilatus): ``/mnt/usaxscontrol/USAXS_data/test/pilatus/%Y/%m/%d/``
+* WAXS (Eiger):  ``/mnt/share1/USAXS_data/test/pilatus/%Y/%m/%d/``
+* Databroker read path: ``/share1/USAXS_data/test/pilatus/%Y/%m/%d/``
+"""
 
 import logging
-
-# from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
-# from apstools.devices import AD_EpicsHdf5FileName
 import pathlib
 import warnings
-from typing import Any
 
 from apstools.devices import CamMixin_V34
 from apstools.devices import SingleTrigger_V34
@@ -52,16 +61,15 @@ _validate_AD_FileWriter_path_(WRITE_PATH_TEMPLATE_WAXS, DATABROKER_ROOT_PATH)
 
 
 class MyPilatusDetectorCam(CamMixin_V34, PilatusDetectorCam):
-    """Revise SimDetectorCam for ADCore revisions."""
+    """Pilatus camera with ADCore V3.4 staging defaults.
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Initialize the Pilatus detector camera.
+    Sets conservative acquisition defaults on staging: 10 ms exposure,
+    1 image, 1 exposure per image, plugins enabled.  Also used for the
+    Eiger camera because it shares the same ADCore cam interface.
+    """
 
-        Args:
-            *args: Variable length argument list
-            **kwargs: Arbitrary keyword arguments
-        """
+    def __init__(self, *args, **kwargs):
+        """Set default stage_sigs for a single short acquisition."""
         super().__init__(*args, **kwargs)
         self.stage_sigs.update(
             dict(
@@ -86,17 +94,16 @@ class CustomHDF5Plugin(
     * ``generate_datum()`` - coordinate image storage metadata
     """
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Initialize the HDF5 plugin.
+    def __init__(self, *args, **kwargs):
+        """Configure staging defaults; bypass HDF5Plugin.__init__().
 
-        Args:
-            *args: Variable length argument list
-            **kwargs: Arbitrary keyword arguments
+        Calls ``FileStorePluginBase.__init__`` directly to avoid the default
+        HDF5Plugin initialisation which conflicts with EPICS-controlled file
+        naming.  Several attributes (``capture``, ``file_name``, etc.) are
+        removed from ``stage_sigs`` because they must be set by the plan,
+        not during staging.
         """
-        # super().__init__(*args, **kwargs)
-        # alternative from AD_EpicsHdf5FileName
-        # Skip over the HDF5Plugin.__init__().
+        # Skip over the HDF5Plugin.__init__() — use FileStorePluginBase instead.
         FileStorePluginBase.__init__(self, *args, **kwargs)
         self.filestore_spec = "AD_HDF5"  # spec name stored in resource doc
         self.stage_sigs.update(
@@ -132,10 +139,7 @@ class CustomHDF5Plugin(
                 self.stage_sigs.pop(k)
 
     def stage(self) -> None:
-        """
-        Stage the HDF5 plugin for data acquisition.
-        Ensures capture is not used with file_write_mode='Single'.
-        """
+        """Stage the plugin; guard against ``capture`` with ``file_write_mode='Single'``."""
         # Again, do not press the Capture button in the HDF plugin
         if "capture" in self.stage_sigs:
             warnings.warn(
@@ -146,46 +150,47 @@ class CustomHDF5Plugin(
 
 
 class MyPilatusDetector(SingleTrigger_V34, DetectorBase):
-    """Pilatus detector(s) as used by 12-ID-E USAXS"""
+    """Pilatus 100k detector for 12-ID-E USAXS (SAXS mode).
+
+    Writes HDF5 files to ``WRITE_PATH_TEMPLATE`` (IOC view) / ``READ_PATH_TEMPLATE``
+    (databroker view).
+    """
 
     def __init__(self, *args, **kwargs):
-        """
-        Initialize the detector with specific settings.
-        """
+        """Add ``hdf1`` to read attrs and disable image blocking callbacks."""
         super().__init__(*args, **kwargs)
         self.read_attrs.append("hdf1")
         self.image.stage_sigs["blocking_callbacks"] = "No"
 
-    cam: ADComponent[MyPilatusDetectorCam] = ADComponent(MyPilatusDetectorCam, "cam1:")
-    image: ADComponent[ImagePlugin] = ADComponent(ImagePlugin, "image1:")
-
-    hdf1: ADComponent[CustomHDF5Plugin] = ADComponent(
+    cam = ADComponent(MyPilatusDetectorCam, "cam1:")
+    image = ADComponent(ImagePlugin, "image1:")
+    hdf1 = ADComponent(
         CustomHDF5Plugin,
         "HDF1:",
-        # root = DATABROKER_ROOT_PATH,
         write_path_template=WRITE_PATH_TEMPLATE,
         read_path_template=READ_PATH_TEMPLATE,
     )
 
 
 class MyEigerDetector(SingleTrigger_V34, DetectorBase):
-    """Eiger2 detector(s) as used by 12-ID-E USAXS"""
+    """Eiger 2X detector for 12-ID-E USAXS (WAXS mode).
+
+    Uses ``MyPilatusDetectorCam`` because the Eiger shares the same ADCore
+    cam interface at this beamline.  Includes a ``bad_pixel`` plugin
+    (ADCore NDBadPixel, new in AD 3.13).  Writes to ``WRITE_PATH_TEMPLATE_WAXS``.
+    """
 
     def __init__(self, *args, **kwargs):
-        """
-        Initialize the detector with specific settings.
-        """
+        """Add ``hdf1`` to read attrs."""
         super().__init__(*args, **kwargs)
         self.read_attrs.append("hdf1")
 
-    cam: ADComponent[MyPilatusDetectorCam] = ADComponent(MyPilatusDetectorCam, "cam1:")
-    image: ADComponent[ImagePlugin] = ADComponent(ImagePlugin, "image1:")
-    bad_pixel: ADComponent[BadPixelPlugin] = ADComponent(BadPixelPlugin, "BadPix1:")
-
-    hdf1: ADComponent[CustomHDF5Plugin] = ADComponent(
+    cam = ADComponent(MyPilatusDetectorCam, "cam1:")
+    image = ADComponent(ImagePlugin, "image1:")
+    bad_pixel = ADComponent(BadPixelPlugin, "BadPix1:")
+    hdf1 = ADComponent(
         CustomHDF5Plugin,
         "HDF1:",
-        # root = DATABROKER_ROOT_PATH,
         write_path_template=WRITE_PATH_TEMPLATE,
         read_path_template=READ_PATH_TEMPLATE,
     )
