@@ -1,11 +1,17 @@
 """
-PTC10 Programmable Temperature Controller
+PTC10 Programmable Temperature Controller device for the 12-ID-E USAXS instrument.
+
+``PTC10AioChannelFixed``
+    Subclass of ``PTC10AioChannel`` that corrects the voltage-readback PV suffix
+    from ``voltage_RBV`` to ``output_RBV`` to match the 12-ID IOC template.
+
+``USAXS_PTC10``
+    Positioner device combining ``PTC10PositionerMixin`` with ``PVPositioner``.
+    Reads temperature from thermocouple channel 2A and controls via AIO channel 5A.
 """
 
 from apstools.devices import PTC10AioChannel
 from apstools.devices import PTC10PositionerMixin
-
-# from apstools.devices import PTC10RtdChannel
 from ophyd import Component
 from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
@@ -13,131 +19,62 @@ from ophyd import PVPositioner
 
 
 class PTC10AioChannelFixed(PTC10AioChannel):
-    # we need to change how one channel is definded, to fix a bug in apstools
-    # changed version of support points to voltage = usxTEMP:tc1:5A:voltage_RBV 
-    # while proper PV for new ioc is usxTEMP:tc1:5A:output_RBV
-    # pid = Component(PTC10AioChannel, "5A:")
-    # so we have ptc10.pid.voltage = "usxTEMP:tc1:5A:voltage_RBV which does nto exist, we need to change that to output_RBV
-    voltage: Component[EpicsSignalRO] = Component(
-        EpicsSignalRO, "output_RBV", kind="config"
-    )   
+    """``PTC10AioChannel`` with corrected voltage-readback PV suffix.
+
+    The 12-ID IOC template uses ``output_RBV`` for the AIO output readback;
+    the apstools default is ``voltage_RBV`` which does not exist on this IOC.
+    """
+
+    voltage = Component(EpicsSignalRO, "output_RBV", kind="config")
 
 
 class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
-    """
-    PTC10 as seen from the GUI screen.
+    """PTC10 temperature controller as seen from the GUI screen.
 
     The IOC templates and .db files provide a more general depiction.
-    The PTC10 has feature cards, indexed by the slot where each is
-    installed (2A, 3A, 5A, ...).  Here, slot 2 has four temperature
-    sensor channels (2A, 2B, 2C, 2D).  The EPICS database template file
-    calls for these EPICS database files:
+    The PTC10 has feature cards indexed by their slot (2A, 3A, 5A, …).
+    Slot 2 has four thermocouple channels (2A, 2B, 2C, 2D); slot 3 has
+    RTD channels (3A, 3B); slot 5 has AIO (PID) channels (5A–5D).
 
-    * PTC10_tc_chan.db  (channels 2A, 2B, 2C, 2D, ColdJ2)
-    * PTC10_rtd_chan.db (channels 3A, 3B)
-    * PTC10_aio_chan.db (channels 5A, 5B, 5C, 5D)
+    EPICS database files used:
 
-    USAGE
+    * ``PTC10_tc_chan.db``  (channels 2A, 2B, 2C, 2D, ColdJ2)
+    * ``PTC10_rtd_chan.db`` (channels 3A, 3B)
+    * ``PTC10_aio_chan.db`` (channels 5A, 5B, 5C, 5D)
 
-    * Change the temperature and wait to get there:
-      ``yield from bps.mv(ptc10, 75)``
-    * Change the temperature and not wait:
-      ``yield from bps.mv(ptc10.setpoint, 75)``
-    * Change other parameter:
-      ``yield from bps.mv(ptc10.tolerance, 0.1)``
-    * To get temperature: ``ptc10.position``  (because it is a **positioner**)
-    * Is it at temperature?:  ``ptc10.done.get()``
+    Usage::
 
-    PTC10 PID parameters for different heaters from spec:
+        yield from bps.mv(ptc10, 75)            # move and wait
+        yield from bps.mv(ptc10.setpoint, 75)   # move, don't wait
+        yield from bps.mv(ptc10.tolerance, 0.1)
+        ptc10.position   # current temperature (positioner interface)
+        ptc10.done.get() # True when within tolerance
 
-    def PTC10_PID_Flowcell_Heater '{
-        epics_put("9idcTEMP:tc1:5A:pid:P", 0.0344)
-        epics_put("9idcTEMP:tc1:5A:pid:I", 0.0013)
-        epics_put("9idcTEMP:tc1:5A:pid:D", 0.0253)
-        p "PID values are set for the Gas Flow Cell!"
-    }'
-    def PTC10_PID_NMR_Heater '{
-        epics_put("9idcTEMP:tc1:5A:pid:P", 0.5)
-        epics_put("9idcTEMP:tc1:5A:pid:I", 0.03)
-        epics_put("9idcTEMP:tc1:5A:pid:D", 1.7)
-        p "PID values are set for the NMR tube heater!"
-    }'
-    def PTC10_PID_Rheo_Heater '{
-        epics_put("9idcTEMP:tc1:5A:pid:P", 1)
-        epics_put("9idcTEMP:tc1:5A:pid:I", 0.01)
-        epics_put("9idcTEMP:tc1:5A:pid:D", 10.)
-        p "PID values are set for the Rheo heater!"
-    }'
-    PTC10 NMR tube heater offsets:
-    The NMR tube heater was insulated with ceramic pieces; the custom-made DC cartridge
-    from Maxiwatt company replaced the previous low power heating element. The tests
-    showed a significant temperature gradient across the holder
-    (20 deg difference @300 deg C).
-    Holder temp. (C)	Right end temp. (C)	Middle temp. (C)	Left end temp. (C)
-    100	89	86	83
-    150	130	126	120
-    200	173	168	160
-    250	215	210	198
-    300	259	252	239
-    Note: at 70C the offset is under 7 degrees for right end NMR tube,
-    heater set to 77 degrees,
-    NMR tube is 70.4C. For 5th NMR tube from right, the offset is pretty much
-    0 - 70C and sample
-    temperature is 71. So we need to verify offset every time, it clearly varies
-    at different positions a lot.
+    PTC10 PID parameters for different heaters (from legacy SPEC macros)::
+
+        # Gas flow cell:  P=0.0344, I=0.0013, D=0.0253
+        # NMR tube:       P=0.5,    I=0.03,   D=1.7
+        # Rheo heater:    P=1,      I=0.01,   D=10
+
+    Note: the NMR tube heater exhibits a significant temperature gradient
+    (~20 °C at 300 °C) across the holder; verify the offset at each new
+    position before use.
     """
 
     # PVPositioner interface
-    readback: Component[EpicsSignalRO] = Component(
-        EpicsSignalRO, "2A:temperature", kind="hinted"
-    )
-    setpoint: Component[EpicsSignalWithRBV] = Component(
-        EpicsSignalWithRBV, "5A:setPoint", kind="hinted"
-    )
+    readback = Component(EpicsSignalRO, "2A:temperature", kind="hinted")
+    setpoint = Component(EpicsSignalWithRBV, "5A:setPoint", kind="hinted")
 
     # PTC10 base
-    enable: Component[EpicsSignalWithRBV] = Component(
-        EpicsSignalWithRBV, "outputEnable", kind="config", string=True
-    )
-    # used moduly
-    # PTC10 thermocouple module : reads as NaN
-    # temperatureB = Component(
-    #     EpicsSignalRO, "2B:temperature", kind="config"
-    # )
-    # temperatureC = Component(EpicsSignalRO, "2C:temperature", kind="config")
-    # temperatureD = Component(
-    #     EpicsSignalRO,
-    #     "2D:temperature",
-    #     kind="omitted"
-    # )  # it's a NaN now
-    # coldj2 = Component(
-    #     EpicsSignalRO, "ColdJ2:temperature", kind="config"
-    # )
+    enable = Component(EpicsSignalWithRBV, "outputEnable", kind="config", string=True)
 
-    # PTC10 RTD module
-    # rtd = Component(PTC10RtdChannel, "3A:")  # reads as NaN
-    # rtdB = Component(PTC10RtdChannel, "3B:")  # unused now
-
-    # PTC10 AIO module
+    # PTC10 AIO module (only channel 5A is active; B/C/D are unused)
     pid = Component(PTC10AioChannelFixed, "5A:")
-    # pidB = Component(PTC10AioChannel, "5B:")  # unused now
-    # pidC = Component(PTC10AioChannel, "5C:")  # unused now
-    # pidD = Component(PTC10AioChannel, "5D:")  # unused now
 
     def __init__(self, *args, **kwargs):
-        """
-        Initialize the PTC10 controller.
-
-        Args:
-            *args: Variable length argument list
-            **kwargs: Arbitrary keyword arguments
-        """
         super().__init__(*args, **kwargs)
-        # TODO: If this class is broken, this is why
-        self.report_dmov_changes.put(True)  # a diagnostic
-        self.tolerance.put(1.0)  # done when |readback-setpoint|<=tolerance
-
-        # aliases to make PTC10 have same terms as Linkam controllers
+        self.report_dmov_changes.put(True)  # diagnostic: log every done/moving change
+        self.tolerance.put(1.0)  # done when |readback-setpoint| <= tolerance
 
     @property
     def temperature(self):

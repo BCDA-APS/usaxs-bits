@@ -1,11 +1,16 @@
 """
-EPICS data about the user
+User and experiment metadata device for the 12-ID-E USAXS instrument.
+
+``EpicsSampleNameDevice``
+    EpicsSignal subclass that allows a user-supplied function to transform
+    the sample name before it is written to EPICS (e.g. to prepend a prefix).
+
+``UserDataDevice``
+    Composite device exposing all user/experiment metadata PVs: GUP number,
+    sample title, user name, run cycle, state string, file paths, etc.
 """
 
-# apsbss
-
 import logging
-from typing import Any
 from typing import Callable
 from typing import Optional
 
@@ -17,36 +22,32 @@ from ophyd import EpicsSignal
 
 logger = logging.getLogger(__name__)
 
-# from apstools.devices import ApsBssUserInfoDevice
-# from apsbss.apsbss_ophyd import EpicsBssDevice
-
-# TODO: bss is likely completely wrong, we have new support. Check with Pete.
-
 
 class EpicsSampleNameDevice(EpicsSignal):
-    """
-    Enable the user to supply a function that modifies
-    the sample name during execution of a plan.
+    """EpicsSignal subclass that applies a user function before writing.
 
-    see: https://github.com/APS-USAXS/ipython-usaxs/issues/428
+    Allows the user to register a callable that transforms the sample name
+    before it is written to the EPICS PV.  If no handler is registered the
+    value is passed through unchanged.
 
-    EXAMPLE:
+    Example::
 
-        >>> def handler(title):
-        ...     return f"USAXS sample: {title}"
+        def handler(title):
+            return f"USAXS sample: {title}"
 
-        >>> user_data.sample_title.register_handler(handler)
+        user_data.sample_title.register_handler(handler)
 
-        >>> RE(bps.mv(user_data.sample_title, "Glassy Carbon"))
-        >>> user_data.sample_title.get()
-        USAXS sample: Glassy Carbon
+        RE(bps.mv(user_data.sample_title, "Glassy Carbon"))
+        user_data.sample_title.get()
+        # -> "USAXS sample: Glassy Carbon"
 
+    See also: https://github.com/APS-USAXS/ipython-usaxs/issues/428
     """
 
     _handler: Optional[Callable[[str], str]] = None
 
-    def set(self, value: str, **kwargs: Any) -> Any:
-        """Modify value per user function before setting the PV"""
+    def set(self, value: str, **kwargs):
+        """Apply the registered handler (if any) then write *value* to the PV."""
         logger.debug("self._handler: %s", self._handler)
         if self._handler is not None:
             value = self._handler(value)
@@ -55,12 +56,20 @@ class EpicsSampleNameDevice(EpicsSignal):
     def register_handler(
         self, handler_function: Optional[Callable[[str], str]] = None
     ) -> None:
-        """
-        Register the supplied function to be called
-        when this signal is to be written.  The function
-        accepts the default sample title as the only argument
-        and *must* return a string value (as shown in the
-        example above).
+        """Register (or clear) the sample-name transform function.
+
+        Parameters
+        ----------
+        handler_function : callable or None
+            A function that accepts the default sample title as its only
+            argument and **must** return a ``str``.  Pass ``None`` to clear
+            a previously registered handler and restore pass-through behaviour.
+
+        Raises
+        ------
+        ValueError
+            If *handler_function* does not return a ``str`` when called with
+            the test string ``"test"``.
         """
         if handler_function is None:
             # clear the handler
@@ -85,54 +94,60 @@ class EpicsSampleNameDevice(EpicsSignal):
 
 
 class UserDataDevice(Device):
+    """EPICS PVs holding user and experiment metadata for the current session.
+
+    ``GUP_number``           — APS General User Proposal number.
+    ``macro_file``           — name of the current command/macro file.
+    ``macro_file_time``      — last-modified timestamp of the macro file.
+    ``run_cycle``            — APS run cycle string (e.g. ``"2025-1"``).
+    ``sample_thickness``     — sample thickness (mm).
+    ``sample_title``         — sample name (:class:`EpicsSampleNameDevice`).
+    ``sample_dir``           — sample working directory (:class:`EpicsSampleNameDevice`).
+    ``scanning``             — non-zero while a USAXS scan is in progress.
+    ``scan_macro``           — name of the currently running scan macro.
+    ``spec_file``            — SPEC data file name.
+    ``spec_scan``            — current SPEC scan number.
+    ``state``                — free-form status string (max ~40 chars, ``write_timeout=0.1``).
+    ``time_stamp``           — epoch timestamp of last update.
+    ``user_dir``             — user data directory path.
+    ``user_name``            — user name string.
+    ``collection_in_progress``— 1 while data collection is active (GUI indicator).
     """
-    Device for storing and retrieving user data during experiments.
 
-    This device provides access to various user-related parameters such as
-    sample information, user identification, and experiment state.
-    """
+    GUP_number = Component(EpicsSignal, "usxLAX:GUPNumber")
+    macro_file = Component(EpicsSignal, "usxLAX:macroFile")
+    macro_file_time = Component(EpicsSignal, "usxLAX:macroFileTime")
+    run_cycle = Component(EpicsSignal, "usxLAX:RunCycle")
+    sample_thickness = Component(EpicsSignal, "usxLAX:sampleThickness")
+    sample_title = Component(EpicsSampleNameDevice, "usxLAX:sampleTitle", string=True)
+    sample_dir = Component(EpicsSampleNameDevice, "usxLAX:sampleDir", string=True)
+    scanning = Component(EpicsSignal, "usxLAX:USAXS:scanning")
+    scan_macro = Component(EpicsSignal, "usxLAX:scanMacro")
+    spec_file = Component(EpicsSignal, "usxLAX:specFile", string=True)
+    spec_scan = Component(EpicsSignal, "usxLAX:specScan", string=True)
+    state = Component(EpicsSignal, "usxLAX:state", string=True, write_timeout=0.1)
+    time_stamp = Component(EpicsSignal, "usxLAX:timeStamp")
+    user_dir = Component(EpicsSignal, "usxLAX:userDir", string=True)
+    user_name = Component(EpicsSignal, "usxLAX:userName", string=True)
 
-    GUP_number: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:GUPNumber")
-    macro_file: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:macroFile")
-    macro_file_time: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxLAX:macroFileTime"
-    )
-    run_cycle: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:RunCycle")
-    sample_thickness: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxLAX:sampleThickness"
-    )
-    sample_title: Component[EpicsSampleNameDevice] = Component(
-        EpicsSampleNameDevice, "usxLAX:sampleTitle", string=True
-    )
-    sample_dir: Component[EpicsSampleNameDevice] = Component(
-        EpicsSampleNameDevice, "usxLAX:sampleDir", string=True
-    )
-    scanning: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:USAXS:scanning")
-    scan_macro: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:scanMacro")
-    spec_file: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxLAX:specFile", string=True
-    )
-    spec_scan: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxLAX:specScan", string=True
-    )
-    state: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxLAX:state", string=True, write_timeout=0.1
-    )
-    time_stamp: Component[EpicsSignal] = Component(EpicsSignal, "usxLAX:timeStamp")
-    user_dir: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxLAX:userDir", string=True
-    )
-    user_name: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxLAX:userName", string=True
-    )
-
-    # for GUI to know if user is collecting data: 0="On", 1="Off"
-    collection_in_progress: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxLAX:dataColInProgress"
-    )
+    # 0 = collecting, 1 = idle (GUI indicator)
+    collection_in_progress = Component(EpicsSignal, "usxLAX:dataColInProgress")
 
     def set_state_plan(self, msg: str, confirm: bool = True):
-        """plan: tell EPICS about what we are doing"""
+        """Bluesky plan: write *msg* to the EPICS state PV.
+
+        The string is trimmed to EPICS character-field limits before writing.
+        Exceptions are caught and logged as warnings so that a failed status
+        update never aborts the enclosing plan.
+
+        Parameters
+        ----------
+        msg : str
+            Human-readable description of the current instrument activity.
+        confirm : bool
+            If ``True`` (default), wait for the PV to acknowledge the write
+            before yielding control back to the RunEngine.
+        """
         msg = trim_string_for_EPICS(msg)
         try:
             yield from bps.abs_set(self.state, msg, wait=confirm)
@@ -140,7 +155,17 @@ class UserDataDevice(Device):
             logger.warning("Exception while reporting instrument state: %s", exc)
 
     def set_state_blocking(self, msg: str) -> None:
-        """ophyd: tell EPICS about what we are doing"""
+        """Write *msg* to the EPICS state PV outside of a Bluesky plan.
+
+        Truncates *msg* to 39 characters (appending ``" ..."`` if truncated)
+        to fit within the PV's character-field limit.  Exceptions are caught
+        and logged as errors so that a failed status update never raises.
+
+        Parameters
+        ----------
+        msg : str
+            Human-readable description of the current instrument activity.
+        """
         msg = trim_string_for_EPICS(msg)
         try:
             if len(msg) > 39:
