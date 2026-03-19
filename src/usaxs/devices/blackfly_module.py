@@ -1,14 +1,23 @@
 """
-Point Grey Blackfly area detector
+Point Grey BlackFly area detector support for the 12-ID-E USAXS instrument.
 
-note: this is one of the easiest area detector setups in Ophyd
+Provides two concrete detector classes built on ``MyPointGreyDetector``:
+
+``MyPointGreyDetectorJPEG``
+    Saves images as JPEG via the ``JPEG1:`` plugin.  File path and name are
+    set by EPICS (``EpicsDefinesJpegFileNames``).
+``MyPointGreyDetectorTIFF``
+    Saves images as TIFF via the ``TIFF1:`` plugin.  File path and name are
+    set by EPICS (``EpicsDefinesTiffFileNames``).
+
+Both classes share ``image_prep()``, ``should_save_image``, and ``take_image()``
+helpers.  The ``should_save_image`` property reads the
+``usxLAX:saveFLY2Image`` PV to decide whether to acquire.
 """
-# TODO: THis is an ad
 
 import os
 import warnings
 
-# from apstools.devices import AD_prime_plugin2
 from bluesky import plan_stubs as bps
 from ophyd import ADComponent
 from ophyd import AreaDetector
@@ -38,25 +47,23 @@ _validate_AD_FileWriter_path_(READ_IMAGE_FILE_PATH, DATABROKER_ROOT_PATH)
 
 
 class MyPointGreyDetector(SingleTrigger, AreaDetector):
-    """PointGrey Black Fly detector(s) as used by 12-ID-E USAXS"""
+    """Base PointGrey BlackFly detector used at 12-ID-E USAXS."""
 
-    cam: ADComponent[PointGreyDetectorCam] = ADComponent(PointGreyDetectorCam, "cam1:")
-    image: ADComponent[ImagePlugin] = ADComponent(ImagePlugin, "image1:")
+    cam = ADComponent(PointGreyDetectorCam, "cam1:")
+    image = ADComponent(ImagePlugin, "image1:")
 
 
 class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
-    """
-    Variation to write image as JPEG
+    """BlackFly detector variant that saves images as JPEG.
 
     To save an image (using existing configuration)::
 
         blackfly_optical.stage()
         blackfly_optical.trigger()
         blackfly_optical.unstage()
-
     """
 
-    jpeg1: ADComponent[EpicsDefinesJpegFileNames] = ADComponent(
+    jpeg1 = ADComponent(
         EpicsDefinesJpegFileNames,
         suffix="JPEG1:",
         root=DATABROKER_ROOT_PATH,
@@ -64,18 +71,14 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
         read_path_template=READ_IMAGE_FILE_PATH,
         kind="normal",
     )
-    trans1: ADComponent[TransformPlugin] = ADComponent(TransformPlugin, "Trans1:")
-    cc1: ADComponent[ColorConvPlugin] = ADComponent(ColorConvPlugin, "CC1:")
-    proc1: ADComponent[ProcessPlugin] = ADComponent(ProcessPlugin, "Proc1:")
+    trans1 = ADComponent(TransformPlugin, "Trans1:")
+    cc1 = ADComponent(ColorConvPlugin, "CC1:")
+    proc1 = ADComponent(ProcessPlugin, "Proc1:")
 
     def __init__(self, *args, **kwargs):
-        """
-        Initialize the detector with specific settings.
-        """
+        """Initialize; add ``jpeg1`` to read attrs and set capture mode."""
         super().__init__(*args, **kwargs)
-        # Add jpeg1 to read_attrs
         self.read_attrs.append("jpeg1")
-        # Configure jpeg1 stage_sigs
         self.jpeg1.stage_sigs["file_write_mode"] = "Capture"
 
         if not Override_AD_plugin_primed(self.jpeg1):
@@ -88,48 +91,48 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
 
     @property
     def image_file_name(self) -> str:
-        """Get the full file name of the JPEG image.
-
-        Returns:
-            str: Full path and name of the JPEG image file.
-        """
+        """Return the full path of the most-recently written JPEG file."""
         return self.jpeg1.full_file_name.get()
 
     def image_prep(self, path: str, filename_base: str, order_number: int):
-        """Prepare image file path and name settings.
+        """Set file path, name, and number on the JPEG plugin.
 
-        Args:
-            path: Directory path where image will be saved.
-            filename_base: Base name for the image file.
-            order_number: Sequential number for the image file.
+        Parameters
+        ----------
+        path : str
+            Directory path as seen by the host OS.  ``/mnt`` is prepended to
+            convert it to the path seen by the IOC.  A trailing ``/`` is added
+            automatically.
+        filename_base : str
+            Base name for the image file (without extension).
+        order_number : int
+            Sequential file number written into the AD filename template.
 
-        Yields:
-            Generator for setting file path and name parameters.
+        Yields
+        ------
+        Bluesky messages.
         """
         plugin = self.jpeg1
-        path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
+        ioc_path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
+        # fmt: off
         yield from bps.mv(
-            # ftm: off
-            plugin.file_path,        path,
-            plugin.file_name,        filename_base,
-            plugin.file_number,      order_number,
-            # fmt: on
+            plugin.file_path,    ioc_path,
+            plugin.file_name,    filename_base,
+            plugin.file_number,  order_number,
         )
+        # fmt: on
 
     @property
     def should_save_image(self) -> bool:
-        """Check if the image should be saved.
-
-        Returns:
-            bool: True if image should be saved, False otherwise.
-        """
+        """Return True if the ``usxLAX:saveFLY2Image`` PV is set to 1 / ``"Yes"``."""
         return _flag_save_sample_image_.get() in (1, "Yes")
 
     def take_image(self):
-        """Take an image using the detector.
+        """Stage, trigger (wait for completion), then unstage the detector.
 
-        Yields:
-            Generator for staging, triggering, and unstaging the detector.
+        Yields
+        ------
+        Bluesky messages.
         """
         yield from bps.stage(self)
         yield from bps.trigger(self, wait=True)
@@ -137,72 +140,68 @@ class MyPointGreyDetectorJPEG(MyPointGreyDetector, AreaDetector):
 
 
 class MyPointGreyDetectorTIFF(MyPointGreyDetector, AreaDetector):
-    """
-    Variation to write image as TIFF
+    """BlackFly detector variant that saves images as TIFF.
 
     To save an image (using existing configuration)::
 
         blackfly_optical.stage()
         blackfly_optical.trigger()
         blackfly_optical.unstage()
-
     """
 
-    tiff1: ADComponent[EpicsDefinesTiffFileNames] = ADComponent(
-        # ftm: off
-        EpicsDefinesTiffFileNames,                      suffix="TIFF1:",
-        root=DATABROKER_ROOT_PATH,                      write_path_template=WRITE_IMAGE_FILE_PATH,
-        read_path_template=READ_IMAGE_FILE_PATH,        kind="normal",
-        # ftm: on
+    tiff1 = ADComponent(
+        EpicsDefinesTiffFileNames,
+        suffix="TIFF1:",
+        root=DATABROKER_ROOT_PATH,
+        write_path_template=WRITE_IMAGE_FILE_PATH,
+        read_path_template=READ_IMAGE_FILE_PATH,
+        kind="normal",
     )
-    # trans1: ADComponent[TransformPlugin] = ADComponent(TransformPlugin, "Trans1:")
-    # cc1: ADComponent[ColorConvPlugin] = ADComponent(ColorConvPlugin, "CC1:")
-    # proc1: ADComponent[ProcessPlugin] = ADComponent(ProcessPlugin, "Proc1:")
 
     @property
     def image_file_name(self) -> str:
-        """Get the full file name of the TIFF image.
-
-        Returns:
-            str: Full path and name of the TIFF image file.
-        """
+        """Return the full path of the most-recently written TIFF file."""
         return self.tiff1.full_file_name.get()
 
     def image_prep(self, path: str, filename_base: str, order_number: int):
-        """Prepare image file path and name settings.
+        """Set file path, name, and number on the TIFF plugin.
 
-        Args:
-            path: Directory path where image will be saved.
-            filename_base: Base name for the image file.
-            order_number: Sequential number for the image file.
+        Parameters
+        ----------
+        path : str
+            Directory path as seen by the host OS.  ``/mnt`` is prepended to
+            convert it to the path seen by the IOC.  A trailing ``/`` is added
+            automatically.
+        filename_base : str
+            Base name for the image file (without extension).
+        order_number : int
+            Sequential file number written into the AD filename template.
 
-        Yields:
-            Generator for setting file path and name parameters.
+        Yields
+        ------
+        Bluesky messages.
         """
         plugin = self.tiff1
-        path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
+        ioc_path = "/mnt" + os.path.abspath(path) + "/"  # MUST end with "/"
+        # fmt: off
         yield from bps.mv(
-            # fmt: off
-            plugin.file_path,            path,
-            plugin.file_name,            filename_base,
-            plugin.file_number,          order_number,
-            # fmt: on
+            plugin.file_path,    ioc_path,
+            plugin.file_name,    filename_base,
+            plugin.file_number,  order_number,
         )
+        # fmt: on
 
     @property
     def should_save_image(self) -> bool:
-        """Check if the image should be saved.
-
-        Returns:
-            bool: True if image should be saved, False otherwise.
-        """
+        """Return True if the ``usxLAX:saveFLY2Image`` PV is set to 1 / ``"Yes"``."""
         return _flag_save_sample_image_.get() in (1, "Yes")
 
     def take_image(self):
-        """Take an image using the detector.
+        """Stage, trigger (wait for completion), then unstage the detector.
 
-        Yields:
-            Generator for staging, triggering, and unstaging the detector.
+        Yields
+        ------
+        Bluesky messages.
         """
         yield from bps.stage(self)
         yield from bps.trigger(self, wait=True)

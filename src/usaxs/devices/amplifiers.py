@@ -48,11 +48,9 @@ class ModifiedSwaitRecord(SwaitRecord):
 
     enable = None  # remove this Component
 
-class usaxs_calculated_signal(Device):
-    """Device for USAXS calculated signal."""
 
-    #_default_configuration_attrs = ()
-    #_default_read_attrs = ("VAL",)
+class usaxs_calculated_signal(Device):
+    """Read-only device exposing a single calculated EPICS signal (.VAL)."""
 
     value = Component(EpicsSignalRO, ".VAL", kind="hinted")
 
@@ -121,8 +119,10 @@ class FemtoAmplifierDevice(CurrentAmplifierDevice):
         self.gain_suffix = s[s.find(" ") :]
         for i, s in enumerate(acceptable[:num_gains]):
             # verify all gains use same suffix text
-            msg = f"gainindex[{i}] = {s}, expected ending '{self.gain_suffix}'"
-            assert s[s.find(" ") :] == self.gain_suffix, msg
+            if s[s.find(" "):] != self.gain_suffix:
+                raise ValueError(
+                    f"gainindex[{i}] = {s}, expected ending '{self.gain_suffix}'"
+                )
 
         self._gain_info_known = True
 
@@ -181,7 +181,8 @@ class AmplfierGainDevice(Device):
             The channel number.
         **kwargs: Arbitrary keyword arguments.
         """
-        assert ch_num is not None, "Must provide `ch_num=` keyword argument."
+        if ch_num is None:
+            raise ValueError("Must provide `ch_num=` keyword argument.")
         self._ch_num = ch_num
         super().__init__(prefix, **kwargs)
 
@@ -256,8 +257,10 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
         self.gain_suffix = s[s.find(" ") :]
         for i, s in enumerate(acceptable[:num_gains]):
             # verify all gains use same suffix text
-            msg = f"reqrange[{i}] = {s}, expected ending: '{self.gain_suffix}'"
-            assert s[s.find(" ") :] == self.gain_suffix, msg
+            if s[s.find(" "):] != self.gain_suffix:
+                raise ValueError(
+                    f"reqrange[{i}] = {s}, expected ending: '{self.gain_suffix}'"
+                )
 
         self._gain_info_known = True
 
@@ -341,9 +344,7 @@ class DetectorAmplifierAutorangeDevice(Device):
         self.nickname = nickname
         self.scaler = oregistry[scaler]
         self.signal = oregistry[f"{det.upper()}_SIGNAL"]
-        self.femto = oregistry[
-            f"{det}_femto_amplifier"
-        ]  # changed from .femto, I assume amplfier is correct?
+        self.femto = oregistry[f"{det}_femto_amplifier"]
         self.auto = oregistry[f"{det}_autorange_controls"]
 
         if not isinstance(self.scaler, ScalerCH):
