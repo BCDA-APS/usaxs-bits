@@ -1,5 +1,8 @@
 """
-EPICS data about the sample
+Sample metadata device for the 12-ID-E USAXS instrument.
+
+Exposes NeXus-required sample properties (temperature, concentration, fields,
+etc.) as EPICS PVs under the ``usxSample:`` prefix.
 """
 
 from bluesky import plan_stubs as bps
@@ -9,59 +12,63 @@ from ophyd import EpicsSignal
 
 
 class SampleDataDevice(Device):
-    """Sample information, (initially) based on NeXus requirements.
+    """EPICS PVs describing the current sample, based on NeXus requirements.
 
-    This device provides access to various sample properties and parameters
-    that are stored in EPICS PVs.
+    Numeric fields (SI units):
+        ``temperature``              — sample temperature (°C)
+        ``concentration``            — concentration
+        ``volume_fraction``          — volume fraction
+        ``scattering_length_density``— SLD
+        ``magnetic_field``           — applied magnetic field
+        ``stress_field``             — applied stress field
+        ``electric_field``           — applied electric field
+        ``x_translation``            — sample X translation (mm)
+        ``rotation_angle``           — sample rotation angle (°)
+
+    Direction strings (``"X"``, ``"Y"``, ``"Z"``, …):
+        ``magnetic_field_dir``, ``stress_field_dir``, ``electric_field_dir``
+
+    Text fields:
+        ``description``, ``chemical_formula``
     """
 
-    temperature: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:Temperature"
-    )
-    concentration: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:Concentration"
-    )
-    volume_fraction: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:VolumeFraction"
-    )
-    scattering_length_density: Component[EpicsSignal] = Component(
+    temperature = Component(EpicsSignal, "usxSample:Temperature")
+    concentration = Component(EpicsSignal, "usxSample:Concentration")
+    volume_fraction = Component(EpicsSignal, "usxSample:VolumeFraction")
+    scattering_length_density = Component(
         EpicsSignal, "usxSample:ScatteringLengthDensity"
     )
-    magnetic_field: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:MagneticField"
-    )
-    stress_field: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:StressField"
-    )
-    electric_field: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:ElectricField"
-    )
-    x_translation: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:XTranslation"
-    )
-    rotation_angle: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:RotationAngle"
-    )
+    magnetic_field = Component(EpicsSignal, "usxSample:MagneticField")
+    stress_field = Component(EpicsSignal, "usxSample:StressField")
+    electric_field = Component(EpicsSignal, "usxSample:ElectricField")
+    x_translation = Component(EpicsSignal, "usxSample:XTranslation")
+    rotation_angle = Component(EpicsSignal, "usxSample:RotationAngle")
 
-    magnetic_field_dir: Component[EpicsSignal] = Component(
+    magnetic_field_dir = Component(
         EpicsSignal, "usxSample:MagneticFieldDir", string=True
     )
-    stress_field_dir: Component[EpicsSignal] = Component(
+    stress_field_dir = Component(
         EpicsSignal, "usxSample:StressFieldDir", string=True
     )
-    electric_field_dir: Component[EpicsSignal] = Component(
+    electric_field_dir = Component(
         EpicsSignal, "usxSample:ElectricFieldDir", string=True
     )
 
-    description: Component[EpicsSignal] = Component(
-        EpicsSignal, "usxSample:Description", string=True
-    )
-    chemical_formula: Component[EpicsSignal] = Component(
+    description = Component(EpicsSignal, "usxSample:Description", string=True)
+    chemical_formula = Component(
         EpicsSignal, "usxSample:ChemicalFormula", string=True
     )
 
     def resetAll(self):
-        """Bluesky plan to reset all to preset values."""
+        """Bluesky plan: reset all sample fields to their default values.
+
+        Defaults: temperature=25 °C, concentration=volume_fraction=SLD=1,
+        all fields=0, all directions="X", description=chemical_formula="".
+
+        Yields
+        ------
+        Bluesky messages.
+        """
         yield from bps.mv(
             # fmt: off
             self.temperature,
