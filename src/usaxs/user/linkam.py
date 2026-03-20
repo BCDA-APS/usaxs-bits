@@ -301,8 +301,8 @@ def fanAlLinkamPlan(pos_X,pos_Y,thickness,scan_title,temp1,temp2,md={},):
     # *******
   
     # Cooling cycle - cool down
-    logger.info("Waited for %s minutes, now changing temperature to 40 C", delay1min)
-    appendToMdFile(f"Waited for {delay1min} minutes, now changing temperature to 40 C")
+    logger.info("Waited for 60 minutes, now changing temperature to 40 C")
+    appendToMdFile("Waited for 60 minutes, now changing temperature to 40 C")
     yield from change_rate_and_temperature(150, 40, wait=False)
     t0 = time.time()  # mark start time of data collection at temperature 1.
     while not linkam.temperature.inposition:  # data collection until we reach 40C.
@@ -469,7 +469,6 @@ q
         yield from collectAllThree()  # collect the data at RT
         yield from collectAllThree()  # collect the data at RT
         yield from collectAllThree()  # collect the data at RT
-        #yield from collectAllThree()  # collect the data at RT
         iteration +=1
         temp = temp0 + iteration*10
     # *******
