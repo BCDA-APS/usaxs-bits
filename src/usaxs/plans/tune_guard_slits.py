@@ -1,17 +1,18 @@
 """
 Plans for tuning guard slits in USAXS.
+
+Public entry points
+-------------------
+* ``tune_GslitsCenter`` — tune guard slit x/y to the peak centre.
+* ``tune_GslitsSize``   — tune each blade edge and set slit size.
+* ``tune_Gslits``       — run centre tune then size tune.
 """
 
 import datetime
 import logging
 from collections import defaultdict
-from typing import Any
-from typing import Dict
-from typing import Optional
 
 import pyRestTable
-from apsbits.core.instrument_init import MONO_FEEDBACK_OFF
-from apsbits.core.instrument_init import MONO_FEEDBACK_ON
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import TuneAxis
 from bluesky import plan_stubs as bps
@@ -23,6 +24,8 @@ from ..utils.derivative import numerical_derivative
 from ..utils.peak_centers import peak_center
 from .filter_plans import insertTransmissionFilters
 from .mode_changes import mode_USAXS
+from .mono_feedback import MONO_FEEDBACK_OFF
+from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
 
 logger = logging.getLogger(__name__)
@@ -33,12 +36,10 @@ guard_slit = oregistry["guard_slit"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 user_data = oregistry["user_data"]
-# Get devices from oregistry
 UPD_SIGNAL = oregistry["UPD_SIGNAL"]
 I0_controls = oregistry["I0_controls"]
 I00_controls = oregistry["I00_controls"]
 autoscale_amplifiers = oregistry["autoscale_amplifiers"]
-monochromator = oregistry["monochromator"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 upd_controls = oregistry["upd_controls"]
@@ -49,24 +50,14 @@ class GuardSlitTuneError(RuntimeError):
 
 
 @plan
-def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
+def tune_GslitsCenter():
+    """Bluesky plan: tune guard slit x/y position to the peak centre.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
-    Plan: optimize the guard slits' position.
-
-    Tune to the peak centers.
-
-    Parameters
-    ----------
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
-
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-
-    yield from IfRequestedStopBeforeNextScan(oregistry)
+    yield from IfRequestedStopBeforeNextScan()
     title = "tuning USAXS Gslit center"
     ts = str(datetime.datetime.now())
     yield from bps.mv(
@@ -81,7 +72,7 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
     )
     yield from user_data.set_state_plan("tune Guard slits center")
 
-    yield from mode_USAXS(oregistry)
+    yield from mode_USAXS()
     yield from bps.mv(
         usaxs_slit.v_size,
         terms.SAXS.usaxs_v_size.get(),
@@ -89,7 +80,7 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
         terms.SAXS.usaxs_h_size.get(),
     )
     yield from bps.mv(usaxs_shutter, "open")
-    yield from insertTransmissionFilters(oregistry)
+    yield from insertTransmissionFilters()
     yield from bps.sleep(0.1)
     yield from user_data.set_state_plan("autoranging the PD")
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
@@ -174,33 +165,16 @@ def tune_GslitsCenter(oregistry: Optional[Dict[str, Any]] = None):
 
 
 @plan
-def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
+def _USAXS_tune_guardSlits():
+    """Bluesky plan: (internal) perform the guard slit blade-edge scan.
+
+    Called from ``tune_GslitsSize()``.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
-    Plan: (internal) this performs the guard slit scan.
-
-    Called from tune_GslitsSize().
-
-    Parameters
-    ----------
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
-
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    # Get devices from oregistry
-    UPD_SIGNAL = oregistry["UPD_SIGNAL"]
-    I0_controls = oregistry["I0_controls"]
-    I00_controls = oregistry["I00_controls"]
-    autoscale_amplifiers = oregistry["autoscale_amplifiers"]
-    guard_slit = oregistry["guard_slit"]
-    scaler0 = oregistry["scaler0"]
-    upd_controls = oregistry["upd_controls"]
-    user_data = oregistry["user_data"]
-
-    # remember original motor positons
+    # remember original motor positions
     original_position = dict(
         top=guard_slit.top.position,
         bot=guard_slit.bot.position,
@@ -209,8 +183,6 @@ def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
     )
     h_step_away = guard_slit.h_step_away
     v_step_away = guard_slit.v_step_away
-    # h_step_into = guard_slit.h_step_into
-    # v_step_into = guard_slit.v_step_into
     h_step_into = 2 * guard_slit.top.position
     v_step_into = 2 * guard_slit.outb.position
 
@@ -291,11 +263,6 @@ def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
         x, y = numerical_derivative(tuner.peaks.x_data, tuner.peaks.y_data)
         position, width = peak_center(x, y)
         width *= guard_slit.scale_factor  # expand a bit
-
-        # Check if movement was from unblocked to blocked
-        # not necessary and makes this code fail
-        # if tuner.peaks.y_data[0] > tuner.peaks.y_data[-1]:
-        #     width *= -1     # flip the sign
 
         if position < min(start, end):
             msg = f"{axis.name}: Computed tune position {position} < {min(start, end)}."
@@ -416,23 +383,16 @@ def _USAXS_tune_guardSlits(oregistry: Optional[Dict[str, Any]] = None):
 
 
 @plan
-def _unstick_GslitsSizeMotors(oregistry: Optional[Dict[str, Any]] = None):
+def _unstick_GslitsSizeMotors():
+    """Bluesky plan: (internal) unstick the guard slit motors.
+
+    Workaround for issue #425 (#404): jogs each blade ±0.1 mm to clear
+    a "motor stuck in moving" condition after a size tune.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
-    Plan: (internal) unstick the guard slit motors.
-
-    Parameters
-    ----------
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
-
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    # Get devices from oregistry
-    guard_slit = oregistry["guard_slit"]
-
     pause = 4
     logger.info("Workaround for Guard Slit 'motor stuck in moving'.")
     yield from bps.sleep(pause)  # activity pause, empirical
@@ -444,19 +404,6 @@ def _unstick_GslitsSizeMotors(oregistry: Optional[Dict[str, Any]] = None):
         guard_slit.v_sync_proc,
         1,
     )
-
-    # NOTE: These steps did not affect the process outcome.
-    # # write the .STUP field on each motor
-    # for axis in "top bot inb outb".split():
-    #     logger.info("Unstick %s.", axis)
-    #     m = getattr(guard_slit, axis)
-    #     try:
-    #         yield from bps.abs_set(m.status_update, 1, timeout=.1)
-    #         yield from bps.sleep(pause)     # activity pause, empirical
-    #     except FailedStatus:
-    #         pass
-    #     except Exception as exc:
-    #         logger.error("%s: %s", axis, exc)
 
     # move each motor *individually*
     for axis in "top bot inb outb".split():
@@ -470,42 +417,20 @@ def _unstick_GslitsSizeMotors(oregistry: Optional[Dict[str, Any]] = None):
 
 
 @plan
-def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
+def tune_GslitsSize():
+    """Bluesky plan: tune each guard slit blade edge and set slit size.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
-    Plan: optimize the guard slits' size.
-
-    Parameters
-    ----------
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
-
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    # Get devices from oregistry
-    # UPD_SIGNAL = oregistry["UPD_SIGNAL"]
-    I0_controls = oregistry["I0_controls"]
-    I00_controls = oregistry["I00_controls"]
-    autoscale_amplifiers = oregistry["autoscale_amplifiers"]
-    guard_slit = oregistry["guard_slit"]
-    # scaler0 = oregistry["scaler0"]
-    terms = oregistry["terms"]
-    usaxs_shutter = oregistry["usaxs_shutter"]
-    upd_controls = oregistry["upd_controls"]
-    usaxs_slit = oregistry["usaxs_slit"]
-    # user_data = oregistry["user_data"]
-
-    yield from tune_GslitsCenter(oregistry)
-    yield from mode_USAXS(oregistry)
+    yield from tune_GslitsCenter()
+    yield from mode_USAXS()
     yield from bps.mv(
         usaxs_slit.v_size,
         terms.SAXS.v_size.get(),
         usaxs_slit.h_size,
         terms.SAXS.h_size.get(),
-        # monochromator.feedback.on,
-        # MONO_FEEDBACK_OFF,
     )
     yield from MONO_FEEDBACK_OFF()
 
@@ -517,10 +442,9 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
         usaxs_shutter,
         "open",
     )
-    # insertCCDfilters
-    yield from insertTransmissionFilters(oregistry)
+    yield from insertTransmissionFilters()
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
-    yield from _USAXS_tune_guardSlits(oregistry)
+    yield from _USAXS_tune_guardSlits()
     yield from bps.mv(
         usaxs_shutter,
         "close",
@@ -528,12 +452,10 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
         guard_slit.h_size.get(),
         terms.SAXS.guard_v_size,
         guard_slit.v_size.get(),
-        # monochromator.feedback.on,
-        # MONO_FEEDBACK_ON,
     )
     yield from MONO_FEEDBACK_ON()
     # workaround for issue #425 (#404)
-    yield from _unstick_GslitsSizeMotors(oregistry)
+    yield from _unstick_GslitsSizeMotors()
 
     logger.info(
         f"Guard slit now: V={guard_slit.v_size.get()} and H={guard_slit.h_size.get()}"
@@ -541,22 +463,14 @@ def tune_GslitsSize(oregistry: Optional[Dict[str, Any]] = None):
 
 
 @plan
-def tune_Gslits(oregistry: Optional[Dict[str, Any]] = None):
+def tune_Gslits():
+    """Bluesky plan: tune guard slit position and size.
+
+    Runs ``tune_GslitsCenter`` then ``tune_GslitsSize``.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
-    Plan: optimize the guard slits' position and size.
-
-    Parameters
-    ----------
-    oregistry : Dict[str, Any], optional
-        The ophyd registry containing device instances, by default None
-
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
-    """
-    # Get devices from oregistry
-    # user_data = oregistry["user_data"]
-
-    yield from tune_GslitsCenter(oregistry)
-    yield from tune_GslitsSize(oregistry)
+    yield from tune_GslitsCenter()
+    yield from tune_GslitsSize()

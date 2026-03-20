@@ -23,7 +23,21 @@ DEFAULT_MD = {"title": "test run with simulator(s)"}
 
 
 def sim_count_plan(num: int = 1, imax: float = 10_000, md: dict = DEFAULT_MD):
-    """Demonstrate the ``count()`` plan."""
+    """Bluesky plan: demonstrate ``count()`` with the simulator detector.
+
+    Parameters
+    ----------
+    num : int, optional
+        Number of readings to take, by default 1.
+    imax : float, optional
+        Peak intensity for the simulated detector, by default 10 000.
+    md : dict, optional
+        Metadata for the run, by default ``DEFAULT_MD``.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
     logger.debug("sim_count_plan()")
     sim_det = oregistry["sim_det"]
     yield from bps.mv(sim_det.Imax, imax)
@@ -31,7 +45,12 @@ def sim_count_plan(num: int = 1, imax: float = 10_000, md: dict = DEFAULT_MD):
 
 
 def sim_print_plan():
-    """Demonstrate a ``print()`` plan stub (no data streams)."""
+    """Bluesky plan: print simulator motor and detector values (no data stream).
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
     logger.debug("sim_print_plan()")
     yield from bps.null()
     sim_det = oregistry["sim_det"]
@@ -49,7 +68,30 @@ def sim_rel_scan_plan(
     noise: str = "uniform",  # none poisson uniform
     md: dict = DEFAULT_MD,
 ):
-    """Demonstrate the ``rel_scan()`` plan."""
+    """Bluesky plan: demonstrate ``rel_scan()`` with the simulator devices.
+
+    Parameters
+    ----------
+    span : float, optional
+        Total scan range in motor units, by default 5.
+    num : int, optional
+        Number of scan points, by default 11.
+    imax : float, optional
+        Peak intensity for the simulated detector, by default 10 000.
+    center : float, optional
+        Peak centre position in motor units, by default 0.
+    sigma : float, optional
+        Peak width (Gaussian sigma) in motor units, by default 1.
+    noise : str, optional
+        Noise model: ``"none"``, ``"poisson"``, or ``"uniform"``,
+        by default ``"uniform"``.
+    md : dict, optional
+        Metadata for the run, by default ``DEFAULT_MD``.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
     logger.debug("sim_rel_scan_plan()")
     sim_det = oregistry["sim_det"]
     sim_motor = oregistry["sim_motor"]
