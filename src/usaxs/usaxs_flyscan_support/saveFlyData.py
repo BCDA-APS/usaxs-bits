@@ -33,9 +33,6 @@ from typing import Optional
 import h5py
 import numpy
 
-# from importlib import import_module
-
-# logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # do not warn if the HDF5 library version has changed
@@ -112,6 +109,10 @@ class SaveFlyScan(object):
         Note:
             Not for production use in bluesky.
             This routine is used by SPEC and for development code.
+
+            No timeout is implemented intentionally — fly scan duration varies
+            enormously (seconds to hours) and no fixed limit is sensible.
+            The caller is expected to kill the process externally if needed.
         """
         import epics
 
@@ -154,7 +155,7 @@ class SaveFlyScan(object):
                 value = pv_spec.ophyd_signal.get(timeout=10, use_monitor=False)
             if value is None:
                 value = NO_DATA_TEXT
-            logger.debug(f"saveFile(): writing {pv_spec}")
+            logger.debug(f"preliminaryWriteFile(): writing {pv_spec}")
             if not isinstance(value, numpy.ndarray):
                 value = [value]
             else:
@@ -271,7 +272,10 @@ class SaveFlyScan(object):
                         item.pvname,
                         item.ophyd_signal.name,
                     )
-                # raise EpicsNotConnected()
+                # Intentional: some PVs are routinely unavailable (unimportant
+            # metadata sources).  Raising here caused too many spurious
+            # failures.  Unconnected PVs are logged as warnings above and
+            # written as NOT_CONNECTED_TEXT placeholders in the data file.
                 break
             time.sleep(0.1)
 
@@ -288,7 +292,6 @@ class SaveFlyScan(object):
                 root_attrs["creator_config_file"] = self.config_file
                 root_attrs["HDF5_Version"] = h5py.version.hdf5_version
                 root_attrs["h5py_version"] = h5py.version.version
-                # root_attrs["NX_class"] = "NXroot",    # not illegal, *never* used
                 addAttributes(f, **root_attrs)
                 xture.hdf5_group = f
             else:
@@ -303,7 +306,6 @@ class SaveFlyScan(object):
                 ds = makeDataset(
                     field.group_parent.hdf5_group, field.name, [field.text]
                 )
-                # ds = field.group_parent.hdf5_group
                 addAttributes(ds, **field.attrib)
             except Exception as err:
                 msg = "problem with field={}, text={}, exception={}".format(
@@ -352,11 +354,10 @@ def makeDataset(parent: h5py.Group, name: str, data: Any) -> Optional[h5py.Datas
         return dset
     except Exception as _exc:
         logger.error(
-            "Could not create dataset: %s:%s, %s  (parent=%s)",
+            "Could not create dataset: %s:%s, %s",
             parent.name,
             name,
             str(_exc),
-            parent,  # TODO: diagnostic only, remove for production.  Why is parent.name None?  Issue 101.
         )
         return None
 
