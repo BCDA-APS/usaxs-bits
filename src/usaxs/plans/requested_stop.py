@@ -1,7 +1,7 @@
 """
-User can set a PV to request scanning to stop
+User can set a PV to request scanning to stop.
 
-Scanning will stop between scans at next loop through scan sequence.
+Scanning will stop between scans at next loop through the scan sequence.
 """
 
 import datetime
@@ -26,8 +26,23 @@ user_data = oregistry["user_data"]
 
 
 def IfRequestedStopBeforeNextScan():
-    """plan: wait if requested"""
+    """Bluesky plan: honour user pause/stop requests between scans.
 
+    If ``terms.PauseBeforeNextScan`` is set, waits in a 1-second loop until
+    it is cleared, then re-opens the mono shutter.  If
+    ``terms.StopBeforeNextScan`` is set, closes shutters, clears the flag,
+    records the abort in Obsidian, and raises ``RequestAbort`` to halt the
+    RunEngine.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+
+    Raises
+    ------
+    RequestAbort
+        When ``terms.StopBeforeNextScan`` is set by the user.
+    """
     open_the_shutter = False
     t0 = time.time()
 
@@ -59,88 +74,10 @@ def IfRequestedStopBeforeNextScan():
         yield from bps.mv(*mv_args)
         yield from user_data.set_state_plan("Aborted data collection")
 
-        #record for Obsidian
+        # record for Obsidian
         recordUserAbort()
 
-        # RE.pause_msg = "DEBUG: stopped the scans, ignore the (informative) exception
-        # trace"
         raise RequestAbort(msg)  # long exception trace?
 
     if open_the_shutter:
         yield from bps.mv(mono_shutter, "open")  # waits until complete
-        # yield from bps.sleep(2)         # so, sleep not needed
-
-
-# def IfRequestedStopBeforeNextScan():
-#     """
-#     Plan: check if stop was requested before next scan.
-
-#     Parameters
-#     ----------
-
-#     Returns
-#     -------
-#     Generator[Any, None, None]
-#         A generator that yields plan steps
-#     """
-#     if terms.USAXS.stop_requested.get():
-#         yield from bps.mv(
-#             mono_shutter,
-#             "close",
-#             usaxs_shutter,
-#             "close",
-#         )
-#         yield from user_data.set_state_plan("Stop requested")
-#         RE.stop()
-#         return True
-#     return False
-
-
-# def handle_stop_request(
-#     md: Optional[Dict[str, Any]] = None,
-#     RE: Optional[Any] = None,
-#     bec: Optional[Any] = None,
-#     specwriter: Optional[Any] = None,
-# ):
-#     """Handle a requested stop during instrument operation.
-
-#     This function handles a requested stop by performing necessary cleanup
-#     and state management tasks.
-
-#     Parameters
-#     ----------
-#     md : Optional[Dict[str, Any]], optional
-#         Metadata dictionary, by default None
-#     RE : Optional[Any], optional
-#         Bluesky RunEngine instance, by default None
-#     bec : Optional[Any], optional
-#         Bluesky Live Callbacks instance, by default None
-#     specwriter : Optional[Any], optional
-#         SPEC file writer instance, by default None
-
-#     Returns
-#     -------
-#     Generator[Any, None, Any]
-#         A sequence of plan messages
-
-#     USAGE:  ``RE(handle_stop_request())``
-#     """
-#     if md is None:
-#         md = {}
-#     if RE is None:
-#         raise ValueError("RunEngine instance must be provided")
-#     if bec is None:
-#         raise ValueError("Bluesky Live Callbacks instance must be provided")
-#     if specwriter is None:
-#         raise ValueError("SPEC file writer instance must be provided")
-
-#     _md = {}
-#     _md.update(md or {})
-
-#     @bpp.run_decorator(md=_md)
-#     def _inner():
-#         yield from user_data.set_state_plan("handling stop request")
-#         yield from bps.mv(scaler0.count_mode, "AutoCount")
-#         yield from bps.sleep(1)  # Allow time for cleanup
-
-#     return (yield from _inner())

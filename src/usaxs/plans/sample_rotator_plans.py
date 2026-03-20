@@ -1,11 +1,15 @@
 """
-rotate the sample with PI C867 motor
+Sample rotation plans for the PI C867 rotator stage.
+
+Public entry points
+-------------------
+* ``PI_Off``         — stop rotation in either direction.
+* ``PI_onF``         — start continuous rotation in the forward direction.
+* ``PI_onR``         — start continuous rotation in the reverse direction.
+* ``rotate_sample``  — move the rotator to a specific angle.
 """
 
 import logging
-from typing import Any
-from typing import Dict
-from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
@@ -23,24 +27,22 @@ user_data = oregistry["user_data"]
 def PI_Off(
     timeout: float = 1,
 ):
-    """
-    Plan: stop rotating sample in either direction.
+    """Bluesky plan: stop rotating the sample in either direction.
 
-    NOTE:
-        Do NOT stop either jog by sending 1 to the
-        motor `.STOP` field.  That will result in a
-        `FailedStatus` exception if the motor is
+    .. note::
+        Do NOT stop either jog by sending 1 to the motor ``.STOP`` field.
+        That will result in a ``FailedStatus`` exception if the motor is
         in motion.
 
     Parameters
     ----------
     timeout : float, optional
-        Timeout in seconds, by default 1
+        Timeout in seconds for the move, by default 1.  Note: currently
+        the timeout is hardcoded to 1 s internally regardless of this value.
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(
         pi_c867.jog_forward,
@@ -54,18 +56,16 @@ def PI_Off(
 def PI_onF(
     timeout: float = 20,
 ):
-    """
-    Plan: start rotating sample in forward direction.
+    """Bluesky plan: start rotating the sample in the forward direction.
 
     Parameters
     ----------
     timeout : float, optional
-        Timeout in seconds, by default 20
+        Timeout in seconds for the home move, by default 20.
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(pi_c867.home, "forward", timeout=timeout)
     yield from bps.abs_set(pi_c867.jog_forward, 1)
@@ -74,18 +74,16 @@ def PI_onF(
 def PI_onR(
     timeout: float = 20,
 ):
-    """
-    Plan: start rotating sample in reverse direction.
+    """Bluesky plan: start rotating the sample in the reverse direction.
 
     Parameters
     ----------
     timeout : float, optional
-        Timeout in seconds, by default 20
+        Timeout in seconds for the home move, by default 20.
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(pi_c867.home, "reverse", timeout=timeout)
     yield from bps.abs_set(pi_c867.jog_reverse, 1)
@@ -93,38 +91,29 @@ def PI_onR(
 
 def rotate_sample(
     angle: float,
-    md: Optional[Dict[str, Any]] = None,
+    md=None,
 ):
-    """Rotate sample to a specific angle.
+    """Bluesky plan: rotate the sample to a specific angle and count.
 
-    This function rotates the sample to a specified angle and optionally
-    measures the intensity at that position.
+    Moves the PI C867 rotator to *angle* and triggers a one-shot scaler
+    count.  Intended as a utility for specialised sample-rotation setups.
 
     Parameters
     ----------
     angle : float
-        Target angle in degrees
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
+        Target rotation angle in degrees.
+    md : dict, optional
+        Extra metadata merged into the run's start document.
 
-    Returns
-    -------
-    Generator[Any, None, Any]
-        A sequence of plan messages
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
 
-    USAGE:  ``RE(rotate_sample(angle=45.0))``
+    Notes
+    -----
+    Usage: ``RE(rotate_sample(angle=45.0))``
     """
-    if md is None:
-        md = {}
-
-    _md = {}
-    _md.update(md or {})
+    _md = dict(md or {})
 
     @bpp.run_decorator(md=_md)
     def _inner():

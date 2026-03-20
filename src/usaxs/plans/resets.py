@@ -1,5 +1,8 @@
 """
-Reset the instrument.
+Instrument reset plan for USAXS.
+
+``reset_USAXS`` moves the instrument to a known-safe USAXS configuration,
+restores amplifier modes and motor kinds, and clears the collection flag.
 """
 
 import logging
@@ -11,8 +14,6 @@ from bluesky.utils import plan
 
 from usaxs.devices.amplifiers import AutorangeSettings
 
-# from ..utils.emails import NOTIFY_ON_RESET
-# from ..utils.emails import send_notification
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 
@@ -39,8 +40,15 @@ user_data = oregistry["user_data"]
 
 @plan
 def reset_USAXS():
-    """
-    bluesky plan to set USAXS instrument in safe configuration
+    """Bluesky plan: return the USAXS instrument to a known-safe configuration.
+
+    Switches to USAXS mode, enables mono feedback, closes the shutter, sets
+    amplifier modes, restores motor positions from EPICS PVs, and resets
+    ophyd ``kind`` attributes for key signals and axes.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     logger.info("Resetting USAXS")
     yield from mode_USAXS()
@@ -68,18 +76,8 @@ def reset_USAXS():
         terms.USAXS.ar_val_center.get(),
         # fmt: on
     )
-    # move_list = [
-    #     d_stage.x, terms.USAXS.DX0.get(),
-    #     a_stage.x, terms.USAXS.AX0.get(),
-    #     a_stage.r, terms.USAXS.ar_val_center.get(),
-    # ]
-    # if terms.USAXS.useSBUSAXS.get():
-    #     pass
-    #     # move_list += [
-    #     #    as_stage.rp, terms.USAXS.ASRP0.get(),
-    #     #    ]
-    # yield from bps.mv(*move_list)  # move all motors at once
-    # # fix omitted stuff from uascan see #584, #583
+
+    # fix omitted stuff from uascan see #584, #583
     upd_controls.kind = "hinted"  # correct value
     TRD.kind = "hinted"  # correct value
     I0.kind = "hinted"  # correct value
@@ -90,13 +88,6 @@ def reset_USAXS():
         obj.user_readback.kind = "hinted"  #  correct value
 
     yield from user_data.set_state_plan("USAXS reset complete")
-
-    # Use the improved send_notification function
-    # send_notification(
-    #     "USAXS has reset",
-    #     "spec has encountered a problem and reset the USAXS.",
-    #     notify_flag=NOTIFY_ON_RESET,
-    # )
 
     yield from bps.mv(
         # fmt: off
