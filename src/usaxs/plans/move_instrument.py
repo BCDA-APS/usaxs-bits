@@ -1,5 +1,16 @@
 """
-move the parts of the instrument in and out
+Plans that move USAXS instrument components in and out of the beam.
+
+Each plan moves one subsystem (USAXS, SAXS, or WAXS) between its "in beam"
+and "out of beam" positions and updates ``terms.SAXS.UsaxsSaxsMode`` so that
+the GUI reflects the current state.
+
+Public entry points
+-------------------
+* ``move_WAXSOut`` / ``move_WAXSIn``
+* ``move_SAXSOut`` / ``move_SAXSIn``
+* ``move_USAXSOut`` / ``move_USAXSIn``
+* ``confirmUsaxsSaxsOutOfBeam`` — guard that raises if any component is still in beam.
 """
 
 import logging
@@ -12,7 +23,7 @@ from ophyd.scaler import ScalerCH
 logger = logging.getLogger(__name__)
 
 MASTER_TIMEOUT = 60
-# # Device instances
+
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 guard_slit = oregistry["guard_slit"]
@@ -43,8 +54,16 @@ UsaxsSaxsModes = {
 
 
 def confirmUsaxsSaxsOutOfBeam():
-    """
-    Raise ValueError if not out of beam.
+    """Raise ``ValueError`` if the instrument is not in the "out of beam" state.
+
+    Reads ``terms.SAXS.UsaxsSaxsMode`` and compares it to the expected value
+    for ``"out of beam"``.  Used as a guard before moving any component into
+    the beam.
+
+    Raises
+    ------
+    ValueError
+        If the mode PV does not indicate all components are out of the beam.
     """
     actual = terms.SAXS.UsaxsSaxsMode.get(
         timeout=60, as_string=False, use_monitor=False
@@ -62,28 +81,39 @@ def confirmUsaxsSaxsOutOfBeam():
 
 
 def move_WAXSOut():
-    """
-    Move WAXS out of beam.
+    """Bluesky plan: move the WAXS detector out of the beam.
+
+    Closes the USAXS shutter, marks the mode as dirty, retracts the WAXS
+    stage to its out position, then marks the mode as "out of beam".
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(
         usaxs_shutter,
         "close",
     )
 
-    # logger.info("Moving WAXS out of beam")
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
     # move the WAXS X away from sample
     yield from bps.mv(waxsx, terms.WAXS.x_out.get())
 
-    # logger.info("Removed WAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
 def move_WAXSIn():
-    """
-    Move WAXS into beam.
+    """Bluesky plan: move the WAXS detector into the beam.
+
+    Closes the USAXS shutter, verifies all components are out of beam, marks
+    the mode as dirty, then moves the guard slit, WAXS stage, and USAXS slit
+    to their WAXS positions before marking the mode as "WAXS in beam".
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(
         usaxs_shutter,
@@ -119,15 +149,20 @@ def move_WAXSIn():
 
 
 def move_SAXSOut():
-    """
-    Move SAXS out of beam.
+    """Bluesky plan: move the SAXS pinhole stage out of the beam.
+
+    Closes the USAXS shutter, marks the mode as dirty, retracts the SAXS
+    stage in z then y, then marks the mode as "out of beam".
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(
         usaxs_shutter,
         "close",
     )
 
-    # logger.info("Moving SAXS out of beam")
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
@@ -137,13 +172,19 @@ def move_SAXSOut():
     # move pinhole up to out of beam position
     yield from bps.mv(saxs_stage.y, terms.SAXS.y_out.get())
 
-    # logger.info("Removed SAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
 def move_SAXSIn():
-    """
-    Move SAXS into beam.
+    """Bluesky plan: move the SAXS pinhole stage into the beam.
+
+    Closes the USAXS shutter, verifies all components are out of beam, marks
+    the mode as dirty, then moves slits and the SAXS stage (y first, then z)
+    to their SAXS positions before marking the mode as "SAXS in beam".
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(
         # fmt: off
@@ -189,15 +230,20 @@ def move_SAXSIn():
 
 
 def move_USAXSOut():
-    """
-    Move USAXS out of beam.
+    """Bluesky plan: move the USAXS analyzer and detector stages out of the beam.
+
+    Closes the USAXS shutter, marks the mode as dirty, retracts the a_stage
+    and d_stage in x, then marks the mode as "out of beam".
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(
         usaxs_shutter,
         "close",
     )
 
-    # logger.info("Moving USAXS out of beam")
     # in case there is an error in moving, it is NOT SAFE to start a scan
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["dirty"])
 
@@ -212,13 +258,19 @@ def move_USAXSOut():
         # fmt: on
     )
 
-    # logger.info("Removed USAXS from beam position")
     yield from bps.mv(terms.SAXS.UsaxsSaxsMode, UsaxsSaxsModes["out of beam"])
 
 
 def move_USAXSIn():
-    """
-    Move USAXS into beam.
+    """Bluesky plan: move the USAXS analyzer and detector stages into the beam.
+
+    Closes the USAXS shutter, verifies all components are out of beam, marks
+    the mode as dirty, then moves slits and all USAXS stages to their in-beam
+    positions before marking the mode as "USAXS in beam".
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from bps.mv(
         usaxs_shutter,

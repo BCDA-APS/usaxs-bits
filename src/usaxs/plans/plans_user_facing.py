@@ -1,14 +1,16 @@
 """
-user-facing scans
+User-facing SAXS and WAXS acquisition plans.
+
+Public entry points
+-------------------
+* ``saxsExp`` — collect a SAXS image at a given sample position.
+* ``waxsExp`` — collect a WAXS image at a given sample position.
 """
 
 import datetime
 import logging
 import os
 from collections import OrderedDict
-from typing import Any
-from typing import Dict
-from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import restorable_stage_sigs
@@ -17,7 +19,6 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-# from ..startup import bec
 from usaxs.callbacks.demo_spec_callback import specwriter
 
 from ..startup import RE
@@ -49,14 +50,10 @@ ar_start = oregistry["ar_start"]
 d_stage = oregistry["d_stage"]
 flyscan_trajectories = oregistry["flyscan_trajectories"]
 guard_slit = oregistry["guard_slit"]
-guard_slit = oregistry["guard_slit"]
 I0_controls = oregistry["I0_controls"]
 lax_autosave = oregistry["lax_autosave"]
 m_stage = oregistry["m_stage"]
 mono_shutter = oregistry["mono_shutter"]
-mono_shutter = oregistry["mono_shutter"]
-monochromator = oregistry["monochromator"]
-monochromator = oregistry["monochromator"]
 s_stage = oregistry["s_stage"]
 saxs_det = oregistry["saxs_det"]
 saxs_stage = oregistry["saxs_stage"]
@@ -68,18 +65,16 @@ trd_controls = oregistry["trd_controls"]
 usaxs_flyscan = oregistry["usaxs_flyscan"]
 usaxs_q_calc = oregistry["usaxs_q_calc"]
 usaxs_shutter = oregistry["usaxs_shutter"]
-usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_data"]
 waxs_det = oregistry["waxs_det"]
 
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"
 LOCAL_FILE_TEMPLATE = "%s_%04d.hdf"
-MASTER_TIMEOUT = 60
 user_override.register("useDynamicTime")
 
 # Make sure these are not staged. For acquire_time,
-# # any change > 0.001 s takes ~0.5 s for Pilatus to complete!
+# any change > 0.001 s takes ~0.5 s for Pilatus to complete!
 DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
     acquire_time acquire_period num_images num_exposures
 """.split()
@@ -93,30 +88,34 @@ def saxsExp(
     pos_Y: float,
     thickness: float,
     scan_title: str,
-    md: Optional[Dict[str, Any]] = None,
+    md=None,
 ):
-    """
-    Execute a SAXS scan at the specified position.
+    """Bluesky plan: collect a SAXS image at the given sample position.
+
+    Moves to SAXS mode, positions the sample, sets up the Pilatus detector
+    file paths, measures transmission, inserts SAXS filters, acquires an
+    image, and records metadata.
 
     Parameters
     ----------
     pos_X : float
-        X position for the scan
+        Sample X position in mm.
     pos_Y : float
-        Y position for the scan
+        Sample Y position in mm.
     thickness : float
-        Sample thickness in mm
+        Sample thickness in mm.
     scan_title : str
-        Title for the scan
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary, by default None
+        Human-readable title used for the output file name.
+    md : dict, optional
+        Extra metadata merged into the run's start document.
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
 
-    USAGE:  ``RE(SAXS(pos_X, pos_Y, thickness, scan_title))``
+    Notes
+    -----
+    Usage: ``RE(saxsExp(pos_X, pos_Y, thickness, scan_title))``
     """
     if md is None:
         md = {}
@@ -165,7 +164,6 @@ def saxsExp(
     # setup AD names, paths and set metadata
     scan_title = getSampleTitle(scan_title)
     _md = md or OrderedDict()
-    _md.update(md or {})
     _md["plan_name"] = "SAXS"
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
@@ -359,30 +357,33 @@ def waxsExp(
     pos_Y: float,
     thickness: float,
     scan_title: str,
-    md: Optional[Dict[str, Any]] = None,
+    md=None,
 ):
-    """
-    Execute a WAXS scan at the specified position.
+    """Bluesky plan: collect a WAXS image at the given sample position.
+
+    Moves to WAXS mode, positions the sample, sets up the Pilatus detector
+    file paths, inserts WAXS filters, acquires an image, and records metadata.
 
     Parameters
     ----------
     pos_X : float
-        X position for the scan
+        Sample X position in mm.
     pos_Y : float
-        Y position for the scan
+        Sample Y position in mm.
     thickness : float
-        Sample thickness in mm
+        Sample thickness in mm.
     scan_title : str
-        Title for the scan
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary, by default None
+        Human-readable title used for the output file name.
+    md : dict, optional
+        Extra metadata merged into the run's start document.
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
 
-    USAGE:  ``RE(WAXS(pos_X, pos_Y, thickness, scan_title))``
+    Notes
+    -----
+    Usage: ``RE(waxsExp(pos_X, pos_Y, thickness, scan_title))``
     """
     if md is None:
         md = {}
