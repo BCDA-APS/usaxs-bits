@@ -181,3 +181,4 @@ qserver/existing_plans_and_devices.yaml
 .new_user.json
 .user_info.json
 .loglogin
+.claude/.nfs*
