@@ -8,6 +8,12 @@ usaxs.devices.autocollect.AutoCollectDataDevice:
 - name: auto_collect
   prefix: "usxLAX:AutoCollection"
 
+usaxs.devices.bss.BssDevice:
+- name: bss
+  prefix: "usxTerms:bss:"
+  labels:
+    - baseline
+
 usaxs.devices.diagnostics.DiagnosticsParameters:
 - name: diagnostics
   labels:

@@ -31,7 +31,6 @@ from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
 from epics import caput
 
-
 from usaxs.callbacks.demo_spec_callback import specwriter
 from usaxs.utils import bss
 from usaxs.utils.obsidian import appendToMdFile, recordUserStart, recordNewSample
@@ -333,51 +332,103 @@ def newSample(sample=None):
 # this works fine:
 #  
 
+def _pick_active(records, user: str, now: datetime.datetime):
+    """Return the first record whose date range covers *now* and whose user
+    list contains *user* (case-insensitive last-name match).
+
+    Falls back to the first record that covers *now* if no name match is found,
+    and to the first record overall if none cover *now*.
+    """
+    name_lower = user.strip().lower()
+
+    def covers_now(r):
+        # Esaf and Proposal both have .start / .end as naive datetimes
+        return r.start <= now <= r.end
+
+    def name_match(r):
+        return any(
+            name_lower in u.last_name.lower() or name_lower in u.first_name.lower()
+            for u in r.users
+        )
+
+    active = [r for r in records if covers_now(r)]
+    for r in active:
+        if name_match(r):
+            return r
+    return active[0] if active else (records[0] if records else None)
+
+
 def matchUserInApsBss(user):
+    """Query the APS BSS REST API for the active ESAF and proposal matching
+    *user*, write all fields to the ``usxTerms:bss:`` PVs, and update
+    ``RE.md`` with the proposal and ESAF IDs.
+
+    Parameters
+    ----------
+    user : str
+        User last name (or first name) to match against BSS records.
     """
-    FInd proposals and ESAFs for user from APS BSS system
-    and set up BSS object.
-    """
-    # get gredentials:
+    bss_device = oregistry["bss"]
+
     credfile = Path("~/.config/dmcredentials").expanduser()
     uname, pwd, stationname, uri = credfile.read_text().splitlines()
-    now = str(datetime.datetime.now())
-    year = now[0:4]
-    # construct cycle from year and moth, it is string representation of year as 4 digits+ "-"+ months 1-4 are 1, 5 to 8 are 2, and 9-12 are 3:
-    month_int = int(now[5:7])
-    if month_int in [1, 2, 3, 4]:
+
+    now = datetime.datetime.now()
+    year = str(now.year)
+    month = now.month
+    if month <= 4:
         cycle = f"{year}-1"
-    elif month_int in [5, 6, 7, 8]:
+    elif month <= 8:
         cycle = f"{year}-2"
     else:
         cycle = f"{year}-3"
-    # for testing, we can hardcode cycle:
-    #cycle = 2026-1
 
-    #print("uname, pwd, stationname, uri:", uname, pwd, stationname, uri)
-    bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
-    esafs_all = bss.esafs(beamline="12-ID-E", year=year)
-    #props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
-    print (f"Total ESAFs found: {len(esafs_all)}")
-    print(esafs_all[0] if esafs_all else "No ESAFs found")
-    print("finish me") #TODO
-    # this is esaf structure we get:
-    # esaf_id='289320' 
-    # description='Initial setup and setup between different experiments.  Only the standard beamline equipment and equipment from the APS detector pool will be used. The listed metal foils(~5µm thick, commercial standard EXAFS reference foil sets) will be used for the energy calibration.\r\n\r\nIn addition to normal procedure for commissioning, mail-in samples from user groups will be performed; mounting samples in person, and taking the measurement on their behalf remotely.' 
-    # sector='12' 
-    # title='12-BM Commissioning and Experimental Setup (2026-1)' 
-    # start=datetime.datetime(2026, 2, 2, 8, 0) 
-    # end=datetime.datetime(2026, 4, 22, 8, 0) 
-    # status='Pending' 
-    # users=[User(badge='57623', first_name='Sungsik', last_name='Lee', email='sungsiklee@anl.gov', is_pi=True, institution=None), 
-    #       User(badge='55332', first_name='Benjamin', last_name='Reinhart', email='reinhart@aps.anl.gov', is_pi=False, institution=None), 
-    #       User(badge='34965', first_name='Charles', last_name='Kurtz', email='ckurtz@anl.gov', is_pi=False, institution=None)]
+    with BssApi(username=uname, password=pwd, station_name=stationname, uri=uri) as api:
+        esafs_all = api.esafs(beamline="12-ID-E", year=year)
+        props_all = api.proposals(beamline="12-ID-E", cycle=cycle)
 
+    logger.info("BSS: found %d ESAFs, %d proposals for %s/%s", len(esafs_all), len(props_all), year, cycle)
 
-    #esaf_id = _pick_esaf(esafs_all, user, now)
-    #print(esaf_id)
-     #print(esafs[0].esaf_id, esafs[0].title)
-    #print(props[0].proposal_id, props[0].title)
+    esaf = _pick_active(esafs_all, user, now)
+    prop = _pick_active(props_all, user, now)
+
+    if esaf is None:
+        logger.warning("BSS: no matching ESAF found for user %r", user)
+    else:
+        pi_users = [u for u in esaf.users if u.is_pi]
+        pi = pi_users[0] if pi_users else esaf.users[0]
+        bss_device.esaf.id.put(esaf.esaf_id)
+        bss_device.esaf.title.put(esaf.title[:254])
+        bss_device.esaf.description.put(esaf.description[:2047])
+        bss_device.esaf.sector.put(esaf.sector)
+        bss_device.esaf.status.put(esaf.status)
+        bss_device.esaf.start.put(str(esaf.start))
+        bss_device.esaf.end.put(str(esaf.end))
+        bss_device.esaf.user_count.put(len(esaf.users))
+        bss_device.esaf.user_last_names.put(", ".join(u.last_name for u in esaf.users)[:254])
+        bss_device.esaf.user_badges.put(", ".join(u.badge for u in esaf.users)[:254])
+        bss_device.esaf.pi_name.put(f"{pi.first_name} {pi.last_name}")
+        RE.md["esaf_id"] = esaf.esaf_id
+        logger.info("BSS: ESAF %s — %s", esaf.esaf_id, esaf.title)
+
+    if prop is None:
+        logger.warning("BSS: no matching proposal found for user %r", user)
+    else:
+        pi_users = [u for u in prop.users if u.is_pi]
+        pi = pi_users[0] if pi_users else prop.users[0]
+        bss_device.proposal.id.put(prop.proposal_id)
+        bss_device.proposal.title.put(prop.title[:254])
+        bss_device.proposal.start.put(str(prop.start))
+        bss_device.proposal.end.put(str(prop.end))
+        bss_device.proposal.duration.put(prop.duration.total_seconds() / 3600)
+        bss_device.proposal.mail_in.put(1 if prop.mail_in else 0)
+        bss_device.proposal.proprietary.put(1 if prop.proprietary else 0)
+        bss_device.proposal.user_count.put(len(prop.users))
+        bss_device.proposal.user_last_names.put(", ".join(u.last_name for u in prop.users)[:254])
+        bss_device.proposal.user_badges.put(", ".join(u.badge for u in prop.users)[:254])
+        bss_device.proposal.pi_name.put(f"{pi.first_name} {pi.last_name}")
+        RE.md["proposal_id"] = prop.proposal_id
+        logger.info("BSS: proposal %s — %s", prop.proposal_id, prop.title)
 
 # this shoudl find esafs 
 # import datetime as dt

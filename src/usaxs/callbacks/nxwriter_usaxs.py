@@ -94,6 +94,37 @@ class OurCustomNXWriterBase(NXWriterAPS):
         nxentry["sample/thickness"] = self.get_stream_link("user_data_sample_thickness")
         nxentry["sample/name"] = self.get_sample_title()
         self.root.attrs["creator_version"] = apstools.__version__
+        self.write_bss(nxentry)
+
+    def write_bss(self, nxentry):
+        """Write BSS (ESAF and proposal) metadata into the NeXus entry.
+
+        Creates ``bss/esaf:NXnote`` and ``bss/proposal:NXnote`` groups
+        using baseline-stream links to ``usxTerms:bss:`` PVs.  Missing
+        keys are silently skipped so a missing BSS device does not abort
+        writing.
+        """
+        bss_fields = {
+            "esaf": [
+                "id", "title", "description", "sector", "status",
+                "start", "end", "user_count", "user_last_names",
+                "user_badges", "pi_name",
+            ],
+            "proposal": [
+                "id", "title", "start", "end", "duration",
+                "mail_in", "proprietary", "user_count",
+                "user_last_names", "user_badges", "pi_name",
+            ],
+        }
+        bss_group = self.create_NX_group(nxentry, "bss:NXnote")
+        for sub, fields in bss_fields.items():
+            sub_group = self.create_NX_group(bss_group, f"{sub}:NXnote")
+            for field in fields:
+                key = f"bss_{sub}_{field}"
+                try:
+                    sub_group[field] = self.get_stream_link(key)
+                except KeyError:
+                    logger.debug("write_bss: baseline key %r not found, skipping", key)
 
     def write_monochromator(  # override NXWriterAPS
         self,
