@@ -17,8 +17,9 @@ so that instrument-control scripts can restore the current user/sample
 context after a restart without user interaction.
 
 ``matchUserInApsBss(user)`` queries the APS Beamtime Scheduling System REST
-API to locate the matching ESAF for the current user.  This function is
-partially implemented (ends with TODO).
+API to locate the active ESAF and proposal for *user*, writes all fields
+to the ``usxTerms:bss:`` EPICS PVs, and sets ``RE.md["esaf_id"]`` and
+``RE.md["proposal_id"]``.  Called automatically by :func:`newUser`.
 """
 
 import datetime
@@ -239,12 +240,12 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     _setNeXusFileName(str(path), scan_id=scan_id)   #this sets the path for Nexus file writer.  
     _setSpecFileName(str(path), scan_id=scan_id)    # this sets the path for spec file writer. 
     # user_data? This is likely not needed... 
-    user_data.spec_scan.put(scan_id)  # set in the PV    
-    # matchUserInApsbss(user)     # update ESAF & Proposal, if available
-    # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
+    user_data.spec_scan.put(scan_id)  # set in the PV
 
-
-
+    try:
+        matchUserInApsBss(user)
+    except Exception as exc:
+        logger.warning("BSS lookup failed (non-fatal): %s", exc)
 
     logger.info(data)
     return str(path.absolute())
@@ -332,6 +333,7 @@ def newSample(sample=None):
 # this works fine:
 #  
 
+
 def _pick_active(records, user: str, now: datetime.datetime):
     """Return the first record whose date range covers *now* and whose user
     list contains *user* (case-insensitive last-name match).
@@ -342,8 +344,11 @@ def _pick_active(records, user: str, now: datetime.datetime):
     name_lower = user.strip().lower()
 
     def covers_now(r):
-        # Esaf and Proposal both have .start / .end as naive datetimes
-        return r.start <= now <= r.end
+        # Strip timezone info before comparing: proposal datetimes from
+        # fromisoformat() may be tz-aware while now and ESAF datetimes are naive.
+        start = r.start.replace(tzinfo=None)
+        end = r.end.replace(tzinfo=None)
+        return start <= now <= end
 
     def name_match(r):
         return any(
