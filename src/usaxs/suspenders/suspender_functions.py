@@ -26,7 +26,7 @@ import bluesky.suspenders
 from apsbits.core.instrument_init import oregistry
 from ophyd import Signal
 
-from .suspenders import FeedbackHandlingDuringSuspension
+from .suspenders import BeamInHutchSuspension, FeedbackHandlingDuringSuspension
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,8 @@ def suspender_in_operations():
 
     ``suspend_BeamInHutch``
         Suspends when the beam-in-hutch check signal goes low.  Safe to
-        install on the RunEngine globally.
+        install on the RunEngine globally.  Logs the suspension and restart
+        to Obsidian via ``BeamInHutchSuspension`` pre/post plans.
 
     Returns
     -------
@@ -71,7 +72,12 @@ def suspender_in_operations():
         post_plan=fb.mono_beam_just_came_back_but_after_sleep_plan,
     )
 
-    suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(BeamInHutch)  # noqa: F841
+    bih = BeamInHutchSuspension()
+    suspend_BeamInHutch = bluesky.suspenders.SuspendBoolLow(  # noqa: F841
+        BeamInHutch,
+        pre_plan=bih.beam_not_in_hutch_plan,
+        post_plan=bih.beam_in_hutch_restored_plan,
+    )
     logger.info(f"mono shutter connected = {mono_shutter.pss_state.connected}")
     logger.info(
         "Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired."

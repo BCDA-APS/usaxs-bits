@@ -6,14 +6,27 @@ when the condition clears.  Suspenders can be given ``pre_plan`` and
 ``post_plan`` generator functions that run immediately before the pause and
 immediately after the resume delay respectively.
 
-This module provides ``FeedbackHandlingDuringSuspension``, whose plan methods
-are passed as ``pre_plan`` / ``post_plan`` to the beam-loss suspender defined
-in ``suspender_functions.suspender_in_operations()``.
+This module provides two classes whose plan methods are passed as
+``pre_plan`` / ``post_plan`` to the suspenders defined in
+``suspender_functions.suspender_in_operations()``:
+
+``FeedbackHandlingDuringSuspension``
+    Used by the white-beam-ready suspender.  Keeps monochromator feedback ON
+    and logs beam dump / recovery events to Obsidian.
+
+``BeamInHutchSuspension``
+    Used by the beam-in-hutch suspender.  Logs hutch-check failures and
+    recoveries to Obsidian so users have a complete record of all suspensions.
 """
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
-from usaxs.utils.obsidian import recordBeamDump, recordBeamRecovery
+from usaxs.utils.obsidian import (
+    recordBeamDump,
+    recordBeamInHutchLost,
+    recordBeamInHutchRestored,
+    recordBeamRecovery,
+)
 
 monochromator = oregistry["monochromator"]
 
@@ -75,3 +88,40 @@ class FeedbackHandlingDuringSuspension:
         """
         recordBeamRecovery()
         yield from self.turn_feedback_on()
+
+
+class BeamInHutchSuspension:
+    """Bluesky plan hooks that log beam-in-hutch suspender events to Obsidian.
+
+    Intended to be used as ``pre_plan`` / ``post_plan`` arguments to a
+    ``bluesky.suspenders.SuspendBoolLow`` suspender watching the
+    beam-in-hutch check signal (``usaxs_CheckBeamStandard``).
+
+    When the hutch check fails the RunEngine pauses; when it recovers the
+    RunEngine resumes.  Both events are written to the Obsidian logbook so
+    users have a timestamped record of every suspension and restart.
+    """
+
+    def beam_not_in_hutch_plan(self):
+        """Bluesky plan: called by the suspender when the hutch check fails.
+
+        Records the suspension event in the Obsidian logbook.
+
+        Yields
+        ------
+        Bluesky messages
+        """
+        recordBeamInHutchLost()
+        yield from bps.null()
+
+    def beam_in_hutch_restored_plan(self):
+        """Bluesky plan: called by the suspender after the post-resume delay.
+
+        Records the recovery event in the Obsidian logbook.
+
+        Yields
+        ------
+        Bluesky messages
+        """
+        recordBeamInHutchRestored()
+        yield from bps.null()

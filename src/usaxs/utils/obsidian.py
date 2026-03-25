@@ -55,8 +55,10 @@ FUNCTIONS
     recordUserStart()                       : log new-user session start
     recordNewSample()                       : log instrument state for new sample
     recordRunCommandFile(command_list)      : log a command-file execution
-    recordBeamDump()                        : log APS ring beam dump
-    recordBeamRecovery()                    : log APS ring beam recovery
+    recordBeamDump()                        : log APS ring beam dump (with ring current)
+    recordBeamRecovery()                    : log APS ring beam recovery (with ring current)
+    recordBeamInHutchLost()                 : log beam-in-hutch check failure (operations suspended)
+    recordBeamInHutchRestored()             : log beam-in-hutch check recovery (operations resuming)
     recordFunctionRun()                     : log the calling function and its args
     recordQserverRun(command_line)          : log a QueueServer command
     recordUserAbort()                       : log a user-initiated abort
@@ -269,15 +271,59 @@ def recordRunCommandFile(command_list: str):
 def recordBeamDump():
     """
     Record an APS ring beam dump event (called by suspenders).
+
+    Logs the APS ring current at the moment of the dump so the note captures
+    the machine state when operations were suspended.
     """
-    appendToMdFile("## Beam Dumped\n")
+    aps_current = EpicsSignalRO("XFD:srCurrent", name="aps_current")
+    text = (
+        "## Beam Dumped — Operations Suspended\n"
+        f"- **APS Ring Current (mA):** {aps_current.get():.2f}\n"
+        "- **Reason:** White beam not available (APS ring beam dump)\n"
+    )
+    appendToMdFile(text)
 
 
 def recordBeamRecovery():
     """
     Record APS ring beam recovery after a dump (called by suspenders).
+
+    Logs the APS ring current at the moment of recovery so the note shows
+    that the beam is back and operations are about to resume.
     """
-    appendToMdFile("## Beam Recovered\n")
+    aps_current = EpicsSignalRO("XFD:srCurrent", name="aps_current")
+    text = (
+        "## Beam Recovered — Operations Resuming\n"
+        f"- **APS Ring Current (mA):** {aps_current.get():.2f}\n"
+    )
+    appendToMdFile(text)
+
+
+def recordBeamInHutchLost():
+    """
+    Record when the beam-in-hutch check signal goes low (operations suspended).
+
+    Called by the BeamInHutchSuspension pre_plan when the hutch check fails.
+    Logs the event so users have a record of when operations were interrupted
+    and why.
+    """
+    text = (
+        "## Operations Suspended: Beam Not in Hutch\n"
+        "- **Reason:** Beam-in-hutch check signal went low\n"
+        "- **Action:** RunEngine paused until beam-in-hutch is restored\n"
+    )
+    appendToMdFile(text)
+
+
+def recordBeamInHutchRestored():
+    """
+    Record when the beam-in-hutch check signal recovers (operations resuming).
+
+    Called by the BeamInHutchSuspension post_plan after the hutch check passes
+    again.  Logs the recovery so users can see the full suspension duration in
+    the note file.
+    """
+    appendToMdFile("## Operations Resuming: Beam-in-Hutch Restored\n")
 
 
 def recordFunctionRun():
