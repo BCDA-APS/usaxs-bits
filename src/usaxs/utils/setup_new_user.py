@@ -82,7 +82,7 @@ def _setSpecFileName(path, scan_id=1):
     logger.debug(f"File will be {handled} at end of next bluesky scan.")
 
 
-def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
+def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, skip_bss=False):
     """Set up the instrument for a new user beamtime session.
 
     Creates (if necessary) the monthly base folder and the user data directory,
@@ -105,6 +105,10 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
     year, month, day : int, optional
         Override the current date.  Useful for recovering a prior session's
         folder without creating a new one.
+    skip_bss : bool, optional
+        If ``True``, clear all ``usxTerms:bss:`` PVs and skip the BSS lookup
+        entirely.  Use this for setup runs or commissioning sessions that have
+        no active ESAF or proposal.  Default is ``False``.
 
     Returns
     -------
@@ -224,28 +228,32 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         f"{month:02d}_{day:02d}_{cleanupText(user)}"
     )
 
+    # BSS lookup runs before Obsidian so the note can include ESAF/proposal info.
+    esaf, prop = None, None
+    if skip_bss:
+        _clear_bss_pvs()
+        logger.info("BSS: skipped (skip_bss=True) — PVs cleared")
+    else:
+        try:
+            esaf, prop = matchUserInApsBss(user)
+        except Exception as exc:
+            logger.warning("BSS lookup failed (non-fatal): %s", exc)
+
     if not path.exists():
         logger.debug("Creating user directory: %s", path)
         path.mkdir(parents=True)
-        user_data.user_dir.put(str(path))  # set in the PV, we need this in recordUserStart
-        # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
-        recordUserStart()   #if the path did not exist, we need to create a new md file also. 
+        user_data.user_dir.put(str(path))  # set in the PV, needed by recordUserStart
+        recordUserStart(esaf=esaf, proposal=prop)
     else:
         logger.debug("User directory already exists: %s", path)
-        appendToMdFile("") # just ensure the md file exists. If needed, create it. 
+        appendToMdFile("")  # ensure md file exists
 
     logger.debug("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
 
-    _setNeXusFileName(str(path), scan_id=scan_id)   #this sets the path for Nexus file writer.  
-    _setSpecFileName(str(path), scan_id=scan_id)    # this sets the path for spec file writer. 
-    # user_data? This is likely not needed... 
+    _setNeXusFileName(str(path), scan_id=scan_id)
+    _setSpecFileName(str(path), scan_id=scan_id)
     user_data.spec_scan.put(scan_id)  # set in the PV
-
-    try:
-        matchUserInApsBss(user)
-    except Exception as exc:
-        logger.warning("BSS lookup failed (non-fatal): %s", exc)
 
     logger.info(data)
     return str(path.absolute())
@@ -363,6 +371,34 @@ def _pick_active(records, user: str, now: datetime.datetime):
     return active[0] if active else (records[0] if records else None)
 
 
+def _clear_bss_pvs():
+    """Clear all ``usxTerms:bss:`` PVs and remove BSS keys from RE.md.
+
+    Called by newUser(skip_bss=True) when no BSS data should be associated
+    with the session (e.g. beamline setup runs without an active ESAF).
+    """
+    bss_device = oregistry["bss"]
+    for sig in (
+        bss_device.esaf.id, bss_device.esaf.title, bss_device.esaf.description,
+        bss_device.esaf.sector, bss_device.esaf.status,
+        bss_device.esaf.start, bss_device.esaf.end,
+        bss_device.esaf.user_last_names, bss_device.esaf.user_badges,
+        bss_device.esaf.pi_name,
+        bss_device.proposal.id, bss_device.proposal.title,
+        bss_device.proposal.start, bss_device.proposal.end,
+        bss_device.proposal.user_last_names, bss_device.proposal.user_badges,
+        bss_device.proposal.pi_name,
+    ):
+        sig.put("")
+    bss_device.esaf.user_count.put(0)
+    bss_device.proposal.user_count.put(0)
+    bss_device.proposal.duration.put(0)
+    bss_device.proposal.mail_in.put(0)
+    bss_device.proposal.proprietary.put(0)
+    RE.md.pop("esaf_id", None)
+    RE.md.pop("proposal_id", None)
+
+
 def matchUserInApsBss(user):
     """Query the APS BSS REST API for the active ESAF and proposal matching
     *user*, write all fields to the ``usxTerms:bss:`` PVs, and update
@@ -372,6 +408,12 @@ def matchUserInApsBss(user):
     ----------
     user : str
         User last name (or first name) to match against BSS records.
+
+    Returns
+    -------
+    tuple[Esaf | None, Proposal | None]
+        The matched ESAF and proposal objects, either of which may be None
+        if no match was found.
     """
     bss_device = oregistry["bss"]
 
@@ -434,6 +476,8 @@ def matchUserInApsBss(user):
         bss_device.proposal.pi_name.put(f"{pi.first_name} {pi.last_name}")
         RE.md["proposal_id"] = prop.proposal_id
         logger.info("BSS: proposal %s — %s", prop.proposal_id, prop.title)
+
+    return esaf, prop
 
 # this shoudl find esafs 
 # import datetime as dt

@@ -52,7 +52,7 @@ FUNCTIONS
     createPeriodFolder()             → Path : ensure YYYY-P period folder exists
     createMdFile()                   → Path : ensure note file exists
     appendToMdFile(text)                    : append one timestamped entry
-    recordUserStart()                       : log new-user session start
+    recordUserStart(esaf, proposal)         : log new-user session start with optional BSS info
     recordNewSample()                       : log instrument state for new sample
     recordRunCommandFile(command_list)      : log a command-file execution
     recordBeamDump()                        : log APS ring beam dump (with ring current)
@@ -67,10 +67,6 @@ FUNCTIONS
 ==============================================================================
 SUGGESTED IMPROVEMENTS
 ==============================================================================
-
-    - recordUserStart() reads user_name and sample_dir from user_data but does
-      not yet include them in the note text.  Adding them would make the
-      "User Experiment Start" entry much more useful.
 
     - EpicsSignalRO instances created inline inside recordNewSample() may not
       have completed Channel Access connection before .get() is called,
@@ -88,6 +84,10 @@ CHANGE LOG
                         filename_exists); removed dead variable start_time in
                         recordUserStart(); removed unused shlex import inside
                         recordFunctionRun(); corrected "QueServer" → "QueueServer".
+    * JIL, 2026-03-24 : recordUserStart() now accepts esaf= and proposal=
+                        parameters and renders ESAF/proposal details in the
+                        note.  user_name and sample_dir are now included.
+                        BSS section is omitted when both are None.
 """
 
 import datetime
@@ -211,21 +211,68 @@ def appendToMdFile(text: str):
             f.write(f"{time_now} {stripped}\n")
 
 
-def recordUserStart():
+def recordUserStart(esaf=None, proposal=None):
     """
     Record the start of a new user session in the note file.
 
-    Called by newUser().  Writes a ``## User Experiment Start`` heading and
-    then delegates to recordNewSample() to capture the current instrument
-    state.
+    Called by newUser().  Writes a ``## User Experiment Start`` heading with
+    the user name, sample directory, and — when available — ESAF and proposal
+    details from the APS Beamtime Scheduling System.
 
-    Note: user_name and sample_dir are available from user_data but are not
-    yet included in the note text.  Adding them here would make this entry
-    more informative (see SUGGESTED IMPROVEMENTS in the module docstring).
+    Parameters
+    ----------
+    esaf : ESAF object or None
+        Active ESAF returned by matchUserInApsBss().  When None (e.g.
+        skip_bss=True or lookup failed) the BSS section is omitted.
+    proposal : Proposal object or None
+        Active proposal returned by matchUserInApsBss().  Same as above.
     """
-    user_name = user_data.user_name.get()    # read but not yet used in note
-    sample_dir = user_data.sample_dir.get()  # read but not yet used in note
-    appendToMdFile("## User Experiment Start\n")
+    user_name = user_data.user_name.get()
+    sample_dir = user_data.sample_dir.get()
+
+    lines = [
+        "## User Experiment Start",
+        f"- **User:** {user_name}",
+        f"- **Sample Directory:** {sample_dir}",
+    ]
+
+    if esaf is not None:
+        try:
+            user_names = ", ".join(
+                f"{u.last_name}, {u.first_name}" for u in esaf.users
+            )
+            pi_users = [u for u in esaf.users if u.is_pi]
+            pi = pi_users[0] if pi_users else (esaf.users[0] if esaf.users else None)
+            pi_name = f"{pi.first_name} {pi.last_name}" if pi else ""
+        except Exception:
+            user_names = ""
+            pi_name = ""
+        lines += [
+            "",
+            f"### ESAF {esaf.esaf_id}: {esaf.title}",
+            f"- **Status:** {esaf.status}",
+            f"- **PI:** {pi_name}",
+            f"- **Period:** {esaf.start} \u2013 {esaf.end}",
+            f"- **Users:** {user_names}",
+        ]
+
+    if proposal is not None:
+        try:
+            pi_users = [u for u in proposal.users if u.is_pi]
+            pi = pi_users[0] if pi_users else (proposal.users[0] if proposal.users else None)
+            pi_name = f"{pi.first_name} {pi.last_name}" if pi else ""
+        except Exception:
+            pi_name = ""
+        mail_in = "Yes" if getattr(proposal, "mail_in", False) else "No"
+        lines += [
+            "",
+            f"### Proposal {proposal.proposal_id}: {proposal.title}",
+            f"- **PI:** {pi_name}",
+            f"- **Period:** {proposal.start} \u2013 {proposal.end}",
+            f"- **Mail-in:** {mail_in}",
+        ]
+
+    appendToMdFile("\n".join(lines) + "\n")
     recordNewSample()
 
 
