@@ -55,6 +55,7 @@ class USAXS_PTC10(PTC10PositionerMixin, PVPositioner):
         # Gas flow cell:  P=0.0344, I=0.0013, D=0.0253
         # NMR tube:       P=0.5,    I=0.03,   D=1.7
         # Rheo heater:    P=1,      I=0.01,   D=10
+        # Patra (BNL) heater: P=0.035, I=0.0001, D = 0.3
 
     Note: the NMR tube heater exhibits a significant temperature gradient
     (~20 °C at 300 °C) across the holder; verify the offset at each new

@@ -301,7 +301,8 @@ class SaveFlyScan(object):
             addAttributes(xture.hdf5_group, **xture.attrib)
 
         for field in self.mgr.field_registry.values():
-            field.text = field.text.encode("utf8")  # lxml always gives str; encode for h5py
+            if isinstance(field.text, str):
+                field.text = field.text.encode("utf8")  # lxml always gives str; encode for h5py
             try:
                 ds = makeDataset(
                     field.group_parent.hdf5_group, field.name, [field.text]
