@@ -1,19 +1,15 @@
 """
-Plans for USAXS scan operations.
+Variable step-size USAXS scan plan.
 
-This module provides plans for performing USAXS (Ultra Small Angle X-ray
-Scattering) scans, including both standard USAXS and side-bounce USAXS (SBUSAXS)
-configurations.
+``uascan`` performs a USAXS scan whose step size grows geometrically with
+distance from the beam centre, implementing the logarithmic q-space sampling
+used at 12-ID-E.
 """
 
 import logging
 import math
 from collections import OrderedDict
-from typing import Any
-from typing import Dict
-from typing import Optional
 
-# Get devices from oregistry
 from apsbits.core.instrument_init import oregistry
 from apstools.plans import write_stream
 from bluesky import plan_stubs as bps
@@ -23,13 +19,10 @@ from bluesky.utils import plan
 from ..startup import bec
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
-
-# Add these imports at the top of the file
 from ..utils.ustep import Ustep
 from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
-# I0 = oregistry["I0"]
 I00 = oregistry["I00"]
 trd = oregistry["TRD"]
 upd = oregistry["UPD"]
@@ -66,7 +59,7 @@ def uascan(
     ax0: float,
     SAD_mm: float,
     useDynamicTime: bool = True,
-    md: Optional[Dict[str, Any]] = None,
+    md=None,
 ):
     """Execute a USAXS scan with variable step size.
 
@@ -99,22 +92,18 @@ def uascan(
     SAD_mm : float
         Sample to analyzer distance in mm
     useDynamicTime : bool, optional
-        Whether to use dynamic time adjustment, by default True
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary, by default None
-    RE : Optional[Any], optional
-        Bluesky RunEngine instance, by default None
-    bec : Optional[Any], optional
-        Bluesky Live Callbacks instance, by default None
-    specwriter : Optional[Any], optional
-        SPEC file writer instance, by default None
+        If ``True``, count time is scaled by thirds across the scan range
+        (shorter near the centre, longer at high q), by default True.
+    md : dict, optional
+        Extra metadata merged into the run's start document.
 
-    Returns
-    -------
-    Generator[Any, None, Any]
-        A sequence of plan messages
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
 
-    USAGE:  ``RE(uascan(start, reference, finish, minStep, exponent, intervals,
+    Notes
+    -----
+    Usage: ``RE(uascan(start, reference, finish, minStep, exponent, intervals,
     count_time, dx0, SDD_mm, ax0, SAD_mm))``
     """
     if md is None:
@@ -219,8 +208,7 @@ def uascan(
 
     ar_series = Ustep(start, reference, finish, intervals, exponent, minStep)
 
-    _md = OrderedDict()
-    _md.update(md or {})
+    _md = OrderedDict(md or {})
     _p = scan_cmd.find(" ")
     _md["plan_name"] = scan_cmd[:_p]
     _md["plan_args"] = plan_args
@@ -291,12 +279,6 @@ def uascan(
                 count_time,
             ]
 
-            if terms.USAXS.useSBUSAXS.get():
-                # adjust the ASRP piezo on the AS side-bounce stage
-                # tanBragg = math.tan(reference * math.pi / 180)
-                # cosScatAngle = math.cos((reference - target_ar) * math.pi / 180)
-                pass
-
             yield from user_data.set_state_plan(f"moving motors {i + 1}/{intervals}")
             yield from bps.mv(*moves)
 
@@ -308,21 +290,11 @@ def uascan(
             # collect data for the primary stream
             yield from write_stream(read_devices, "primary")
 
-            if useDynamicTime:
-                if i < intervals / 3:
-                    count_time = count_time_base / 2
-                elif intervals / 3 <= i < intervals * 2 / 3:
-                    count_time = count_time_base
-                else:
-                    count_time = 2 * count_time_base
-
     def _after_scan_():
         yield from bps.mv(
             # indicate USAXS scan is not running
             terms.USAXS.scanning,
             0,
-            # monochromator.feedback.on,
-            # MONO_FEEDBACK_ON,
             scaler0.count_mode,
             "AutoCount",
             upd_controls.auto.mode,

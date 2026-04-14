@@ -1,14 +1,17 @@
 """
-user-facing scans
+User-facing USAXS acquisition plans.
+
+Public entry points
+-------------------
+* ``USAXSscan``     — dispatcher: runs Flyscan or USAXSscanStep based on EPICS flag.
+* ``USAXSscanStep`` — step-scan USAXS measurement at a given sample position.
+* ``Flyscan``       — fly-scan USAXS measurement at a given sample position.
 """
 
 import datetime
 import logging
 import os
 from collections import OrderedDict
-from typing import Any
-from typing import Dict
-from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
@@ -74,28 +77,33 @@ def USAXSscan(
     y: float,
     thickness_mm: float,
     title: str,
-    md: Optional[Dict[str, Any]] = None,
+    md=None,
 ):
-    """
-    Execute a USAXS scan at the specified position.
+    """Bluesky plan: collect a USAXS scan (fly or step) at the given position.
+
+    Dispatches to ``Flyscan`` or ``USAXSscanStep`` based on
+    ``terms.FlyScan.use_flyscan``.
 
     Parameters
     ----------
     x : float
-        X position for the scan
+        Sample X position in mm.
     y : float
-        Y position for the scan
+        Sample Y position in mm.
     thickness_mm : float
-        Sample thickness in mm
+        Sample thickness in mm.
     title : str
-        Title for the scan
+        Human-readable title for the scan.
+    md : dict, optional
+        Extra metadata merged into the run's start document.
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
 
-    USAGE:  ``RE(USAXSscan(x, y, thickness_mm, title))``
+    Notes
+    -----
+    Usage: ``RE(USAXSscan(x, y, thickness_mm, title))``
     """
     if md is None:
         md = {}
@@ -119,30 +127,30 @@ def USAXSscanStep(
     pos_Y: float,
     thickness: float,
     scan_title: str,
-    md: Optional[Dict[str, Any]] = None,
+    md=None,
 ):
-    """
-    Execute a step USAXS scan at the specified position.
+    """Bluesky plan: collect a step-scan USAXS measurement at the given position.
 
     Parameters
     ----------
     pos_X : float
-        X position for the scan
+        Sample X position in mm.
     pos_Y : float
-        Y position for the scan
+        Sample Y position in mm.
     thickness : float
-        Sample thickness in mm
+        Sample thickness in mm.
     scan_title : str
-        Title for the scan
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary, by default None
+        Human-readable title for the scan.
+    md : dict, optional
+        Extra metadata merged into the run's start document.
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
 
-    USAGE:  ``RE(USAXSscanStep(pos_X, pos_Y, thickness, scan_title))``
+    Notes
+    -----
+    Usage: ``RE(USAXSscanStep(pos_X, pos_Y, thickness, scan_title))``
     """
     if md is None:
         md = {}
@@ -228,14 +236,6 @@ def USAXSscanStep(
     yield from measure_USAXS_Transmission()
 
     yield from MONO_FEEDBACK_OFF()
-
-    # if terms.USAXS.is2DUSAXSscan.get():
-    #     RECORD_SCAN_INDEX_10x_per_second = 9
-    #     yield from bps.mv(
-    #         terms.FlyScan.asrp_calc_SCAN,
-    #         RECORD_SCAN_INDEX_10x_per_second,
-    #         timeout=MASTER_TIMEOUT,
-    #     )
 
     old_femto_change_gain_up = upd_controls.auto.gainU.get()
     old_femto_change_gain_down = upd_controls.auto.gainD.get()
@@ -371,30 +371,30 @@ def Flyscan(
     pos_Y: float,
     thickness: float,
     scan_title: str,
-    md: Optional[Dict[str, Any]] = None,
+    md=None,
 ):
-    """
-    Execute a fly scan at the specified position.
+    """Bluesky plan: collect a fly-scan USAXS measurement at the given position.
 
     Parameters
     ----------
     pos_X : float
-        X position for the scan
+        Sample X position in mm.
     pos_Y : float
-        Y position for the scan
+        Sample Y position in mm.
     thickness : float
-        Sample thickness in mm
+        Sample thickness in mm.
     scan_title : str
-        Title for the scan
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary, by default None
+        Human-readable title for the scan.
+    md : dict, optional
+        Extra metadata merged into the run's start document.
 
-    Returns
-    -------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
 
-    USAGE:  ``RE(Flyscan(pos_X, pos_Y, thickness, scan_title))``
+    Notes
+    -----
+    Usage: ``RE(Flyscan(pos_X, pos_Y, thickness, scan_title))``
     """
     if md is None:
         md = {}
@@ -453,7 +453,6 @@ def Flyscan(
     _md["title"] = scan_title
 
     scan_title_clean = cleanupText(scan_title)
-    # print("scan_title_clean:", scan_title_clean)
 
     # SPEC-compatibility
     SCAN_N = RE.md["scan_id"] + 1
@@ -471,7 +470,6 @@ def Flyscan(
     logger.info("Flyscan HDF5 data file: %s %s", flyscan_path, flyscan_file_name)
     logger.debug("*" * 10)
 
-    # yield from user_data.set_state_plan("Moving to Q=0")
     yield from user_data.set_state_plan("starting USAXS Flyscan")
 
     ts = str(datetime.datetime.now())
@@ -505,14 +503,6 @@ def Flyscan(
     yield from measure_USAXS_Transmission()
 
     yield from MONO_FEEDBACK_OFF()
-
-    # if terms.USAXS.is2DUSAXSscan.get():
-    #     RECORD_SCAN_INDEX_10x_per_second = 9
-    #     yield from bps.mv(
-    #         terms.FlyScan.asrp_calc_SCAN,
-    #         RECORD_SCAN_INDEX_10x_per_second,
-    #         timeout=MASTER_TIMEOUT,
-    #     )
 
     old_femto_change_gain_up = upd_controls.auto.gainU.get()
     old_femto_change_gain_down = upd_controls.auto.gainD.get()
@@ -586,8 +576,6 @@ def Flyscan(
         # fmt: on
     )
     # save metadata
-    _md = md or OrderedDict()
-    _md.update(md or {})
     _md["plan_name"] = "Flyscan"
     _md["plan_args"] = dict(
         pos_X=pos_X,
@@ -598,8 +586,6 @@ def Flyscan(
     _md["fly_scan_time"] = usaxs_flyscan.scan_time.get()
 
     yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
-
-    # bec.disable_table()
 
     yield from Flyscan_internal_plan(md=_md)  # flyscan proper
 
@@ -619,9 +605,6 @@ def Flyscan(
         logger.info("*" * 20)
         logger.info(msg)
         logger.info("*" * 20)
-        # if NOTIFY_ON_BAD_FLY_SCAN:
-        #     subject = "!!! bad number of PSO pulses !!!"
-        #     email_notices.send(subject, msg)
 
     yield from bps.mvr(terms.FlyScan.order_number, 1)
 

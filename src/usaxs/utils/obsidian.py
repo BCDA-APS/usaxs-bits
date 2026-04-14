@@ -52,11 +52,13 @@ FUNCTIONS
     createPeriodFolder()             → Path : ensure YYYY-P period folder exists
     createMdFile()                   → Path : ensure note file exists
     appendToMdFile(text)                    : append one timestamped entry
-    recordUserStart()                       : log new-user session start
+    recordUserStart(esaf, proposal)         : log new-user session start with optional BSS info
     recordNewSample()                       : log instrument state for new sample
     recordRunCommandFile(command_list)      : log a command-file execution
-    recordBeamDump()                        : log APS ring beam dump
-    recordBeamRecovery()                    : log APS ring beam recovery
+    recordBeamDump()                        : log APS ring beam dump (with ring current)
+    recordBeamRecovery()                    : log APS ring beam recovery (with ring current)
+    recordBeamInHutchLost()                 : log beam-in-hutch check failure (operations suspended)
+    recordBeamInHutchRestored()             : log beam-in-hutch check recovery (operations resuming)
     recordFunctionRun()                     : log the calling function and its args
     recordQserverRun(command_line)          : log a QueueServer command
     recordUserAbort()                       : log a user-initiated abort
@@ -65,10 +67,6 @@ FUNCTIONS
 ==============================================================================
 SUGGESTED IMPROVEMENTS
 ==============================================================================
-
-    - recordUserStart() reads user_name and sample_dir from user_data but does
-      not yet include them in the note text.  Adding them would make the
-      "User Experiment Start" entry much more useful.
 
     - EpicsSignalRO instances created inline inside recordNewSample() may not
       have completed Channel Access connection before .get() is called,
@@ -86,6 +84,10 @@ CHANGE LOG
                         filename_exists); removed dead variable start_time in
                         recordUserStart(); removed unused shlex import inside
                         recordFunctionRun(); corrected "QueServer" → "QueueServer".
+    * JIL, 2026-03-24 : recordUserStart() now accepts esaf= and proposal=
+                        parameters and renders ESAF/proposal details in the
+                        note.  user_name and sample_dir are now included.
+                        BSS section is omitted when both are None.
 """
 
 import datetime
@@ -209,21 +211,68 @@ def appendToMdFile(text: str):
             f.write(f"{time_now} {stripped}\n")
 
 
-def recordUserStart():
+def recordUserStart(esaf=None, proposal=None):
     """
     Record the start of a new user session in the note file.
 
-    Called by newUser().  Writes a ``## User Experiment Start`` heading and
-    then delegates to recordNewSample() to capture the current instrument
-    state.
+    Called by newUser().  Writes a ``## User Experiment Start`` heading with
+    the user name, sample directory, and — when available — ESAF and proposal
+    details from the APS Beamtime Scheduling System.
 
-    Note: user_name and sample_dir are available from user_data but are not
-    yet included in the note text.  Adding them here would make this entry
-    more informative (see SUGGESTED IMPROVEMENTS in the module docstring).
+    Parameters
+    ----------
+    esaf : ESAF object or None
+        Active ESAF returned by matchUserInApsBss().  When None (e.g.
+        skip_bss=True or lookup failed) the BSS section is omitted.
+    proposal : Proposal object or None
+        Active proposal returned by matchUserInApsBss().  Same as above.
     """
-    user_name = user_data.user_name.get()    # read but not yet used in note
-    sample_dir = user_data.sample_dir.get()  # read but not yet used in note
-    appendToMdFile("## User Experiment Start\n")
+    user_name = user_data.user_name.get()
+    sample_dir = user_data.sample_dir.get()
+
+    lines = [
+        "## User Experiment Start",
+        f"- **User:** {user_name}",
+        f"- **Sample Directory:** {sample_dir}",
+    ]
+
+    if esaf is not None:
+        try:
+            user_names = ", ".join(
+                f"{u.last_name}, {u.first_name}" for u in esaf.users
+            )
+            pi_users = [u for u in esaf.users if u.is_pi]
+            pi = pi_users[0] if pi_users else (esaf.users[0] if esaf.users else None)
+            pi_name = f"{pi.first_name} {pi.last_name}" if pi else ""
+        except Exception:
+            user_names = ""
+            pi_name = ""
+        lines += [
+            "",
+            f"### ESAF {esaf.esaf_id}: {esaf.title}",
+            f"- **Status:** {esaf.status}",
+            f"- **PI:** {pi_name}",
+            f"- **Period:** {esaf.start} \u2013 {esaf.end}",
+            f"- **Users:** {user_names}",
+        ]
+
+    if proposal is not None:
+        try:
+            pi_users = [u for u in proposal.users if u.is_pi]
+            pi = pi_users[0] if pi_users else (proposal.users[0] if proposal.users else None)
+            pi_name = f"{pi.first_name} {pi.last_name}" if pi else ""
+        except Exception:
+            pi_name = ""
+        mail_in = "Yes" if getattr(proposal, "mail_in", False) else "No"
+        lines += [
+            "",
+            f"### Proposal {proposal.proposal_id}: {proposal.title}",
+            f"- **PI:** {pi_name}",
+            f"- **Period:** {proposal.start} \u2013 {proposal.end}",
+            f"- **Mail-in:** {mail_in}",
+        ]
+
+    appendToMdFile("\n".join(lines) + "\n")
     recordNewSample()
 
 
@@ -269,15 +318,59 @@ def recordRunCommandFile(command_list: str):
 def recordBeamDump():
     """
     Record an APS ring beam dump event (called by suspenders).
+
+    Logs the APS ring current at the moment of the dump so the note captures
+    the machine state when operations were suspended.
     """
-    appendToMdFile("## Beam Dumped\n")
+    aps_current = EpicsSignalRO("XFD:srCurrent", name="aps_current")
+    text = (
+        "## Beam Dumped — Operations Suspended\n"
+        f"- **APS Ring Current (mA):** {aps_current.get():.2f}\n"
+        "- **Reason:** White beam not available (APS ring beam dump)\n"
+    )
+    appendToMdFile(text)
 
 
 def recordBeamRecovery():
     """
     Record APS ring beam recovery after a dump (called by suspenders).
+
+    Logs the APS ring current at the moment of recovery so the note shows
+    that the beam is back and operations are about to resume.
     """
-    appendToMdFile("## Beam Recovered\n")
+    aps_current = EpicsSignalRO("XFD:srCurrent", name="aps_current")
+    text = (
+        "## Beam Recovered — Operations Resuming\n"
+        f"- **APS Ring Current (mA):** {aps_current.get():.2f}\n"
+    )
+    appendToMdFile(text)
+
+
+def recordBeamInHutchLost():
+    """
+    Record when the beam-in-hutch check signal goes low (operations suspended).
+
+    Called by the BeamInHutchSuspension pre_plan when the hutch check fails.
+    Logs the event so users have a record of when operations were interrupted
+    and why.
+    """
+    text = (
+        "## Operations Suspended: Beam Not in Hutch\n"
+        "- **Reason:** Beam-in-hutch check signal went low\n"
+        "- **Action:** RunEngine paused until beam-in-hutch is restored\n"
+    )
+    appendToMdFile(text)
+
+
+def recordBeamInHutchRestored():
+    """
+    Record when the beam-in-hutch check signal recovers (operations resuming).
+
+    Called by the BeamInHutchSuspension post_plan after the hutch check passes
+    again.  Logs the recovery so users can see the full suspension duration in
+    the note file.
+    """
+    appendToMdFile("## Operations Resuming: Beam-in-Hutch Restored\n")
 
 
 def recordFunctionRun():

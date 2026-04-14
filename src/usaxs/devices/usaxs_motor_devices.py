@@ -1,15 +1,21 @@
 """
-motor customizations
+Custom EPICS motor classes for the 12-ID-E USAXS instrument.
 
-TunableEpicsMotor2 adds tuning of motor using lineup2 code
+``TunableEpicsMotor2``
+    EpicsMotor subclass that carries tuning parameters (range, points, peak
+    factor, etc.) used by the lineup2-based axis-tuning plans.
 
-TunableEpicsMotor2WTolerance adds tolerance to TunableEpicsMotor2WTolerance
-    .tolerance = 0.000_006 which is ~0.02 arc sec for AR stage. MR is 0.03 arc sec
-    impact of tolerance on tuning shoudl be small for now.
+``DeadbandMixin``
+    Mixin that marks a move as done as soon as the readback is within
+    ``tolerance`` of the setpoint, bypassing any remaining motor-settling time.
+    Adapted from https://github.com/NSLS-II-SST/sst_base.
 
+``TunableEpicsMotor2WTolerance``
+    Combines ``TunableEpicsMotor2`` with ``DeadbandMixin``.  Tolerance is set
+    to 0.000 006°, equivalent to ~0.02 arc-seconds — appropriate for both the
+    AR stage (min step 0.02 arc-sec) and the MR stage (min step 0.03 arc-sec).
 """
 
-# from apstools.devices import AxisTunerMixin
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsMotor
@@ -92,22 +98,18 @@ class DeadbandMixin(Device, PositionerBase):
     move_latch = Component(Signal, value=0, kind="omitted")
 
     def _done_moving(self, success=True, timestamp=None, value=None, **kwargs):
-        """
-        Call when motion has completed. Runs ``SUB_DONE`` subscription.
+        """Fire ``SUB_DONE`` and reset the move latch when motion completes.
 
         Parameters
         ----------
-        success : bool, optional
-            Whether the move was successful, by default True.
-        timestamp : float or None, optional
-            The timestamp of completion, by default None.
-        value : Any, optional
-            The value at completion, by default None.
-        **kwargs : dict
-            Additional keyword arguments.
+        success : bool
+            Whether the move finished successfully.
+        timestamp : float or None
+            Completion timestamp.
+        value : any
+            Readback value at completion.
         """
         if self.move_latch.get():
-            # print(f"{timestamp}: {self.name} marked done")
             if success:
                 self._run_subs(sub_type=self.SUB_DONE, timestamp=timestamp, value=value)
 
@@ -150,13 +152,8 @@ class DeadbandMixin(Device, PositionerBase):
                     self._done_moving(
                         timestamp=timestamp, success=True, value=done_value
                     )
-                else:
-                    pass
-                    # print(f"{timestamp}: {self.name}, {value} not within {tolerance} "
-                    #       f"of {setpoint}")
 
             def clear_deadband(*args, timestamp, **kwargs):
-                # print(f"{timestamp}: Ran deadband clear for {self.name}")
                 self.clear_sub(check_deadband, event_type=self.SUB_READBACK)
 
             self.subscribe(clear_deadband, event_type=self._SUB_REQ_DONE, run=False)
@@ -174,16 +171,13 @@ class DeadbandMixin(Device, PositionerBase):
 
 
 class TunableEpicsMotor2WTolerance(DeadbandMixin, TunableEpicsMotor2):
-    """
-    Motor with tuning capabilities and deadband tolerance.
+    """TunableEpicsMotor2 with a deadband tolerance for AR and MR stages.
 
-    This class combines the tuning capabilities of TunableEpicsMotor2 with
-    the deadband tolerance functionality of DeadbandMixin. It is specifically
-    configured for AR and MR stages with appropriate tolerance values.
+    Tolerance is 0.000 006° ≈ 0.022 arc-seconds.
+    AR guaranteed minimum step is 0.02 arc-seconds (≈ 0.000 0055°).
+    MR guaranteed minimum step is 0.03 arc-seconds (≈ 0.000 0083°).
+    Using the same tolerance for both; AR resolution is more critical for step
+    scans.  Impact on tuning is small; no impact on fly scans.
     """
 
     tolerance = Component(Signal, value=0.000_006, kind="config")
-    # AR guaranteed min step is 0.02 arc second, which is 0.000_0055 degress.
-    # MR guarranteed min step is 0.03 arc second, which is 0.000_0083 dgrees
-    # set .tolerance same for AR and MR, for step scans AR resolution is more important.
-    # this has small impact on tunes and no impact on flyscans.

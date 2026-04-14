@@ -1,18 +1,34 @@
 """
-support USAXS area detectors
+Shared area detector support for the 12-ID-E USAXS instrument.
 
-replace Bluesky file name scheme when used with area detector
+Provides file-writer mixin classes, plugin overrides, and utility functions
+used by all area detector devices (Pilatus, Eiger, BlackFly, Alta, etc.).
 
-file systems on some area detectors need more work
+Key contents
+------------
+area_detector_EPICS_PV_prefix
+    Dict mapping detector names to their EPICS PV prefixes.
+BadPixelPlugin
+    Ophyd device for ADCore NDBadPixel (new in AD 3.13).
+Override_AD_EpicsHdf5FileName / myHdf5EpicsIterativeWriter / myHDF5FileNames
+    HDF5 file-writer classes that avoid resetting ``file_number`` to zero
+    during staging (workaround for apstools default behaviour).
+myJpeg* / myTiff*
+    Equivalent mixin chains for JPEG and TIFF plugins.
+Override_AD_plugin_primed(plugin)
+    Check whether an area detector has already pushed an NDarray to the plugin.
+Override_AD_prime_plugin2(plugin)
+    Prime a file-writer plugin by triggering a single short acquisition,
+    replacing the faulty apstools implementation.
 
-* saxs:  /mnt/share1/USAXS_data/yyyy-mm/user_working_folder_saxs/
-* waxs:  /mnt/share1/USAXS_data/yyyy-mm/user_working_folder_waxs/
-* PointGrey BlackFly does not write out to file typically.  No use of HDF5 plugin.
-* PointGrey BlackFly Optical: /mnt/share1/USAXS_data/...
-* Alta: /mnt/share1/USAXS_data/...
+File-system paths used by the area detectors
+---------------------------------------------
+* SAXS:  /mnt/share1/USAXS_data/yyyy-mm/user_working_folder_saxs/
+* WAXS:  /mnt/share1/USAXS_data/yyyy-mm/user_working_folder_waxs/
+* PointGrey BlackFly: does not write to file (no HDF5 plugin).
+* PointGrey BlackFly Optical, Alta: /mnt/share1/USAXS_data/...
 """
 
-# from ophyd.utils import set_and_wait
 import itertools
 import logging
 import time
@@ -50,6 +66,23 @@ area_detector_EPICS_PV_prefix = {
 
 
 def _validate_AD_FileWriter_path_(path, root_path):
+    """Raise ValueError if *path* does not start with *root_path*.
+
+    Used as a guard in file-writer staging to ensure the IOC-reported write
+    path is inside the expected root directory.
+
+    Parameters
+    ----------
+    path : str or Path
+        The path to validate.
+    root_path : str
+        The required path prefix.
+
+    Raises
+    ------
+    ValueError
+        If ``str(path)`` does not start with ``root_path``.
+    """
     if not str(path).startswith(root_path):
         raise ValueError(
             f"error in file {__file__}: path '{path}' must start with '{root_path}'"
@@ -71,16 +104,24 @@ class Override_AD_EpicsHdf5FileName(AD_EpicsHdf5FileName):
     # TODO: for apstools, but not yet as of 6-12-2024
 
     def stage(self):
-        """
-        overrides default behavior
-        Set EPICS items before device is staged, then copy EPICS
-        naming template (and other items) to ophyd after staging.
+        """Stage the HDF5 plugin without resetting ``file_number`` to zero.
+
+        Overrides the apstools default which resets ``file_number`` on every
+        stage.  Instead it:
+
+        1. Calls :func:`make_filename` to obtain the file name, read path, and
+           write path.
+        2. Closes any currently-open capture file.
+        3. Sets ``file_path`` and ``file_name`` on the IOC.
+        4. Calls ``FileStoreBase.stage()`` (grandparent) — skipping the parent
+           which would reset ``file_number``.
+        5. Applies the AD filename template in Python to produce ``self._fn``.
+        6. Generates a databroker resource for this acquisition.
         """
         # Make a filename.
         filename, read_path, write_path = self.make_filename()
 
         # Ensure we do not have an old file open.
-        # set_and_wait(self.capture, 0)
         self.capture.set(0).wait()
         # These must be set before parent is staged (specifically
         # before capture mode is turned on. They will not be reset
@@ -92,11 +133,8 @@ class Override_AD_EpicsHdf5FileName(AD_EpicsHdf5FileName):
             else:
                 write_path += "/"
 
-        # set_and_wait(self.file_path, write_path)
         self.file_path.set(write_path).wait()
-        # set_and_wait(self.file_name, filename)
         self.file_name.set(filename).wait()
-        ### set_and_wait(self.file_number, 0)
 
         # get file number now since it is incremented during stage()
         file_number = self.file_number.get()
@@ -161,8 +199,23 @@ class EpicsDefinesTiffFileNames(TIFFPlugin, myTiffEpicsIterativeWriter):
 
 
 def Override_AD_plugin_primed(plugin):
-    """
-    Has area detector pushed an NDarray to the file writer plugin?
+    """Return True if the area detector has already primed the file-writer plugin.
+
+    A plugin is considered primed when:
+
+    * Both the camera and the plugin report a non-zero ``array_size``.
+    * The ``array_size`` and ``color_mode`` attributes match between cam and plugin.
+
+    Parameters
+    ----------
+    plugin : ophyd Device
+        A file-writer plugin (HDF5, JPEG, TIFF, …) whose ``.parent`` exposes a
+        ``.cam`` component.
+
+    Returns
+    -------
+    bool
+        ``True`` if all checks pass; ``False`` if any check fails.
     """
     cam = plugin.parent.cam
     tests = []
@@ -189,7 +242,24 @@ def Override_AD_plugin_primed(plugin):
 
 
 def Override_AD_prime_plugin2(plugin):
-    """Override faulty apstools implementation"""
+    """Prime a file-writer plugin by triggering a brief acquisition.
+
+    Replaces the faulty apstools ``AD_prime_plugin2`` implementation.  If the
+    plugin is already primed (checked via :func:`Override_AD_plugin_primed`),
+    this function returns immediately.
+
+    The sequence is:
+
+    1. Enable the plugin and configure the camera for a single, 1-second
+       exposure with Internal trigger.
+    2. Start acquisition and wait for it to complete.
+    3. Restore all signals to their original values.
+
+    Parameters
+    ----------
+    plugin : ophyd Device
+        A file-writer plugin whose ``.parent`` exposes a ``.cam`` component.
+    """
     if Override_AD_plugin_primed(plugin):
         logger.debug("'%s' plugin is already primed", plugin.name)
         return
@@ -211,7 +281,6 @@ def Override_AD_prime_plugin2(plugin):
 
     for sig, val in sigs.items():
         time.sleep(0.1)  # abundance of caution
-        # set_and_wait(sig, val)
         sig.set(val).wait()
 
     while plugin.parent.cam.acquire.get() not in (0, "Done"):
@@ -219,5 +288,4 @@ def Override_AD_prime_plugin2(plugin):
 
     for sig, val in reversed(list(original_vals.items())):
         time.sleep(0.1)
-        # set_and_wait(sig, val)
         sig.set(val).wait()

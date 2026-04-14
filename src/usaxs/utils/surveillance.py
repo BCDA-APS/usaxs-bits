@@ -2,6 +2,12 @@
 
 This module provides functionality for monitoring various aspects of the USAXS
 instrument, including detector counts, temperature, and other critical parameters.
+
+NOTE: ``monitor_detector_counts`` and ``monitor_temperature`` are currently
+unfinished placeholder stubs.  They use ``yield from device.read()`` which is
+not valid Bluesky plan syntax (``read()`` returns a dict, not a generator), and
+they are not called anywhere in the codebase.  They must be redesigned before
+use — see the open issue for tracking.
 """
 
 import logging

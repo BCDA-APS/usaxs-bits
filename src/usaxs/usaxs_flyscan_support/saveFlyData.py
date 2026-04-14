@@ -2,7 +2,23 @@
 
 
 """
-save EPICS data from USAXS Fly Scan to a NeXus file
+Save EPICS PV data from a USAXS fly scan to a NeXus/HDF5 file.
+
+The HDF5 file structure is defined by an external XML configuration file
+(``saveFlyData.xml``) validated against ``saveFlyData.xsd``.  The
+``NeXus_Structure`` manager from ``nexus_flyscan`` parses that XML once and
+caches the result for the session.
+
+Writing happens in two passes:
+
+1. ``preliminaryWriteFile()`` — called while the fly scan is still running.
+   Writes PVs where ``acquire_after_scan=false`` in the XML.
+2. ``saveFile()`` — called after the scan trigger signals completion.
+   Writes PVs where ``acquire_after_scan=true``, then creates all NeXus links
+   and closes the file.
+
+This module can also be run as a CLI script (``python saveFlyData.py``),
+which is how SPEC invokes it.  See ``main()`` for the entry point.
 """
 
 import argparse
@@ -17,11 +33,7 @@ from typing import Optional
 import h5py
 import numpy
 
-# from importlib import import_module
-
-# logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(os.path.split(__file__)[-1])
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 # do not warn if the HDF5 library version has changed
 # headers are 1.8.15, library is 1.8.16
@@ -85,9 +97,8 @@ class SaveFlyScan(object):
                 If not provided, uses the default configuration file.
         """
         self.hdf5_file_name = hdf5_file
-
-        path = self._get_support_code_dir()
-        self.config_file = config_file or os.path.join(path, XML_CONFIGURATION_FILE)
+        # XML_CONFIGURATION_FILE is already an absolute path
+        self.config_file = config_file or XML_CONFIGURATION_FILE
 
         self.mgr = nexus_flyscan.get_manager(self.config_file)
         self._prepare_to_acquire()
@@ -98,6 +109,10 @@ class SaveFlyScan(object):
         Note:
             Not for production use in bluesky.
             This routine is used by SPEC and for development code.
+
+            No timeout is implemented intentionally — fly scan duration varies
+            enormously (seconds to hours) and no fixed limit is sensible.
+            The caller is expected to kill the process externally if needed.
         """
         import epics
 
@@ -140,7 +155,7 @@ class SaveFlyScan(object):
                 value = pv_spec.ophyd_signal.get(timeout=10, use_monitor=False)
             if value is None:
                 value = NO_DATA_TEXT
-            logger.debug("saveFile(): writing {pv_spec}")
+            logger.debug(f"preliminaryWriteFile(): writing {pv_spec}")
             if not isinstance(value, numpy.ndarray):
                 value = [value]
             else:
@@ -232,6 +247,7 @@ class SaveFlyScan(object):
         logger.debug("saveFile(): file closed")
 
     def _get_support_code_dir(self):
+        """Return the absolute directory containing this source file."""
         return os.path.split(os.path.abspath(__file__))[0]
 
     def _prepare_to_acquire(self):
@@ -256,7 +272,10 @@ class SaveFlyScan(object):
                         item.pvname,
                         item.ophyd_signal.name,
                     )
-                # raise EpicsNotConnected()
+                # Intentional: some PVs are routinely unavailable (unimportant
+            # metadata sources).  Raising here caused too many spurious
+            # failures.  Unconnected PVs are logged as warnings above and
+            # written as NOT_CONNECTED_TEXT placeholders in the data file.
                 break
             time.sleep(0.1)
 
@@ -273,7 +292,6 @@ class SaveFlyScan(object):
                 root_attrs["creator_config_file"] = self.config_file
                 root_attrs["HDF5_Version"] = h5py.version.hdf5_version
                 root_attrs["h5py_version"] = h5py.version.version
-                # root_attrs["NX_class"] = "NXroot",    # not illegal, *never* used
                 addAttributes(f, **root_attrs)
                 xture.hdf5_group = f
             else:
@@ -283,13 +301,12 @@ class SaveFlyScan(object):
             addAttributes(xture.hdf5_group, **xture.attrib)
 
         for field in self.mgr.field_registry.values():
-            if isinstance(field.text, type("unicode")):
-                field.text = field.text.encode("utf8")
+            if isinstance(field.text, str):
+                field.text = field.text.encode("utf8")  # lxml always gives str; encode for h5py
             try:
                 ds = makeDataset(
                     field.group_parent.hdf5_group, field.name, [field.text]
                 )
-                # ds = field.group_parent.hdf5_group
                 addAttributes(ds, **field.attrib)
             except Exception as err:
                 msg = "problem with field={}, text={}, exception={}".format(
@@ -338,11 +355,10 @@ def makeDataset(parent: h5py.Group, name: str, data: Any) -> Optional[h5py.Datas
         return dset
     except Exception as _exc:
         logger.error(
-            "Could not create dataset: %s:%s, %s  (parent=%s)",
+            "Could not create dataset: %s:%s, %s",
             parent.name,
             name,
             str(_exc),
-            parent,  # TODO: diagnostic only, remove for production.  Why is parent.name None?  Issue 101.
         )
         return None
 
@@ -364,8 +380,6 @@ def get_CLI_options() -> argparse.Namespace:
     Returns:
         argparse.Namespace: Parsed command line arguments
     """
-    import argparse
-
     parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument("data_file", action="store", help="/path/to/new/hdf5/data/file")
@@ -433,63 +447,8 @@ if __name__ == "__main__":
     # developer_bluesky()
     # developer_spec()
 
-
-"""
-cd /home/beams/USAXS/Documents/eclipse/USAXS/tools
-/bin/rm test.h5
-caput usxLAX:USAXSfly:Start 0
-/APSshare/anaconda/x86_64/bin/python ./saveFlyData.py ./test.h5 ./saveFlyData.xml
-/APSshare/anaconda/x86_64/bin/python ~/bin/h5toText.py ./test.h5
-"""
-
-
-class SaveDictToHDF5:
-    """Class for saving dictionary data to HDF5 files.
-
-    This class provides methods to save Python dictionaries to HDF5 files,
-    preserving the data structure and types.
-    """
-
-    def __init__(self, filename):
-        """Initialize the HDF5 file saver.
-
-        Args:
-            filename: Path to the HDF5 file to save to
-        """
-        self.filename = filename
-
-
-def get_fly_scan_points(scan_id):
-    """Get the number of points in a fly scan.
-
-    Args:
-        scan_id: ID of the fly scan
-
-    Returns:
-        int: Number of points in the scan
-    """
-    return 0
-
-
-def get_fly_scan_time(scan_id):
-    """Get the time taken by a fly scan.
-
-    Args:
-        scan_id: ID of the fly scan
-
-    Returns:
-        float: Time taken by the scan in seconds
-    """
-    return 0.0
-
-
-def get_fly_scan_peak_stats(scan_id):
-    """Get the peak statistics from a fly scan.
-
-    Args:
-        scan_id: ID of the fly scan
-
-    Returns:
-        dict: Dictionary containing peak statistics
-    """
-    return {}
+# Developer test commands (run from the tools directory):
+#   /bin/rm test.h5
+#   caput usxLAX:USAXSfly:Start 0
+#   python ./saveFlyData.py ./test.h5 ./saveFlyData.xml
+#   python ~/bin/h5toText.py ./test.h5

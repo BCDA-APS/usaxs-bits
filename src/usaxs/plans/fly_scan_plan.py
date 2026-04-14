@@ -28,8 +28,6 @@ import os
 import time
 import uuid
 from collections import OrderedDict
-from typing import Any
-from typing import Dict
 from typing import Optional
 
 # Get devices from oregistry
@@ -61,7 +59,7 @@ usaxs_flyscan = oregistry["usaxs_flyscan"]  # UsaxsFlyScanDevice (busy, flying, 
 
 
 @plan
-def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
+def Flyscan_internal_plan(md: Optional[dict] = None):
     """Execute a USAXS fly scan.
 
     Coordinates hardware triggering, parallel HDF5 file preparation/saving,
@@ -132,7 +130,6 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
             values.append(missing)
         else:
             values.append(f"{elapsed:.2f}")
-        # values.append(resource_usage())
         return "  ".join([f"{s:11}" for s in values])
 
     # ------------------------------------------------------------------
@@ -148,7 +145,6 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
         Uses ``usaxs_flyscan.flying`` as the loop sentinel; stops when that
         signal goes False or when the timeout is exceeded.
         """
-        # logger.debug("progress_reporting has arrived")
         t = time.time()
         # Total allowed wall time = scan duration + generous padding.
         timeout = (
@@ -181,7 +177,6 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
         # Log one final line after the loop exits.
         msg = _report_(time.time() - usaxs_flyscan.t0)
         logger.info(msg)
-        # user_data.set_state_blocking(msg.split()[0])
         if t > timeout:
             logger.error(
                 f"{time.time()-usaxs_flyscan.t0}s - progress_reporting timeout!!"
@@ -239,15 +234,12 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
         usaxs_flyscan._output_HDF5_file_ = fname
         user_data.set_state_blocking("FlyScanning: " + os.path.split(fname)[-1])
 
-        # logger.debug(resource_usage("before SaveFlyScan()"))
         # Create the SaveFlyScan writer and write the NeXus skeleton immediately
         # so the file exists on disk before the scan finishes.
         usaxs_flyscan.saveFlyData = SaveFlyScan(
             fname, config_file=usaxs_flyscan.saveFlyData_config
         )
-        # logger.debug(resource_usage("before saveFlyData.preliminaryWriteFile()"))
         usaxs_flyscan.saveFlyData.preliminaryWriteFile()
-        # logger.debug(resource_usage("after saveFlyData.preliminaryWriteFile()"))
 
     # ------------------------------------------------------------------
     # Background thread: flush EPICS data into the HDF5 file after the scan
@@ -295,7 +287,6 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
     _md["hdf5_path"] = usaxs_flyscan.saveFlyData_HDF5_dir
 
     yield from bps.open_run(md=_md)
-    # specwriter._cmt("start", "start USAXS Fly scan")   # old two-arg API
     specwriter._cmt("start USAXS Fly scan")
     # Switch UPD amplifier to auto-background mode for the scan.
     yield from bps.mv(
@@ -315,9 +306,6 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
         # prepare HDF5 file to save fly scan data (background thread)
         # Runs concurrently with the scan startup sequence to minimise dead time.
         prepare_HDF5_file()
-    # path = os.path.abspath(usaxs_flyscan.saveFlyData_HDF5_dir)
-    # specwriter._cmt("start", f"HDF5 configuration file: {
-    # usaxs_flyscan.saveFlyData_config}")   # old two-arg API
     specwriter._cmt(f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
 
     # ------------------------------------------------------------------
@@ -362,7 +350,6 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
     # Clear the flying flag so the progress thread exits its polling loop.
     yield from bps.abs_set(usaxs_flyscan.flying, False)
     elapsed = time.time() - usaxs_flyscan.t0
-    # specwriter._cmt("stop", f"fly scan completed in {elapsed} s")   # old two-arg API
     specwriter._cmt(f"fly scan completed in {elapsed} s")
 
     if bluesky_runengine_running:
@@ -376,12 +363,9 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
             # FIXME: hack to avoid `Another set() call is still in progress`
             # see: https://github.com/APS-USAXS/ipython-usaxs/issues/417
             user_data.state._set_thread = None
-        # logger.debug(resource_usage("before saveFlyData.finish_HDF5_file()"))
         # Finalise the HDF5 file in a background thread so the plan can
         # simultaneously restore stages (the next bps.mv call).
         finish_HDF5_file()  # finish saving data to HDF5 file (background thread)
-        # logger.debug(resource_usage("after saveFlyData.finish_HDF5_file()"))
-        # specwriter._cmt("stop", f"finished {msg}")   # old two-arg API
         specwriter._cmt(f"finished {msg}")
         logger.debug(f"finished {msg}")
 
@@ -405,7 +389,6 @@ def Flyscan_internal_plan(md: Optional[Dict[str, Any]] = None):
         # fmt: on
     )
 
-    #yield from write_stream([struck.mca1, struck.mca2, struck.mca3], "mca")
     logger.debug(f"after return: {time.time() - usaxs_flyscan.t0}s")
 
     yield from user_data.set_state_plan("fly scan finished")

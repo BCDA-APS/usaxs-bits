@@ -1,8 +1,11 @@
 """
-slits
+Slit devices for the 12-ID-E USAXS instrument.
+
+``UsaxsSlitDevice``  — USAXS sample slit (center + aperture).
+``GuardSlitMotor``   — EpicsMotor subclass with ``.PROC`` / ``.STUP`` extras.
+``GSlitDevice``      — Guard slit (four blades + aperture signals + tuning params).
 """
 
-from typing import Any
 from typing import Optional
 
 from bluesky import plan_stubs as bps
@@ -11,18 +14,12 @@ from ophyd import EpicsMotor
 from ophyd import EpicsSignal
 from ophyd import MotorBundle
 
-# from ..devices.general_terms import terms
-
-# from .usaxs_motor_devices import UsaxsMotor
-# from ..utils import move_motors
-
 
 class UsaxsSlitDevice(MotorBundle):
-    """
-    USAXS slit just before the sample
+    """USAXS sample slit just before the sample position.
 
-    * center of slit: (x, y)
-    * aperture: (h_size, v_size)
+    ``x``, ``y``          — slit center position (mm).
+    ``h_size``, ``v_size``— horizontal and vertical aperture (mm).
     """
 
     h_size = Component(EpicsMotor, "usxLAX:m58:c1:m8", labels=("uslit",))
@@ -30,28 +27,39 @@ class UsaxsSlitDevice(MotorBundle):
     v_size = Component(EpicsMotor, "usxLAX:m58:c1:m7", labels=("uslit",))
     y = Component(EpicsMotor, "usxLAX:m58:c1:m5", labels=("uslit",))
 
-    def set_size(
-        self, *args: Any, h: Optional[float] = None, v: Optional[float] = None
-    ):
-        """move the slits to the specified size"""
+    def set_size(self, *, h: Optional[float] = None, v: Optional[float] = None):
+        """Bluesky plan: move horizontal and vertical aperture to *h* × *v* mm.
+
+        Both *h* and *v* are required keyword-only arguments.
+
+        Parameters
+        ----------
+        h : float
+            Target horizontal aperture in mm.
+        v : float
+            Target vertical aperture in mm.
+
+        Raises
+        ------
+        ValueError
+            If either *h* or *v* is not provided.
+
+        Yields
+        ------
+        Bluesky messages.
+        """
         if h is None:
             raise ValueError("must define horizontal size")
         if v is None:
             raise ValueError("must define vertical size")
-        # move_motors(self.h_size, h, self.v_size, v)
-        yield from bps.mv(
-            self.h_size,
-            h,
-            self.v_size,
-            v,
-        )
+        yield from bps.mv(self.h_size, h, self.v_size, v)
 
 
 class GuardSlitMotor(EpicsMotor):
-    """
-    Motor for guard slits with additional process record and status update signals.
+    """EpicsMotor with additional ``.PROC`` and ``.STUP`` signals.
 
-    This class extends EpicsMotor to add functionality specific to guard slit motors.
+    ``process_record`` (``.PROC``) — process the record manually.
+    ``status_update``  (``.STUP``) — request a status update from the motor.
     """
 
     process_record = Component(EpicsSignal, ".PROC", kind="omitted")
@@ -59,10 +67,20 @@ class GuardSlitMotor(EpicsMotor):
 
 
 class GSlitDevice(MotorBundle):
-    """
-    guard slit
+    """Guard slit with four individual blade motors and aperture summary signals.
 
-    * aperture: (h_size, v_size)
+    Blade motors (``bot``, ``inb``, ``outb``, ``top``) use :class:`GuardSlitMotor`.
+    ``x``, ``y`` — guard slit centre position (mm).
+    ``h_size``, ``v_size`` — calculated aperture read from soft IOC records.
+    ``h_sync_proc``, ``v_sync_proc`` — trigger recalculation of aperture.
+
+    Class-level tuning parameters (mm unless noted):
+
+    ``gap_tolerance``             — required closeness of actual to desired gap.
+    ``scale_factor``              — guard slit aperture as multiple of beam size.
+    ``h_step_away`` / ``v_step_away`` — step away from beam during tuning.
+    ``h_step_into`` / ``v_step_into`` — step to block beam during tuning.
+    ``tuning_intensity_threshold``    — minimum count rate to consider beam present.
     """
 
     bot = Component(GuardSlitMotor, "usxLAX:m58:c1:m4", labels=("gslit",))
@@ -78,12 +96,10 @@ class GSlitDevice(MotorBundle):
     h_sync_proc = Component(EpicsSignal, "usxLAX:GSlit1H:sync.PROC")
     v_sync_proc = Component(EpicsSignal, "usxLAX:GSlit1V:sync.PROC")
 
-    gap_tolerance: float = 0.02  # actual must be this close to desired
-    scale_factor: float = (
-        1.2  # 1.2x the size of the beam should be good guess for guard slits.
-    )
-    h_step_away: float = 0.2  # 0.2mm step away from beam
-    v_step_away: float = 0.1  # 0.1mm step away from beam
-    h_step_into: float = 1.1  # 1.1mm step into the beam (blocks the beam)
-    v_step_into: float = 0.4  # 0.4mm step into the beam (blocks the beam)
+    gap_tolerance: float = 0.02
+    scale_factor: float = 1.2
+    h_step_away: float = 0.2
+    v_step_away: float = 0.1
+    h_step_into: float = 1.1
+    v_step_into: float = 0.4
     tuning_intensity_threshold: int = 500

@@ -1,18 +1,34 @@
 """
 Plans for axis tuning in USAXS.
 
-This module provides functions for tuning and calibrating various instrument axes
-and stages. It includes functions for tuning monochromator, analyzer, detector,
-and other optical components. The tuning process involves finding optimal positions
-for maximum signal intensity.
+Provides Bluesky plans that tune and calibrate individual optomechanical axes
+using ``apstools.plans.lineup2``.  Each public function tunes one axis (or a
+related group) and updates the corresponding EPICS parameter PV on success.
 
-Note: Don't use blocking calls here
+Public entry points
+-------------------
+* ``tune_mr``           — monochromator rotation (MR)
+* ``tune_ar``           — analyzer rotation (AR)
+* ``find_ar``           — wide-range AR search followed by a fine tune_ar
+* ``tune_a2rp``         — analyzer second roll-pitch piezo (A2RP)
+* ``find_a2rp``         — wide-range A2RP search followed by a fine tune_a2rp
+* ``tune_dx``           — detector X stage
+* ``tune_dy``           — detector Y stage
+* ``tune_diode``        — both DX and DY (calls tune_dx then tune_dy)
+* ``tune_usaxs_optics`` — full USAXS optics sequence (MR → AR → A2RP)
+* ``tune_saxs_optics``  — SAXS optics sequence (MR only)
+
+Utility stubs (not yet implemented)
+-------------------------------------
+* ``instrument_default_tune_ranges`` — no-op; ranges live in EPICS PVs
+* ``update_EPICS_tuning_widths``     — no-op; now handled by EPICS
+* ``user_defined_settings``          — hook for user overrides before each batch
+
+Note: do not use blocking calls in these plans.
 """
 
 import logging
 import time
-from typing import Any
-from typing import Dict
 from typing import Optional
 
 from apsbits.core.instrument_init import oregistry
@@ -35,9 +51,6 @@ scaler0 = oregistry["scaler0"]
 mono_shutter = oregistry["mono_shutter"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 a_stage = oregistry["a_stage"]
-# axis_tune_range = oregistry["axis_tune_range"]
-d_stage = oregistry["d_stage"]
-m_stage = oregistry["m_stage"]
 d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
@@ -46,38 +59,35 @@ UPD_SIGNAL = oregistry["UPD_SIGNAL"]
 UPD = oregistry["UPD"]
 I0_SIGNAL = oregistry["I0_SIGNAL"]
 I0 = oregistry["I0"]
-scaler0 = oregistry["scaler0"]
-upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
-
 upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
 I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
 
 user_data = oregistry["user_data"]
 monochromator = oregistry["monochromator"]
-usaxs_shutter = oregistry["usaxs_shutter"]
 
 logger = logging.getLogger(__name__)
 
 
-# Register user override for USAXS minimum step
-# user_override.register("usaxs_minstep")  # what is this for?
+def tune_mr(md: Optional[dict] = None):
+    """Bluesky plan: tune the monochromator rotation (MR) stage.
 
+    Opens the USAXS shutter, autoscales the UPD and I0 amplifiers, then runs
+    a ``lineup2`` scan over the MR tune range.  On success, writes the new
+    center position to ``terms.USAXS.mr_val_center``.
 
-# Set empty plan for channel-cut crystals
-# if m_stage.isChannelCut:
-#     m_stage.r2p.tuner = empty_plan
-#     m_stage.r2p.pre_tune_method = empty_plan
-#     m_stage.r2p.post_tune_method = empty_plan
-#     tune_m2rp = empty_plan
+    Parameters
+    ----------
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
-
-def tune_mr(md: Optional[Dict[str, Any]] = None):
-    """Tune the monochromator rotation."""
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
     if md is None:
         md = {}
 
     yield from IfRequestedStopBeforeNextScan()
-    # success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.1)
@@ -109,7 +119,6 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
             "auto+background",
         )
         scaler0.select_channels()
-        # success = stats.analysis.success
         if stats.analysis.success:
             yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
             logger.debug(f"final position: {m_stage.r.position}")
@@ -122,26 +131,23 @@ def tune_mr(md: Optional[Dict[str, Any]] = None):
     finally:
         yield from bps.mv(usaxs_shutter, "close")
 
-    # return success
 
+def tune_ar(md: Optional[dict] = None):
+    """Bluesky plan: tune the analyzer rotation (AR) stage.
 
-def tune_ar(md: Optional[Dict[str, Any]] = None):
-    """
-    Tune the AR stage.
-
-    This function tunes the analyzer rotation stage by finding the optimal position
-    for maximum signal intensity. It includes setting up the scaler, configuring
-    the detector controls, and performing a lineup scan.
+    Opens the mono and USAXS shutters, autoscales the UPD and I0 amplifiers,
+    then runs a ``lineup2`` scan over the AR tune range.  On success, writes
+    the new center to ``terms.USAXS.ar_val_center`` and to
+    ``usaxs_q_calc.channels.B.input_value``.
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     if md is None:
         md = {}
@@ -153,7 +159,6 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_ar"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r.name}")
-        # axis_start = a_stage.r.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -203,33 +208,26 @@ def tune_ar(md: Optional[Dict[str, Any]] = None):
         logger.error(f"Error in tune_ar: {str(e)}")
         raise
 
-    # return success
 
+def find_ar(md: Optional[dict] = None):
+    """Bluesky plan: wide-range AR search followed by a fine tune_ar.
 
-def find_ar(md: Optional[Dict[str, Any]] = None):
-    """
-    Tune the AR stage with adaptive range.
+    Uses ``upd_photocurrent_calc`` (UPD amplifier in automatic gain mode) to
+    search over a range 5× wider than the normal AR tune range, running up to
+    3 ``lineup2`` scans to narrow in.  Then replicates the standard ``tune_ar``
+    sequence at normal range and gain settings.
 
-    This function tunes the analyzer rotation stage by finding the optimal position
-    for maximum signal intensity. It includes setting up the scaler, configuring
-    the detector controls, and performing a lineup scan.
-
-    Uses adaptive scanning to search over originally large range = 5* range for tune_ar,
-    narrowing closer and closer. Uses longer time and 61 scan points, so it takes significantly longer than tune_ar. 
-    uses lineup2 algoritmus and allows for up to 4 scans. It then runs code which is basically tune_ar
-
-    uses upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
-    - optionally this is I0: I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
+    Use this when ``tune_ar`` fails because the peak is outside the normal
+    search window.
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     howWiderRangeToScan = 5
     howManyPoints = 61
@@ -239,37 +237,36 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.2)
-        #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "find_ar"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r.name}")
-        # axis_start = a_stage.r.position
         yield from bps.mv(
             mono_shutter,
             "open",
             usaxs_shutter,
             "open",
             upd_controls.auto.mode,
-            "automatic",  #set UPD amlifier to autorange to automatic so we do not top the UPD
+            "automatic",  # set UPD amplifier to automatic so it does not saturate
         )
-        #yield from autoscale_amplifiers([upd_controls, I0_controls]) - do NOT use, would set to manual mode... 
+        # NOTE: do NOT call autoscale_amplifiers here — it forces manual mode,
+        # which prevents the automatic gain-ranging needed for the wide scan.
         trim_plot_by_name(5)
         # control BEC plotting since we use upd_photocurrent_calc
         scaler0.kind = "normal"
-        scaler0.select_channels([])         # no scaler channels to be plotted (sets 'kind=normal' for all channels)
-        stats = SignalStatsCallback()       # init stats to return stuff back. 
+        scaler0.select_channels([])         # no scaler channels plotted
+        stats = SignalStatsCallback()
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],
             a_stage.r,
-            -1*howWiderRangeToScan*a_stage.r.tune_range.get(),
-            howWiderRangeToScan*a_stage.r.tune_range.get(),
+            -1 * howWiderRangeToScan * a_stage.r.tune_range.get(),
+            howWiderRangeToScan * a_stage.r.tune_range.get(),
             howManyPoints,
             nscans=3,
             signal_stats=stats,
             md=md,
         )
         print(stats.report())
-        #now we need to setup regular tune_ar and run that here.
+        # Now run a standard tune_ar at normal range and gain settings.
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(
             mono_shutter,
@@ -277,11 +274,10 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
         )
-        yield from autoscale_amplifiers([upd_controls, I0_controls])    #sets the range, should be on top range now. 
-        trim_plot_by_name(5)                                            #reduced displayed number of lines in graph
-        scaler0.select_channels(["UPD"])                                # select UPD as counter
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
+        trim_plot_by_name(5)
+        scaler0.select_channels(["UPD"])
         stats = SignalStatsCallback()
-                                                                        # run the lineup2
         yield from lineup2(
             [UPD, scaler0],
             a_stage.r,
@@ -293,7 +289,6 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             md=md,
         )
         print(stats.report())
-        #done with tune_ar part, 
         yield from bps.mv(
             usaxs_shutter,
             "close",
@@ -302,8 +297,8 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()                                       # unset counters
-        success = stats.analysis.success                                # did we find center? 
+        scaler0.select_channels()
+        success = stats.analysis.success
         print(f"Result: {success}")
         if success:
             yield from bps.mv(
@@ -322,30 +317,24 @@ def find_ar(md: Optional[Dict[str, Any]] = None):
         logger.error(f"Error in find_ar: {str(e)}")
         raise
 
-    # return success
 
+def tune_a2rp(md: Optional[dict] = None):
+    """Bluesky plan: tune the analyzer second roll-pitch piezo (A2RP).
 
-def tune_a2rp(md: Optional[Dict[str, Any]] = None):
-    """
-    Tune the A2RP stage.
-
-    This function tunes the analyzer second rotation piezo stage by finding the
-    optimal position for maximum signal intensity. It includes setting up the
-    scaler, configuring the detector controls, and performing a lineup scan.
+    Opens the mono and USAXS shutters, autoscales the UPD and I0 amplifiers,
+    then runs a ``lineup2`` scan over the A2RP tune range.
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     if md is None:
         md = {}
-    # success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
@@ -354,7 +343,6 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_a2rp"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r2p.name}")
-        # axis_start = a_stage.r2p.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -385,7 +373,6 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
             "auto+background",
         )
         scaler0.select_channels()
-        # success = stats.analysis.success
         if stats.analysis.success:
             logger.debug(f"final position: {a_stage.r2p.position}")
         else:
@@ -395,33 +382,26 @@ def tune_a2rp(md: Optional[Dict[str, Any]] = None):
         logger.error(f"Error in tune_a2rp: {str(e)}")
         raise
 
-    # return success
 
+def find_a2rp(md: Optional[dict] = None):
+    """Bluesky plan: wide-range A2RP search followed by a fine tune_a2rp.
 
-def find_a2rp(md: Optional[Dict[str, Any]] = None):
-    """
-    Tune the AR stage a2rp angle with adaptive range.
+    Uses ``upd_photocurrent_calc`` (UPD amplifier in automatic gain mode) to
+    search over a range 2.5× wider than the normal A2RP tune range, running
+    up to 3 ``lineup2`` scans to narrow in.  Then replicates the standard
+    ``tune_a2rp`` sequence at normal range and gain settings.
 
-    This function tunes the analyzer rotation stage by finding the optimal position
-    for maximum signal intensity. It includes setting up the scaler, configuring
-    the detector controls, and performing a lineup scan.
-
-    Uses adaptive scanning to search over originally large range = 5* range for tune_ar,
-    narrowing closer and closer. Uses longer time and 61 scan points, so it takes significantly longer than tune_ar. 
-    uses lineup2 algoritmus and allows for up to 3 scans. It then runs code which is basically tune_ar
-
-    uses upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
-    - optionally this is I0: I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
+    The wide-scan start is clamped so it cannot drive the axis into a negative
+    absolute position; the wide-scan end is clamped at 88 (hardware limit).
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     howWiderRangeToScan = 2.5
     howManyPoints = 61
@@ -431,7 +411,6 @@ def find_a2rp(md: Optional[Dict[str, Any]] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.mv(scaler0.preset_time, 0.2)
-        #yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "find_a2rp"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r2p.name}")
@@ -442,27 +421,28 @@ def find_a2rp(md: Optional[Dict[str, Any]] = None):
             usaxs_shutter,
             "open",
             upd_controls.auto.mode,
-            "automatic",  #set UPD amlifier to autorange to automatic so we do not top the UPD
+            "automatic",  # set UPD amplifier to automatic so it does not saturate
         )
-        #yield from autoscale_amplifiers([upd_controls, I0_controls]) - do NOT use, would set to manual mode... 
+        # NOTE: do NOT call autoscale_amplifiers here — it forces manual mode,
+        # which prevents the automatic gain-ranging needed for the wide scan.
         trim_plot_by_name(5)
         # control BEC plotting since we use upd_photocurrent_calc
         scaler0.kind = "normal"
-        scaler0.select_channels([])         # no scaler channels to be plotted (sets 'kind=normal' for all channels)
-        stats = SignalStatsCallback()       # init stats to return stuff back. 
-        tune_start = -1*howWiderRangeToScan*a_stage.r2p.tune_range.get()
-        tune_end = howWiderRangeToScan*a_stage.r2p.tune_range.get()
-        #tune_start must be larger than -1*axis_start
-        tune_start =  max(tune_start, -1*axis_start)
-        tune_end =  min(tune_end, 88)
+        scaler0.select_channels([])         # no scaler channels plotted
+        stats = SignalStatsCallback()
+        tune_start = -1 * howWiderRangeToScan * a_stage.r2p.tune_range.get()
+        tune_end = howWiderRangeToScan * a_stage.r2p.tune_range.get()
+        # tune_start must be larger than -1*axis_start (avoid driving axis negative)
+        tune_start = max(tune_start, -1 * axis_start)
+        tune_end = min(tune_end, 88)
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],
-            a_stage.r2p,tune_start, tune_end,howManyPoints,
-            nscans=3,signal_stats=stats,
+            a_stage.r2p, tune_start, tune_end, howManyPoints,
+            nscans=3, signal_stats=stats,
             md=md,
         )
         print(stats.report())
-        #now we need to setup regular tune_ar and run that here.
+        # Now run a standard tune_a2rp at normal range and gain settings.
         yield from bps.mv(scaler0.preset_time, 0.1)
         yield from bps.mv(
             mono_shutter,
@@ -495,7 +475,6 @@ def find_a2rp(md: Optional[Dict[str, Any]] = None):
             "auto+background",
         )
         scaler0.select_channels()
-        # success = stats.analysis.success
         if stats.analysis.success:
             logger.debug(f"final position: {a_stage.r2p.position}")
         else:
@@ -505,26 +484,22 @@ def find_a2rp(md: Optional[Dict[str, Any]] = None):
         logger.error(f"Error in find_ar: {str(e)}")
         raise
 
-    # return success
 
+def tune_dx(md: Optional[dict] = None):
+    """Bluesky plan: tune the detector X (DX) stage.
 
-def tune_dx(md: Optional[Dict[str, Any]] = None):
-    """
-    Tune the DX stage.
-
-    This function tunes the detector X stage by finding the optimal position
-    for maximum signal intensity. It includes setting up the scaler, configuring
-    the detector controls, and performing a lineup scan.
+    Opens the mono and USAXS shutters, autoscales the UPD and I0 amplifiers,
+    then runs a ``lineup2`` scan over the DX tune range.  On success, writes
+    the new center position to ``terms.USAXS.DX0``.
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     if md is None:
         md = {}
@@ -537,7 +512,6 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_dx"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {d_stage.x.name}")
-        # axis_start = d_stage.x.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -582,23 +556,21 @@ def tune_dx(md: Optional[Dict[str, Any]] = None):
         raise
 
 
-def tune_dy(md: Optional[Dict[str, Any]] = None):
-    """
-    Tune the DY stage.
+def tune_dy(md: Optional[dict] = None):
+    """Bluesky plan: tune the detector Y (DY) stage.
 
-    This function tunes the detector Y stage by finding the optimal position
-    for maximum signal intensity. It includes setting up the scaler, configuring
-    the detector controls, and performing a lineup scan.
+    Opens the mono and USAXS shutters, autoscales the UPD and I0 amplifiers,
+    then runs a ``lineup2`` scan over the DY tune range.  On success, writes
+    the new center position to ``terms.SAXS.dy_in``.
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     if md is None:
         md = {}
@@ -611,7 +583,6 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
         md["plan_name"] = "tune_dy"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {d_stage.y.name}")
-        # axis_start = d_stage.y.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -653,23 +624,19 @@ def tune_dy(md: Optional[Dict[str, Any]] = None):
         raise
 
 
-def tune_diode(md: Optional[Dict[str, Any]] = None):
-    """
-    Tune both DX and DY stages.
+def tune_diode(md: Optional[dict] = None):
+    """Bluesky plan: tune both the DX and DY detector stages.
 
-    This function tunes both the detector X and Y stages by finding the optimal
-    positions for maximum signal intensity. It calls tune_dx and tune_dy in
-    sequence.
+    Calls ``tune_dx`` then ``tune_dy`` in sequence.
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     if md is None:
         md = {}
@@ -683,25 +650,22 @@ def tune_diode(md: Optional[Dict[str, Any]] = None):
         raise
 
 
-def tune_usaxs_optics(side: bool = False, md: Optional[Dict[str, Any]] = None):
-    """
-    Tune all USAXS optics.
+def tune_usaxs_optics(side: bool = False, md: Optional[dict] = None):
+    """Bluesky plan: tune the full USAXS optics sequence.
 
-    This function tunes all the optical components needed for USAXS measurements.
-    It includes tuning the monochromator, analyzer, and detector stages in the
-    correct sequence.
+    Switches the instrument to USAXS mode, then tunes in optical-path order:
+    MR → AR → A2RP.  Updates ``terms.preUSAXStune`` timestamps on completion.
 
     Parameters
     ----------
-    side : bool, optional
-        Whether to tune side-bounce components, by default False
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    side : bool
+        Reserved for future side-bounce tuning (MSRP/ASRP); currently unused.
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     if md is None:
         md = {}
@@ -710,10 +674,6 @@ def tune_usaxs_optics(side: bool = False, md: Optional[Dict[str, Any]] = None):
         yield from mode_USAXS()
 
         yield from tune_mr(md=md)
-        # yield from tune_m2rp(md=md)
-        # if side:
-        #     yield from tune_msrp(md=md)
-        #     yield from tune_asrp(md=md)
         yield from tune_ar(md=md)
         yield from tune_a2rp(md=md)
 
@@ -729,29 +689,26 @@ def tune_usaxs_optics(side: bool = False, md: Optional[Dict[str, Any]] = None):
         raise
 
 
-def tune_saxs_optics(md: Optional[Dict[str, Any]] = None):
-    """
-    Tune all SAXS optics.
+def tune_saxs_optics(md: Optional[dict] = None):
+    """Bluesky plan: tune the SAXS optics sequence.
 
-    This function tunes all the optical components needed for SAXS measurements.
-    It includes tuning the monochromator and analyzer stages in the correct sequence.
+    Tunes the monochromator rotation (MR) and updates the tune timestamp.
+    SAXS does not require AR or A2RP tuning.
 
     Parameters
     ----------
-    md : Optional[Dict[str, Any]], optional
-        Metadata dictionary to be added to the scan, by default None
+    md : dict or None
+        Extra metadata merged into the run's start document.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     if md is None:
         md = {}
 
     try:
         yield from tune_mr(md=md)
-        # yield from tune_m2rp(md=md)
         yield from bps.mv(
             terms.preUSAXStune.epoch_last_tune,
             time.time(),
@@ -763,81 +720,20 @@ def tune_saxs_optics(md: Optional[Dict[str, Any]] = None):
 
 
 def instrument_default_tune_ranges():
-    """
-    Set default tune ranges for all tunable axes.
+    """Bluesky plan: no-op stub — tune ranges are now stored in EPICS PVs.
 
-    This function sets the default tuning ranges for all tunable axes based on
-    the current monochromator energy. The ranges are optimized for different
-    energy ranges and crystal types.
+    Previously this function computed energy-dependent tune ranges from the
+    monochromator position and wrote them to local device objects.  That logic
+    has been superseded: tune ranges are now configured directly via
+    ``axis_tune_range.*`` EPICS PVs and read by ``TunableEpicsMotor2.tune_range``
+    at plan time.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     try:
         yield from bps.null()
-
-        # The commented code below contains the original tuning range logic
-        # It's kept for reference but disabled as it's now handled elsewhere
-        """
-        if monochromator.dcm.energy.position < 10.99:  # ~ 10 keV for Si 220 crystals
-            m_stage.r.tuner.width = 0.005
-            a_stage.r.tuner.width = 0.003
-            m_stage.r2p.tuner.width = 10
-            a_stage.r2p.tuner.width = 7
-            minstep = user_override.pick("usaxs_minstep", 0.000045)
-            logger.info("Setting minstep to %s", minstep)
-            yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
-
-        elif 10.99 <= monochromator.dcm.energy.position < 12.99:   # Si 220 crystals
-            m_stage.r.tuner.width = 0.005
-            a_stage.r.tuner.width = 0.0025
-            m_stage.r2p.tuner.width = 9
-            a_stage.r2p.tuner.width = 8
-            minstep = user_override.pick("usaxs_minstep", 0.000035)
-            logger.info("Setting minstep to %s", minstep)
-            yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
-
-        elif 12.99 <= monochromator.dcm.energy.position < 18.1:   # Si 220 crystals
-            m_stage.r.tuner.width = 0.005
-            a_stage.r.tuner.width = 0.0022
-            m_stage.r2p.tuner.width = 8
-            a_stage.r2p.tuner.width = 7
-            minstep = user_override.pick("usaxs_minstep", 0.000025)
-            logger.info("Setting minstep to %s", minstep)
-            yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
-
-        elif 18.1 <= monochromator.dcm.energy.position < 20.8:   # Si 220 crystals
-            m_stage.r.tuner.width = 0.005
-            a_stage.r.tuner.width = 0.002
-            m_stage.r2p.tuner.width = 8
-            a_stage.r2p.tuner.width = 6
-            minstep = user_override.pick("usaxs_minstep", 0.000025)
-            logger.info("Setting minstep to %s", minstep)
-            yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
-
-        elif 20.8 <= monochromator.dcm.energy.position:   # Si 220 or 440 crystals
-            if m_stage.r.user_readback.value >= 11 :
-                #Si 440 crystals
-                m_stage.r.tuner.width = 0.005
-                a_stage.r.tuner.width = 0.0006
-                m_stage.r2p.tuner.width = 8
-                a_stage.r2p.tuner.width = 1.5
-                minstep = user_override.pick("usaxs_minstep", 0.000006)
-                logger.info("Setting minstep to %s", minstep)
-                yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
-
-            else:
-                #Si 220 crystals
-                m_stage.r.tuner.width = 0.005
-                a_stage.r.tuner.width = 0.0018
-                m_stage.r2p.tuner.width = 8
-                a_stage.r2p.tuner.width = 12
-                minstep = user_override.pick("usaxs_minstep", 0.00002)
-                logger.info("Setting minstep to %s", minstep)
-                yield from bps.mv(terms.USAXS.usaxs_minstep, minstep)
-        """
 
     except Exception as e:
         logger.error(f"Error in instrument_default_tune_ranges: {str(e)}")
@@ -845,31 +741,18 @@ def instrument_default_tune_ranges():
 
 
 def update_EPICS_tuning_widths():
-    """
-    Update the tuning widths in EPICS PVs from local settings.
+    """Bluesky plan: no-op stub — tuning widths are now managed in EPICS.
 
-    This function updates the EPICS process variables with the current tuning
-    width settings from the local device objects.
+    Previously this function pushed local tuner width values back to the
+    ``axis_tune_range.*`` EPICS PVs.  Width management is now handled
+    directly in EPICS; this stub is retained for call-site compatibility.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     try:
         yield from bps.null()
-        # The commented code below contains the original update logic
-        # It's kept for reference but disabled as it's now handled elsewhere
-        """
-        yield from bps.mv(
-            axis_tune_range.mr,     m_stage.r.tuner.width,
-            axis_tune_range.ar,     a_stage.r.tuner.width,
-            axis_tune_range.m2rp,   m_stage.r2p.tuner.width,
-            axis_tune_range.a2rp,   a_stage.r2p.tuner.width,
-            axis_tune_range.msrp,   ms_stage.rp.tuner.width,
-            axis_tune_range.asrp,   as_stage.rp.tuner.width,
-        )
-        """
 
     except Exception as e:
         logger.error(f"Error in update_EPICS_tuning_widths: {str(e)}")
@@ -877,23 +760,19 @@ def update_EPICS_tuning_widths():
 
 
 def user_defined_settings():
-    """
-    Allow users to redefine instrument defaults.
+    """Bluesky plan: hook for user overrides before each measurement batch.
 
-    This function is called from beforePlan() (in 50-plans.py) at the start of
-    every batch set of measurements. Users can override any instrument defaults
-    here, such as tuning ranges for various optical axes.
+    Called from ``beforePlan()`` at the start of every batch set of
+    measurements.  Users may override instrument defaults here (e.g. tune
+    ranges for optical axes).
 
-    Note: Don't use blocking calls here. It is important that the user not use
-    any blocking calls such as setting or getting PVs in EPICS. Blocking calls
-    will block the python interpreter for long periods (such as time.sleep())
-    or make direct calls for EPICS or file I/O that interrupt how the Bluesky
-    RunEngine operates.
+    **Important:** do not use any blocking calls (``time.sleep()``, direct
+    EPICS ``get``/``put``, file I/O) inside this plan — they will stall the
+    RunEngine.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     try:
         yield from bps.null()

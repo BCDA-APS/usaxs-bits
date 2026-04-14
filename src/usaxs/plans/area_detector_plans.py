@@ -1,5 +1,11 @@
 """
-Plans for area detector operations in USAXS.
+Area-detector acquisition plan for the 12-ID-E USAXS instrument.
+
+``areaDetectorAcquire``
+    Single-shot (or multi-image) acquisition plan for any USAXS area detector
+    (Pilatus, Blackfly, …).  Handles staging, file-path fixing, image-mode
+    selection, and temporary removal of acquire-time from stage_sigs so that
+    a pre-set exposure time is not overridden by ophyd staging.
 """
 
 import logging
@@ -22,8 +28,28 @@ user_data = oregistry["user_data"]
 
 
 def areaDetectorAcquire(det, create_directory=None, md=None):
-    """
-    acquire image(s) from the named area detector
+    """Bluesky plan: acquire image(s) from an area detector.
+
+    Sets ``user_data.scanning``, fixes file-plugin path templates, selects
+    ``Single`` or ``Multiple`` image mode based on ``cam.num_images``, then
+    runs ``bp.count``.  Temporarily removes ``acquire_time`` and
+    ``acquire_period`` from ``cam.stage_sigs`` so that a pre-set exposure
+    time is not overridden by ophyd staging (important for the Pilatus where
+    changing acquire_time by ≥ 0.001 s costs ~0.5 s of camera dead time).
+
+    Parameters
+    ----------
+    det : area detector Device
+        The detector to acquire from (must have ``cam`` and ``hdf1`` components).
+    create_directory : int or None
+        If not ``None``, written to ``det.hdf1.create_directory`` before
+        acquisition so that the file-writer creates missing subdirectories.
+    md : dict or None
+        Extra metadata merged into the run's start document.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     _md = md or {}
     acquire_time = det.cam.acquire_time.get()
@@ -64,7 +90,6 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
     # in acquire_time takes ~0.5s for camera to complete.
     for k in "acquire_time acquire_period".split():
         if k in det.cam.stage_sigs:
-            # print(f"Removing {det.cam.name}.stage_sigs[{k}] before bp.count()")
             det.cam.stage_sigs.pop(k)
 
     bec.disable_table()

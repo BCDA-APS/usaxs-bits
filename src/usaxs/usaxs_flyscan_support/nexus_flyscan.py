@@ -1,21 +1,35 @@
 #!/usr/bin/env python
 
 """
-save data from USAXS Fly scans in NeXus HDF5 files
+NeXus/HDF5 structure manager for USAXS fly scan data files.
 
-PUBLIC FUNCTIONS
+The structure of each HDF5 file is defined by an external XML configuration
+file (``saveFlyData.xml``, validated against ``saveFlyData.xsd``).  This
+module parses that XML into a tree of specification objects and exposes a
+singleton manager via ``get_manager()`` so the structure is only parsed once
+per session.
 
-    ~get_manager
-    ~reset_manager
+Public functions
+----------------
+get_manager(config_file)
+    Return the singleton ``NeXus_Structure`` instance, creating it if needed.
+reset_manager()
+    Clear the singleton so the next ``get_manager()`` call re-parses the XML.
 
-INTERNAL
-
-    ~NeXus_Structure
-    ~getGroupObjectByXmlNode
-    ~Field_Specification
-    ~Group_Specification
-    ~Link_Specification
-    ~PV_Specification
+Internal classes
+----------------
+NeXus_Structure
+    Parses XML and holds the four registries (groups, fields, PVs, links).
+Field_Specification
+    Represents a ``<field>`` element — a scalar or string dataset in HDF5.
+Group_Specification
+    Represents a ``<group>`` element — an HDF5 group with a NeXus class.
+Link_Specification
+    Represents a ``<link>`` element — a NeXus-style HDF5 hard link.
+PV_Specification
+    Represents a ``<PV>`` element — an EPICS PV whose value is recorded.
+getGroupObjectByXmlNode(xml_node, manager)
+    Utility: look up a ``Group_Specification`` by its XML node object.
 """
 
 import logging
@@ -25,8 +39,7 @@ from lxml import etree as lxml_etree
 from ophyd import Component
 from ophyd import EpicsSignal
 
-logger = logging.getLogger(os.path.split(__file__)[-1])
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 COMMON_AD_CONFIG_DIR = "/share1/AreaDetectorConfig/FlyScan_config/"
 path = os.path.dirname(__file__)
@@ -100,11 +113,23 @@ class NeXus_Structure:
         self.pv_registry = {}  # key: node/@label,        value: PV_Specification object
 
     def _read_configuration(self):
+        """Parse the XML configuration file and populate the four registries.
+
+        Validates the XML against the bundled XSD schema, then walks the
+        ``NX_structure`` element to instantiate ``Group_Specification``,
+        ``Field_Specification``, ``PV_Specification``, and
+        ``Link_Specification`` objects.  Sets ``self.configured = True`` on
+        success.
+
+        Raises
+        ------
+        RuntimeError
+            If the XML file fails schema validation or has the wrong root tag.
+        """
         # first, validate configuration file against an XML Schema
-        path = os.path.split(os.path.abspath(__file__))[0]
-        xml_schema_file = os.path.join(path, XSD_SCHEMA_FILE)
-        logger.debug(f"XML Schema file: {xml_schema_file}")
-        xmlschema_doc = lxml_etree.parse(xml_schema_file)
+        # XSD_SCHEMA_FILE is already an absolute path built at module level
+        logger.debug(f"XML Schema file: {XSD_SCHEMA_FILE}")
+        xmlschema_doc = lxml_etree.parse(XSD_SCHEMA_FILE)
         xmlschema = lxml_etree.XMLSchema(xmlschema_doc)
 
         logger.debug(f"XML configuration file: {self.config_filename}")
@@ -193,7 +218,6 @@ class NeXus_Structure:
         """
         arr = [
             pv.ophyd_signal.connected
-            # .
             for pv in self.pv_registry.values()
         ]
         return False not in arr
@@ -207,7 +231,6 @@ class NeXus_Structure:
         """
         disconnects = [
             pv
-            # .
             for pv in self.pv_registry.values()
             if not pv.ophyd_signal.connected
         ]
@@ -260,7 +283,6 @@ class Field_Specification:
         self.text = "" if len(nodes) == 0 else nodes[0].text.strip()
         self.attrib = {
             node.attrib["name"]: node.attrib["value"]
-            # .
             for node in xml_element_node.xpath("attribute")
         }
 
@@ -303,7 +325,6 @@ class Group_Specification:
 
         self.attrib = {
             node.attrib["name"]: node.attrib["value"]
-            # .
             for node in xml_element_node.xpath("attribute")
         }
 
@@ -373,12 +394,12 @@ class Link_Specification:
         ]  # path to existing object
         self.linktype = xml_element_node.get("linktype", "NeXus")
         if self.linktype not in ("NeXus",):
-            msg = "Cannot create HDF5 " + self.linktype + " link: " + self.hdf5_path
+            # hdf5_path is not yet computed; use name for the error message
+            msg = "Cannot create HDF5 " + self.linktype + " link: " + self.name
             raise RuntimeError(msg)
 
         xml_parent_node = xml_element_node.getparent()
         self.group_parent = getGroupObjectByXmlNode(xml_parent_node, manager)
-        self.name = xml_element_node.attrib["name"]
         self.hdf5_path = self.group_parent.hdf5_path + "/" + self.name
 
         manager.link_registry[self.hdf5_path] = self

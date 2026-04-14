@@ -1,9 +1,23 @@
 """
 Plans for changing instrument modes in USAXS.
-"""
 
-### This file is work-in-progress
-# see: https://subversion.xray.aps.anl.gov/spec/beamlines/USAXS/trunk/macros/local/usaxs_commands.mac
+Each public plan moves the instrument hardware into a specific optical
+configuration: USAXS, SAXS, WAXS, Radiography, DirectBeam, Imaging, or
+OpenBeamPath.  All plans update the ``user_data.state`` PV and
+``terms.SAXS.UsaxsSaxsMode`` so that the GUI reflects the current mode.
+
+Public entry points
+-------------------
+* ``mode_USAXS``          — channel-cut crystal geometry, analyzer in beam.
+* ``mode_SAXS``           — pinhole SAXS geometry, analyzer out.
+* ``mode_WAXS``           — wide-angle geometry.
+* ``mode_Radiography``    — Blackfly camera at CCD position, open shutter.
+* ``mode_DirectBeam``     — Blackfly camera at direct-beam position.
+* ``mode_Imaging``        — alias for ``mode_USAXS`` (same hardware position).
+* ``mode_OpenBeamPath``   — move all components out of the beam.
+* ``mode_SBUSAXS``        — alias for ``mode_USAXS`` (stub for side-bounce).
+* ``confirm_instrument_mode`` — True if the instrument is in the named mode.
+"""
 
 import datetime
 import logging
@@ -50,44 +64,31 @@ scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
 scaler0 = ScalerCH(scaler0_name, name="scaler0")
 scaler0.stage_sigs["count_mode"] = "OneShot"
 
-NUM_AUTORANGE_GAINS = 5  # common to all autorange sequence programs
-AMPLIFIER_MINIMUM_SETTLING_TIME = 0.01  # reasonable?
-
 
 def confirm_instrument_mode(mode_name):
-    """
-    True if instrument is in the named mode
+    """Return ``True`` if the instrument is in the named mode.
 
-    Parameter
-
-    mode_name (str) :
+    Parameters
+    ----------
+    mode_name : str
         One of the strings defined in ``UsaxsSaxsModes``
+        (e.g. ``"USAXS in beam"``, ``"SAXS in beam"``).
     """
     expected_mode = UsaxsSaxsModes[mode_name]
     return terms.SAXS.UsaxsSaxsMode.get() in (expected_mode, mode_name)
 
 
-# #def mode_Laser(md=None):
-#     """
-#     Sets to Laser distance meter mode, using AR500 laser.
-#     """
-#     yield from mode_OpenBeamPath()
-#     yield from user_data.set_state_plan(
-#         "Preparing for Laser distacne meter mode"
-#         )
-#     yield from bps.mv(
-#         usaxs_shutter,        "close",
-#         d_stage.x, laser.dx.get(),
-#         d_stage.y, laser.dy.get(),
-#         )
-#     yield from bps.mv(
-#         laser.enable,  1,
-#         )
-
-
 def mode_DirectBeam(md=None):
-    """
-    Sets to imaging mode for direct beam, using BlackFly camera.
+    """Bluesky plan: set the instrument to direct-beam Blackfly imaging mode.
+
+    Switches to USAXS mode, enables mono feedback, then moves the detector
+    stage to the Blackfly direct-beam position (dx, dy from EPICS PVs),
+    retracts monochromator and analyzer stages, inserts the Blackfly filters,
+    opens the USAXS shutter, and starts the Blackfly camera acquiring.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from mode_USAXS()
     yield from MONO_FEEDBACK_ON()
@@ -95,7 +96,6 @@ def mode_DirectBeam(md=None):
 
     yield from bps.mv(
         # fmt: off
-        # laser.enable,  0,
         d_stage.x,
         terms.USAXS.blackfly.dx.get(),
         d_stage.y,
@@ -132,20 +132,26 @@ def mode_DirectBeam(md=None):
         user_data.collection_in_progress,
         0,
         blackfly_det.cam.acquire,
-        1,
-        # we are using Blackfly now, let's start it...
+        1,  # we are using Blackfly now, let's start it...
         # fmt: on
     )
 
 
 def mode_USAXS(md=None):
-    """
-    Set the instrument to USAXS mode.
+    """Bluesky plan: set the instrument to USAXS mode.
+
+    Closes the USAXS shutter, enables mono feedback, moves WAXS and SAXS
+    components out of the beam, moves the USAXS optics into position, and
+    restores all stage positions from EPICS PVs.
 
     Parameters
     ----------
     md : dict, optional
         Metadata dictionary for the scan.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from user_data.set_state_plan("Moving USAXS to USAXS mode")
 
@@ -158,8 +164,6 @@ def mode_USAXS(md=None):
 
     yield from MONO_FEEDBACK_ON()
 
-    # retune_needed = False
-
     if not confirm_instrument_mode("USAXS in beam"):
         mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
         logger.debug(f"Found UsaxsSaxsMode = {mode_now}")
@@ -167,7 +171,6 @@ def mode_USAXS(md=None):
         yield from move_WAXSOut()
         yield from move_SAXSOut()
         yield from move_USAXSIn()
-        # retune_needed = True
 
     yield from insertScanFilters()  # not appropriate?
 
@@ -213,24 +216,26 @@ def mode_USAXS(md=None):
         # fmt: on
     )
 
-    # #if retune_needed:
-    #     # don't tune here
-    #     # Instead, set a signal to be caught by the plan in the RunEngine
-    #     yield from bps.mv(terms.USAXS.retune_needed, True)
 
-
-# def mode_SBUSAXS():  # TODO:
-mode_SBUSAXS = mode_USAXS  # for now
+# mode_SBUSAXS is a stub — side-bounce USAXS uses the same hardware position
+mode_SBUSAXS = mode_USAXS
 
 
 def mode_SAXS(md=None):
-    """
-    Set the instrument to SAXS mode.
+    """Bluesky plan: set the instrument to SAXS mode.
+
+    Closes the USAXS shutter, retracts the monochromator stage, moves WAXS
+    and USAXS components out of the beam, and moves the SAXS pinhole
+    geometry into position.
 
     Parameters
     ----------
     md : dict, optional
         Metadata dictionary for the scan.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from user_data.set_state_plan("Moving USAXS to SAXS mode")
 
@@ -238,7 +243,6 @@ def mode_SAXS(md=None):
         # fmt: off
         usaxs_shutter,
         "close",
-        # laser.enable,  0,
         m_stage.x,
         0,
         gslit_stage.x,
@@ -255,7 +259,6 @@ def mode_SAXS(md=None):
         yield from move_SAXSIn()
 
     logger.debug("Prepared for SAXS mode")
-    # insertScanFilters
     yield from user_data.set_state_plan("SAXS Mode")
     ts = str(datetime.datetime.now())
     yield from bps.mv(
@@ -271,13 +274,20 @@ def mode_SAXS(md=None):
 
 
 def mode_WAXS(md=None):
-    """
-    Set the instrument to WAXS mode.
+    """Bluesky plan: set the instrument to WAXS mode.
+
+    Closes the USAXS shutter, retracts the monochromator stage, moves SAXS
+    and USAXS components out of the beam, and moves the WAXS geometry into
+    position.
 
     Parameters
     ----------
     md : dict, optional
         Metadata dictionary for the scan.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from user_data.set_state_plan("Moving USAXS to WAXS mode")
 
@@ -289,7 +299,6 @@ def mode_WAXS(md=None):
         0,
         gslit_stage.x,
         terms.USAXS.AX0.get(),  # this requires AX0 and Gslits.X be the same.
-        # laser.enable,  0,
         # fmt: on
     )
 
@@ -304,7 +313,6 @@ def mode_WAXS(md=None):
         yield from move_WAXSIn()
 
     logger.debug("Prepared for WAXS mode")
-    # insertScanFilters
     yield from user_data.set_state_plan("WAXS Mode")
     ts = str(datetime.datetime.now())
     yield from bps.mv(
@@ -320,13 +328,21 @@ def mode_WAXS(md=None):
 
 
 def mode_Radiography(md=None):
-    """
-    Put the instrument in USAXS Radiography mode.
+    """Bluesky plan: put the instrument in USAXS Radiography mode.
+
+    Switches to USAXS mode, enables mono feedback, moves the detector stage
+    to the CCD/Blackfly position, sets slit sizes from EPICS PVs, inserts
+    radiography filters, opens the USAXS shutter, and starts the Blackfly
+    camera.  If the PSS permits it, also opens the mono shutter.
 
     Parameters
     ----------
     md : dict, optional
         Metadata dictionary for the scan.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from mode_USAXS()
 
@@ -363,7 +379,6 @@ def mode_Radiography(md=None):
         # fmt: off
         usaxs_shutter,
         "open",
-        # usaxs_shutter, "open",
         user_data.time_stamp,
         ts,
         user_data.macro_file_time,
@@ -410,16 +425,14 @@ def mode_Radiography(md=None):
 
 
 def mode_Imaging(md=None):
-    """
-    Prepare the instrument for USAXS imaging.
+    """Bluesky plan: prepare the instrument for USAXS imaging.
 
-    Parameters
-    ----------
-    md : dict, optional
-        Metadata dictionary for the scan.
+    Currently an alias for ``mode_USAXS`` (same hardware position).
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
-    # see: /share1/USAXS_data/2019-02/USAXS_user_macros.mac
-    # there it calls useModeUSAXS so that's what we'll do here
     yield from user_data.set_state_plan(
         "Moving USAXS to Imaging mode (same as USAXS mode now)"
     )
@@ -427,19 +440,24 @@ def mode_Imaging(md=None):
 
 
 def mode_OpenBeamPath(md=None):
-    """
-    Set the instrument to Open Beam Path mode.
+    """Bluesky plan: move all components out of the beam path.
+
+    Closes the USAXS shutter, then moves SAXS, WAXS, and USAXS components
+    out of the beam so the path is fully clear.
 
     Parameters
     ----------
     md : dict, optional
         Metadata dictionary for the scan.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     yield from user_data.set_state_plan("Moving USAXS to OpenBeamPath mode")
     yield from bps.mv(
         usaxs_shutter,
         "close",
-        # laser.enable,  0,
     )
 
     if not confirm_instrument_mode("out of beam"):

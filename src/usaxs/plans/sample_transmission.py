@@ -39,25 +39,20 @@ user_data = oregistry["user_data"]
 
 @plan
 def measure_USAXS_Transmission():
-    """
-    Measure the sample transmission in USAXS mode and update EPICS PVs.
+    """Bluesky plan: measure sample transmission in USAXS mode.
 
-    This plan does not (should not) generate a bluesky run.
-
-    This function measures the sample transmission by:
-    1. Setting up the instrument in USAXS mode
-    2. Moving the analyzer stage to the correct position
-    3. Inserting transmission filters
-    4. Collecting data from the transmission diode and I0 detector
-    5. Storing the results in the appropriate EPICS PVs
+    Does not create a Bluesky run.  Moves the analyzer stage to the
+    transmission position, opens the shutter, inserts transmission filters,
+    autoscales amplifiers, counts on the TRD and I0 channels, then stores
+    the results in ``terms.USAXS.transmission.*`` EPICS PVs.  If
+    ``terms.USAXS.transmission.measure`` is not set, clears the PVs to zero.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     try:
-        yield from bps.checkpoint() # add checkpoint for suspenders
+        yield from bps.checkpoint()  # add checkpoint for suspenders
         trmssn = terms.USAXS.transmission  # for convenience
         yield from user_data.set_state_plan("Measure USAXS transmission")
         if trmssn.measure.get():
@@ -123,21 +118,6 @@ def measure_USAXS_Transmission():
                 I0_controls.femto.gain.get(),
                 # fmt: on
             )
-            # tbl = pyRestTable.Table()
-            # tbl.addLabel("detector")
-            # tbl.addLabel("counts")
-            # tbl.addLabel("gain")
-            # tbl.addRow(
-            #     (
-            #         "pinDiode",
-            #         f"{trmssn.diode_counts.get():f}",
-            #         f"{trmssn.diode_gain.get()}",
-            #     )
-            # )
-            # tbl.addRow(("I0", f"{trmssn.I0_counts.get():f}",
-            # f"{trmssn.I0_gain.get()}"))
-            # msg = "Measured USAXS transmission values:\n"
-            # msg += str(tbl.reST())
             logger.info(
                 "Measured USAXS transmission values :"
                 f" Diode = {terms.USAXS.transmission.diode_counts.get():.0f}"
@@ -145,7 +125,6 @@ def measure_USAXS_Transmission():
                 f" and I0 = {terms.USAXS.transmission.I0_counts.get():.0f}"
                 f" with gain {terms.USAXS.transmission.I0_gain.get():g}"
             )
-            # logger.info(msg)
 
         else:
             yield from bps.mv(
@@ -169,23 +148,19 @@ def measure_USAXS_Transmission():
 
 @plan
 def measure_SAXS_Transmission():
-    """
-    Measure the sample transmission in SAXS mode and update EPICS PVs.
+    """Bluesky plan: measure sample transmission in SAXS mode.
 
-    This function measures the sample transmission by:
-    1. Setting up the instrument in SAXS mode
-    2. Moving the SAXS stage to the correct position
-    3. Inserting transmission filters
-    4. Collecting data from the transmission diode and I0 detector
-    5. Storing the results in the appropriate EPICS PVs
+    Does not create a Bluesky run.  Moves the SAXS pinhole stage to the
+    transmission position, opens the shutter, inserts transmission filters,
+    counts on the TRD and I0 channels (autoscaling if saturated), then
+    stores the results in ``terms.SAXS_WAXS.*`` EPICS PVs.
 
     Yields
     ------
-    Generator[Any, None, None]
-        A generator that yields plan steps
+    Bluesky messages consumed by the RunEngine.
     """
     try:
-        yield from bps.checkpoint()         #add checkpoint for suspenders
+        yield from bps.checkpoint()  # add checkpoint for suspenders
         yield from user_data.set_state_plan("Measure SAXS transmission")
         yield from mode_SAXS()
         yield from insertTransmissionFilters()
@@ -203,7 +178,6 @@ def measure_SAXS_Transmission():
             # fmt: on
         )
 
-        # yield from autoscale_amplifiers([I0_controls, trd_controls])
         yield from bps.mv(
             # fmt: off
             scaler0.preset_time,
@@ -261,10 +235,10 @@ def measure_SAXS_Transmission():
         logger.info(
             (
                 "Measured SAXS transmission values :"
-                f" Diode = {terms.USAXS.transmission.diode_counts.get():.0f}"
-                f" with gain {terms.USAXS.transmission.diode_gain.get():g}"
-                f" and I0 = {terms.USAXS.transmission.I0_counts.get():.0f}"
-                f" with gain {terms.USAXS.transmission.I0_gain.get():g}"
+                f" Diode = {terms.SAXS_WAXS.diode_transmission.get():.0f}"
+                f" with gain {terms.SAXS_WAXS.diode_gain.get():g}"
+                f" and I0 = {terms.SAXS_WAXS.I0_transmission.get():.0f}"
+                f" with gain {terms.SAXS_WAXS.I0_gain.get():g}"
             )
         )
 

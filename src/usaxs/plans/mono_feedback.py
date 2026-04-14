@@ -1,5 +1,9 @@
 """
-control the monochromator feedback
+Monochromator feedback control plans.
+
+``MONO_FEEDBACK_ON`` and ``MONO_FEEDBACK_OFF`` enable/disable the
+hardware feedback loop that keeps the monochromator locked to the
+beam energy.
 """
 
 import logging
@@ -15,11 +19,10 @@ monochromator = oregistry["monochromator"]
 
 
 def MONO_FEEDBACK_OFF():
-    """plan: could send email"""
+    """Bluesky plan: disable the monochromator energy-feedback loop."""
     yield from bps.mv(monochromator.feedback.on, 0)
 
 
 def MONO_FEEDBACK_ON():
-    """plan: could send email"""
+    """Bluesky plan: enable the monochromator energy-feedback loop."""
     yield from bps.mv(monochromator.feedback.on, 1)
-    # monochromator.feedback.check_position()

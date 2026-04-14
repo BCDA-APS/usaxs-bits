@@ -30,7 +30,6 @@ Stubs (not yet implemented)
 
 import logging
 from collections import OrderedDict
-from typing import Any
 from typing import Optional
 
 import numpy as np
@@ -38,7 +37,6 @@ import numpy as np
 # Get devices from oregistry
 from apsbits.core.instrument_init import oregistry
 
-# Add missing imports at the top
 from bluesky import RunEngine
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
@@ -50,9 +48,6 @@ from ..devices.amplifiers import NUM_AUTORANGE_GAINS
 from ..devices.amplifiers import AutorangeSettings
 from ..devices.amplifiers import AutoscaleError
 from ..devices.amplifiers import DetectorAmplifierAutorangeDevice
-
-# Add these imports at the top of the file
-# Imports from local plans
 
 # ---------------------------------------------------------------------------
 # Module-level device instances.
@@ -100,7 +95,7 @@ def setup_amplifier_auto_background():
 
 
 @plan
-def autoscale_amplifiers(controls: list[DetectorAmplifierAutorangeDevice], shutter: Optional[Any] = None, count_time: float = 0.05, max_iterations: int = 9, RE: Optional[RunEngine] = None):
+def autoscale_amplifiers(controls: list[DetectorAmplifierAutorangeDevice], shutter=None, count_time: float = 0.05, max_iterations: int = 9, RE: Optional[RunEngine] = None):
     """Bluesky plan: autoscale detector amplifiers simultaneously.
 
     Groups the supplied controls by scaler (so devices sharing hardware are
@@ -275,33 +270,22 @@ def _scaler_autoscale_(controls: list[DetectorAmplifierAutorangeDevice], count_t
             if isinstance(control.signal, ScalerChannel):  # ophyd.ScalerCH
                 actual_rate = control.signal.s.get() / control.scaler.time.get()
             elif isinstance(control.signal, EpicsSignalRO):  # ophyd.EpicsScaler
-                # actual_rate = control.signal.get()  / control.scaler.time.get()# FIXME
                 raise RuntimeError("This scaler needs to divide by time")
             else:
                 raise ValueError(f"unexpected control.signal: {control.signal}")
             converged.append(actual_rate <= max_rate)
             if changed:
                 converged.append(actual_rate >= min_rate)
-            # print(f"gain={gain_now}  rate: {actual_rate}
-            # max: {max_rate} min: {min_rate}")
-            # print(converged)
-            # logger.debug(
-            #     "gain={gain_now}  rate: {actual_rate}  "
-            #     "max: {max_rate}  converged={converged}"
-            # )
 
         if False not in converged:  # all True?
             complete = True
             for control in controls:
                 yield from bps.mv(control.auto.mode, "manual")
-            # logger.debug(f"converged: {converged}")
             break  # no changes
 
     # ------------------------------------------------------------------
     # Always restore the scaler to its original timing configuration.
     # ------------------------------------------------------------------
-    # scaler.stage_sigs = stage_sigs["scaler"]
-    # restore starting conditions
     yield from bps.mv(
         scaler.preset_time,
         originals["preset_time"],
@@ -422,7 +406,6 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
                 )  # EpicsScaler channel value or ScalerCH ScalerChannelTuple
                 if not isinstance(value, float):
                     value = s.s.get()  # ScalerCH channel value
-                # logger.debug(f"scaler reading {m+1}: value: {value}")
                 value = value / count_time  # looks like we did not read value/sec here?
                 readings[pvname].append(value)
 
@@ -431,7 +414,6 @@ def _scaler_background_measurement_(control_list, count_time=0.5, num_readings=8
         for control in control_list:
             g = getattr(control.auto.ranges, s_range_name)
             pvname = getScalerChannelPvname(control.signal)
-            # logger.debug(f"gain: {s_range_name} readings:{readings[pvname]}")
             yield from bps.mv(
                 g.background,
                 np.mean(readings[pvname]),

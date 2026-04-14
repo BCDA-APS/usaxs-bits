@@ -1,5 +1,8 @@
 """
-return a clean version of input text
+Data-directory utilities for the 12-ID-E USAXS instrument.
+
+Provides helpers for resolving the current user data directory from EPICS
+and building per-technique subdirectories (e.g. ``Sample1/Sample1_usaxs/``).
 """
 
 import logging
@@ -9,7 +12,6 @@ from pathlib import Path
 from apsbits.core.instrument_init import oregistry
 
 logger = logging.getLogger(__name__)
-logger.info(__file__)
 
 user_data = oregistry["user_data"]
 
@@ -46,11 +48,31 @@ def get_data_dir():
 
 
 def techniqueSubdirectory(technique):
-    """
-    Create a technique-based subdirectory per table in ``newUser()``.
+    """Create and return the per-technique subdirectory for the current sample.
 
-    NOTE:   Assumes CWD is now the directory returned by ``newFile()``
-            Add a subdirectory based on user_data.sample_dir 
+    Reads the user data directory from the EPICS PV set by :func:`newUser`,
+    then builds a two-level path::
+
+        <user_data_dir>/<sample_dir>/<sample_dir>_<technique>/
+
+    Both the sample directory and the technique subdirectory are created if
+    they do not exist (``mkdir -p`` semantics).
+
+    Parameters
+    ----------
+    technique : str
+        Technique suffix, e.g. ``"usaxs"``, ``"saxs"``, ``"waxs"``.
+
+    Returns
+    -------
+    str
+        Absolute path to the technique subdirectory.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the user data directory returned by :func:`get_data_dir` does not
+        exist (i.e. ``newUser()`` has not been called yet).
     """
     data_path = get_data_dir()  # this is typically /share1/USAXS_data/02_05_Username
 
@@ -74,7 +96,7 @@ def techniqueSubdirectory(technique):
      # Get sample folder name
     sampleFolder = user_data.sample_dir.get().strip() or "sample"   # should be set in newUser(), should return relatively simple name for sample, e.g., Sample1
                                                                     # sets to "sample" if not set by user. 
-    sampleFolder = sampleFolder.replace("  ", "_")     # replace spaces with underscores
+    sampleFolder = sampleFolder.replace(" ", "_")      # replace spaces with underscores
 
     # Build sample directory path
     data_path = Path(data_path) / sampleFolder

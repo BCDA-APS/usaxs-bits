@@ -1,5 +1,8 @@
 """
-control EPICS IOC autosave
+EPICS IOC autosave control device for the 12-ID-E USAXS instrument.
+
+Wraps the standard synApps autosave ``SR_disable`` / ``SR_disableMaxSecs`` PVs
+so that scans can temporarily suppress autosave activity while writing to PVs.
 """
 
 from ophyd import Component
@@ -8,17 +11,16 @@ from ophyd import EpicsSignal
 
 
 class Autosave(Device):
-    """Control of autosave routine in EPICS IOC.
+    """Control the synApps autosave module on an EPICS IOC.
 
-    This device manages the EPICS IOC autosave functionality, allowing control
-    over the autosave feature and its timing parameters.
-
-    Attributes:
-        disable: EpicsSignal to disable autosave functionality
-        max_time: EpicsSignal for maximum time in seconds before autosave
+    ``disable`` (``SR_disable``)
+        Write 1 to disable autosave saves for up to ``max_time`` seconds.
+        Write 0 to re-enable immediately.  ``auto_monitor=False`` prevents
+        unnecessary CA subscriptions on this rarely-changing PV.
+    ``max_time`` (``SR_disableMaxSecs``)
+        Maximum number of seconds autosave will stay disabled before the IOC
+        re-enables it automatically.
     """
 
-    disable: Component[EpicsSignal] = Component(
-        EpicsSignal, "SR_disable", auto_monitor=False
-    )
-    max_time: Component[EpicsSignal] = Component(EpicsSignal, "SR_disableMaxSecs")
+    disable = Component(EpicsSignal, "SR_disable", auto_monitor=False)
+    max_time = Component(EpicsSignal, "SR_disableMaxSecs")

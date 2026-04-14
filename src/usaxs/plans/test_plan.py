@@ -1,12 +1,15 @@
 """
-Test plans for USAXS.
+Test SAXS acquisition plan for the USAXS instrument.
+
+``test_plan`` collects a single SAXS image with fixed 5 s exposure and
+hardcoded ``scan_title="test"``, useful for verifying detector setup without
+a full sample scan.
 """
 
 import os
 from collections import OrderedDict
 
 from apsbits.core.instrument_init import oregistry
-from apsbits.utils.config_loaders import get_config
 from apstools.plans import restorable_stage_sigs
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
@@ -21,11 +24,6 @@ saxs_det = oregistry["saxs_det"]
 monochromator = oregistry["monochromator"]
 terms = oregistry["terms"]
 I0_controls = oregistry["I0_controls"]
-
-
-iconfig = get_config()
-scaler0_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER0_NAME")
-scaler1_name = iconfig.get("SCALER_PV_NAMES", {}).get("SCALER1_NAME")
 
 scaler0 = oregistry["scaler0"]
 scaler1 = oregistry["scaler1"]
@@ -51,27 +49,29 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 
 @plan
 def test_plan(md=None, thickness=0.0):
-    """
-    Plan for collecting a test SAXS image using the area detector.
+    """Bluesky plan: collect a test SAXS image using the area detector.
+
+    Acquires a single 5 s SAXS image with ``scan_title="test"``.  Intended
+    for verifying detector file paths and staging without a full sample scan.
 
     Parameters
     ----------
     md : dict, optional
-        Metadata dictionary for the scan.
+        Extra metadata merged into the run's start document.
     thickness : float, optional
-        Sample thickness in mm.
+        Sample thickness in mm, by default 0.0.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
     scan_title = "test"
-    # _md = apsbss.update_MD(md or {})
     _md = md or OrderedDict()
-    _md.update(md or {})
     _md["plan_name"] = "SAXS"
     _md["sample_thickness_mm"] = thickness
     _md["title"] = scan_title
 
     scan_title_clean = scan_title
-
-    # SPEC-compatibility
 
     # these two templates match each other, sort of
     ad_file_template = AD_FILE_TEMPLATE
@@ -94,10 +94,6 @@ def test_plan(md=None, thickness=0.0):
     # area detector will create this path if needed ("Create dir. depth" setting)
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"  # area detector needs this
-    # local_name = os.path.join(SAXSscan_path, SAXS_file_name)
-    # pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
-    # logger.info(f"Area Detector HDF5 file: {local_name}")
-    # logger.info(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
     saxs_det.hdf1.file_path._auto_monitor = False
     saxs_det.hdf1.file_template._auto_monitor = False
@@ -109,20 +105,13 @@ def test_plan(md=None, thickness=0.0):
         saxs_det.hdf1.file_template,
         ad_file_template,
         timeout=60,
-        # auto_monitor=False,
     )
     saxs_det.hdf1.file_path._auto_monitor = True
     saxs_det.hdf1.file_template._auto_monitor = True
 
     @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
     def _image_acquisition_steps():
-        # yield from measure_SAXS_Transmission()
-        # yield from insertSaxsFilters()
-
         yield from bps.mv(
-            # mono_shutter, "open",
-            # monochromator.feedback.on, MONO_FEEDBACK_OFF,
-            # usaxs_shutter, "open",
             saxs_det.cam.num_images,
             1,
             saxs_det.cam.acquire_time,
@@ -133,7 +122,6 @@ def test_plan(md=None, thickness=0.0):
         )
         for k in DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS:
             if k in saxs_det.cam.stage_sigs:
-                # print(f"Removing {saxs_det.cam.name}.stage_sigs[{k}].")
                 saxs_det.cam.stage_sigs.pop(k)
         saxs_det.hdf1.stage_sigs["file_template"] = ad_file_template
         saxs_det.hdf1.stage_sigs["file_write_mode"] = "Single"
@@ -141,11 +129,6 @@ def test_plan(md=None, thickness=0.0):
 
         yield from bps.sleep(0.2)
         yield from autoscale_amplifiers([I0_controls])
-
-        # yield from bps.mv(
-        #     usaxs_shutter, "close",
-        #     timeout=MASTER_TIMEOUT,
-        # )
 
         yield from bps.mv(
             scaler1.preset_time,
@@ -169,7 +152,6 @@ def test_plan(md=None, thickness=0.0):
             0,
             scaler0.delay,
             0,
-            # terms.SAXS_WAXS.start_exposure_time, ts,
             timeout=60,
         )
 

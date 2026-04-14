@@ -1,41 +1,44 @@
 """
-shutters
+PSS shutter device for the 12-ID-E USAXS instrument.
+
+``My12IdPssShutter``
+    Subclass of ``ApsPssShutterWithStatus`` with configurable open/close/status
+    PVs (supplied via YAML config) and a configurable default timeout.
 """
 
 from typing import List
 from typing import Union
 
 from apstools.devices import ApsPssShutterWithStatus
-from ophyd import Component
 from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import FormattedComponent
 
 
 class My12IdPssShutter(ApsPssShutterWithStatus):
-    """
-    Controls a single APS PSS shutter at 12IDE.
+    """APS PSS shutter at 12-ID-E with configurable PVs and timeout.
 
-    ======  =========  =====
-    action  PV suffix  value
-    ======  =========  =====
-    open    _opn       1
-    close   _cls       1
-    ======  =========  =====
+    Open and close PVs are bo records that self-reset after a short time;
+    write ``1`` to command a move.  The status PV is a bi record with
+    ``ZNAM=OFF`` (closed) and ``ONAM=ON`` (open).
+
+    ======  =================  =====
+    action  FormattedComponent value
+    ======  =================  =====
+    open    ``open_signal``    1
+    close   ``close_signal``   1
+    ======  =================  =====
+
+    PV strings (``open_pv``, ``close_pv``, ``state_pv``) are set per instance
+    via YAML configuration and interpolated by ``FormattedComponent``.
     """
 
     # bo records that reset after a short time, set to 1 to move
     # Use FormattedComponent so open_pv/close_pv can be set per instance via YAML config
-    open_signal: FormattedComponent[EpicsSignal] = FormattedComponent(
-        EpicsSignal, "{self.open_pv}"
-    )
-    close_signal: FormattedComponent[EpicsSignal] = FormattedComponent(
-        EpicsSignal, "{self.close_pv}"
-    )
+    open_signal = FormattedComponent(EpicsSignal, "{self.open_pv}")
+    close_signal = FormattedComponent(EpicsSignal, "{self.close_pv}")
     # bi record ZNAM=OFF, ONAM=ON
-    pss_state: FormattedComponent[EpicsSignalRO] = FormattedComponent(
-        EpicsSignalRO, "{self.state_pv}"
-    )
+    pss_state = FormattedComponent(EpicsSignalRO, "{self.state_pv}")
     pss_state_open_values: List[Union[int, str]] = [1, "ON"]
     pss_state_closed_values: List[Union[int, str]] = [0, "OFF"]
 
@@ -61,19 +64,3 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
         return super().close(timeout=timeout)
 
 
-# class PssShutters(Device):
-#     """
-#     20ID A & B APS PSS shutters.
-
-#     =======  =============
-#     shutter  P, PV prefix
-#     =======  =============
-#     A        20id:shutter0
-#     B        20id:shutter1
-#     =======  =============
-#     """
-#     a_shutter = Component(My20IdPssShutter, "20id:shutter0")
-#     b_shutter = Component(My20IdPssShutter, "20id:shutter1")
-
-# pss_shutters = PssShutters("", name="pss_shutters")
-# pvstatus = PA:20ID:STA_A_FES_OPEN_PL or B_SBS results on "OFF" or "ON"

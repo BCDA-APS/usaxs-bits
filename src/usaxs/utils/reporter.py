@@ -1,5 +1,13 @@
 """
-report how much time remains in flyscan
+Progress reporter for long-running fly scans.
+
+``remaining_time_reporter`` runs in a background thread and periodically logs
+how much time remains for a fixed-duration operation.  It is decorated with
+``@run_in_thread`` from apstools, so calling it returns a ``Thread`` object
+immediately and the logging happens concurrently with the scan.
+
+``generate_status_report`` and ``format_report`` are placeholder stubs that
+are not yet connected to real instrument devices and are not called anywhere.
 """
 
 import datetime
@@ -33,12 +41,12 @@ def remaining_time_reporter(
     update = t + interval_s
     # print()
     while time.time() < expires:
+        t = time.time()  # refresh before computing remaining and checking update
         remaining = expires - t
         if t > update:
             update += interval_s
             logger.info(f"{title}: {remaining:.1f}s remaining")
         time.sleep(poll_s)
-        t = time.time()
 
 
 def generate_status_report(instrument):
@@ -51,7 +59,7 @@ def generate_status_report(instrument):
         dict: A dictionary containing the status report data
     """
     return {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.datetime.now().isoformat(),
         "instrument_state": instrument.state,
         "detector_status": instrument.detector.status,
         "temperature": instrument.temperature.read(),

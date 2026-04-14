@@ -1,10 +1,26 @@
 """
-Linkam temperature controllers: T96 (tc1)
+Linkam T96 temperature controller support for the 12-ID-E USAXS instrument.
+
+Provides two ophyd device classes:
+
+``Linkam_T96_Device``
+    Base device wrapping the Linux-IOC version of the Linkam T96 controller.
+    Uses :class:`~apstools.devices.PVPositionerSoftDone` for temperature,
+    ramp rate, LNP pump, vacuum, and humidity axes.
+
+``My_Linkam_T96_Device``
+    Subclass adding convenience Bluesky plans (``set_target``, ``hold``) and
+    utility methods (``readable_time``, ``linkam_report``).
+
+Typical usage::
+
+    tc1 = My_Linkam_T96_Device("IOC:tc1:", name="tc1")
+    # current temperature
+    tc1.temperature.position
 """
 
 import time
 
-# from apstools.devices import PVPositionerSoftDoneWithStop
 from apstools.devices import PVPositionerSoftDone
 from bluesky import plan_stubs as bps
 from ophyd import Component
@@ -20,31 +36,12 @@ DAY = 24 * HOUR
 WEEK = 7 * DAY
 
 
-# first we need to redefine Linkam_T96_Device to add some methods we really want to use.
-# then we define the instance we are going to use here.
-
-# new device definition
-### now we can define our instance...
-
-
-"""
-Linkam temperature controllers
-This is modified version of APS tools devices code
-for new linkam TC1 version
-++++++++++++++++++++++++++++++
-
-.. autosummary::
-
-   ~Linkam_T96_Device
-"""
-
-
-# this makes temperature to automatically start heating when changed
 class T96Temperature(PVPositionerSoftDone):
-    """Temperature control component for Linkam T96 device.
+    """PVPositionerSoftDone subclass that starts heating when the setpoint moves.
 
-    This class extends PVPositionerSoftDone to provide temperature control functionality
-    with automatic heating activation when the temperature is changed.
+    Adds an ``actuate`` signal (``STARTHEAT``) set to ``"On"`` automatically
+    whenever the positioner moves, so the controller begins ramping without
+    requiring a separate command.
     """
 
     actuate = Component(EpicsSignal, "STARTHEAT", kind="config", string=True)
@@ -52,20 +49,15 @@ class T96Temperature(PVPositionerSoftDone):
 
 
 class Linkam_T96_Device(Device):
-    """
-    Linkam model T96 temperature controller
-    Linux ioc version
+    """Base ophyd device for the Linkam T96 temperature controller (Linux IOC).
 
-    EXAMPLE::
+    Use ``temperature.position`` to read the current temperature in °C.
+    Use ``ramprate.position`` to read the current ramp rate.
 
-        tc1 = Linkam_T96("IOC:tc1:", name="tc1")
-
-    to get temperature, ramprate etc:
-    linkam_tc1.temperature.position which returns the current T in C
-
+    All positioner axes use :class:`~apstools.devices.PVPositionerSoftDone`
+    with separate ``*_RBV`` (readback) and ``*:SET`` (setpoint) PVs.
     """
 
-    # use linkam.temperature.position to get the value, this is positoner...
     controller_name = "Linkam T96"
     temperature = Component(
         T96Temperature,
@@ -121,75 +113,35 @@ class Linkam_T96_Device(Device):
     )
 
     def __init__(self, *args, **kwargs):
-        """Initialize the Linkam T96 device.
-
-        Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
+        """Alias ``temperature.name`` to the device name for cleaner logging."""
         super().__init__(*args, **kwargs)
-
-        # temperature component is the main value
         self.temperature.name = self.name
-
-    # these are unused or old things we are not using
-    # # #ramp_at_limit = Component(EpicsSignalRO, "rampAtLimit_RBV", kind="omitted")
-    # stage_config = Component(EpicsSignalRO, "STAGE:CONFIG", kind="omitted")
-    # status_error = Component(EpicsSignalRO, "CTRLLR:ERR", kind="omitted")
-    # vacuum = Component(EpicsSignal, "VACUUM:SET", kind="omitted")
-    # vacuum_at_limit = Component(EpicsSignalRO, "VACUUM", kind="omitted")
-    # # #vacuum_limit_readback = Component(
-    #     EpicsSignalWithRBV, "vacuumLimit", kind="omitted"
-    # )
-    # vacuum_status = Component(EpicsSignalRO, "STAT:VAC:CNTRL", kind="omitted")  # calc
-    # controller_config = Component(EpicsSignalRO, "CONFIG", kind="omitted")
-    # controller_status = Component(EpicsSignalRO, "STATUS", kind="omitted")
-    # humidity = Component(EpicsSignalRO, "HUMIDITY", kind="omitted")
-    # lnp_mode = Component(EpicsSignal, "LNP_MODE:SET", kind="omitted")
-    # lnp_speed = Component(EpicsSignalWithRBV, "LNP_SPEED:SET", kind="omitted")
-    # lnp_status = Component(EpicsSignalRO, "STAT:LNP:PUMPING", kind="omitted")
-    # vacuum = Component(EpicsSignalRO, "VACUUM", kind="omitted")
-
-    # alias("$(P):CTRLLR:ERR", "$(PA)$(TA):controllerError_RBV")
-    # alias("$(P):CONFIG", "$(PA)$(TA):controllerConfig_RBV")
-    # alias("$(P):STATUS", "$(PA)$(TA):controllerStatus_RBV")
-    # alias("$(P):STAGE:CONFIG", "$(PA)$(TA):stageConfig_RBV")
-    # alias("$(P):TEMP", "$(PA)$(TA):temperature_RBV")
-    # alias("$(P):STARTHEAT", "$(PA)$(TA):heating")
-    # alias("$(P):RAMPRATE:SET", "$(PA)$(TA):rampRate")
-    # alias("$(P):RAMPRATE", "$(PA)$(TA):rampRate_RBV")
-    # alias("$(P):SETPOINT:SET", "$(PA)$(TA):rampLimit")
-    # alias("$(P):SETPOINT", "$(PA)$(TA):rampLimit_RBV")
-    # alias("$(P):POWER", "$(PA)$(TA):heaterPower_RBV")
-    # alias("$(P):LNP_SPEED", "$(PA)$(TA):lnpSpeed_RBV")
-    # alias("$(P):LNP_MODE:SET", "$(PA)$(TA):lnpMode")
-    # alias("$(P):LNP_SPEED:SET", "$(PA)$(TA):lnpSpeed")
 
 
 class My_Linkam_T96_Device(Linkam_T96_Device):
-    """
-    Linkam model T96 temperature controller
-    Linux ioc version
-    add additional methods on this device
+    """Linkam T96 device with convenience Bluesky plans and reporting helpers.
 
-    EXAMPLE::
-
-        tc1 = My_Linkam_T96_Device("IOC:tc1:", name="tc1")
-
-    to get temperature, ramprate etc:
-    linkam_tc1.temperature.position which returns the current T in C
-
+    Adds ``set_target``, ``hold``, ``readable_time``, and ``linkam_report``
+    on top of :class:`Linkam_T96_Device`.
     """
 
     def readable_time(self, duration, rounding=2):
-        """
-        Return a string representation of the duration.
-        EXAMPLES::
-            readable_time(425) --> '7m 5s'
-            readable_time(1425) --> '23m 45s'
-            readable_time(21425) --> '5h 57m 5s'
-            readable_time(360) --> '6m'
-            readable_time(62.123) --> '1m 2.12s'
+        """Return a human-readable string for *duration* seconds.
+
+        Examples::
+
+            readable_time(425)    -> '7m 5s'
+            readable_time(1425)   -> '23m 45s'
+            readable_time(21425)  -> '5h 57m 5s'
+            readable_time(360)    -> '6m'
+            readable_time(62.123) -> '1m 2.12s'
+
+        Parameters
+        ----------
+        duration : float
+            Time in seconds.
+        rounding : int
+            Decimal places for the seconds field.
         """
         weeks = int(duration / WEEK)
         known = weeks * WEEK
@@ -210,43 +162,35 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         return " ".join(s)
 
     def log_it(self, text):
+        """No-op stub — logging to a file is not yet implemented."""
         pass
-    #     """Cheap, lazy way to add to log file.  Gotta be better way..."""
-    #     if not log_file_name.exists():
-    #         # create the file and header
-    #         with open(log_file_name, "w") as f:
-    #             f.write(f"# file: {log_file_name}\n")
-    #             f.write(f"# created: {datetime.datetime.now()}\n")
-    #             f.write(f"# from: {__file__}\n")
-    #     with open(log_file_name, "a") as f:
-    #         # write the payload
-    #         dt = datetime.datetime.now()
-    #         # ISO-8601 format time, ms precision
-    #         iso8601 = dt.isoformat(sep=" ", timespec="milliseconds")
-    #         f.write(f"{iso8601}: {text}\n")
 
     def linkam_report(self):
-        """Report current values for selected controller."""
-        # assuming units are "Celsius"
-        # units = self.units.get()[:1].upper()
-        # self.log_it(
-        #     f"{self.name}"
-        #     f" T={self.temperature.position:.1f}{units}"
-        #     f" setpoint={self.temperature.setpoint.get():.1f}{units}"
-        #     f" ramp:{self.ramp.setpoint.get()}"
-        #     f" settled: {self.temperature.inposition}"
-        #     f" done: {self.temperature.done.get()}"
-        # )
+        """No-op stub — periodic status reporting is not yet implemented."""
+        pass
 
     def set_target(self, value, wait=True):
-        """
-        BS plan: change the temperature setpoint and wait for inposition.
-        To change temperature and wait:
-        bps.mv(linkam.temperature, value)
-        Turns on heater power (if it was off).
-        To just change temperature, do not wait (hint: use the setpoint directly):
-        bps.mv(linkam.temperature.setpoint, value)
-        Does NOT turn on heater power.
+        """Bluesky plan: move to *value* °C and optionally wait until settled.
+
+        Sets both ``temperature.setpoint`` and ``temperature.actuate`` (``"On"``)
+        in one ``bps.mv`` call so the controller starts heating immediately.
+
+        To move without turning on the heater use ``bps.mv`` on the setpoint
+        directly::
+
+            yield from bps.mv(tc1.temperature.setpoint, value)
+
+        Parameters
+        ----------
+        value : float
+            Target temperature in °C.
+        wait : bool
+            If True (default), poll until ``temperature.inposition`` is True,
+            logging progress every 60 s via ``linkam_report``.
+
+        Yields
+        ------
+        Bluesky messages.
         """
         t0 = time.time()
         yield from bps.mv(
@@ -268,7 +212,17 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         self.linkam_report()
 
     def hold(self, duration):
-        """BS plan: hold at temperature for the duration (s)."""
+        """Bluesky plan: hold at the current temperature for *duration* seconds.
+
+        Parameters
+        ----------
+        duration : float
+            Hold time in seconds.
+
+        Yields
+        ------
+        Bluesky messages.
+        """
         self.log_it(f"{self.name} holding for {self.readable_time(duration)}")
         t0 = time.time()
         time_expires = t0 + duration
@@ -277,23 +231,13 @@ class My_Linkam_T96_Device(Linkam_T96_Device):
         self.linkam_report()
 
     def __init__(self, *args, **kwargs):
-        """Initialize the Linkam T96 device.
-        Args:
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-        """
+        """Set tolerance, sync inposition, and read engineering units from EPICS."""
         super().__init__(*args, **kwargs)
         self.temperature.tolerance.put(1.0)
-
-        # sync the "inposition" computation
-        self.temperature.cb_readback()
-
-        # easy access to the engineering units
+        self.temperature.cb_readback()  # sync the "inposition" computation
         self.units.put(self.temperature.readback.metadata["units"])
 
     @property
     def ramp(self):
-        """
-        Return the ramp rate.
-        """
+        """Alias for ``ramprate`` (convenience shorthand)."""
         return self.ramprate

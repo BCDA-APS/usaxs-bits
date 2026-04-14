@@ -1,7 +1,15 @@
 """
 Plans for executing command lists in USAXS.
 
-run batch of scans from command list
+Parses a text or Excel command file into an ordered list of scan actions and
+executes them sequentially under the Bluesky RunEngine.
+
+Public entry points
+-------------------
+* ``run_command_file``    — parse a file and execute its command list.
+* ``summarize_command_file`` — print the command list without running it.
+* ``sync_order_numbers``  — synchronise FlyScan/SAXS/WAXS file-number counters.
+* ``execute_command_list``— execute a pre-parsed command list (called internally).
 """
 
 import datetime
@@ -15,8 +23,6 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 from ophyd import Signal
 
-# from ..usaxs_flyscan_support import instrument_archive
-# from ..utils.emails import email_notices
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
 from ..utils.constants import constants
 from ..utils.quoted_line import split_quoted_line
@@ -56,9 +62,6 @@ MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many atte
 
 logger = logging.getLogger(__name__)
 
-##User facing functions
-
-
 @plan
 def run_command_file(filename, md=None):
     """
@@ -79,13 +82,10 @@ def summarize_command_file(filename):
     logger.info("Command file: %s\n%s", command_list_as_table(commands), filename)
 
 
-## Internal functions
-
-
 @plan
 def beforeScanComputeOtherStuff():
-    """Actions before each data collection starts."""
-    yield from bps.null()  # TODO: remove this once you add the "other stuff"
+    """Bluesky plan: stub for pre-scan setup actions (not yet implemented)."""
+    yield from bps.null()
 
 
 @plan
@@ -179,11 +179,8 @@ def before_command_list(md=None, commands=None):
     if commands is not None:
         yield from postCommandsListfile2WWW(commands)
     else:
-        # run_command_list which generates table of commands already recorded this, 
-        # so we are catching only when running other way. In this case we need to
-        # record thus as function run. The function also returns the command line for www.
-        #command_line = recordFunctionRun()    
-        #yield from postCommandsListfile2WWW(command_line)
+        # run_command_list already recorded this when generating the command table.
+        # Nothing to post when called via a different path.
         pass
 
     # force the next FlyScan to reload the metadata configuration
@@ -199,9 +196,6 @@ def verify_commands(commands):
     for command in commands:
         action, args, i, raw_command = command
         if action.lower() in scan_actions:
-            # if args[2].isnumeric() is False :
-            #    list_of_errors.append(f"line {i}: thickness incorrect for :
-            # {raw_command.strip()}")
             try:
                 sx = float(args[0])
                 sy = float(args[1])
@@ -239,8 +233,6 @@ def verify_commands(commands):
                 print(
                     f"{sth = } from args[2] = float('{args[2]}') -- thickness problem"
                 )
-            #    list_of_errors.append(f"line {i}: thickness incorrect for :
-            #  {raw_command.strip()}")
             # check snm for reasonable sample title value
     if len(errors) > 0:
         err_msg = (
@@ -248,16 +240,12 @@ def verify_commands(commands):
             "\n".join(errors)
         )
         raise RuntimeError(err_msg)
-    # this is the end of this routine
-    # raise RuntimeError("Stop anyway")
     logger.info("Command file verified")
 
 
 @plan
 def after_command_list(md=None):
     """Actions after a command list is run."""
-    # if md is None:
-    #     md = {}
     yield from bps.mv(
         # fmt: off
         user_data.time_stamp,
@@ -293,10 +281,6 @@ def before_plan(md=None):
 @plan
 def after_plan(weight=1, md=None):
     """Actions after every data collection plan."""
-
-    # if md is None:
-    #     md = {}
-
     yield from bps.mv(  # increment it
         # fmt: off
         terms.preUSAXStune.num_scans_last_tune,
@@ -496,17 +480,9 @@ def execute_command_list(filename, commands, md=None):
     text = f"Command file: {filename}\n"
     text += str(command_list_as_table(commands))
     logger.info(text)
-    # logger.info("memory report: %s", rss_mem())
 
-    #record Obsidian, using recordRunCommandFile(command_list: str)
+    # record in Obsidian using recordRunCommandFile(command_list: str)
     recordRunCommandFile(text)
-
-    # save the command list as a separate Bluesky run for documentation purposes
-    # yield from documentation_run(text)
-
-    # TODO: figure out what this was doing, does not seem to have the code available in
-    # bits
-    # instrument_archive(text)
 
     yield from before_command_list(md=md, commands=commands)
     for command in commands:
@@ -572,10 +548,6 @@ def execute_command_list(filename, commands, md=None):
                 _md.update(dict(sx=sx, sy=sy, thickness=sth, title=args[3]))
                 yield from waxsExp(sx, sy, sth, args[3], md=_md)
 
-            # elif action in ("run_python", "run"):
-            #     filename = args[0]
-            #     yield from run_python_file(filename, md={})
-
             elif action in ("set",):
                 yield from run_set_command(*args)
 
@@ -585,7 +557,6 @@ def execute_command_list(filename, commands, md=None):
             else:
                 logger.debug("no handling for line %d: %s", i, raw_command)
                 yield from bps.null()
-            # logger.info("memory report: %s", rss_mem())
 
         attempt = 0  # count the number of attempts
         maximum_attempts = MAXIMUM_ATTEMPTS  # set an upper limit
@@ -618,7 +589,6 @@ def execute_command_list(filename, commands, md=None):
                 body += f"exception: {exc}\n"
                 body += "Stopping further processing of this command list.\n"
                 logger.error("Exception %s\n%s", subject, body)
-                # email_notices.send(subject, body)
                 attempt += 1
                 exit_requested = True  # issue #502: stop if an Exception was noted
 
@@ -627,7 +597,6 @@ def execute_command_list(filename, commands, md=None):
     
 
     yield from after_command_list(md=md)
-    # logger.info("memory report: %s", rss_mem())
 
 
 @plan
@@ -689,7 +658,6 @@ def run_set_command(*args):
     """
     yield from bps.null()
 
-    # print(f"{args = }")
     if len(args) != 2:
         logger.error(
             "syntax:  SET terms.component value"
@@ -699,8 +667,6 @@ def run_set_command(*args):
 
     term = args[0]
     value = args[1]
-    # print(f"{term = }")
-    # print(f"{value = }")
 
     if not term.startswith("terms."):
         logger.error(
@@ -730,29 +696,19 @@ def run_set_command(*args):
             return
     if isinstance(pyobj, Signal):
         old_value = pyobj.get()
-    # elif hasattr(pyobj, "position"):
-    #     old_value = pyobj.position
     else:
         logger.error(
-            (
-                "Cannot set '%s', it is not a Signal"
-                # " or positioner"
-                ".  Skipping this command ..."
-            )
+            "Cannot set '%s', it is not a Signal.  Skipping this command ..."
             % full_dotted_name
         )
         return
-    # print(f"{type(pyobj.get()) = }")
 
     try:
         if isinstance(old_value, int):
-            # print("int")
             value = int(value)
         elif isinstance(old_value, float):
-            # print("float")
             value = float(value)
         elif isinstance(old_value, str):
-            # print("str")
             value = str(value)
         else:
             logger.error(
@@ -774,5 +730,4 @@ def run_set_command(*args):
         )
         return
 
-    # print(f"{[full_dotted_name, value] = }")
     yield from bps.abs_set(pyobj, value, timeout=0.1, wait=False)

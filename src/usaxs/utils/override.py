@@ -96,7 +96,7 @@ class UserOverride:
         Either pick the override parameter value if defined, or the default.
         """
         value = self._parameters.get(parameter, default)
-        if value == self.undefined:
+        if value is self.undefined:  # identity check; '==' risks false match via __eq__
             value = default
         return value
 

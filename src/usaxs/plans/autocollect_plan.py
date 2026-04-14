@@ -30,21 +30,23 @@ def idle_reporter() -> None:
 
 
 def remote_ops():
-    """Enable PV-directed data collection.
+    """Bluesky plan: enable PV-directed data collection.
 
-    This function enables automatic data collection based on EPICS PV commands.
-    It supports various modes including pre-USAXS tuning, radiography mode,
-    and command file execution.
+    Polls ``auto_collect.trigger_signal`` until ``auto_collect.permit`` is
+    cleared.  On each trigger, reads ``auto_collect.commands`` and dispatches
+    to one of:
 
-    Parameters
-    ----------
-    None
+    * ``"preUSAXStune"`` — run the pre-USAXS tuning sequence.
+    * ``"useModeRadiography"`` — switch to radiography mode.
+    * a file path — execute that command file via ``run_command_file``.
 
-    Returns
-    -------
-    None
+    Unrecognised commands are logged as warnings.
 
     USAGE:  ``RE(remote_ops())``
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
     """
 
     yield from bps.mv(auto_collect.permit, "yes")

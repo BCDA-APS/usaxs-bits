@@ -1,5 +1,30 @@
 """
-general parameters and terms
+General EPICS parameter devices for the 12-ID-E USAXS instrument.
+
+This module is a registry of ophyd ``Device`` subclasses that expose EPICS
+PVs as named attributes.  Devices are grouped by measurement mode or subsystem:
+
+``FlyScanParameters``      — fly-scan control and timing PVs
+``PreUsaxsTuneParameters`` — auto-tune scheduling PVs
+``Parameters_USAXS``       — core USAXS scan parameters and positions
+``Parameters_SAXS``        — SAXS-mode parameters and positions
+``Parameters_WAXS``        — WAXS-mode parameters and positions
+``Parameters_SAXS_WAXS``   — parameters shared between SAXS and WAXS
+``Parameters_Radiography`` — radiography mode (stub, currently empty)
+``Parameters_Imaging``     — tomography/imaging mode parameters
+``Parameters_transmission``— pin-diode transmission measurement PVs
+``Parameters_Al_Ti_Filters`` / ``Parameters_Al_Ti_Filters_Imaging``
+                           — Al/Ti filter setpoints for scan and imaging modes
+``GeneralUsaxsParameters*``— sub-device helpers for BlackFly, diode, CCD
+``Parameters_SBUSAXS``     — SBUSAXS mode (stub, currently empty)
+``Parameters_OutOfBeam``   — out-of-beam state (stub, currently empty)
+``Parameters_HeaterProcess``— soft-IOC handshake PVs for the Linkam heater process
+``GeneralParameters``      — top-level composite device aggregating all of the above
+
+Note
+----
+All referenced PVs **must** exist in the EPICS IOC or ``get()`` calls will block
+until the connection timeout expires.
 """
 
 import time
@@ -9,11 +34,15 @@ from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import Signal
 
-# TODO :  resolve issues with LAX PV database
-
 
 class FlyScanParameters(Device):
-    """Parameters for fly scan operations."""
+    """EPICS PVs that control fly-scan operation.
+
+    ``setpoint_up`` / ``setpoint_down``
+        Software-only signals (no EPICS PV) used as count-rate thresholds for
+        the amplifier autorange logic: below ``setpoint_up`` the range
+        decreases; above ``setpoint_down`` it increases.
+    """
 
     number_points = Component(EpicsSignal, "usxLAX:USAXS:FS_NumberOfPoints")
     scan_time = Component(EpicsSignal, "usxLAX:USAXS:FS_ScanTime")
@@ -27,7 +56,7 @@ class FlyScanParameters(Device):
 
 
 class PreUsaxsTuneParameters(Device):
-    """Parameters for pre-USAXS tuning operations."""
+    """EPICS PVs that govern automatic pre-USAXS tuning scheduling."""
 
     num_scans_last_tune = Component(EpicsSignal, "usxLAX:NumScansFromLastTune")
     epoch_last_tune = Component(EpicsSignal, "usxLAX:EPOCHTimeOfLastTune")
@@ -41,14 +70,24 @@ class PreUsaxsTuneParameters(Device):
 
     @property
     def needed(self) -> bool:
-        """
-        Check if a tune is needed based on various conditions.
+        """Return True if a pre-USAXS tune is due.
 
-        Returns:
-            bool: True if tuning is needed, False otherwise
+        A tune is needed when **any** of the following is true:
+
+        * ``run_tune_next`` is set (user or plan requested an immediate tune).
+        * The number of scans since the last tune exceeds
+          ``req_num_scans_between_tune``.
+        * The time since the last tune exceeds ``req_time_between_tune``.
+
+        ``run_tune_next`` is cleared to 0 after reading regardless of the
+        result.
+
+        Note
+        ----
+        The mode check (skip tune when not in USAXS mode) is not yet
+        implemented here.
         """
         result = self.run_tune_next.get()
-        # TODO: next test if not in SAXS or WAXS mode
         result = (
             result
             or self.num_scans_last_tune.get() > self.req_num_scans_between_tune.get()
@@ -118,7 +157,15 @@ class Parameters_transmission(Device):
 
 
 class Parameters_USAXS(Device):
-    """Internal values shared with EPICS for USAXS operations."""
+    """Internal values shared with EPICS for USAXS scan operations.
+
+    Note
+    ----
+    ``AX0`` and ``ax_in`` both bind to ``usxLAX:ax_in``.
+    ``DX0`` and ``dx_in`` both bind to ``usxLAX:USAXS:Diode_dx``.
+    These duplicates exist for historical reasons; prefer the lower-case names
+    in new code.
+    """
 
     AX0 = Component(EpicsSignal, "usxLAX:ax_in")
     DX0 = Component(EpicsSignal, "usxLAX:USAXS:Diode_dx")
@@ -169,13 +216,19 @@ class Parameters_USAXS(Device):
 
 
 class Parameters_SBUSAXS(Device):
-    """Parameters for SBUSAXS operations."""
+    """Parameters for SBUSAXS operations (stub — no PVs defined yet)."""
 
     pass
 
 
 class Parameters_SAXS(Device):
-    """Parameters for SAXS operations."""
+    """EPICS PVs for SAXS-mode positions, slits, and control signals.
+
+    Note
+    ----
+    ``dx_in`` (``usxLAX:USAXS:Diode_dx``) is deprecated — use
+    ``USAXS.diode.dx`` instead.
+    """
 
     z_in = Component(EpicsSignal, "usxLAX:SAXS_z_in")
     z_out = Component(EpicsSignal, "usxLAX:SAXS_z_out")
@@ -252,7 +305,7 @@ class Parameters_WAXS(Device):
 
 
 class Parameters_Radiography(Device):
-    """Parameters for radiography operations."""
+    """Parameters for radiography operations (stub — no PVs defined yet)."""
 
     pass
 
@@ -286,7 +339,7 @@ class Parameters_Imaging(Device):
 
 
 class Parameters_OutOfBeam(Device):
-    """Parameters for out-of-beam operations."""
+    """Parameters for out-of-beam state (stub — no PVs defined yet)."""
 
     pass
 
@@ -308,7 +361,12 @@ class Parameters_HeaterProcess(Device):
 
 
 class GeneralParameters(Device):
-    """Cache of parameters to share with/from EPICS."""
+    """Top-level composite device aggregating all USAXS parameter sub-devices.
+
+    Instantiated once as ``terms`` in the instrument startup and accessed
+    throughout plans as ``terms.USAXS``, ``terms.SAXS``, ``terms.FlyScan``,
+    etc.
+    """
 
     USAXS = Component(Parameters_USAXS)
     SBUSAXS = Component(Parameters_SBUSAXS)
@@ -327,6 +385,3 @@ class GeneralParameters(Device):
     preUSAXStune = Component(PreUsaxsTuneParameters)
 
     HeaterProcess = Component(Parameters_HeaterProcess)
-
-
-# NOTE: ALL referenced PVs **MUST** exist or get() operations will fail!

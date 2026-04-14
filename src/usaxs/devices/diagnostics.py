@@ -1,8 +1,13 @@
 """
-PSS, FE-EPS, BL-EPS, : diagnostics
-"""
+PSS diagnostics and beam-in-hutch check for the 12-ID-E USAXS instrument.
 
-from typing import Any
+``PSS_Parameters``
+    Read-only EPICS PVs from the Personnel Safety System (PSS) for the A and C
+    stations of sector 12-ID.
+``DiagnosticsParameters``
+    Composite device grouping the PSS sub-device with a swait-record that
+    calculates the beam-in-hutch status.
+"""
 
 import apstools.synApps
 from ophyd import Component
@@ -11,167 +16,68 @@ from ophyd import EpicsSignalRO
 
 
 class PSS_Parameters(Device):
-    """Parameters for the PSS (Personnel Safety System) device."""
+    """Read-only PSS (Personnel Safety System) PVs for APS sector 12-ID.
 
-    a_beam_active: Component[EpicsSignalRO] = Component(
-        EpicsSignalRO, "PA:12ID:A_BEAM_ACTIVE.VAL", string=True
-    )
-    a_shutter_open_chain_A_led: Component[EpicsSignalRO] = Component(
+    ``a_beam_active``
+        True when the A-station (FE) beam is active.
+    ``a_shutter_open_chain_A_led``
+        Front-End shutter open status (chain A LED), sector 12-ID.
+    ``e_beam_active``
+        True when the C-station (experimental) has no-access interlock active.
+    ``e_beam_ready``
+        True when the C-station beam-ready PL is asserted.
+    ``e_shutter_closed_chain_B``
+        C-station secondary safety shutter closed (chain B).
+    ``e_shutter_open_chain_A``
+        Front-End shutter open (chain A) — same hardware signal as
+        ``a_shutter_open_chain_A_led`` but named from the C-station perspective.
+    """
+
+    a_beam_active = Component(EpicsSignalRO, "PA:12ID:A_BEAM_ACTIVE.VAL", string=True)
+    a_shutter_open_chain_A_led = Component(
         EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True
     )
-
-    e_beam_active: Component[EpicsSignalRO] = Component(
+    e_beam_active = Component(
         EpicsSignalRO, "PA:12ID:STA_C_NO_ACCESS.VAL", string=True
     )
-    e_beam_ready: Component[EpicsSignalRO] = Component(
+    e_beam_ready = Component(
         EpicsSignalRO, "PA:12ID:STA_C_BEAMREADY_PL.VAL", string=True
     )
-    e_shutter_closed_chain_B: Component[EpicsSignalRO] = Component(
+    e_shutter_closed_chain_B = Component(
         EpicsSignalRO, "PB:12ID:STA_C_SCS_CLSD_PL", string=True
     )
-    e_shutter_open_chain_A: Component[EpicsSignalRO] = Component(
+    e_shutter_open_chain_A = Component(
         EpicsSignalRO, "PA:12ID:STA_A_FES_OPEN_PL", string=True
     )
-
-    # c_beam_ready_leds = Component(
-    #     EpicsSignalRO,
-    #     "PA:09ID:STA_C_BEAMREADY_PL",
-    #     string=True
-    # )
-    # c_shutter_closed_chain_A = Component(
-    #     EpicsSignalRO,
-    #     "PA:09ID:SCS_PS_CLSD_LS",
-    #     string=True
-    # )
-    # c_shutter_closed_chain_B = Component(
-    #     EpicsSignalRO,
-    #     "PB:09ID:SCS_PS_CLSD_LS",
-    #     string=True
-    # )
-    # c_station_door1_closed_switch_chain_A = Component(
-    #     EpicsSignalRO,
-    #     "PA:09ID:STA_C_DR1_CLOSE_LS",
-    #     string=True
-    # )
-    # c_station_door1_closed_switch_chain_B = Component(
-    #     EpicsSignalRO,
-    #     "PB:09ID:STA_C_DR1_CLOSE_LS",
-    #     string=True
-    # )
-    # c_station_door2_closed_switch_chain_A = Component(
-    #     EpicsSignalRO,
-    #     "PA:09ID:STA_C_DR2_CLOSE_LS",
-    #     string=True
-    # )
-    # c_station_door2_closed_switch_chain_B = Component(
-    #     EpicsSignalRO,
-    #     "PB:09ID:STA_C_DR2_CLOSE_LS",
-    #     string=True
-    # )
-    # c_station_no_access_chain_A = Component(
-    #     EpicsSignalRO,
-    #     "PA:09ID:STA_C_NO_ACCESS.VAL",
-    #     string=True
-    # )
-    # c_station_no_access_sign = Component(
-    #     EpicsSignalRO,
-    #     "PA:09ID:STA_C_NO_ACCESS",
-    #     string=True
-    # )
-
-    # other signals?
 
     @property
     def c_station_enabled(self) -> int:
+        """Return 1 — C-station operations at 12-ID are always permitted.
+
+        At 9-ID (former beamline) this checked interlock switches because
+        hutches were arranged in series and only one could run at a time.
+        At 12-ID both stations operate in parallel so no interlock check is
+        needed; this property is kept for API compatibility and always returns 1.
         """
-        Check if the station is enabled for operation.
-
-        This is really not needed on 12ID as both beamlines can work in parallel.
-        This was used at 9ID with hutches behind.
-        Look at the switches: are we allowed to operate?
-
-        #:Plug in place:
-        ##  Cannot use beam in 20-ID-B.
-        #  Should not use FE or mono shutters, monochromator, usaxs_shutter...
-        #:Plug removed:
-          Operations in 12-ID-C are always allowed
-
-        Returns:
-            int: 1 if station is enabled, 0 otherwise
-        """
-        # chain_A = self.c_shutter_closed_chain_A
-        # chain_B = self.c_shutter_closed_chain_B
-        # enabled = chain_A.get() == "OFF" or chain_B.get() == "OFF"
         return 1
 
 
-# class BLEPS_Parameters(Device):
-#     """Beam Line Equipment Protection System"""
-#     red_light = Component(EpicsSignalRO, "9idBLEPS:RED_LIGHT")
-#     station_shutter_b_permit = Component(
-#         EpicsSignalRO,
-#         "9idBLEPS:SBS_PERMIT",
-#         string=True
-#     )
-#     station_shutter_b = Component(EpicsSignalRO, "9idBLEPS:SBS_CLOSED", string=True)
-#     flow_1 = Component(EpicsSignalRO, "9idBLEPS:FLOW1_CURRENT")
-#     flow_2 = Component(EpicsSignalRO, "9idBLEPS:FLOW2_CURRENT")
-#     flow_1_setpoint = Component(EpicsSignalRO, "9idBLEPS:FLOW1_SET_POINT")
-#     flow_2_setpoint = Component(EpicsSignalRO, "9idBLEPS:FLOW2_SET_POINT")
-
-#     temperature_1_chopper = Component(EpicsSignalRO, "9idBLEPS:TEMP1_CURRENT")
-#     temperature_2 = Component(EpicsSignalRO, "9idBLEPS:TEMP2_CURRENT")
-#     temperature_3 = Component(EpicsSignalRO, "9idBLEPS:TEMP3_CURRENT")
-#     temperature_4 = Component(EpicsSignalRO, "9idBLEPS:TEMP4_CURRENT")
-#     temperature_5 = Component(EpicsSignalRO, "9idBLEPS:TEMP5_CURRENT")
-#     temperature_6 = Component(EpicsSignalRO, "9idBLEPS:TEMP6_CURRENT")
-#     temperature_7 = Component(EpicsSignalRO, "9idBLEPS:TEMP7_CURRENT")
-#     temperature_8 = Component(EpicsSignalRO, "9idBLEPS:TEMP8_CURRENT")
-#     temperature_1_chopper_setpoint = Component(
-#         EpicsSignalRO,
-#         "9idBLEPS:TEMP1_SET_POINT"
-#     )
-#     temperature_2_setpoint = Component(EpicsSignalRO, "9idBLEPS:TEMP2_SET_POINT")
-#     temperature_3_setpoint = Component(EpicsSignalRO, "9idBLEPS:TEMP3_SET_POINT")
-#     temperature_4_setpoint = Component(EpicsSignalRO, "9idBLEPS:TEMP4_SET_POINT")
-#     temperature_5_setpoint = Component(EpicsSignalRO, "9idBLEPS:TEMP5_SET_POINT")
-#     temperature_6_setpoint = Component(EpicsSignalRO, "9idBLEPS:TEMP6_SET_POINT")
-#     temperature_7_setpoint = Component(EpicsSignalRO, "9idBLEPS:TEMP7_SET_POINT")
-#     temperature_8_setpoint = Component(EpicsSignalRO, "9idBLEPS:TEMP8_SET_POINT")
-#     # other signals?
-
-#     # technically, these come from the FE-EPS IOC, reading signals from the BL-EPS
-
-
-# class FEEPS_Parameters(Device):
-#     """Front End Equipment Protection System"""
-#     fe_permit = Component(EpicsSignalRO, "EPS:09:ID:FE:PERM", string=True)
-#     # major_fault = Component(EpicsSignalRO, "EPS:09:ID:Major", string=True)
-#     # minor_fault = Component(EpicsSignalRO, "EPS:09:ID:Minor", string=True)
-#     mps_permit = Component(EpicsSignalRO, "EPS:09:ID:MPS:RF:PERM", string=True)
-#     photon_shutter_1 = Component(EpicsSignalRO, "EPS:09:ID:PS1:POSITION", string=True)
-#     photon_shutter_2 = Component(EpicsSignalRO, "EPS:09:ID:PS2:POSITION", string=True)
-#     safety_shutter_1 = Component(EpicsSignalRO, "EPS:09:ID:SS1:POSITION", string=True)
-#     safety_shutter_2 = Component(EpicsSignalRO, "EPS:09:ID:SS2:POSITION", string=True)
-
-
 class DiagnosticsParameters(Device):
-    """Parameters for beam line diagnostics and post-mortem analyses."""
+    """Beam-line diagnostics grouping PSS status and beam-in-hutch check.
 
-    beam_in_hutch_swait: Component[apstools.synApps.SwaitRecord] = Component(
+    ``beam_in_hutch_swait``
+        A synApps swait record (``usxLAX:blCalc:userCalc1``) whose calculated
+        value is non-zero when beam is present in the hutch.
+    ``PSS``
+        Nested :class:`PSS_Parameters` device exposing raw PSS PVs.
+    """
+
+    beam_in_hutch_swait = Component(
         apstools.synApps.SwaitRecord, "usxLAX:blCalc:userCalc1"
     )
-
-    PSS: Component[PSS_Parameters] = Component(PSS_Parameters)
-    # BL_EPS = Component(BLEPS_Parameters)
-    # FE_EPS = Component(FEEPS_Parameters)
+    PSS = Component(PSS_Parameters)
 
     @property
-    def beam_in_hutch(self) -> Any:
-        """
-        Check if the beam is in the hutch.
-
-        Returns:
-            Any: The value indicating if beam is in hutch
-        """
-        return self.beam_in_hutch_swait.calculated_value.get()  #!= 0
+    def beam_in_hutch(self):
+        """Return the calculated beam-in-hutch value from the swait record."""
+        return self.beam_in_hutch_swait.calculated_value.get()

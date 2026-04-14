@@ -1,5 +1,25 @@
 """
-manage the user folder
+User and sample session management for the 12-ID-E USAXS instrument.
+
+The two main entry points are:
+
+``newUser(user, sample, ...)``
+    Called once per beamtime to create the top-level user data directory,
+    reset detector order numbers, initialise NeXus and SPEC file writers,
+    and record a session-start note in the Obsidian logbook.
+
+``newSample(sample)``
+    Called whenever the user changes samples.  Updates the sample directory
+    PV and appends a new-sample note to the Obsidian logbook.
+
+Session state is persisted in a hidden JSON file ``~/.user_info.json``
+so that instrument-control scripts can restore the current user/sample
+context after a restart without user interaction.
+
+``matchUserInApsBss(user)`` queries the APS Beamtime Scheduling System REST
+API to locate the active ESAF and proposal for *user*, writes all fields
+to the ``usxTerms:bss:`` EPICS PVs, and sets ``RE.md["esaf_id"]`` and
+``RE.md["proposal_id"]``.  Called automatically by :func:`newUser`.
 """
 
 import datetime
@@ -7,12 +27,10 @@ import json
 import logging
 import os
 from pathlib import Path
-import pwd
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
 from epics import caput
-
 
 from usaxs.callbacks.demo_spec_callback import specwriter
 from usaxs.utils import bss
@@ -64,17 +82,41 @@ def _setSpecFileName(path, scan_id=1):
     logger.debug(f"File will be {handled} at end of next bluesky scan.")
 
 
-def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
-    """
-    setup for a new user
+def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, skip_bss=False):
+    """Set up the instrument for a new user beamtime session.
 
-    Create (if necessary) new user directory in
-    standard directory with month, day, and
-    given user name as shown in the following table.
-    Each technique (SAXS, USAXS, WAXS) will be
-    reponsible for creating its subdirectory
-    as needed.
+    Creates (if necessary) the monthly base folder and the user data directory,
+    resets detector file/order numbers to 1, configures NeXus and SPEC file
+    writers, and records a session-start note in the Obsidian logbook.
 
+    If called without arguments and a ``.user_info.json`` file exists from a
+    previous session, those values are restored automatically (no prompts).
+    If no state file exists, the user is prompted interactively for a name.
+
+    Parameters
+    ----------
+    user : str, optional
+        User name (used in the directory name and EPICS PV).  Prompts if None
+        and no prior session file is found.
+    sample : str, optional
+        Initial sample directory name.  Defaults to ``"data"``.
+    scan_id : int, optional
+        Starting scan ID for SPEC file.  Default is 1.
+    year, month, day : int, optional
+        Override the current date.  Useful for recovering a prior session's
+        folder without creating a new one.
+    skip_bss : bool, optional
+        If ``True``, clear all ``usxTerms:bss:`` PVs and skip the BSS lookup
+        entirely.  Use this for setup runs or commissioning sessions that have
+        no active ESAF or proposal.  Default is ``False``.
+
+    Returns
+    -------
+    str
+        Absolute path to the user data directory.
+
+    Directory layout
+    ----------------
     ======================  ========================
     purpose                 folder
     ======================  ========================
@@ -186,42 +228,51 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None):
         f"{month:02d}_{day:02d}_{cleanupText(user)}"
     )
 
+    # BSS lookup runs before Obsidian so the note can include ESAF/proposal info.
+    esaf, prop = None, None
+    if skip_bss:
+        _clear_bss_pvs()
+        logger.info("BSS: skipped (skip_bss=True) — PVs cleared")
+    else:
+        try:
+            esaf, prop = matchUserInApsBss(user)
+        except Exception as exc:
+            logger.warning("BSS lookup failed (non-fatal): %s", exc)
+
     if not path.exists():
         logger.debug("Creating user directory: %s", path)
         path.mkdir(parents=True)
-        user_data.user_dir.put(str(path))  # set in the PV, we need this in recordUserStart
-        # Obsidian recording, recordUserStart, md file if needed, make recoding about user.
-        recordUserStart()   #if the path did not exist, we need to create a new md file also. 
+        user_data.user_dir.put(str(path))  # set in the PV, needed by recordUserStart
+        recordUserStart(esaf=esaf, proposal=prop)
     else:
         logger.debug("User directory already exists: %s", path)
-        appendToMdFile("") # just ensure the md file exists. If needed, create it. 
+        appendToMdFile("")  # ensure md file exists
 
     logger.debug("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
 
-    _setNeXusFileName(str(path), scan_id=scan_id)   #this sets the path for Nexus file writer.  
-    _setSpecFileName(str(path), scan_id=scan_id)    # this sets the path for spec file writer. 
-    # user_data? This is likely not needed... 
-    user_data.spec_scan.put(scan_id)  # set in the PV    
-    # matchUserInApsbss(user)     # update ESAF & Proposal, if available
-    # TODO: RE.md["proposal_id"] = <proposal ID value from apsbss>
-
-
-
+    _setNeXusFileName(str(path), scan_id=scan_id)
+    _setSpecFileName(str(path), scan_id=scan_id)
+    user_data.spec_scan.put(scan_id)  # set in the PV
 
     logger.info(data)
     return str(path.absolute())
 
 def newSample(sample=None):
     """
-    setup for a new sample name
+    Setup for a new sample name.
 
-    Create (if necessary) new user directory in
-    standard directory with month, day, and
-    given user name as shown in the following table.
-    Each technique (SAXS, USAXS, WAXS) will be
-    reponsible for creating its subdirectory
-    as needed.
+    Updates the sample directory PV and records the new sample in the
+    Obsidian log.  Reads user/date info from the ``.user_info.json`` state
+    file written by :func:`newUser`; raises ``RuntimeError`` if that file is
+    not present (i.e. ``newUser()`` has not been called yet).
+
+    Parameters
+    ----------
+    sample : str, optional
+        Sample directory name.  If None, prompts the user interactively.
+
+    Directory layout created by the combined newUser/newSample workflow:
 
     ======================  ========================
     purpose                 folder
@@ -235,7 +286,6 @@ def newSample(sample=None):
 
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
-    global specwriter
     filename = ".user_info.json"  # Store if a new user was created
     cwd = Path.cwd()
 
@@ -291,51 +341,143 @@ def newSample(sample=None):
 # this works fine:
 #  
 
+
+def _pick_active(records, user: str, now: datetime.datetime):
+    """Return the first record whose date range covers *now* and whose user
+    list contains *user* (case-insensitive last-name match).
+
+    Falls back to the first record that covers *now* if no name match is found,
+    and to the first record overall if none cover *now*.
+    """
+    name_lower = user.strip().lower()
+
+    def covers_now(r):
+        # Strip timezone info before comparing: proposal datetimes from
+        # fromisoformat() may be tz-aware while now and ESAF datetimes are naive.
+        start = r.start.replace(tzinfo=None)
+        end = r.end.replace(tzinfo=None)
+        return start <= now <= end
+
+    def name_match(r):
+        return any(
+            name_lower in u.last_name.lower() or name_lower in u.first_name.lower()
+            for u in r.users
+        )
+
+    active = [r for r in records if covers_now(r)]
+    for r in active:
+        if name_match(r):
+            return r
+    return active[0] if active else (records[0] if records else None)
+
+
+def _clear_bss_pvs():
+    """Clear all ``usxTerms:bss:`` PVs and remove BSS keys from RE.md.
+
+    Called by newUser(skip_bss=True) when no BSS data should be associated
+    with the session (e.g. beamline setup runs without an active ESAF).
+    """
+    bss_device = oregistry["bss"]
+    for sig in (
+        bss_device.esaf.id, bss_device.esaf.title, bss_device.esaf.description,
+        bss_device.esaf.sector, bss_device.esaf.status,
+        bss_device.esaf.start, bss_device.esaf.end,
+        bss_device.esaf.user_last_names, bss_device.esaf.user_badges,
+        bss_device.esaf.pi_name,
+        bss_device.proposal.id, bss_device.proposal.title,
+        bss_device.proposal.start, bss_device.proposal.end,
+        bss_device.proposal.user_last_names, bss_device.proposal.user_badges,
+        bss_device.proposal.pi_name,
+    ):
+        sig.put("")
+    bss_device.esaf.user_count.put(0)
+    bss_device.proposal.user_count.put(0)
+    bss_device.proposal.duration.put(0)
+    bss_device.proposal.mail_in.put(0)
+    bss_device.proposal.proprietary.put(0)
+    RE.md.pop("esaf_id", None)
+    RE.md.pop("proposal_id", None)
+
+
 def matchUserInApsBss(user):
+    """Query the APS BSS REST API for the active ESAF and proposal matching
+    *user*, write all fields to the ``usxTerms:bss:`` PVs, and update
+    ``RE.md`` with the proposal and ESAF IDs.
+
+    Parameters
+    ----------
+    user : str
+        User last name (or first name) to match against BSS records.
+
+    Returns
+    -------
+    tuple[Esaf | None, Proposal | None]
+        The matched ESAF and proposal objects, either of which may be None
+        if no match was found.
     """
-    FInd proposals and ESAFs for user from APS BSS system
-    and set up BSS object.
-    """
-    # get gredentials:
+    bss_device = oregistry["bss"]
+
     credfile = Path("~/.config/dmcredentials").expanduser()
     uname, pwd, stationname, uri = credfile.read_text().splitlines()
-    now = str(datetime.datetime.now())
-    year = now[0:4]
-    # construct cycle from year and moth, it is string representation of year as 4 digits+ "-"+ months 1-4 are 1, 5 to 8 are 2, and 9-12 are 3:
-    month_int = int(now[5:7])
-    if month_int in [1, 2, 3, 4]:
+
+    now = datetime.datetime.now()
+    year = str(now.year)
+    month = now.month
+    if month <= 4:
         cycle = f"{year}-1"
-    elif month_int in [5, 6, 7, 8]:
+    elif month <= 8:
         cycle = f"{year}-2"
     else:
         cycle = f"{year}-3"
-    # for testing, we can hardcode cycle:
-    #cycle = 2026-1
 
-    #print("uname, pwd, stationname, uri:", uname, pwd, stationname, uri)
-    bss = BssApi(username=uname, password=pwd, station_name=stationname, uri=uri)
-    esafs_all = bss.esafs(beamline="12-ID-E", year=year)
-    #props = bss.proposals(beamline="12-ID-E", cycle="2026-1")
-    print (f"Total ESAFs found: {len(esafs_all)}")
-    print(esafs_all[0] if esafs_all else "No ESAFs found")
-    print("finish me") #TODO
-    # this is esaf structure we get:
-    # esaf_id='289320' 
-    # description='Initial setup and setup between different experiments.  Only the standard beamline equipment and equipment from the APS detector pool will be used. The listed metal foils(~5µm thick, commercial standard EXAFS reference foil sets) will be used for the energy calibration.\r\n\r\nIn addition to normal procedure for commissioning, mail-in samples from user groups will be performed; mounting samples in person, and taking the measurement on their behalf remotely.' 
-    # sector='12' 
-    # title='12-BM Commissioning and Experimental Setup (2026-1)' 
-    # start=datetime.datetime(2026, 2, 2, 8, 0) 
-    # end=datetime.datetime(2026, 4, 22, 8, 0) 
-    # status='Pending' 
-    # users=[User(badge='57623', first_name='Sungsik', last_name='Lee', email='sungsiklee@anl.gov', is_pi=True, institution=None), 
-    #       User(badge='55332', first_name='Benjamin', last_name='Reinhart', email='reinhart@aps.anl.gov', is_pi=False, institution=None), 
-    #       User(badge='34965', first_name='Charles', last_name='Kurtz', email='ckurtz@anl.gov', is_pi=False, institution=None)]
+    with BssApi(username=uname, password=pwd, station_name=stationname, uri=uri) as api:
+        esafs_all = api.esafs(beamline="12-ID-E", year=year)
+        props_all = api.proposals(beamline="12-ID-E", cycle=cycle)
 
+    logger.info("BSS: found %d ESAFs, %d proposals for %s/%s", len(esafs_all), len(props_all), year, cycle)
 
-    #esaf_id = _pick_esaf(esafs_all, user, now)
-    #print(esaf_id)
-     #print(esafs[0].esaf_id, esafs[0].title)
-    #print(props[0].proposal_id, props[0].title)
+    esaf = _pick_active(esafs_all, user, now)
+    prop = _pick_active(props_all, user, now)
+
+    if esaf is None:
+        logger.warning("BSS: no matching ESAF found for user %r", user)
+    else:
+        pi_users = [u for u in esaf.users if u.is_pi]
+        pi = pi_users[0] if pi_users else esaf.users[0]
+        bss_device.esaf.id.put(esaf.esaf_id)
+        bss_device.esaf.title.put(esaf.title[:254])
+        bss_device.esaf.description.put(esaf.description[:2047])
+        bss_device.esaf.sector.put(esaf.sector)
+        bss_device.esaf.status.put(esaf.status)
+        bss_device.esaf.start.put(str(esaf.start))
+        bss_device.esaf.end.put(str(esaf.end))
+        bss_device.esaf.user_count.put(len(esaf.users))
+        bss_device.esaf.user_last_names.put(", ".join(u.last_name for u in esaf.users)[:254])
+        bss_device.esaf.user_badges.put(", ".join(u.badge for u in esaf.users)[:254])
+        bss_device.esaf.pi_name.put(f"{pi.first_name} {pi.last_name}")
+        RE.md["esaf_id"] = esaf.esaf_id
+        logger.info("BSS: ESAF %s — %s", esaf.esaf_id, esaf.title)
+
+    if prop is None:
+        logger.warning("BSS: no matching proposal found for user %r", user)
+    else:
+        pi_users = [u for u in prop.users if u.is_pi]
+        pi = pi_users[0] if pi_users else prop.users[0]
+        bss_device.proposal.id.put(prop.proposal_id)
+        bss_device.proposal.title.put(prop.title[:254])
+        bss_device.proposal.start.put(str(prop.start))
+        bss_device.proposal.end.put(str(prop.end))
+        bss_device.proposal.duration.put(prop.duration.total_seconds() / 3600)
+        bss_device.proposal.mail_in.put(1 if prop.mail_in else 0)
+        bss_device.proposal.proprietary.put(1 if prop.proprietary else 0)
+        bss_device.proposal.user_count.put(len(prop.users))
+        bss_device.proposal.user_last_names.put(", ".join(u.last_name for u in prop.users)[:254])
+        bss_device.proposal.user_badges.put(", ".join(u.badge for u in prop.users)[:254])
+        bss_device.proposal.pi_name.put(f"{pi.first_name} {pi.last_name}")
+        RE.md["proposal_id"] = prop.proposal_id
+        logger.info("BSS: proposal %s — %s", prop.proposal_id, prop.title)
+
+    return esaf, prop
 
 # this shoudl find esafs 
 # import datetime as dt
