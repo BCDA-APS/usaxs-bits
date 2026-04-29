@@ -75,15 +75,15 @@ server:
   frontend_port: 8000
 
 bits:
-  path: /Users/ecodrea/tomo-bits
-  instrument_name: tomo_2bm
+  path: /Users/ecodrea/usaxs-bits
+  instrument_name: usaxs
   # All BITS-derived paths below are optional. When unset, they default to:
   #   skills_dir         -> {bits.path}/.claude/skills/ophyd-device-control
   #   queueserver_script -> {bits.path}/scripts/{instrument_name}_qs_host.sh
   #   oas_startup_file   -> bait's bundled default_oas_startup.py (sim devices)
   # skills_dir: /custom/path
   # queueserver_script: /custom/qs_host.sh
-  # oas_startup_file: /Users/ecodrea/tomo-bits/oas_startup.py
+  # oas_startup_file: /Users/ecodrea/usaxs-bits/oas_startup.py
 
 ophyd_websocket:
   enabled: true

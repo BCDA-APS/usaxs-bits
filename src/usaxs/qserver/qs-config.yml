@@ -32,7 +32,7 @@ operation:
 
 startup:
     keep_re: true
-    startup_module: tomo_2bm.startup
+    startup_module: usaxs.startup
     existing_plans_and_devices_path: ./
     user_group_permissions_path: ./
 
