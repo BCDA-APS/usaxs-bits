@@ -1,0 +1,96 @@
+project:
+  name: usaxs
+  data_dir: .bait-usaxs
+
+documentation:
+  git_repos:
+  local_folders: []
+
+retriever:
+  k: 3
+  search_type: similarity
+  score_threshold: null
+
+embedding:
+  provider: anl_argo
+  api_key: ecodrea
+  model: 'text-embedding-3-large'
+  device: cpu
+  argo_base_url: https://apps-dev.inside.anl.gov/argoapi/v1
+
+agents:
+  router:
+    model: claudeopus46
+    api_type: anthropic
+    api_key: ecodrea
+    argo_base_url: https://apps.inside.anl.gov/argoapi/v1
+    system_prompt: |
+      You are a question classifier for a beamline instrument system.
+
+      Classify the user's question into exactly one category:
+      - "documentation": Questions about beamline documentation, experimental procedures,
+        how-to guides, configuration, or general usage.
+      - "device": Questions about ophyd devices, EPICS PVs, signals, motors, detectors,
+        shutters, scan parameters, Bluesky plans, or hardware interaction.
+
+      Respond with ONLY the category name, nothing else.
+  doc_agent:
+    model: claudeopus46
+    api_type: anthropic
+    api_key: ecodrea
+    argo_base_url: https://apps.inside.anl.gov/argoapi/v1
+    system_prompt: |
+      You are an expert on this project's documentation. When answering questions:
+      1. Answer based *only* on the context from your 'query_documentation' tool
+      2. Provide concise but complete responses (2-3 paragraphs)
+      3. For "how to" questions, provide step-by-step numbered instructions
+      4. Include relevant source links from the context (documentation URLs, GitHub, PyPI, etc.)
+      5. If the context is insufficient, say so. Do not make up answers.
+  bits_agent:
+    model: claudeopus46
+    api_type: anthropic
+    api_key: ecodrea
+    argo_base_url: https://apps.inside.anl.gov/argoapi/v1
+    system_prompt: |
+      You are an expert on BITS (Beamline Instrument and Tool Suite) devices,
+      ophyd signals, EPICS PVs, scan parameters, and Bluesky plans for this beamline.
+
+      Answer questions about devices, their signals, PV names, scan configuration,
+      and how to interact with hardware using ophyd and Bluesky.
+
+      Base your answers on the device reference below. If the reference does not
+      contain enough information, say so. Do not invent PV names or device attributes.
+
+      You can call read_device(name, component) to fetch a current device value, and set_device(name, value, component) to propose a write.
+      set_device DOES NOT execute immediately — it stages the change for the user to confirm in the UI.
+      When you call set_device, follow up with a one-line summary of what the user will be approving and STOP.
+
+text_processing:
+  chunk_size: 1000
+  chunk_overlap: 200
+server:
+  backend_host: 127.0.0.1
+  backend_port: 8001
+  frontend_host: 0.0.0.0
+  frontend_port: 8000
+
+bits:
+  path: /Users/ecodrea/tomo-bits
+  instrument_name: tomo_2bm
+  # All BITS-derived paths below are optional. When unset, they default to:
+  #   skills_dir         -> {bits.path}/.claude/skills/ophyd-device-control
+  #   queueserver_script -> {bits.path}/scripts/{instrument_name}_qs_host.sh
+  #   oas_startup_file   -> bait's bundled default_oas_startup.py (sim devices)
+  # skills_dir: /custom/path
+  # queueserver_script: /custom/qs_host.sh
+  # oas_startup_file: /Users/ecodrea/tomo-bits/oas_startup.py
+
+ophyd_websocket:
+  enabled: true
+  auto_start: true
+  repo_path: /Users/ecodrea/ophyd-websocket
+  host: localhost
+  port: 8002
+  require_qserver: true
+  # OAS needs ophyd, which lives in the tomo_bits conda env (bait's .venv has none).
+  python_executable: /opt/homebrew/Caskroom/miniforge/base/envs/tomo_bits/bin/python
