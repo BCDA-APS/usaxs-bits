@@ -13,7 +13,7 @@ retriever:
 
 embedding:
   provider: anl_argo
-  api_key: ecodrea
+  api_key: ilavsky
   model: 'text-embedding-3-large'
   device: cpu
   argo_base_url: https://apps-dev.inside.anl.gov/argoapi/v1
@@ -22,7 +22,7 @@ agents:
   router:
     model: claudeopus46
     api_type: anthropic
-    api_key: ecodrea
+    api_key: ilavsky
     argo_base_url: https://apps.inside.anl.gov/argoapi/v1
     system_prompt: |
       You are a question classifier for a beamline instrument system.
@@ -37,7 +37,7 @@ agents:
   doc_agent:
     model: claudeopus46
     api_type: anthropic
-    api_key: ecodrea
+    api_key: ilavsky
     argo_base_url: https://apps.inside.anl.gov/argoapi/v1
     system_prompt: |
       You are an expert on this project's documentation. When answering questions:
@@ -49,7 +49,7 @@ agents:
   bits_agent:
     model: claudeopus46
     api_type: anthropic
-    api_key: ecodrea
+    api_key: ilavsky
     argo_base_url: https://apps.inside.anl.gov/argoapi/v1
     system_prompt: |
       You are an expert on BITS (Beamline Instrument and Tool Suite) devices,
