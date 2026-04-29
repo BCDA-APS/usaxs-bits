@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 keywords = []
 classifiers = []
-dependencies = [ "apsbits"]
+dependencies = [ "apsbits", "httpx", "bluesky-httpserver",]
 
 authors = [
     { name = "Eric Codrea", email = "ecodrea@anl.gov" },
