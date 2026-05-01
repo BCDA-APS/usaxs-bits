@@ -54,6 +54,7 @@ class usaxs_calculated_signal(Device):
 
     value = Component(EpicsSignalRO, ".VAL", kind="hinted")
 
+
 def _gain_to_str_(gain):  # convenience function
     return ("%.0e" % gain).replace("+", "").replace("e0", "e")
 
@@ -119,7 +120,7 @@ class FemtoAmplifierDevice(CurrentAmplifierDevice):
         self.gain_suffix = s[s.find(" ") :]
         for i, s in enumerate(acceptable[:num_gains]):
             # verify all gains use same suffix text
-            if s[s.find(" "):] != self.gain_suffix:
+            if s[s.find(" ") :] != self.gain_suffix:
                 raise ValueError(
                     f"gainindex[{i}] = {s}, expected ending '{self.gain_suffix}'"
                 )
@@ -257,7 +258,7 @@ class AmplifierAutoDevice(CurrentAmplifierDevice):
         self.gain_suffix = s[s.find(" ") :]
         for i, s in enumerate(acceptable[:num_gains]):
             # verify all gains use same suffix text
-            if s[s.find(" "):] != self.gain_suffix:
+            if s[s.find(" ") :] != self.gain_suffix:
                 raise ValueError(
                     f"reqrange[{i}] = {s}, expected ending: '{self.gain_suffix}'"
                 )

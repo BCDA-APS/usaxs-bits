@@ -212,7 +212,9 @@ def linkam_wang(
         """
         logger.debug(
             "change_rate_and_temperature: rate=%s °C/min, target=%s °C, wait=%s",
-            rate, t, wait,
+            rate,
+            t,
+            wait,
         )
         yield from bps.mv(linkam.ramprate.setpoint, rate)
         yield from linkam.set_target(t, wait=wait)
@@ -226,7 +228,8 @@ def linkam_wang(
     isDebugMode = linkam_debug.get()
     logger.info(
         "Starting linkam_wang | sample=%s | debug=%s",
-        scan_title, isDebugMode,
+        scan_title,
+        isDebugMode,
     )
 
     # -------------------------------------------------------------------------
@@ -248,7 +251,12 @@ def linkam_wang(
     logger.info(
         "Plan parameters: temp1=%s C, rate1=%s C/min, delay1=%s min, "
         "rate2=%s C/min, temp2=%s C, delay2=%s min",
-        temp1, rate1, delay1, rate2, temp2, delay2,
+        temp1,
+        rate1,
+        delay1,
+        rate2,
+        temp2,
+        delay2,
     )
 
     # -------------------------------------------------------------------------
@@ -269,7 +277,9 @@ def linkam_wang(
     # wait=True blocks until temp1 is reached before continuing.
     # -------------------------------------------------------------------------
     logger.info("Heating to %s C at %s C/min (no data during heating)", temp1, rate1)
-    appendToMdFile(f"Heating to {temp1} C at {rate1} C/min — no data collection during ramp")
+    appendToMdFile(
+        f"Heating to {temp1} C at {rate1} C/min — no data collection during ramp"
+    )
     yield from change_rate_and_temperature(rate1, temp1, wait=True)
 
     # Reset t0 so file names count elapsed time from arrival at temp1.
@@ -291,14 +301,18 @@ def linkam_wang(
         yield from collectAllThree(isDebugMode)
 
     logger.info("Hold complete (%s min). Cooling to %s C.", delay1, temp2)
-    appendToMdFile(f"Hold complete ({delay1} min). Cooling to {temp2} C at {rate2} C/min.")
+    appendToMdFile(
+        f"Hold complete ({delay1} min). Cooling to {temp2} C at {rate2} C/min."
+    )
 
     # -------------------------------------------------------------------------
     # BLOCK 5: Cool to temp2 — no data collection during cooling
     # wait=True blocks until temp2 is reached before continuing.
     # -------------------------------------------------------------------------
     logger.info("Cooling to %s C at %s C/min (no data during cooling)", temp2, rate2)
-    appendToMdFile(f"Cooling to {temp2} C at {rate2} C/min — no data collection during cooling")
+    appendToMdFile(
+        f"Cooling to {temp2} C at {rate2} C/min — no data collection during cooling"
+    )
     yield from change_rate_and_temperature(rate2, temp2, wait=True)
 
     # Reset t0 so file names count elapsed time from arrival at temp2.
@@ -314,12 +328,17 @@ def linkam_wang(
     while time.time() < collect_until:
         logger.debug(
             "Collect loop at %s C: %.1f min remaining",
-            temp2, (collect_until - time.time()) / MINUTE,
+            temp2,
+            (collect_until - time.time()) / MINUTE,
         )
         yield from collectAllThree(isDebugMode)
 
-    logger.info("Data collection at %s C complete (%s min). Plan finished.", temp2, delay2)
-    appendToMdFile(f"Data collection at {temp2} C complete ({delay2} min). Plan finished: {scan_title}")
+    logger.info(
+        "Data collection at %s C complete (%s min). Plan finished.", temp2, delay2
+    )
+    appendToMdFile(
+        f"Data collection at {temp2} C complete ({delay2} min). Plan finished: {scan_title}"
+    )
 
     # -------------------------------------------------------------------------
     # BLOCK 7: Teardown

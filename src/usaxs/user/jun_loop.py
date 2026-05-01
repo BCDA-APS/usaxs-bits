@@ -29,7 +29,7 @@ from usaxs.plans.plans_usaxs import USAXSscan
 from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal
-from usaxs.utils.obsidian import appendToMdFile 
+from usaxs.utils.obsidian import appendToMdFile
 
 # define conversions from seconds
 SECOND = 1
@@ -60,21 +60,18 @@ def junFiniteMultiPosLoop(delay1minutes, md={}):
     """
     # ListOfSamples = [[pos_X, pos_Y, thickness, scan_title],
     ListOfSamples = [
-    
-    #    [15, 55, 4.0, "carbonatewater_blank_Ctr"],  	                    # Point1
-         [25, 50, 4.0, "hco3-10mg2co-cl-insitu-1"],  		# Point2
-         [35, 50, 4.0, "hco3-10mg2co2ni-cl-insitu-1"], 	    # Point3
-    #    [45, 50, 4.0, "ctr-alg15-120"], 		# Point4
-    #    [55, 50, 4.0, "ctr-lys15-120"], 	        # Point5
-    #    [65, 50, 4.0, "ctr-ca55-120"], 	    # Point6
-    #    [75, 50, 4.0, "ctr-ca55-paa-120"], 	    # Point7
-    #    [85, 50, 4.0, "ctr-ca55-pei-120"], 	    # Point8
-    #    [95, 50, 4.0, "ctr-ca55-alg-120"], 	# Point9
-    #    [105, 50, 4.0, "ctr-ca55-lys-120"], 	# Point10
-    #    [115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"], 	    # Point11
-	
+        #    [15, 55, 4.0, "carbonatewater_blank_Ctr"],  	                    # Point1
+        [25, 50, 4.0, "hco3-10mg2co-cl-insitu-1"],  # Point2
+        [35, 50, 4.0, "hco3-10mg2co2ni-cl-insitu-1"],  # Point3
+        #    [45, 50, 4.0, "ctr-alg15-120"], 		# Point4
+        #    [55, 50, 4.0, "ctr-lys15-120"], 	        # Point5
+        #    [65, 50, 4.0, "ctr-ca55-120"], 	    # Point6
+        #    [75, 50, 4.0, "ctr-ca55-paa-120"], 	    # Point7
+        #    [85, 50, 4.0, "ctr-ca55-pei-120"], 	    # Point8
+        #    [95, 50, 4.0, "ctr-ca55-alg-120"], 	# Point9
+        #    [105, 50, 4.0, "ctr-ca55-lys-120"], 	# Point10
+        #    [115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"], 	    # Point11
     ]
-    
 
     # ListOfSamples = [[ 66.4, 20, 4.0, "H3S2H"],	#tube 4
     #                 ]
@@ -83,18 +80,18 @@ def junFiniteMultiPosLoop(delay1minutes, md={}):
         return f"{scan_title}" f"_{(time.time()-t0):.0f}sec"
 
     def collectAllThree():
-            yield from sync_order_numbers()
-            sampleMod = setSampleName()
-            md["title"] = sampleMod
-            yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
-            sampleMod = setSampleName()
-            md["title"] = sampleMod
-            yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
-            sampleMod = setSampleName()
-            md["title"] = sampleMod
-            yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+        yield from sync_order_numbers()
+        sampleMod = setSampleName()
+        md["title"] = sampleMod
+        yield from USAXSscan(pos_X, pos_Y, thickness, sampleMod, md={})
+        sampleMod = setSampleName()
+        md["title"] = sampleMod
+        yield from saxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
+        sampleMod = setSampleName()
+        md["title"] = sampleMod
+        yield from waxsExp(pos_X, pos_Y, thickness, sampleMod, md={})
 
-    #here starts execution
+    # here starts execution
     yield from before_command_list()  # this will run usual startup scripts for scans
 
     t0 = time.time()  # mark start time of data collection.
@@ -111,11 +108,12 @@ def junFiniteMultiPosLoop(delay1minutes, md={}):
     ):  # collects USAXS/SAXS/WAXS data while holding at temp1
         for pos_X, pos_Y, thickness, scan_title in ListOfSamples:
             yield from collectAllThree()
-            #yield from bps.sleep(3*60)
+            # yield from bps.sleep(3*60)
 
     logger.info("finished")  # record end.
 
     yield from after_command_list()  # runs standard after scan scripts.
+
 
 #####################################################################################
 def myFiniteListLoop(delay1minutes, md={}):

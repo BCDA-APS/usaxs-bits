@@ -90,7 +90,7 @@ ptc10 = oregistry["ptc10"]
 # Convenient time-unit constants.
 SECOND = 1
 MINUTE = 60 * SECOND
-HOUR   = 60 * MINUTE
+HOUR = 60 * MINUTE
 
 # Debug / dry-run flag.  Set at the IPython prompt before calling RE():
 #   ptc10_debug.put(True)   → debug mode (no instrument motion, 20 s sleep per collection)
@@ -106,11 +106,14 @@ COOL_TOLERANCE = 2.0  # °C — arrival band
 # HEATER UTILITIES
 # ==============================================================================
 
+
 def setheaterOff():
     """Power down the PTC10 heater and stop the PID control loop."""
     yield from bps.mv(
-        ptc10.enable, "Off",
-        ptc10.pid.pidmode, "Off",
+        ptc10.enable,
+        "Off",
+        ptc10.pid.pidmode,
+        "Off",
     )
 
 
@@ -121,8 +124,10 @@ def setheaterOn():
     Always call AFTER setting ptc10.ramp and ptc10.temperature.setpoint.
     """
     yield from bps.mv(
-        ptc10.enable, "On",
-        ptc10.pid.pidmode, "On",
+        ptc10.enable,
+        "On",
+        ptc10.pid.pidmode,
+        "On",
     )
 
 
@@ -130,7 +135,20 @@ def setheaterOn():
 # MAIN PLAN
 # ==============================================================================
 
-def ptc10Patra(sample_name, sx, sy, thickness, temp_target, rate_heat, hold_time, temp_step=50.0, step_wait=3.0, waxs_only=False, md={}):
+
+def ptc10Patra(
+    sample_name,
+    sx,
+    sy,
+    thickness,
+    temp_target,
+    rate_heat,
+    hold_time,
+    temp_step=50.0,
+    step_wait=3.0,
+    waxs_only=False,
+    md={},
+):
     """
     Collect RT baseline, step-heat to temp_target, hold and collect, then cool and collect final.
 
@@ -179,7 +197,7 @@ def ptc10Patra(sample_name, sx, sy, thickness, temp_target, rate_heat, hold_time
     def getSampleName():
         """Build scan name encoding PTC10 temp and elapsed time."""
         ptc_temp = ptc10.position
-        elapsed  = (time.time() - t0) / MINUTE
+        elapsed = (time.time() - t0) / MINUTE
         return f"{sample_name}_{ptc_temp:.0f}C_{elapsed:.0f}min"
 
     def collectData(debug=False):
@@ -215,7 +233,16 @@ def ptc10Patra(sample_name, sx, sy, thickness, temp_target, rate_heat, hold_time
     logger.info(
         "Starting ptc10Patra | sample=%s | pos=(%.2f, %.2f) | thickness=%.2f mm | "
         "target=%.0f C @ %.0f C/min | step=%.0f C | step_wait=%.0f min | hold=%.0f min | debug=%s",
-        sample_name, sx, sy, thickness, temp_target, rate_heat, temp_step, step_wait, hold_time, isDebugMode,
+        sample_name,
+        sx,
+        sy,
+        thickness,
+        temp_target,
+        rate_heat,
+        temp_step,
+        step_wait,
+        hold_time,
+        isDebugMode,
     )
 
     # --- Block 1: Startup ---------------------------------------------------
@@ -253,7 +280,11 @@ def ptc10Patra(sample_name, sx, sy, thickness, temp_target, rate_heat, hold_time
 
     logger.info(
         "Stepwise heating: %d steps to %.0f C | +%.0f C/step | %.0f min wait | %.0f C/min",
-        len(step_temps), temp_target, temp_step, step_wait, rate_heat,
+        len(step_temps),
+        temp_target,
+        temp_step,
+        step_wait,
+        rate_heat,
     )
     appendToMdFile(
         f"Stepwise heating: {len(step_temps)} steps → {temp_target} °C "
@@ -261,10 +292,10 @@ def ptc10Patra(sample_name, sx, sy, thickness, temp_target, rate_heat, hold_time
     )
 
     # Set ramp rate and turn heater on for the first step.
-    yield from bps.mv(ptc10.ramp, rate_heat / 60.0)           # °C/min → °C/s
+    yield from bps.mv(ptc10.ramp, rate_heat / 60.0)  # °C/min → °C/s
     yield from bps.mv(ptc10.temperature.setpoint, step_temps[0])
     yield from setheaterOn()
-    t0 = time.time()   # reset: elapsed time counted from heater-on
+    t0 = time.time()  # reset: elapsed time counted from heater-on
 
     for i, step_temp in enumerate(step_temps):
         if i > 0:
@@ -274,10 +305,17 @@ def ptc10Patra(sample_name, sx, sy, thickness, temp_target, rate_heat, hold_time
         appendToMdFile(f"Step {i + 1}/{len(step_temps)}: heating to {step_temp:.0f} °C")
 
         while not ptc10.temperature.inposition:
-            logger.debug("Step %d: PTC10=%.1f C → %.0f C", i + 1, ptc10.position, step_temp)
+            logger.debug(
+                "Step %d: PTC10=%.1f C → %.0f C", i + 1, ptc10.position, step_temp
+            )
             yield from bps.sleep(15)
 
-        logger.info("Step %d: at %.0f C — waiting %.0f min before collecting", i + 1, step_temp, step_wait)
+        logger.info(
+            "Step %d: at %.0f C — waiting %.0f min before collecting",
+            i + 1,
+            step_temp,
+            step_wait,
+        )
         yield from bps.sleep(step_wait * MINUTE)
 
         logger.info("Step %d: collecting data at PTC10=%.1f C", i + 1, ptc10.position)
@@ -289,7 +327,9 @@ def ptc10Patra(sample_name, sx, sy, thickness, temp_target, rate_heat, hold_time
     # --- Block 4: Hold at temp_target and collect ---------------------------
     hold_end = time.time() + hold_time * MINUTE
     sweep = 0
-    logger.info("Holding at %.0f C for %.0f min — collecting data", temp_target, hold_time)
+    logger.info(
+        "Holding at %.0f C for %.0f min — collecting data", temp_target, hold_time
+    )
     appendToMdFile(f"Hold at {temp_target} °C for {hold_time} min — collecting data")
 
     while time.time() < hold_end:
@@ -297,7 +337,9 @@ def ptc10Patra(sample_name, sx, sy, thickness, temp_target, rate_heat, hold_time
         remaining = (hold_end - time.time()) / MINUTE
         logger.info(
             "Hold sweep %d | PTC10=%.1f C | %.1f min remaining",
-            sweep, ptc10.position, remaining,
+            sweep,
+            ptc10.position,
+            remaining,
         )
         yield from collectData(isDebugMode)
 

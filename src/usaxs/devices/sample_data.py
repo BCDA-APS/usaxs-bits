@@ -47,17 +47,13 @@ class SampleDataDevice(Device):
     magnetic_field_dir = Component(
         EpicsSignal, "usxSample:MagneticFieldDir", string=True
     )
-    stress_field_dir = Component(
-        EpicsSignal, "usxSample:StressFieldDir", string=True
-    )
+    stress_field_dir = Component(EpicsSignal, "usxSample:StressFieldDir", string=True)
     electric_field_dir = Component(
         EpicsSignal, "usxSample:ElectricFieldDir", string=True
     )
 
     description = Component(EpicsSignal, "usxSample:Description", string=True)
-    chemical_formula = Component(
-        EpicsSignal, "usxSample:ChemicalFormula", string=True
-    )
+    chemical_formula = Component(EpicsSignal, "usxSample:ChemicalFormula", string=True)
 
     def resetAll(self):
         """Bluesky plan: reset all sample fields to their default values.

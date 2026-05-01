@@ -209,10 +209,9 @@ SampleList = [
 # TEMPLATE 1: Single fixed position, time-based loop
 # ==============================================================================
 
+
 # DO NOT MODIFY THIS TEMPLATE — copy to a new file and rename.
-def myFiniteLoop_AI_template(
-    pos_X, pos_Y, thickness, scan_title, delay_min, md={}
-):
+def myFiniteLoop_AI_template(pos_X, pos_Y, thickness, scan_title, delay_min, md={}):
     """
     Collect USAXS/SAXS/WAXS at one fixed position for delay_min minutes.
 
@@ -292,7 +291,11 @@ def myFiniteLoop_AI_template(
     logger.info(
         "Starting myFiniteLoop_AI_template | sample=%s | pos=(%.2f, %.2f) "
         "| duration=%s min | debug=%s",
-        scan_title, pos_X, pos_Y, delay_min, isDebugMode,
+        scan_title,
+        pos_X,
+        pos_Y,
+        delay_min,
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -315,7 +318,8 @@ def myFiniteLoop_AI_template(
     while time.time() < checkpoint:
         logger.debug(
             "Loop %d: %.1f min remaining",
-            loop_count, (checkpoint - time.time()) / MINUTE,
+            loop_count,
+            (checkpoint - time.time()) / MINUTE,
         )
         yield from collectAllThree(isDebugMode)
         loop_count += 1
@@ -323,7 +327,8 @@ def myFiniteLoop_AI_template(
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
         "myFiniteLoop_AI_template finished | %d rounds | %.1f min elapsed",
-        loop_count, elapsed_min,
+        loop_count,
+        elapsed_min,
     )
     appendToMdFile(
         f"Finite loop complete: {scan_title}, "
@@ -341,6 +346,7 @@ def myFiniteLoop_AI_template(
 # USAXS→SAXS→WAXS at each position before moving to the next.
 # Uses module-level SampleList.
 # ==============================================================================
+
 
 # DO NOT MODIFY THIS TEMPLATE — copy to a new file and rename.
 def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
@@ -396,7 +402,9 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
         """
         if debug:
             sampleMod = getSampleName(scan_title)
-            print(f"[DEBUG] collectAllThree [{scan_title}]: {sampleMod}  pos=({pos_X}, {pos_Y})")
+            print(
+                f"[DEBUG] collectAllThree [{scan_title}]: {sampleMod}  pos=({pos_X}, {pos_Y})"
+            )
             yield from bps.sleep(20)
         else:
             yield from sync_order_numbers()
@@ -422,7 +430,9 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
     logger.info(
         "Starting myFiniteMultiPosLoop_AI_template | %d positions | "
         "duration=%s min | debug=%s",
-        len(SampleList), delay_min, isDebugMode,
+        len(SampleList),
+        delay_min,
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -447,7 +457,8 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
     while time.time() < checkpoint:
         logger.debug(
             "Round %d: %.1f min remaining",
-            round_count, (checkpoint - time.time()) / MINUTE,
+            round_count,
+            (checkpoint - time.time()) / MINUTE,
         )
         for pos_X, pos_Y, thickness, scan_title in SampleList:
             yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)
@@ -456,7 +467,8 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
         "myFiniteMultiPosLoop_AI_template finished | %d rounds | %.1f min elapsed",
-        round_count, elapsed_min,
+        round_count,
+        elapsed_min,
     )
     appendToMdFile(
         f"Multi-position finite loop complete: {len(SampleList)} positions, "
@@ -474,6 +486,7 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
 # all-USAXS → all-SAXS → all-WAXS per complete round.
 # Uses module-level SampleList. Sample names use an integer counter.
 # ==============================================================================
+
 
 # DO NOT MODIFY THIS TEMPLATE — copy to a new file and rename.
 def myFiniteListLoop_AI_template(delay_min, md={}):
@@ -573,7 +586,9 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
     logger.info(
         "Starting myFiniteListLoop_AI_template (grouped detectors) | "
         "%d positions | duration=%s min | debug=%s",
-        len(SampleList), delay_min, isDebugMode,
+        len(SampleList),
+        delay_min,
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -593,13 +608,15 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
 
     logger.info(
         "Grouped detector collection (%d samples/round) for %s minutes",
-        len(SampleList), delay_min,
+        len(SampleList),
+        delay_min,
     )
 
     while time.time() < checkpoint:
         logger.debug(
             "Round %d: %.1f min remaining",
-            counter, (checkpoint - time.time()) / MINUTE,
+            counter,
+            (checkpoint - time.time()) / MINUTE,
         )
         yield from collectRound(isDebugMode)
         counter += 1
@@ -607,7 +624,8 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
         "myFiniteListLoop_AI_template finished | %d rounds | %.1f min elapsed",
-        counter, elapsed_min,
+        counter,
+        elapsed_min,
     )
     appendToMdFile(
         f"Grouped-detector finite loop complete: {len(SampleList)} positions, "
@@ -625,6 +643,7 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
 # Collection order: USAXS→SAXS→WAXS per position, per iteration.
 # Sample names encode the iteration number.
 # ==============================================================================
+
 
 # DO NOT MODIFY THIS TEMPLATE — copy to a new file and rename.
 def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
@@ -721,7 +740,11 @@ def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
     logger.info(
         "Starting myFiniteYDriftLoop_AI_template | %d iterations | "
         "yOffset=%.3f mm (total %.2f mm) | %d samples | debug=%s",
-        numIterations, yOffset, total_y, len(SampleList), isDebugMode,
+        numIterations,
+        yOffset,
+        total_y,
+        len(SampleList),
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -742,7 +765,9 @@ def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
         elapsed_min = (time.time() - t0) / MINUTE
         logger.info(
             "Iteration %d/%d  (%.1f min elapsed)",
-            iteration + 1, numIterations, elapsed_min,
+            iteration + 1,
+            numIterations,
+            elapsed_min,
         )
         for pos_X, pos_Y_nominal, thickness, scan_title in SampleList:
             # Apply the cumulative Y drift for this iteration.
@@ -752,7 +777,8 @@ def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
         "myFiniteYDriftLoop_AI_template finished | %d iterations | %.1f min total",
-        numIterations, elapsed_min,
+        numIterations,
+        elapsed_min,
     )
     appendToMdFile(
         f"Y-drift finite loop complete: {numIterations} iterations, "

@@ -416,7 +416,9 @@ def myLinkamPlan_AI_template(
         """
         logger.debug(
             "change_rate_and_temperature: rate=%s °C/min, target=%s °C, wait=%s",
-            rate, t, wait,
+            rate,
+            t,
+            wait,
         )
         yield from bps.mv(linkam.ramprate.setpoint, rate)
         yield from linkam.set_target(t, wait=wait)
@@ -432,7 +434,8 @@ def myLinkamPlan_AI_template(
     recordFunctionRun()
     logger.info(
         "Starting myLinkamPlan_AI_template | sample=%s | debug=%s",
-        scan_title, isDebugMode,
+        scan_title,
+        isDebugMode,
     )
 
     # -------------------------------------------------------------------------
@@ -456,7 +459,11 @@ def myLinkamPlan_AI_template(
     logger.info(
         "Plan parameters: temp_target=%s C, rate_heat=%s C/min, "
         "hold=%s min, temp_final=%s C, rate_cool=%s C/min",
-        temp_target, rate_heat, delay_hold_min, temp_final, rate_cool,
+        temp_target,
+        rate_heat,
+        delay_hold_min,
+        temp_final,
+        rate_cool,
     )
 
     # -------------------------------------------------------------------------
@@ -482,7 +489,9 @@ def myLinkamPlan_AI_template(
     # -------------------------------------------------------------------------
     logger.info(
         "Heating to %s C at %s C/min (collect_during_heat=%s)",
-        temp_target, rate_heat, collect_during_heat,
+        temp_target,
+        rate_heat,
+        collect_during_heat,
     )
     appendToMdFile(
         f"Heating to {temp_target} C at {rate_heat} C/min"
@@ -494,7 +503,10 @@ def myLinkamPlan_AI_template(
         # WAXS is fastest (2–3 min/frame) for maximum time resolution.
         yield from change_rate_and_temperature(rate_heat, temp_target, wait=False)
         while not linkam.temperature.inposition:
-            logger.debug("Collecting WAXS during heating ramp (T=%.1f C)", linkam.temperature.position)
+            logger.debug(
+                "Collecting WAXS during heating ramp (T=%.1f C)",
+                linkam.temperature.position,
+            )
             yield from collectWAXS(isDebugMode)
     else:
         # Silent ramp: block here until temp_target is reached, then continue.
@@ -532,7 +544,9 @@ def myLinkamPlan_AI_template(
     # -------------------------------------------------------------------------
     logger.info(
         "Cooling to %s C at %s C/min (collect_during_cool=%s)",
-        temp_final, rate_cool, collect_during_cool,
+        temp_final,
+        rate_cool,
+        collect_during_cool,
     )
     appendToMdFile(
         f"Cooling to {temp_final} C at {rate_cool} C/min"
@@ -542,7 +556,9 @@ def myLinkamPlan_AI_template(
     if collect_during_cool:
         yield from change_rate_and_temperature(rate_cool, temp_final, wait=False)
         while not linkam.temperature.inposition:
-            logger.debug("Collecting WAXS during cooling (T=%.1f C)", linkam.temperature.position)
+            logger.debug(
+                "Collecting WAXS during cooling (T=%.1f C)", linkam.temperature.position
+            )
             yield from collectWAXS(isDebugMode)
     else:
         yield from change_rate_and_temperature(rate_cool, temp_final, wait=True)

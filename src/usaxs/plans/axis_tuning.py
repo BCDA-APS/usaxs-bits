@@ -253,7 +253,7 @@ def find_ar(md: Optional[dict] = None):
         trim_plot_by_name(5)
         # control BEC plotting since we use upd_photocurrent_calc
         scaler0.kind = "normal"
-        scaler0.select_channels([])         # no scaler channels plotted
+        scaler0.select_channels([])  # no scaler channels plotted
         stats = SignalStatsCallback()
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],
@@ -428,7 +428,7 @@ def find_a2rp(md: Optional[dict] = None):
         trim_plot_by_name(5)
         # control BEC plotting since we use upd_photocurrent_calc
         scaler0.kind = "normal"
-        scaler0.select_channels([])         # no scaler channels plotted
+        scaler0.select_channels([])  # no scaler channels plotted
         stats = SignalStatsCallback()
         tune_start = -1 * howWiderRangeToScan * a_stage.r2p.tune_range.get()
         tune_end = howWiderRangeToScan * a_stage.r2p.tune_range.get()
@@ -437,8 +437,12 @@ def find_a2rp(md: Optional[dict] = None):
         tune_end = min(tune_end, 88)
         yield from lineup2(
             [upd_photocurrent_calc, scaler0],
-            a_stage.r2p, tune_start, tune_end, howManyPoints,
-            nscans=3, signal_stats=stats,
+            a_stage.r2p,
+            tune_start,
+            tune_end,
+            howManyPoints,
+            nscans=3,
+            signal_stats=stats,
             md=md,
         )
         print(stats.report())

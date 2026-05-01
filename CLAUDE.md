@@ -54,6 +54,15 @@ pytest path/to/test_file.py::test_name
 
 **Operation vs sim is a runtime decision based on a live PV.** When editing startup or shutter logic, both branches must stay valid.
 
+### No back-edges into `usaxs.startup`
+
+**No module under `src/usaxs/` may `from usaxs.startup import …` at module top level.** `startup.py` is the only place where `RE`, `bec`, suspenders, and the public plan callables are constructed. This rule prevents the circular import that occurs when `start-re-manager` loads `usaxs.startup` and a plan module tries to read `RE`/`bec`/suspenders from a half-initialised `usaxs.startup`.
+
+Two patterns satisfy the rule:
+
+- **Plans that need `RE` or `bec`** — import them lazily *inside* the function body (`def my_plan(...): from usaxs.startup import RE, bec; ...`). The import resolves at first call, well after `startup.py` has finished loading.
+- **Plans that need suspender decoration** (`@bpp.suspend_decorator(suspend_FE_shutter)`) — export the plan **bare** from its module (no decorators) and apply the suspenders in `startup.py`'s wiring block via `_with_beam_suspenders(...)`. Decorators evaluate at module-load time, so they cannot use lazy imports.
+
 ### Device configuration is YAML, not Python
 
 Devices are declared in `src/usaxs/configs/*.yml` in Guarneri format (`module.path.ClassName: [{name, prefix, labels, ...}]`) and instantiated by `make_devices`. Device classes live in `src/usaxs/devices/`. To add a device, write the class **and** add an entry to the appropriate YAML — it will not appear in `oregistry` otherwise. Devices labeled `baseline` are added to the baseline stream by `setup_baseline_stream`.

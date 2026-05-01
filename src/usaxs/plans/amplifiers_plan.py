@@ -36,7 +36,6 @@ import numpy as np
 
 # Get devices from oregistry
 from apsbits.core.instrument_init import oregistry
-
 from bluesky import RunEngine
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
@@ -69,7 +68,7 @@ monochromator = oregistry["monochromator"]
 s_stage = oregistry["s_stage"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
-upd_controls = oregistry["upd_controls"]   # used by UPDRange()
+upd_controls = oregistry["upd_controls"]  # used by UPDRange()
 usaxs_shutter = oregistry["usaxs_shutter"]
 trd_controls = oregistry["trd_controls"]
 
@@ -95,7 +94,13 @@ def setup_amplifier_auto_background():
 
 
 @plan
-def autoscale_amplifiers(controls: list[DetectorAmplifierAutorangeDevice], shutter=None, count_time: float = 0.05, max_iterations: int = 9, RE: Optional[RunEngine] = None):
+def autoscale_amplifiers(
+    controls: list[DetectorAmplifierAutorangeDevice],
+    shutter=None,
+    count_time: float = 0.05,
+    max_iterations: int = 9,
+    RE: Optional[RunEngine] = None,
+):
     """Bluesky plan: autoscale detector amplifiers simultaneously.
 
     Groups the supplied controls by scaler (so devices sharing hardware are
@@ -156,7 +161,12 @@ def autoscale_amplifiers(controls: list[DetectorAmplifierAutorangeDevice], shutt
 
 
 @plan
-def _scaler_autoscale_(controls: list[DetectorAmplifierAutorangeDevice], count_time: float = 0.05, max_iterations: int = 9, RE: Optional[RunEngine] = None):
+def _scaler_autoscale_(
+    controls: list[DetectorAmplifierAutorangeDevice],
+    count_time: float = 0.05,
+    max_iterations: int = 9,
+    RE: Optional[RunEngine] = None,
+):
     """Plan (internal): autoscale amplifiers for signals sharing a common scaler.
 
     Algorithm
@@ -201,7 +211,7 @@ def _scaler_autoscale_(controls: list[DetectorAmplifierAutorangeDevice], count_t
     """
 
     aps = oregistry["aps"]
-    global _last_autorange_gain_   # accesses module-level OrderedDefaultDict; global is not strictly needed since we only mutate, not rebind — but kept for clarity
+    global _last_autorange_gain_  # accesses module-level OrderedDefaultDict; global is not strictly needed since we only mutate, not rebind — but kept for clarity
 
     scaler = controls[0].scaler
     originals = {}

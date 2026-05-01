@@ -93,7 +93,7 @@ Traceback (most recent call last):
     raise RequestAbort(msg)  # long exception trace?
     ^^^^^^^^^^^^^^^^^^^^^^^
 bluesky.utils.RequestAbort: EPICS user requested stop data collection before next scan
-Out[97]: 
+Out[97]:
 ('0d6adad1-2969-452d-81cf-372b4feafc48',
  '09b35301-661b-4acf-9555-ccdfb1f4aac2',
  '59f4d3bb-1da6-400c-96e4-bb028877acc5',

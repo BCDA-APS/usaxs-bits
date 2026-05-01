@@ -129,14 +129,14 @@ def larryLoop(numIterations, yOffset, md={}):
     # Format: [pos_X_mm, pos_Y_mm (nominal), thickness_mm, "SampleName"]
     # The actual Y used is pos_Y + i * yOffset where i is the iteration index.
     ListOfSamples = [
-        [42.9,   19.8, 0.48, "NaCl6m_LE"],
-        [43.9,   48.2, 0.48, "RbCl6m_LE"],
-        [44.9,   76.7, 0.48, "NaNO3p5m_LE"],
-        [43.3,  105.1, 0.48, "RbNO3p5m_LE"],
-        [89.0,   23.6, 0.48, "BoeNaCl6m_LE"],
-        [89.0,   50.4, 0.48, "BoeRbCl6m_LE"],
-        [88.8,   78.4, 0.48, "BoeNaNO3p5m_LE"],
-        [89.0,  105.8, 0.48, "BoeRbNO3p5m_LE"],
+        [42.9, 19.8, 0.48, "NaCl6m_LE"],
+        [43.9, 48.2, 0.48, "RbCl6m_LE"],
+        [44.9, 76.7, 0.48, "NaNO3p5m_LE"],
+        [43.3, 105.1, 0.48, "RbNO3p5m_LE"],
+        [89.0, 23.6, 0.48, "BoeNaCl6m_LE"],
+        [89.0, 50.4, 0.48, "BoeRbCl6m_LE"],
+        [88.8, 78.4, 0.48, "BoeNaNO3p5m_LE"],
+        [89.0, 105.8, 0.48, "BoeRbNO3p5m_LE"],
     ]
 
     def setSampleName():
@@ -175,7 +175,10 @@ def larryLoop(numIterations, yOffset, md={}):
     recordFunctionRun()
     logger.info(
         "Starting larryLoop | %d iterations | yOffset=%.3f mm | %d samples | debug=%s",
-        numIterations, yOffset, len(ListOfSamples), isDebugMode,
+        numIterations,
+        yOffset,
+        len(ListOfSamples),
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -193,7 +196,9 @@ def larryLoop(numIterations, yOffset, md={}):
     for i in range(numIterations):
         logger.info(
             "larryLoop: iteration %d/%d  (elapsed %.1f min)",
-            i + 1, numIterations, (time.time() - t0) / MINUTE,
+            i + 1,
+            numIterations,
+            (time.time() - t0) / MINUTE,
         )
         for pos_X, pos_Yo, thickness, scan_title in ListOfSamples:
             # Apply the per-iteration Y drift to this sample's nominal Y position.
@@ -201,7 +206,11 @@ def larryLoop(numIterations, yOffset, md={}):
             yield from collectAllThree(isDebugMode)
 
     elapsed_min = (time.time() - t0) / MINUTE
-    logger.info("larryLoop finished | %d iterations | %.1f min total", numIterations, elapsed_min)
+    logger.info(
+        "larryLoop finished | %d iterations | %.1f min total",
+        numIterations,
+        elapsed_min,
+    )
     appendToMdFile(
         f"larryLoop complete: {numIterations} iterations in {elapsed_min:.0f} min"
     )
@@ -286,7 +295,11 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
     recordFunctionRun()
     logger.info(
         "Starting myFiniteLoop | sample=%s | pos=(%.2f, %.2f) | duration=%s min | debug=%s",
-        scan_title, pos_X, pos_Y, delay1minutes, isDebugMode,
+        scan_title,
+        pos_X,
+        pos_Y,
+        delay1minutes,
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -313,7 +326,9 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
 
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info("myFiniteLoop finished | %.1f min elapsed", elapsed_min)
-    appendToMdFile(f"myFiniteLoop complete: {scan_title}, {elapsed_min:.0f} min elapsed")
+    appendToMdFile(
+        f"myFiniteLoop complete: {scan_title}, {elapsed_min:.0f} min elapsed"
+    )
 
     if not isDebugMode:
         yield from after_command_list()
@@ -328,8 +343,12 @@ def myFiniteLoop(pos_X, pos_Y, thickness, scan_title, delay1minutes, md={}):
 # The LAXm2 motor moves the stage; pos_X arguments are passed as metadata.
 # ==============================================================================
 def myTwoPosFiniteLoop(
-    pos_XA, thicknessA, scan_titleA,
-    pos_XB, thicknessB, scan_titleB,
+    pos_XA,
+    thicknessA,
+    scan_titleA,
+    pos_XB,
+    thicknessB,
+    scan_titleB,
     delay1minutes,
     md={},
 ):
@@ -371,6 +390,7 @@ def myTwoPosFiniteLoop(
         RE(myTwoPosFiniteLoop(0, 1, "SampleA", 5, 2, "SampleB", 20))
     """
     from apsbits.core.instrument_init import oregistry
+
     # LAXm2 is the SAMX stage motor used to switch between the two positions.
     samx = oregistry["LAXm2"]
 
@@ -413,7 +433,12 @@ def myTwoPosFiniteLoop(
     recordFunctionRun()
     logger.info(
         "Starting myTwoPosFiniteLoop | A=%s@%.2fmm | B=%s@%.2fmm | duration=%s min | debug=%s",
-        scan_titleA, pos_XA, scan_titleB, pos_XB, delay1minutes, isDebugMode,
+        scan_titleA,
+        pos_XA,
+        scan_titleB,
+        pos_XB,
+        delay1minutes,
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -498,15 +523,15 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
     # Edit this list to match your samples.
     # Format: [pos_X_mm, pos_Y_mm, thickness_mm, "SampleName"]
     ListOfSamples = [
-        [ 15, 58, 4.0, "water_blank"],
-        [ 25, 58, 4.0, "Z_15mgmL_DPEG_1p5mgmL_36hr"],
-        [ 35, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_36hr"],
-        [ 45, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_36hr"],
-        [ 55, 58, 4.0, "Z_15mgmL_DPEG_6gmL_36hr"],
-        [ 65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"],
-        [ 75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"],
-        [ 85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"],
-        [ 95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"],
+        [15, 58, 4.0, "water_blank"],
+        [25, 58, 4.0, "Z_15mgmL_DPEG_1p5mgmL_36hr"],
+        [35, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_36hr"],
+        [45, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_36hr"],
+        [55, 58, 4.0, "Z_15mgmL_DPEG_6gmL_36hr"],
+        [65, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_36hr"],
+        [75, 58, 4.0, "Z_15mgmL_DPEG_7p5mgmL_36hr"],
+        [85, 58, 4.0, "Z_15mgmL_DPEG_3mgmL_47C_14hr"],
+        [95, 58, 4.0, "Z_15mgmL_DPEG_4p5mgmL_47C_14hr"],
         [105, 58, 4.0, "Z_15mgmL_DPEG_6p75mgmL_47C_14hr"],
         [115, 58, 4.0, "Z_15mgmL_DPEG_50mgmL_14hr"],
     ]
@@ -548,7 +573,9 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
     recordFunctionRun()
     logger.info(
         "Starting myFiniteMultiPosLoop | %d positions | duration=%s min | debug=%s",
-        len(ListOfSamples), delay1minutes, isDebugMode,
+        len(ListOfSamples),
+        delay1minutes,
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -564,7 +591,9 @@ def myFiniteMultiPosLoop(delay1minutes, md={}):
     t0 = time.time()
     checkpoint = time.time() + delay1minutes * MINUTE
 
-    logger.info("Cycling through %d positions for %s minutes", len(ListOfSamples), delay1minutes)
+    logger.info(
+        "Cycling through %d positions for %s minutes", len(ListOfSamples), delay1minutes
+    )
 
     while time.time() < checkpoint:
         logger.debug(
@@ -631,11 +660,11 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
     # Edit this list to match your samples.
     # Format: [pos_X_mm, pos_Y_mm, thickness_mm, "SampleName"]
     ListOfSamples = [
-        [100.0,  160.0, 1.000, "BlankLE"],
-        [139.0,  100.6, 0.686, "RbCl6mLE"],
-        [139.0,  160.3, 0.658, "NaCl6mLE"],
-        [179.6,  100.6, 0.684, "BoehRbCl6mLE"],
-        [178.8,  161.0, 0.654, "BoehNaCl6mLE"],
+        [100.0, 160.0, 1.000, "BlankLE"],
+        [139.0, 100.6, 0.686, "RbCl6mLE"],
+        [139.0, 160.3, 0.658, "NaCl6mLE"],
+        [179.6, 100.6, 0.684, "BoehRbCl6mLE"],
+        [178.8, 161.0, 0.654, "BoehNaCl6mLE"],
     ]
 
     def setSampleName(scan_titlePar):
@@ -666,7 +695,9 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
         if debug:
             for pos_X, pos_Y, thickness, sampleName in ListOfSamples:
                 sampleMod = setSampleName(sampleName)
-                print(f"[DEBUG] USAXS: {sampleMod}  pos=({pos_X}, {pos_Y})  t={thickness}")
+                print(
+                    f"[DEBUG] USAXS: {sampleMod}  pos=({pos_X}, {pos_Y})  t={thickness}"
+                )
             yield from bps.sleep(1)
         else:
             # --- All USAXS ---
@@ -692,7 +723,9 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
     recordFunctionRun()
     logger.info(
         "Starting myFiniteListLoop | %d positions | duration=%s min | debug=%s",
-        len(ListOfSamples), delay1minutes, isDebugMode,
+        len(ListOfSamples),
+        delay1minutes,
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -711,13 +744,15 @@ def myFiniteListLoop(delay1minutes, StartTime, md={}):
 
     logger.info(
         "Grouped detector collection for %s minutes (%d samples per round)",
-        delay1minutes, len(ListOfSamples),
+        delay1minutes,
+        len(ListOfSamples),
     )
 
     while time.time() < checkpoint:
         logger.debug(
             "myFiniteListLoop: round %d, %.1f min remaining",
-            counter, (checkpoint - time.time()) / MINUTE,
+            counter,
+            (checkpoint - time.time()) / MINUTE,
         )
         yield from collectAllThree(isDebugMode)
         counter += 1

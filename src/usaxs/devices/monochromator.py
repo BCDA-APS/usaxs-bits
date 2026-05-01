@@ -74,8 +74,8 @@ class My12IdEDcm(Device):
     energy = Component(
         My12EidDcmEnergy,
         "",
-        setpoint_pv="setpoint",   # ignored — Component already defined
-        readback_pv="readback",   # ignored — Component already defined
+        setpoint_pv="setpoint",  # ignored — Component already defined
+        readback_pv="readback",  # ignored — Component already defined
         tolerance=0.0002,
     )
     wavelength = Component(My12EidWavelengthRO, "12ida2:LambdaCalc")

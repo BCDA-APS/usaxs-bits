@@ -90,7 +90,7 @@ linkam_tc1 = oregistry["linkam_tc1"]
 # Convenient time-unit constants.
 SECOND = 1
 MINUTE = 60 * SECOND
-HOUR   = 60 * MINUTE
+HOUR = 60 * MINUTE
 
 # Debug / dry-run flag.  Set at the IPython prompt before calling RE():
 #   linkam_debug.put(True)   → debug mode (no instrument motion, thermal cycle runs)
@@ -98,18 +98,19 @@ HOUR   = 60 * MINUTE
 linkam_debug = Signal(name="linkam_debug", value=False)
 
 # Fixed ramp rates for this plan.
-RATE_TO_TM   = 30.0   # °C/min — heating rate to melting temperature
-RATE_STEPS   = 10.0   # °C/min — rate between each step in temp_list
+RATE_TO_TM = 30.0  # °C/min — heating rate to melting temperature
+RATE_STEPS = 10.0  # °C/min — rate between each step in temp_list
 RATE_BASELINE = 150.0  # °C/min — fast move to initial 40 °C baseline
 
 # Number of datasets to collect at each stage.
-N_AT_TM    = 5   # datasets collected at Tm
-N_AT_STEPS = 3   # datasets collected at each temp_list entry
+N_AT_TM = 5  # datasets collected at Tm
+N_AT_STEPS = 3  # datasets collected at each temp_list entry
 
 
 # ==============================================================================
 # MAIN PLAN
 # ==============================================================================
+
 
 def tonyLinkam(pos_X, pos_Y, thickness, scan_title, Tm, temp_list, md={}):
     """
@@ -178,7 +179,9 @@ def tonyLinkam(pos_X, pos_Y, thickness, scan_title, Tm, temp_list, md={}):
 
     def change_rate_and_temperature(rate, t, wait=True):
         """Set ramp rate (°C/min) and move Linkam to t °C."""
-        logger.debug("change_rate_and_temperature: %.0f C/min → %.0f C (wait=%s)", rate, t, wait)
+        logger.debug(
+            "change_rate_and_temperature: %.0f C/min → %.0f C (wait=%s)", rate, t, wait
+        )
         yield from bps.mv(linkam.ramprate.setpoint, rate)
         yield from linkam.set_target(t, wait=wait)
 
@@ -191,7 +194,10 @@ def tonyLinkam(pos_X, pos_Y, thickness, scan_title, Tm, temp_list, md={}):
     recordFunctionRun()
     logger.info(
         "Starting tonyLinkam | sample=%s | Tm=%.0f C | %d temp steps | debug=%s",
-        scan_title, Tm, len(temp_list), isDebugMode,
+        scan_title,
+        Tm,
+        len(temp_list),
+        isDebugMode,
     )
 
     # --- Block 1: Startup ---------------------------------------------------
@@ -213,9 +219,11 @@ def tonyLinkam(pos_X, pos_Y, thickness, scan_title, Tm, temp_list, md={}):
     logger.info("Moving to 30 C baseline at %.0f C/min", RATE_BASELINE)
     yield from change_rate_and_temperature(RATE_BASELINE, 30, wait=True)
 
-    t0 = time.time()   # experiment start
+    t0 = time.time()  # experiment start
     logger.info("At 30 C. Collecting RT baseline dataset.")
-    appendToMdFile(f"RT baseline at {linkam.temperature.position:.0f} °C — collecting 1×")
+    appendToMdFile(
+        f"RT baseline at {linkam.temperature.position:.0f} °C — collecting 1×"
+    )
     yield from collectAllThree(isDebugMode)
 
     # --- Block 3: Heat to Tm ------------------------------------------------
@@ -230,7 +238,9 @@ def tonyLinkam(pos_X, pos_Y, thickness, scan_title, Tm, temp_list, md={}):
 
     # --- Block 4: Collect N_AT_TM datasets at Tm ----------------------------
     for i in range(N_AT_TM):
-        logger.info("Tm dataset %d/%d | T=%.1f C", i + 1, N_AT_TM, linkam.temperature.position)
+        logger.info(
+            "Tm dataset %d/%d | T=%.1f C", i + 1, N_AT_TM, linkam.temperature.position
+        )
         yield from collectAllThree(isDebugMode)
 
     appendToMdFile(f"Tm hold complete ({N_AT_TM} datasets)")
@@ -239,7 +249,10 @@ def tonyLinkam(pos_X, pos_Y, thickness, scan_title, Tm, temp_list, md={}):
     for step_i, step_temp in enumerate(temp_list):
         logger.info(
             "Step %d/%d: moving to %.0f C at %.0f C/min",
-            step_i + 1, len(temp_list), step_temp, RATE_STEPS,
+            step_i + 1,
+            len(temp_list),
+            step_temp,
+            RATE_STEPS,
         )
         appendToMdFile(
             f"Step {step_i + 1}/{len(temp_list)}: "
@@ -250,7 +263,10 @@ def tonyLinkam(pos_X, pos_Y, thickness, scan_title, Tm, temp_list, md={}):
 
         logger.info(
             "Step %d/%d: at %.1f C — collecting %d× datasets",
-            step_i + 1, len(temp_list), linkam.temperature.position, N_AT_STEPS,
+            step_i + 1,
+            len(temp_list),
+            linkam.temperature.position,
+            N_AT_STEPS,
         )
         appendToMdFile(
             f"Step {step_i + 1}: at {linkam.temperature.position:.0f} °C — collecting {N_AT_STEPS}×"
@@ -259,7 +275,10 @@ def tonyLinkam(pos_X, pos_Y, thickness, scan_title, Tm, temp_list, md={}):
         for j in range(N_AT_STEPS):
             logger.info(
                 "Step %d dataset %d/%d | T=%.1f C",
-                step_i + 1, j + 1, N_AT_STEPS, linkam.temperature.position,
+                step_i + 1,
+                j + 1,
+                N_AT_STEPS,
+                linkam.temperature.position,
             )
             yield from collectAllThree(isDebugMode)
 

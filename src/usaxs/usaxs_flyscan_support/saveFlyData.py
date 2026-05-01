@@ -273,9 +273,9 @@ class SaveFlyScan(object):
                         item.ophyd_signal.name,
                     )
                 # Intentional: some PVs are routinely unavailable (unimportant
-            # metadata sources).  Raising here caused too many spurious
-            # failures.  Unconnected PVs are logged as warnings above and
-            # written as NOT_CONNECTED_TEXT placeholders in the data file.
+                # metadata sources).  Raising here caused too many spurious
+                # failures.  Unconnected PVs are logged as warnings above and
+                # written as NOT_CONNECTED_TEXT placeholders in the data file.
                 break
             time.sleep(0.1)
 
@@ -302,7 +302,9 @@ class SaveFlyScan(object):
 
         for field in self.mgr.field_registry.values():
             if isinstance(field.text, str):
-                field.text = field.text.encode("utf8")  # lxml always gives str; encode for h5py
+                field.text = field.text.encode(
+                    "utf8"
+                )  # lxml always gives str; encode for h5py
             try:
                 ds = makeDataset(
                     field.group_parent.hdf5_group, field.name, [field.text]

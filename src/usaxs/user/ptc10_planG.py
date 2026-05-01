@@ -103,6 +103,7 @@ ptc10_debug = Signal(name="ptc10_debug", value=False)
 # always call setheaterOff() at the end of the plan before after_command_list().
 # ==============================================================================
 
+
 def setheaterOff():
     """
     Power down the PTC10 heater and stop the PID control loop.
@@ -113,8 +114,10 @@ def setheaterOff():
     would leave the hardware in an inconsistent state.
     """
     yield from bps.mv(
-        ptc10.enable, "Off",      # cut power to the heating element
-        ptc10.pid.pidmode, "Off", # stop the PID loop as well
+        ptc10.enable,
+        "Off",  # cut power to the heating element
+        ptc10.pid.pidmode,
+        "Off",  # stop the PID loop as well
     )
 
 
@@ -128,8 +131,10 @@ def setheaterOn():
     Both 'enable' and 'pidmode' must be set to "On" together.
     """
     yield from bps.mv(
-        ptc10.enable, "On",      # apply power to the heating element
-        ptc10.pid.pidmode, "On", # start the PID loop
+        ptc10.enable,
+        "On",  # apply power to the heating element
+        ptc10.pid.pidmode,
+        "On",  # start the PID loop
     )
 
 
@@ -137,9 +142,7 @@ def setheaterOn():
 # DO NOT MODIFY THIS TEMPLATE FUNCTION.
 # Copy it to a new file or function, then edit the copy for your experiment.
 # ==============================================================================
-def myPTC10Plan(
-    pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min, md={}
-):
+def myPTC10Plan(pos_X, pos_Y, thickness, scan_title, temp1, rate1, delay1min, md={}):
     """
     Single-sample PTC10 experiment: baseline → heat → hold → cool to ambient.
 
@@ -227,9 +230,7 @@ def myPTC10Plan(
 
     # Read the debug flag once so behaviour is consistent throughout the plan.
     isDebugMode = ptc10_debug.get()
-    logger.info(
-        "Starting myPTC10Plan | sample=%s | debug=%s", scan_title, isDebugMode
-    )
+    logger.info("Starting myPTC10Plan | sample=%s | debug=%s", scan_title, isDebugMode)
 
     # --- Block 1: Startup ------------------------------------------------
     # before_command_list() initialises the instrument and opens the Obsidian
@@ -256,9 +257,9 @@ def myPTC10Plan(
     # Rate: user inputs °C/min, PTC10 controller expects °C/s → divide by 60.
     logger.info("Heating to %s C at %s C/min", temp1, rate1)
     appendToMdFile(f"Heating to {temp1} C at {rate1} C/min")
-    yield from bps.mv(ptc10.ramp, rate1 / 60.0)          # set ramp rate (°C/s)
+    yield from bps.mv(ptc10.ramp, rate1 / 60.0)  # set ramp rate (°C/s)
     yield from bps.mv(ptc10.temperature.setpoint, temp1)  # set target temperature
-    yield from setheaterOn()                               # start heating
+    yield from setheaterOn()  # start heating
 
     # Wait silently until PTC10 reaches temp1. No data during this ramp.
     # To collect data during heating instead, replace the sleep loop with:
@@ -279,9 +280,7 @@ def myPTC10Plan(
     logger.info("Holding at %s C for %s min, collecting data", temp1, delay1min)
     hold_until = time.time() + delay1min * 60
     while time.time() < hold_until:
-        logger.debug(
-            "Hold loop: %.1f min remaining", (hold_until - time.time()) / 60
-        )
+        logger.debug("Hold loop: %.1f min remaining", (hold_until - time.time()) / 60)
         yield from collectAllThree(isDebugMode)
 
     logger.info("Hold complete (%s min). Switching heater off.", delay1min)

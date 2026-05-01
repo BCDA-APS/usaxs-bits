@@ -81,8 +81,8 @@ loop_debug = Signal(name="loop_debug", value=False)
 # ==============================================================================
 
 SampleList = [
-    [0.0,  0.0, 1.0, "jun2_sample1"],
-    [5.0,  0.0, 1.0, "jun2_sample2"],
+    [0.0, 0.0, 1.0, "jun2_sample1"],
+    [5.0, 0.0, 1.0, "jun2_sample2"],
     [10.0, 0.0, 1.0, "jun2_sample3"],
     # Add or remove rows as needed; number of samples is set by this list.
 ]
@@ -91,6 +91,7 @@ SampleList = [
 # ==============================================================================
 # PLAN: Multi-sample loop with inter-pass sleep
 # ==============================================================================
+
 
 def jun2MultiSampleLoop(delay_min, sleep_min, md={}):
     """
@@ -184,7 +185,10 @@ def jun2MultiSampleLoop(delay_min, sleep_min, md={}):
     logger.info(
         "Starting jun2MultiSampleLoop | %d samples | "
         "duration=%s min | sleep=%s min | debug=%s",
-        len(SampleList), delay_min, sleep_min, isDebugMode,
+        len(SampleList),
+        delay_min,
+        sleep_min,
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -205,13 +209,16 @@ def jun2MultiSampleLoop(delay_min, sleep_min, md={}):
 
     logger.info(
         "Cycling through %d samples for %s minutes (%s min sleep between passes)",
-        len(SampleList), delay_min, sleep_min,
+        len(SampleList),
+        delay_min,
+        sleep_min,
     )
 
     while time.time() < checkpoint:
         logger.info(
             "Pass %d: %.1f min remaining",
-            pass_count + 1, (checkpoint - time.time()) / MINUTE,
+            pass_count + 1,
+            (checkpoint - time.time()) / MINUTE,
         )
 
         # Collect USAXS→SAXS→WAXS at every sample position.
@@ -224,7 +231,8 @@ def jun2MultiSampleLoop(delay_min, sleep_min, md={}):
         if sleep_min > 0 and time.time() < checkpoint:
             logger.info(
                 "Pass %d complete — sleeping %.1f min before next pass",
-                pass_count, sleep_min,
+                pass_count,
+                sleep_min,
             )
             if isDebugMode:
                 print(f"[DEBUG] Sleeping {sleep_min} min between passes")
@@ -233,7 +241,8 @@ def jun2MultiSampleLoop(delay_min, sleep_min, md={}):
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
         "jun2MultiSampleLoop finished | %d passes | %.1f min elapsed",
-        pass_count, elapsed_min,
+        pass_count,
+        elapsed_min,
     )
     appendToMdFile(
         f"jun2MultiSampleLoop complete: {len(SampleList)} samples, "
