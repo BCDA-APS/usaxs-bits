@@ -21,12 +21,11 @@ This module provides two classes whose plan methods are passed as
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
-from usaxs.utils.obsidian import (
-    recordBeamDump,
-    recordBeamInHutchLost,
-    recordBeamInHutchRestored,
-    recordBeamRecovery,
-)
+
+from usaxs.utils.obsidian import recordBeamDump
+from usaxs.utils.obsidian import recordBeamInHutchLost
+from usaxs.utils.obsidian import recordBeamInHutchRestored
+from usaxs.utils.obsidian import recordBeamRecovery
 
 monochromator = oregistry["monochromator"]
 
