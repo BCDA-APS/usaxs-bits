@@ -26,7 +26,8 @@ import bluesky.suspenders
 from apsbits.core.instrument_init import oregistry
 from ophyd import Signal
 
-from .suspenders import BeamInHutchSuspension, FeedbackHandlingDuringSuspension
+from .suspenders import BeamInHutchSuspension
+from .suspenders import FeedbackHandlingDuringSuspension
 
 logger = logging.getLogger(__name__)
 
