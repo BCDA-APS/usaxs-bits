@@ -16,7 +16,6 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from ..startup import bec
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
 from ..utils.ustep import Ustep
@@ -179,8 +178,6 @@ def uascan(
         I00_controls.auto.reqrange,
         trd_controls.auto.reqrange,
     ]
-
-    bec.enable_table()
 
     # do not report the "quiet" detectors/stages during a uascan
     quiet_detectors = [
