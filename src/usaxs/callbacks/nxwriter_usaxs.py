@@ -17,8 +17,8 @@ NXWriterSaxsWaxs
     For ``SAXS`` and ``WAXS`` area-detector plans.  Remaps resource file
     paths from ``/mnt/usaxscontrol/USAXS_data/`` to ``/share1/USAXS_data/``.
 NXWriterUascan
-    For ``uascan`` step-scan plans.  The module-level ``nxwriter`` instance
-    of this class is subscribed to the RunEngine at import time.
+    For ``uascan`` step-scan plans.  Built and subscribed to the RunEngine
+    by :func:`nxwriter_init`.
 
 See ``usaxs.utils.setup_new_user.newUser()`` for the companion function that
 sets the per-session file paths written here.
@@ -26,6 +26,7 @@ sets the per-session file paths written here.
 
 import logging
 import os
+from typing import Any
 
 import apstools
 import numpy as np
@@ -33,7 +34,6 @@ from apsbits.core.instrument_init import oregistry
 from apstools.callbacks import NXWriterAPS
 from apstools.utils import cleanupText
 
-from ..startup import RE
 from ..utils.utils import techniqueSubdirectory
 
 terms = oregistry["terms"]
@@ -106,14 +106,30 @@ class OurCustomNXWriterBase(NXWriterAPS):
         """
         bss_fields = {
             "esaf": [
-                "id", "title", "description", "sector", "status",
-                "start", "end", "user_count", "user_last_names",
-                "user_badges", "pi_name",
+                "id",
+                "title",
+                "description",
+                "sector",
+                "status",
+                "start",
+                "end",
+                "user_count",
+                "user_last_names",
+                "user_badges",
+                "pi_name",
             ],
             "proposal": [
-                "id", "title", "start", "end", "duration",
-                "mail_in", "proprietary", "user_count",
-                "user_last_names", "user_badges", "pi_name",
+                "id",
+                "title",
+                "start",
+                "end",
+                "duration",
+                "mail_in",
+                "proprietary",
+                "user_count",
+                "user_last_names",
+                "user_badges",
+                "pi_name",
             ],
         }
         bss_group = self.create_NX_group(nxentry, "bss:NXnote")
@@ -375,7 +391,6 @@ class NXWriterUascan(OurCustomNXWriterBase):
         """
         super().write_entry()  # write the raw data
 
-
     def write_slits(self, parent):
         """
         Write the slits group to the NeXus file.
@@ -394,5 +409,34 @@ class NXWriterUascan(OurCustomNXWriterBase):
                 slit[key] = self.get_stream_link(f"{pre}_{key}")
 
 
-nxwriter = NXWriterUascan()
-RE.subscribe(nxwriter.receiver)
+def nxwriter_init(RE: Any, iconfig: dict[str, Any]) -> Any:
+    """Initialize the uascan NeXus data file writer callback.
+
+    Subscribes the writer to *RE* when ``iconfig['NEXUS_DATA_FILES']['ENABLE']``
+    is true, and applies ``FILE_EXTENSION`` / ``WARN_MISSING`` from iconfig.
+
+    Parameters
+    ----------
+    RE
+        The RunEngine instance to subscribe the writer to.
+    iconfig
+        Instrument configuration dict (loaded from ``iconfig.yml``).
+
+    Returns
+    -------
+    NXWriterUascan
+        The configured writer instance.
+    """
+    nxwriter = NXWriterUascan()
+
+    if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+        RE.subscribe(nxwriter.receiver)
+
+    nxwriter.file_extension = iconfig.get("NEXUS_DATA_FILES", {}).get(
+        "FILE_EXTENSION", "h5"
+    )
+    nxwriter.warn_on_missing_content = iconfig.get("NEXUS_DATA_FILES", {}).get(
+        "WARN_MISSING", False
+    )
+
+    return nxwriter
