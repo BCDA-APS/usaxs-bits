@@ -19,7 +19,6 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 from ophyd import Kind
 
-from ..startup import RE
 from ..utils.derivative import numerical_derivative
 from ..utils.peak_centers import peak_center
 from .filter_plans import insertTransmissionFilters
@@ -57,6 +56,7 @@ def tune_GslitsCenter():
     ------
     Bluesky messages consumed by the RunEngine.
     """
+
     yield from IfRequestedStopBeforeNextScan()
     title = "tuning USAXS Gslit center"
     ts = str(datetime.datetime.now())
@@ -64,7 +64,6 @@ def tune_GslitsCenter():
         user_data.sample_title,
         title,
         user_data.spec_scan,
-        str(RE.md["scan_id"] + 1 + 1),  # TODO: Why SCAN_N+1?
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
@@ -105,34 +104,31 @@ def tune_GslitsCenter():
         tuner = TuneAxis([scaler0], motor, signal_name=UPD_SIGNAL.chname.get())
         yield from tuner.tune(width=-width, num=steps + 1)
 
-        bluesky_runengine_running = RE.state != "idle"
+        found = tuner.peak_detected()
+        center = tuner.peaks.com  # center of mass
 
-        if bluesky_runengine_running:
-            found = tuner.peak_detected()
-            center = tuner.peaks.com  # center of mass
+        table = pyRestTable.Table()
+        table.addLabel("tune parameter")
+        table.addLabel("fitted value")
+        table.addRow(("peak detected?", found))
+        table.addRow(("center of mass", center))
+        table.addRow(("center from half max", tuner.peaks.cen))
+        table.addRow(("peak max (x,y)", tuner.peaks.max))
+        table.addRow(("FWHM", tuner.peaks.fwhm))
+        logger.info(table)
 
-            table = pyRestTable.Table()
-            table.addLabel("tune parameter")
-            table.addLabel("fitted value")
-            table.addRow(("peak detected?", found))
-            table.addRow(("center of mass", center))
-            table.addRow(("center from half max", tuner.peaks.cen))
-            table.addRow(("peak max (x,y)", tuner.peaks.max))
-            table.addRow(("FWHM", tuner.peaks.fwhm))
-            logger.info(table)
-
-            def cleanup_then_GuardSlitTuneError(msg):
-                logger.warning(f"{motor.name}: move to {x_c} (initial position)")
-                scaler0.select_channels(None)
-                yield from bps.mv(
-                    motor,
-                    x_c,
-                    scaler0.preset_time,
-                    old_preset_time,
-                    usaxs_shutter,
-                    "close",
-                )
-                raise GuardSlitTuneError(msg)
+        def cleanup_then_GuardSlitTuneError(msg):
+            logger.warning(f"{motor.name}: move to {x_c} (initial position)")
+            scaler0.select_channels(None)
+            yield from bps.mv(
+                motor,
+                x_c,
+                scaler0.preset_time,
+                old_preset_time,
+                usaxs_shutter,
+                "close",
+            )
+            raise GuardSlitTuneError(msg)
 
             if not found:
                 yield from cleanup_then_GuardSlitTuneError(
