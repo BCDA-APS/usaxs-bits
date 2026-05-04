@@ -23,6 +23,9 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 from ophyd import Signal
 
+from usaxs.utils.obsidian import recordProperEnd
+from usaxs.utils.obsidian import recordRunCommandFile
+
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
 from ..utils.constants import constants
 from ..utils.quoted_line import split_quoted_line
@@ -43,8 +46,6 @@ from .sample_rotator_plans import PI_Off
 from .sample_rotator_plans import PI_onF
 from .sample_rotator_plans import PI_onR
 
-from usaxs.utils.obsidian import recordRunCommandFile, recordProperEnd,recordFunctionRun
-
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 s_stage = oregistry["s_stage"]
 saxs_det = oregistry["saxs_det"]
@@ -61,6 +62,7 @@ upd_controls = oregistry["upd_controls"]
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
 logger = logging.getLogger(__name__)
+
 
 @plan
 def run_command_file(filename, md=None):
@@ -115,8 +117,10 @@ def postCommandsListfile2WWW(commands):
     # post to EPICS
     yield from bps.mv(
         # fmt: off
-        user_data.macro_file,         os.path.split(tbl_file)[-1],
-        user_data.macro_file_time,                      timestamp,
+        user_data.macro_file,
+        os.path.split(tbl_file)[-1],
+        user_data.macro_file_time,
+        timestamp,
         # fmt: on
     )
 
@@ -140,8 +144,10 @@ def before_command_list(md=None, commands=None):
 
     yield from bps.mv(
         # fmt: off
-        user_data.time_stamp,           str(datetime.datetime.now()),
-        user_data.collection_in_progress,                           1,
+        user_data.time_stamp,
+        str(datetime.datetime.now()),
+        user_data.collection_in_progress,
+        1,
         # fmt: on
     )
 
@@ -149,10 +155,14 @@ def before_command_list(md=None, commands=None):
 
     yield from bps.mv(
         # fmt: off
-        usaxs_shutter,           "close",
-        terms.SAXS.collecting,         0,
-        terms.WAXS.collecting,         0,
-        a_shutter_autoopen,            1,
+        usaxs_shutter,
+        "close",
+        terms.SAXS.collecting,
+        0,
+        terms.WAXS.collecting,
+        0,
+        a_shutter_autoopen,
+        1,
         # fmt: on
     )
 
@@ -257,7 +267,7 @@ def after_command_list(md=None):
         # fmt: on
     )
     # record Obsidian
-    recordProperEnd() 
+    recordProperEnd()
     yield from user_data.set_state_plan("USAXS macro file done")
 
 
@@ -594,7 +604,6 @@ def execute_command_list(filename, commands, md=None):
 
         if exit_requested:
             break
-    
 
     yield from after_command_list(md=md)
 

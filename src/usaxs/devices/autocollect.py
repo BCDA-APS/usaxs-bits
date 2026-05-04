@@ -76,8 +76,8 @@ class AutoCollectDataDevice(Device):
         ------
         Bluesky messages.
         """
-        from usaxs.plans.plans_tune import preUSAXStune
         from usaxs.plans.command_list import run_command_file
+        from usaxs.plans.plans_tune import preUSAXStune
 
         user_data = oregistry["user_data"]
 
@@ -113,4 +113,3 @@ class AutoCollectDataDevice(Device):
                 self.idle_reporter()
 
         print()  # next line if emerging from idle_reporter()
-
