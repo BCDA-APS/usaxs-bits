@@ -8,7 +8,6 @@ import datetime
 import logging
 import time
 
-import bluesky
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky.run_engine import RequestAbort
