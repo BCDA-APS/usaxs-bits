@@ -12,9 +12,8 @@ import bluesky
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky.run_engine import RequestAbort
-from usaxs.utils.obsidian import recordUserAbort
 
-from ..startup import RE
+from usaxs.utils.obsidian import recordUserAbort
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +42,11 @@ def IfRequestedStopBeforeNextScan():
     RequestAbort
         When ``terms.StopBeforeNextScan`` is set by the user.
     """
+
     open_the_shutter = False
     t0 = time.time()
 
-    RE.pause_msg = bluesky.run_engine.PAUSE_MSG  # sloppy
+    # RE.pause_msg = bluesky.run_engine.PAUSE_MSG  # sloppy
 
     pv_txt = "Pausing for user for %g s"
     while terms.PauseBeforeNextScan.get():

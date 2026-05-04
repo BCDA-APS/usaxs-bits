@@ -39,7 +39,6 @@ from bluesky.utils import plan
 from usaxs.callbacks.demo_spec_callback import specwriter
 
 from ..devices.amplifiers import AutorangeSettings
-from ..startup import RE
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
 logger = logging.getLogger(__name__)
@@ -48,13 +47,13 @@ logger = logging.getLogger(__name__)
 # Device instances retrieved from the ophyd device registry.
 # These are module-level singletons used throughout the plan.
 # ---------------------------------------------------------------------------
-a_stage = oregistry["a_stage"]          # analyzer stage (r = rotation, x = lateral)
-d_stage = oregistry["d_stage"]          # detector stage (x = lateral)
-struck = oregistry["struck"]            # Struck multi-channel scaler (MCS)
-terms = oregistry["terms"]              # general run-time terms / GUI-facing PVs
+a_stage = oregistry["a_stage"]  # analyzer stage (r = rotation, x = lateral)
+d_stage = oregistry["d_stage"]  # detector stage (x = lateral)
+struck = oregistry["struck"]  # Struck multi-channel scaler (MCS)
+terms = oregistry["terms"]  # general run-time terms / GUI-facing PVs
 upd_controls = oregistry["upd_controls"]  # UPD (PIN diode) amplifier controls
 usaxs_shutter = oregistry["usaxs_shutter"]  # USAXS in-vacuum shutter
-user_data = oregistry["user_data"]      # run-state string PV visible in the GUI
+user_data = oregistry["user_data"]  # run-state string PV visible in the GUI
 usaxs_flyscan = oregistry["usaxs_flyscan"]  # UsaxsFlyScanDevice (busy, flying, …)
 
 
@@ -77,13 +76,14 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     ------
     Bluesky messages that the RunEngine consumes.
     """
+
     if md is None:
         md = {}
 
     # Check whether a RunEngine is actively driving this plan.
     # When RE.state is not "idle" we are inside a real scan; several
     # background-thread operations are only needed in that case.
-    bluesky_runengine_running = RE.state != "idle"
+    # bluesky_runengine_running = RE.state != "idle"
 
     # ------------------------------------------------------------------
     # Inner helper: build a single-line progress string
@@ -214,7 +214,9 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
             msg += f"  Using fallback directory {usaxs_flyscan.fallback_dir}"
             logger.error(msg)
 
-        s = usaxs_flyscan.saveFlyData_HDF5_file  # configured base filename, e.g. "sfs.h5"
+        s = (
+            usaxs_flyscan.saveFlyData_HDF5_file
+        )  # configured base filename, e.g. "sfs.h5"
         _s_ = os.path.join(fname, s)  # for testing here
         # If the file already exists, generate a unique name from the current timestamp.
         if os.path.exists(_s_):
@@ -277,9 +279,9 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     # ax0/dx0 (Python allows dynamic attribute creation on ophyd Device
     # instances, so this works, but ax0/dx0 are undeclared in __init__).
     # ------------------------------------------------------------------
-    usaxs_flyscan.ar0 = a_stage.r.position   # analyzer rotation angle, degrees
-    usaxs_flyscan.ax0 = a_stage.x.position   # analyzer lateral position, mm
-    usaxs_flyscan.dx0 = d_stage.x.position   # detector lateral position, mm
+    usaxs_flyscan.ar0 = a_stage.r.position  # analyzer rotation angle, degrees
+    usaxs_flyscan.ax0 = a_stage.x.position  # analyzer lateral position, mm
+    usaxs_flyscan.dx0 = d_stage.x.position  # detector lateral position, mm
 
     # Merge HDF5 file info into the run metadata so it appears in the run document.
     _md = md or OrderedDict()
@@ -302,10 +304,10 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
         logger.warning("Was flying. Setting that signal to False now.")
         yield from bps.abs_set(usaxs_flyscan.flying, False)
 
-    if bluesky_runengine_running:
+    # if bluesky_runengine_running:
         # prepare HDF5 file to save fly scan data (background thread)
         # Runs concurrently with the scan startup sequence to minimise dead time.
-        prepare_HDF5_file()
+    prepare_HDF5_file()
     specwriter._cmt(f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
 
     # ------------------------------------------------------------------
@@ -322,11 +324,11 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
         timeout=usaxs_flyscan.scan_time.get() + usaxs_flyscan.timeout_s,
     )
 
-    if bluesky_runengine_running:
+    # if bluesky_runengine_running:
         # Start logging scan progress in a background thread.
         # This is launched here, before flying=True is set, because
         # progress_reporting() has its own brief startup-wait loop.
-        progress_reporting()
+    progress_reporting()
 
     # ------------------------------------------------------------------
     # Set the software ``flying`` flag that the progress thread polls.
@@ -352,22 +354,22 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     elapsed = time.time() - usaxs_flyscan.t0
     specwriter._cmt(f"fly scan completed in {elapsed} s")
 
-    if bluesky_runengine_running:
-        msg = f"writing fly scan HDF5 file: {usaxs_flyscan._output_HDF5_file_}"
-        logger.debug(msg)
-        try:
-            yield from user_data.set_state_plan("writing fly scan HDF5 file")
-        except Exception as exc:
-            # do not fail the scan just because of updating program state
-            logger.warning("Non-fatal error while %s\n%s\nPlan continues", msg, exc)
-            # FIXME: hack to avoid `Another set() call is still in progress`
-            # see: https://github.com/APS-USAXS/ipython-usaxs/issues/417
-            user_data.state._set_thread = None
-        # Finalise the HDF5 file in a background thread so the plan can
-        # simultaneously restore stages (the next bps.mv call).
-        finish_HDF5_file()  # finish saving data to HDF5 file (background thread)
-        specwriter._cmt(f"finished {msg}")
-        logger.debug(f"finished {msg}")
+    # if bluesky_runengine_running:
+    msg = f"writing fly scan HDF5 file: {usaxs_flyscan._output_HDF5_file_}"
+    logger.debug(msg)
+    try:
+        yield from user_data.set_state_plan("writing fly scan HDF5 file")
+    except Exception as exc:
+        # do not fail the scan just because of updating program state
+        logger.warning("Non-fatal error while %s\n%s\nPlan continues", msg, exc)
+        # FIXME: hack to avoid `Another set() call is still in progress`
+        # see: https://github.com/APS-USAXS/ipython-usaxs/issues/417
+        user_data.state._set_thread = None
+    # Finalise the HDF5 file in a background thread so the plan can
+    # simultaneously restore stages (the next bps.mv call).
+    finish_HDF5_file()  # finish saving data to HDF5 file (background thread)
+    specwriter._cmt(f"finished {msg}")
+    logger.debug(f"finished {msg}")
 
     # ------------------------------------------------------------------
     # Restore all stages to their pre-scan positions, reset amplifier mode,
