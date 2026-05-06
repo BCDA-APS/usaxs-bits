@@ -30,16 +30,11 @@ from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
-from epics import caput
 
-from usaxs.callbacks.demo_spec_callback import specwriter
-from usaxs.utils import bss
-from usaxs.utils.obsidian import appendToMdFile, recordUserStart, recordNewSample
-from usaxs.utils.bss import BssApi, User
-
-from ..callbacks.nxwriter_usaxs import nxwriter
-from ..startup import RE
-from .check_file_exists import filename_exists
+from usaxs.utils.bss import BssApi
+from usaxs.utils.obsidian import appendToMdFile
+from usaxs.utils.obsidian import recordNewSample
+from usaxs.utils.obsidian import recordUserStart
 
 # from ..devices import user_data
 user_data = oregistry["user_data"]
@@ -50,15 +45,18 @@ APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"
 
 NX_FILE_EXTENSION = ".h5"
-#we need these so we can reset order numbers, if we start a new user. 
+# we need these so we can reset order numbers, if we start a new user.
 saxs_det = oregistry["saxs_det"]
 terms = oregistry["terms"]
 waxs_det = oregistry["waxs_det"]
 
-def _setNeXusFileName(path, scan_id=1):
+
+def _setNeXusFileName(path, scan_id=1, nxwriter=None):
     """
     NeXus file name
     """
+    if nxwriter is None:
+        logger.warning("no instance of nxwriter detected")
 
     fname = os.path.join(path, f"{os.path.basename(path)}{NX_FILE_EXTENSION}")
     nxwriter.file_name = fname
@@ -66,23 +64,35 @@ def _setNeXusFileName(path, scan_id=1):
     logger.debug("File will be written at end of next bluesky scan.")
 
 
-def _setSpecFileName(path, scan_id=1):
-    """
-    SPEC file name
-    """
-    fname = os.path.join(path, f"{os.path.basename(path)}.dat")
-    if filename_exists(fname):
-        logger.warning(">>> file already exists: %s <<<", fname)
-        specwriter.newfile(fname, RE=RE)
-        handled = "appended"
-    else:
-        specwriter.newfile(fname, scan_id=scan_id, RE=RE)
-        handled = "created"
-    logger.debug(f"SPEC file name : {specwriter.spec_filename}")
-    logger.debug(f"File will be {handled} at end of next bluesky scan.")
+# def _setSpecFileName(path, scan_id=1):
+#     """
+#     SPEC file name
+#     """
+#     from usaxs.startup import RE
+
+#     fname = os.path.join(path, f"{os.path.basename(path)}.dat")
+#     if filename_exists(fname):
+#         logger.warning(">>> file already exists: %s <<<", fname)
+#         specwriter.newfile(fname, RE=RE)
+#         handled = "appended"
+#     else:
+#         specwriter.newfile(fname, scan_id=scan_id, RE=RE)
+#         handled = "created"
+#     logger.debug(f"SPEC file name : {specwriter.spec_filename}")
+#     logger.debug(f"File will be {handled} at end of next bluesky scan.")
 
 
-def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, skip_bss=False):
+def newUser(
+    user=None,
+    sample=None,
+    scan_id=1,
+    year=None,
+    month=None,
+    day=None,
+    skip_bss=False,
+    RE=None,
+    nxwriter=None,
+):
     """Set up the instrument for a new user beamtime session.
 
     Creates (if necessary) the monthly base folder and the user data directory,
@@ -109,6 +119,14 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, 
         If ``True``, clear all ``usxTerms:bss:`` PVs and skip the BSS lookup
         entirely.  Use this for setup runs or commissioning sessions that have
         no active ESAF or proposal.  Default is ``False``.
+    RE : RunEngine, optional
+        RunEngine to wire BSS metadata into. Defaults to the one
+        instantiated in ``usaxs.startup`` — pass an explicit RunEngine
+        only when you need a different instance.
+    nxwriter : NXWriter, optional
+        NeXus writer to set the per-session file name on. Defaults to the
+        one instantiated in ``usaxs.startup`` — pass an explicit writer
+        only when you need a different instance.
 
     Returns
     -------
@@ -129,16 +147,21 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, 
 
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
-    #this will revidse main to match what is needed for server...
+    if RE is None:
+        logger.warning("no instance of RE detected")
+    if nxwriter is None:
+        logger.warning("no instance of nxwriter detected")
+
+    # this will revidse main to match what is needed for server...
     # it is useful for regular operations also...
     # this is where the data will ALWAYS be
     base_path = Path("~/share1/USAXS_data").expanduser()
     folder_name = datetime.datetime.now().strftime("%Y-%m")
-    #this defines current folder: ~/share1/USAXS_data/2025-10/
+    # this defines current folder: ~/share1/USAXS_data/2025-10/
     working_folder = base_path / folder_name
 
     if working_folder.exists():
-        #print(f"Folder already exists: {working_folder}")
+        # print(f"Folder already exists: {working_folder}")
         pass
     else:
         working_folder.mkdir(parents=True)
@@ -146,35 +169,34 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, 
 
     # Set permissions to 777 regardless
     os.chmod(working_folder, 0o777)
-    print(f"Permissions set to 777")
-    # go to the working folder. 
+    print("Permissions set to 777")
+    # go to the working folder.
     os.chdir(working_folder)
 
     cwd = Path.cwd()
     print(f"Your Path Is : {cwd}")
-   
-    
-    #global specwriter
+
+    # global specwriter
     filename = ".user_info.json"  # Store if a new user was created
     # check the file exists
     file_exists = (working_folder / filename).is_file()
-    #print(f"File exists: {file_exists}")
-    
+    # print(f"File exists: {file_exists}")
+
     # if user is set, we are starting a new user and therefore will also reset order numbers:
-    if user is not None :
+    if user is not None:
         logger.debug("Synchronizing detector order numbers to %d", 1)
         # terms = oregistry["terms"]
         terms.FlyScan.order_number.put(1)
         # saxs_det = oregistry["saxs_det"]
         saxs_det.hdf1.file_number.put(1)
-        #waxs_det = oregistry["waxs_det"]
+        # waxs_det = oregistry["waxs_det"]
         waxs_det.hdf1.file_number.put(1)
         # caput("usxLAX:USAXS:FS_OrderNumber",1)
         # caput("usaxs_eiger1:HDF1:FileNumber",1)
-        # caput("usaxs_pilatus3:HDF1:FileNumber",1)        
+        # caput("usaxs_pilatus3:HDF1:FileNumber",1)
         # caput("usaxs_eiger1:cam1:FileNumber",1)
         # caput("usaxs_pilatus3:cam1:FileNumber",1)
-         
+
     #### If the file exists and user is None, we are running this automatically and therefore restore old values:
     if user is None and file_exists:
         logger.debug("Found existing user info file: %s", filename)
@@ -194,20 +216,20 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, 
     day = day or dt.day
     sample = sample or "data"
 
-    # now, if we overwrite the input by explicitly setting and month, eg: year=2025, month=9,day=29 
+    # now, if we overwrite the input by explicitly setting and month, eg: year=2025, month=9,day=29
     # we want to return to prior YYYY-MM folder:
     year_month = f"{year:04d}-{month:02d}"
-    #print(f"Year-Month: {year_month}, Folder Name: {folder_name}")
+    # print(f"Year-Month: {year_month}, Folder Name: {folder_name}")
     if year_month != folder_name:
         print("inside wrong folder, switching to correct one")
-        os.chdir(base_path/year_month)
+        os.chdir(base_path / year_month)
         cwd = Path.cwd()
         print("Your current path is now : %s", cwd)
-    
-     #prepare data for new json file. 
+
+    # prepare data for new json file.
     data = {
         "user_name": user,
-        "sample_dir":sample,
+        "sample_dir": sample,
         "year": year,
         "month": month,
         "day": day,
@@ -220,22 +242,19 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, 
     user_data.user_name.put(user)  # set in the PV
     user_data.sample_dir.put(sample)  # set in the PV
 
-   
-
     path = (
-        cwd  # we are in working directory where we want to save the data, that is all done above. 
-        /
-        f"{month:02d}_{day:02d}_{cleanupText(user)}"
+        cwd  # we are in working directory where we want to save the data, that is all done above.
+        / f"{month:02d}_{day:02d}_{cleanupText(user)}"
     )
 
     # BSS lookup runs before Obsidian so the note can include ESAF/proposal info.
     esaf, prop = None, None
     if skip_bss:
-        _clear_bss_pvs()
+        _clear_bss_pvs(RE=RE)
         logger.info("BSS: skipped (skip_bss=True) — PVs cleared")
     else:
         try:
-            esaf, prop = matchUserInApsBss(user)
+            esaf, prop = matchUserInApsBss(user, RE=RE)
         except Exception as exc:
             logger.warning("BSS lookup failed (non-fatal): %s", exc)
 
@@ -251,12 +270,13 @@ def newUser(user=None, sample=None, scan_id=1, year=None, month=None, day=None, 
     logger.debug("Current working directory: %s", cwd)
     user_data.user_dir.put(str(path))  # set in the PV
 
-    _setNeXusFileName(str(path), scan_id=scan_id)
-    _setSpecFileName(str(path), scan_id=scan_id)
+    _setNeXusFileName(str(path), scan_id=scan_id, nxwriter=nxwriter)
+    # _setSpecFileName(str(path), scan_id=scan_id)
     user_data.spec_scan.put(scan_id)  # set in the PV
 
     logger.info(data)
     return str(path.absolute())
+
 
 def newSample(sample=None):
     """
@@ -304,8 +324,10 @@ def newSample(sample=None):
             month = data.get("month")
             day = data.get("day")
     else:
-        #abort code execution
-        raise RuntimeError(f"User info file {filename} not found. Please run newUser() first.")
+        # abort code execution
+        raise RuntimeError(
+            f"User info file {filename} not found. Please run newUser() first."
+        )
 
     if sample is None:
         sample = input("Please provide the name of the new sample: ").strip()
@@ -319,7 +341,7 @@ def newSample(sample=None):
 
     data = {
         "user_name": user,
-        "sample_dir":sample,
+        "sample_dir": sample,
         "year": year,
         "month": month,
         "day": day,
@@ -330,16 +352,16 @@ def newSample(sample=None):
         json.dump(data, file, indent=4)  # indent=4 for pretty formatting
 
     user_data.sample_dir.put(sample)  # set in the PV
-    
+
     # Obsidian recording, recordNewSample, md file if needed, make recoding about new sample.
     recordNewSample()
 
     return
 
 
-## now Bss 
+## now Bss
 # this works fine:
-#  
+#
 
 
 def _pick_active(records, user: str, now: datetime.datetime):
@@ -371,22 +393,33 @@ def _pick_active(records, user: str, now: datetime.datetime):
     return active[0] if active else (records[0] if records else None)
 
 
-def _clear_bss_pvs():
+def _clear_bss_pvs(RE=None):
     """Clear all ``usxTerms:bss:`` PVs and remove BSS keys from RE.md.
 
     Called by newUser(skip_bss=True) when no BSS data should be associated
     with the session (e.g. beamline setup runs without an active ESAF).
     """
+    if RE is None:
+        logger.warning("no instance of RE detected")
+
     bss_device = oregistry["bss"]
     for sig in (
-        bss_device.esaf.id, bss_device.esaf.title, bss_device.esaf.description,
-        bss_device.esaf.sector, bss_device.esaf.status,
-        bss_device.esaf.start, bss_device.esaf.end,
-        bss_device.esaf.user_last_names, bss_device.esaf.user_badges,
+        bss_device.esaf.id,
+        bss_device.esaf.title,
+        bss_device.esaf.description,
+        bss_device.esaf.sector,
+        bss_device.esaf.status,
+        bss_device.esaf.start,
+        bss_device.esaf.end,
+        bss_device.esaf.user_last_names,
+        bss_device.esaf.user_badges,
         bss_device.esaf.pi_name,
-        bss_device.proposal.id, bss_device.proposal.title,
-        bss_device.proposal.start, bss_device.proposal.end,
-        bss_device.proposal.user_last_names, bss_device.proposal.user_badges,
+        bss_device.proposal.id,
+        bss_device.proposal.title,
+        bss_device.proposal.start,
+        bss_device.proposal.end,
+        bss_device.proposal.user_last_names,
+        bss_device.proposal.user_badges,
         bss_device.proposal.pi_name,
     ):
         sig.put("")
@@ -399,7 +432,7 @@ def _clear_bss_pvs():
     RE.md.pop("proposal_id", None)
 
 
-def matchUserInApsBss(user):
+def matchUserInApsBss(user, RE=None):
     """Query the APS BSS REST API for the active ESAF and proposal matching
     *user*, write all fields to the ``usxTerms:bss:`` PVs, and update
     ``RE.md`` with the proposal and ESAF IDs.
@@ -408,6 +441,9 @@ def matchUserInApsBss(user):
     ----------
     user : str
         User last name (or first name) to match against BSS records.
+    RE : RunEngine, optional
+        RunEngine to write ESAF/proposal IDs into. Defaults to the one
+        instantiated in ``usaxs.startup``.
 
     Returns
     -------
@@ -415,6 +451,9 @@ def matchUserInApsBss(user):
         The matched ESAF and proposal objects, either of which may be None
         if no match was found.
     """
+    if RE is None:
+        logger.warning("no instance of RE detected")
+
     bss_device = oregistry["bss"]
 
     credfile = Path("~/.config/dmcredentials").expanduser()
@@ -434,7 +473,13 @@ def matchUserInApsBss(user):
         esafs_all = api.esafs(beamline="12-ID-E", year=year)
         props_all = api.proposals(beamline="12-ID-E", cycle=cycle)
 
-    logger.info("BSS: found %d ESAFs, %d proposals for %s/%s", len(esafs_all), len(props_all), year, cycle)
+    logger.info(
+        "BSS: found %d ESAFs, %d proposals for %s/%s",
+        len(esafs_all),
+        len(props_all),
+        year,
+        cycle,
+    )
 
     esaf = _pick_active(esafs_all, user, now)
     prop = _pick_active(props_all, user, now)
@@ -452,7 +497,9 @@ def matchUserInApsBss(user):
         bss_device.esaf.start.put(str(esaf.start))
         bss_device.esaf.end.put(str(esaf.end))
         bss_device.esaf.user_count.put(len(esaf.users))
-        bss_device.esaf.user_last_names.put(", ".join(u.last_name for u in esaf.users)[:254])
+        bss_device.esaf.user_last_names.put(
+            ", ".join(u.last_name for u in esaf.users)[:254]
+        )
         bss_device.esaf.user_badges.put(", ".join(u.badge for u in esaf.users)[:254])
         bss_device.esaf.pi_name.put(f"{pi.first_name} {pi.last_name}")
         RE.md["esaf_id"] = esaf.esaf_id
@@ -471,15 +518,20 @@ def matchUserInApsBss(user):
         bss_device.proposal.mail_in.put(1 if prop.mail_in else 0)
         bss_device.proposal.proprietary.put(1 if prop.proprietary else 0)
         bss_device.proposal.user_count.put(len(prop.users))
-        bss_device.proposal.user_last_names.put(", ".join(u.last_name for u in prop.users)[:254])
-        bss_device.proposal.user_badges.put(", ".join(u.badge for u in prop.users)[:254])
+        bss_device.proposal.user_last_names.put(
+            ", ".join(u.last_name for u in prop.users)[:254]
+        )
+        bss_device.proposal.user_badges.put(
+            ", ".join(u.badge for u in prop.users)[:254]
+        )
         bss_device.proposal.pi_name.put(f"{pi.first_name} {pi.last_name}")
         RE.md["proposal_id"] = prop.proposal_id
         logger.info("BSS: proposal %s — %s", prop.proposal_id, prop.title)
 
     return esaf, prop
 
-# this shoudl find esafs 
+
+# this shoudl find esafs
 # import datetime as dt
 # from typing import Sequence
 

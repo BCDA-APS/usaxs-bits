@@ -16,14 +16,10 @@ from apsbits.core.instrument_init import oregistry
 from apstools.plans import restorable_stage_sigs
 from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
 from usaxs.callbacks.demo_spec_callback import specwriter
 
-from ..startup import RE
-from ..startup import suspend_BeamInHutch
-from ..startup import suspend_FE_shutter
 from ..utils.constants import constants
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
@@ -80,8 +76,6 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 """.split()
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
 def saxsExp(
     pos_X: float,
@@ -117,6 +111,7 @@ def saxsExp(
     -----
     Usage: ``RE(saxsExp(pos_X, pos_Y, thickness, scan_title))``
     """
+
     if md is None:
         md = {}
 
@@ -171,7 +166,7 @@ def saxsExp(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1
+    # SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
     local_file_template = LOCAL_FILE_TEMPLATE
@@ -184,9 +179,7 @@ def saxsExp(
     _md["hdf5_path"] = str(SAXSscan_path)
     _md["hdf5_file"] = str(SAXS_file_name)
 
-    pilatus_path = os.path.join(
-        "/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:]
-    )
+    pilatus_path = os.path.join("/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:])
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(SAXSscan_path, SAXS_file_name)
@@ -218,8 +211,8 @@ def saxsExp(
         scan_title,
         user_data.sample_thickness,
         thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
+        # user_data.spec_scan,
+        # str(SCAN_N),
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
@@ -231,8 +224,8 @@ def saxsExp(
     yield from user_data.set_state_plan("starting SAXS collection")
     yield from bps.mv(
         # fmt: off
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
+        # user_data.spec_file,
+        # os.path.split(specwriter.spec_filename)[-1],
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
@@ -279,7 +272,7 @@ def saxsExp(
         )
 
         # SPEC-compatibility
-        SCAN_N = RE.md["scan_id"] + 1
+        # SCAN_N = RE.md["scan_id"] + 1
         yield from bps.mv(
             # fmt: off
             scaler1.preset_time,
@@ -300,14 +293,12 @@ def saxsExp(
             0,
             terms.SAXS_WAXS.start_exposure_time,
             ts,
-            user_data.spec_scan,
-            str(SCAN_N),
+            # user_data.spec_scan,
+            # str(SCAN_N),
             timeout=MASTER_TIMEOUT,
             # fmt: on
         )
-        yield from user_data.set_state_plan(
-            f"SAXS collection for {terms.SAXS.acquire_time.get()} s"
-        )
+        yield from user_data.set_state_plan(f"SAXS collection for {terms.SAXS.acquire_time.get()} s")
 
         yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
         yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
@@ -349,8 +340,6 @@ def saxsExp(
     yield from after_plan()
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
 def waxsExp(
     pos_X: float,
@@ -385,6 +374,7 @@ def waxsExp(
     -----
     Usage: ``RE(waxsExp(pos_X, pos_Y, thickness, scan_title))``
     """
+
     if md is None:
         md = {}
 
@@ -429,7 +419,7 @@ def waxsExp(
     scan_title_clean = cleanupText(scan_title)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1
+    # SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
     local_file_template = LOCAL_FILE_TEMPLATE
@@ -474,8 +464,8 @@ def waxsExp(
         scan_title,
         user_data.sample_thickness,
         thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
+        # user_data.spec_scan,
+        # str(SCAN_N),
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
@@ -555,9 +545,7 @@ def waxsExp(
             timeout=MASTER_TIMEOUT,
             # fmt: on
         )
-        yield from user_data.set_state_plan(
-            f"WAXS collection for {terms.WAXS.acquire_time.get()} s"
-        )
+        yield from user_data.set_state_plan(f"WAXS collection for {terms.WAXS.acquire_time.get()} s")
 
         yield from record_sample_image_on_demand("waxs", scan_title_clean, _md)
 

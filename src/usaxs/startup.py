@@ -14,8 +14,6 @@ import logging
 from pathlib import Path
 
 # Core Functions
-from tiled.client import from_profile
-
 from apsbits.core.best_effort_init import init_bec_peaks
 from apsbits.core.catalog_init import init_catalog
 from apsbits.core.instrument_init import init_instrument
@@ -23,7 +21,6 @@ from apsbits.core.instrument_init import make_devices
 from apsbits.core.run_engine_init import init_RE
 
 # Utility functions
-from apsbits.utils.aps_functions import host_on_aps_subnet
 from apsbits.utils.baseline_setup import setup_baseline_stream
 
 # Configuration functions
@@ -41,12 +38,6 @@ from usaxs.utils.scalers_setup import setup_scalers
 instrument_path = Path(__file__).parent
 iconfig_path = instrument_path / "configs" / "iconfig.yml"
 iconfig = load_config(iconfig_path)
-
-# # Additional logging configuration
-# # Only needed if using logging setup differs from apsbits package.
-# # If so, copy 'extra_logging.yml' from apsbits and modify locally.
-# extra_logging_configs_path = instrument_path / "configs" / "extra_logging.yml"
-# configure_logging(extra_logging_configs_path=extra_logging_configs_path)
 
 
 logger = logging.getLogger(__name__)
@@ -70,22 +61,10 @@ bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
-# Optional Nexus callback block
-# delete this block if not using Nexus
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.demo_nexus_callback import nxwriter_init
+    from .callbacks.nxwriter_usaxs import nxwriter_init
 
-    nxwriter = nxwriter_init(RE)
-
-# Optional SPEC callback block
-# delete this block if not using SPEC
-if iconfig.get("SPEC_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.demo_spec_callback import init_specwriter_with_RE
-    from .callbacks.demo_spec_callback import newSpecFile  # noqa: F401
-    from .callbacks.demo_spec_callback import spec_comment  # noqa: F401
-    from .callbacks.demo_spec_callback import specwriter  # noqa: F401
-
-    init_specwriter_with_RE(RE)
+    nxwriter = nxwriter_init(RE, iconfig)
 
 # These imports must come after the above setup.
 # Queue server block
@@ -122,7 +101,7 @@ if in_operation:
 
     suspend_FE_shutter, suspend_BeamInHutch = suspender_in_operations()
 
-else:   # if not in_operation:
+else:  # if not in_operation:
     make_devices(file="shutters_sim.yml", clear=False, device_manager=instrument)
     from usaxs.suspenders.suspender_functions import suspender_in_sim
 
@@ -139,15 +118,28 @@ setup_baseline_stream(sd, oregistry, connect=False)
 
 # flake8: noqa: F401, E402
 """Bluesky .plans."""
+from bluesky import preprocessors as bpp
+
+from usaxs.utils.obsidian import appendToMdFile
+from usaxs.utils.obsidian import recordBeamDump
+from usaxs.utils.obsidian import recordBeamRecovery
+from usaxs.utils.obsidian import recordFunctionRun
+from usaxs.utils.obsidian import recordNewSample
+from usaxs.utils.obsidian import recordProperEnd
+from usaxs.utils.obsidian import recordQserverRun
+from usaxs.utils.obsidian import recordRunCommandFile
+from usaxs.utils.obsidian import recordUserAbort
+from usaxs.utils.obsidian import recordUserStart
+
 from .plans.amplifiers_plan import autoscale_amplifiers
 from .plans.area_detector_plans import areaDetectorAcquire
 from .plans.autocollect_plan import remote_ops
+from .plans.axis_tuning import find_a2rp
+from .plans.axis_tuning import find_ar
 
 # these are all tuning plans facing users and staff
 from .plans.axis_tuning import tune_a2rp
-from .plans.axis_tuning import find_a2rp
 from .plans.axis_tuning import tune_ar
-from .plans.axis_tuning import find_ar
 from .plans.axis_tuning import tune_diode
 from .plans.axis_tuning import tune_dx
 from .plans.axis_tuning import tune_dy
@@ -189,20 +181,26 @@ from .plans.sample_transmission import measure_USAXS_Transmission
 from .plans.sim_plans import sim_count_plan
 from .plans.sim_plans import sim_print_plan
 from .plans.sim_plans import sim_rel_scan_plan
-from .utils.setup_new_user import newUser
 from .utils.setup_new_user import newSample
-from usaxs.utils.obsidian import appendToMdFile
-from usaxs.utils.obsidian import recordUserStart
-from usaxs.utils.obsidian import recordNewSample
-from usaxs.utils.obsidian import recordRunCommandFile
-from usaxs.utils.obsidian import recordBeamDump
-from usaxs.utils.obsidian import recordBeamRecovery
-from usaxs.utils.obsidian import recordFunctionRun
-from usaxs.utils.obsidian import recordQserverRun
-from usaxs.utils.obsidian import recordUserAbort
-from usaxs.utils.obsidian import recordProperEnd
+from .utils.setup_new_user import newUser
+
+# ── Apply beam suspenders to user-entry scan plans ────────────────
+# These are the only plans that pause when the FE shutter closes or
+# the beam leaves the hutch. Other plans run unguarded.
+# Each line below is the literal equivalent of writing
+# `@bpp.suspend_decorator(...)` above the plan definition — kept here
+# (instead of in the plan files) so this whole story lives in one place
+# and each beamline can fork it without touching the shared plan modules.
+USAXSscan = bpp.suspend_decorator(suspend_FE_shutter)(USAXSscan)
+USAXSscan = bpp.suspend_decorator(suspend_BeamInHutch)(USAXSscan)
+
+saxsExp = bpp.suspend_decorator(suspend_FE_shutter)(saxsExp)
+saxsExp = bpp.suspend_decorator(suspend_BeamInHutch)(saxsExp)
+
+waxsExp = bpp.suspend_decorator(suspend_FE_shutter)(waxsExp)
+waxsExp = bpp.suspend_decorator(suspend_BeamInHutch)(waxsExp)
 
 # customize the instrument configuration
 oregistry["usaxs_shutter"].delay_s = 0.01
 
-newUser()
+newUser(RE=RE, nxwriter=nxwriter)

@@ -36,8 +36,6 @@ from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
-from usaxs.callbacks.demo_spec_callback import specwriter
-
 from ..devices.amplifiers import AutorangeSettings
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
@@ -289,7 +287,7 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     _md["hdf5_path"] = usaxs_flyscan.saveFlyData_HDF5_dir
 
     yield from bps.open_run(md=_md)
-    specwriter._cmt("start USAXS Fly scan")
+    # specwriter._cmt("start USAXS Fly scan")
     # Switch UPD amplifier to auto-background mode for the scan.
     yield from bps.mv(
         upd_controls.auto.mode,
@@ -308,7 +306,7 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
         # prepare HDF5 file to save fly scan data (background thread)
         # Runs concurrently with the scan startup sequence to minimise dead time.
     prepare_HDF5_file()
-    specwriter._cmt(f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
+    # specwriter._cmt(f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
 
     # ------------------------------------------------------------------
     # Trigger the hardware fly scan via the EPICS busy record.
@@ -351,8 +349,8 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     yield from bps.wait(group=g)
     # Clear the flying flag so the progress thread exits its polling loop.
     yield from bps.abs_set(usaxs_flyscan.flying, False)
-    elapsed = time.time() - usaxs_flyscan.t0
-    specwriter._cmt(f"fly scan completed in {elapsed} s")
+    # elapsed = time.time() - usaxs_flyscan.t0
+    # specwriter._cmt(f"fly scan completed in {elapsed} s")
 
     # if bluesky_runengine_running:
     msg = f"writing fly scan HDF5 file: {usaxs_flyscan._output_HDF5_file_}"
@@ -368,7 +366,7 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     # Finalise the HDF5 file in a background thread so the plan can
     # simultaneously restore stages (the next bps.mv call).
     finish_HDF5_file()  # finish saving data to HDF5 file (background thread)
-    specwriter._cmt(f"finished {msg}")
+    # specwriter._cmt(f"finished {msg}")
     logger.debug(f"finished {msg}")
 
     # ------------------------------------------------------------------

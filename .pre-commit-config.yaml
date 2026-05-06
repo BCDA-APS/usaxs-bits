@@ -23,4 +23,3 @@ repos:
           - --fix
           - --exclude=user
           - --exclude=src/usaxs/original_plans
-      - id: ruff-format # replaces Black

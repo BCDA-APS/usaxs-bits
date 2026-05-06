@@ -52,11 +52,7 @@ BEC:
 ### Each callback should apply its configuration from here.
 NEXUS_DATA_FILES:
     ENABLE: true
-    FILE_EXTENSION: hdf
-
-SPEC_DATA_FILES:
-    ENABLE: true
-    FILE_EXTENSION: dat
+    FILE_EXTENSION: h5
 
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
