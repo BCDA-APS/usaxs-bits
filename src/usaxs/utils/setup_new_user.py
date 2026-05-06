@@ -148,8 +148,10 @@ def newUser(
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
     if RE is None:
+        from usaxs.startup import RE
         logger.warning("no instance of RE detected")
     if nxwriter is None:
+        from usaxs.startup import nxwriter
         logger.warning("no instance of nxwriter detected")
 
     # this will revidse main to match what is needed for server...
