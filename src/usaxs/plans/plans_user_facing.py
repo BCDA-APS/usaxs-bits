@@ -18,8 +18,6 @@ from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
-from usaxs.callbacks.demo_spec_callback import specwriter
-
 from ..utils.constants import constants
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
@@ -476,8 +474,8 @@ def waxsExp(
     yield from user_data.set_state_plan("starting WAXS collection")
     yield from bps.mv(
         # fmt: off
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
+        # user_data.spec_file,
+        # os.path.split(specwriter.spec_filename)[-1],
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
