@@ -61,11 +61,6 @@ bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
-if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
-    from .callbacks.nxwriter_usaxs import nxwriter_init
-
-    nxwriter = nxwriter_init(RE, iconfig)
-
 # These imports must come after the above setup.
 # Queue server block
 if running_in_queueserver():
@@ -202,5 +197,10 @@ waxsExp = bpp.suspend_decorator(suspend_BeamInHutch)(waxsExp)
 
 # customize the instrument configuration
 oregistry["usaxs_shutter"].delay_s = 0.01
+
+if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
+    from .callbacks.nxwriter_usaxs import nxwriter_init
+
+    nxwriter = nxwriter_init(RE, iconfig)
 
 newUser(RE=RE, nxwriter=nxwriter)
