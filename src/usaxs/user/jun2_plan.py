@@ -81,9 +81,9 @@ loop_debug = Signal(name="loop_debug", value=False)
 # ==============================================================================
 
 SampleList = [
-    [0.0,  0.0, 1.0, "jun2_sample1"],
-    [5.0,  0.0, 1.0, "jun2_sample2"],
-    [10.0, 0.0, 1.0, "jun2_sample3"],
+    [35,  35, 4.0, "NdOx_SI5.1_flow_no stir"],
+    #[5.0,  0.0, 1.0, "jun2_sample2"],
+    #[10.0, 0.0, 1.0, "jun2_sample3"],
     # Add or remove rows as needed; number of samples is set by this list.
 ]
 
