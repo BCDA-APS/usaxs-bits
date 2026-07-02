@@ -456,35 +456,26 @@ def Flyscan(
     logger.debug("Flyscan HDF5 data path: %s", flyscan_path)
     logger.info("Flyscan HDF5 data file: %s %s", flyscan_path, flyscan_file_name)
     logger.debug("*" * 10)
-
     yield from user_data.set_state_plan("starting USAXS Flyscan")
+
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
         # fmt: off
-        user_data.sample_title,
-        scan_title,
-        user_data.sample_thickness,
-        thickness,
-        # user_data.spec_scan,
-        # str(SCAN_N),
-        user_data.time_stamp,
-        ts,
-        user_data.scan_macro,
-        "FlyScan",
-        user_data.spec_file,
-        # os.path.split(specwriter.spec_filename)[-1],
-        a_stage.r,
-        terms.USAXS.ar_val_center.get(),
-        d_stage.x,
-        terms.USAXS.DX0.get(),
-        a_stage.x,
-        terms.USAXS.AX0.get(),
-        usaxs_q_calc.channels.B.input_value,
-        terms.USAXS.ar_val_center.get(),
-        timeout=MASTER_TIMEOUT,
+        user_data.sample_title,        scan_title,
+        user_data.sample_thickness,    thickness,
+        # user_data.spec_scan,        # str(SCAN_N),
+        user_data.time_stamp,        ts,
+        user_data.scan_macro,        "FlyScan",
+        #user_data.spec_file,            # os.path.split(specwriter.spec_filename)[-1],
+        a_stage.r,                      terms.USAXS.ar_val_center.get(),
+        d_stage.x,                      terms.USAXS.DX0.get(),
+        a_stage.x,                      terms.USAXS.AX0.get(),
+        usaxs_q_calc.channels.B.input_value,        terms.USAXS.ar_val_center.get(),
+        #timeout=MASTER_TIMEOUT,
         # fmt: on
     )
+
     yield from insertScanFilters()  # make sure filters are in place for scan
 
     yield from measure_USAXS_Transmission()
@@ -550,7 +541,7 @@ def Flyscan(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-
+    logger.info("Eric")
     # SPEC-compatibility
     # SCAN_N = RE.md["scan_id"] + 1
     yield from bps.mv(
@@ -631,7 +622,6 @@ def Flyscan(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-
     yield from user_data.set_state_plan("Flyscan finished")
 
     yield from after_plan(weight=3)

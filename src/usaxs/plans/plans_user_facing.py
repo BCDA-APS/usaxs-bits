@@ -181,9 +181,7 @@ def saxsExp(
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(SAXSscan_path, SAXS_file_name)
-    logger.debug(f"SAXS HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
-    logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
     saxs_det.hdf1.file_path._auto_monitor = False
     saxs_det.hdf1.file_template._auto_monitor = False
@@ -218,15 +216,14 @@ def saxsExp(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-
     yield from user_data.set_state_plan("starting SAXS collection")
-    yield from bps.mv(
+    #yield from bps.mv(
         # fmt: off
         # user_data.spec_file,
         # os.path.split(specwriter.spec_filename)[-1],
-        timeout=MASTER_TIMEOUT,
+     #   timeout=MASTER_TIMEOUT,
         # fmt: on
-    )
+    #)
     old_delay = scaler0.delay.get()
 
     @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
@@ -327,6 +324,7 @@ def saxsExp(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
+    logger.info("pre mono")
 
     yield from MONO_FEEDBACK_ON()
 
@@ -472,13 +470,13 @@ def waxsExp(
         # fmt: on
     )
     yield from user_data.set_state_plan("starting WAXS collection")
-    yield from bps.mv(
+    #yield from bps.mv(
         # fmt: off
         # user_data.spec_file,
         # os.path.split(specwriter.spec_filename)[-1],
-        timeout=MASTER_TIMEOUT,
+        #timeout=MASTER_TIMEOUT,
         # fmt: on
-    )
+   # )
     old_delay = scaler0.delay.get()
 
     @restorable_stage_sigs([waxs_det.cam, waxs_det.hdf1])

@@ -1182,3 +1182,21 @@ def FanPTC10OvernightPlan(
     appendToMdFile(f"Finished collecting data for Sample {scan_title}")
     appendToMdFile("  ***  ")
     logger.info("finished")
+
+
+def myPTC10TestAt24C(pos_X, pos_Y, thickness, scan_title, md={}):
+    """
+    Minimal PTC10 test: turn heater on at 24 C, collect one USAXS/SAXS/WAXS set, done.
+
+    Example:
+        RE(myPTC10TestAt24C(0, 0, 1.3, "testSample"))
+    """
+    yield from before_command_list()
+    yield from bps.mv(ptc10.temperature.setpoint, 24)
+    yield from setheaterOn()
+    yield from sync_order_numbers()
+    yield from USAXSscan(pos_X, pos_Y, thickness, scan_title, md=md)
+    yield from saxsExp(pos_X, pos_Y, thickness, scan_title, md=md)
+    yield from waxsExp(pos_X, pos_Y, thickness, scan_title, md=md)
+    yield from setheaterOff()
+    yield from after_command_list()
