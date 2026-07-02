@@ -22,10 +22,11 @@ operation:
 
     # emergency_lock_key: custom_lock_key
 
-    print_console_output: true
+    print_console_output: false
 
     # choices: NEVER ENVIRONMENT_OPEN ALWAYS
-    update_existing_plans_and_devices: ENVIRONMENT_OPEN
+    #update_existing_plans_and_devices: ENVIRONMENT_OPEN
+    update_existing_plans_and_devices: ALWAYS
 
     # choices: NEVER ON_REQUEST ON_STARTUP
     user_group_permissions_reload: ON_STARTUP
