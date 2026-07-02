@@ -896,6 +896,490 @@ existing_devices:
     is_movable: true
     is_readable: true
     module: ophyd.epics_motor
+  LAXm2:
+    classname: EpicsMotor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.epics_motor
+  LAXm3:
+    classname: EpicsMotor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.epics_motor
+  LAXm4:
+    classname: EpicsMotor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.epics_motor
+  LAXm5:
+    classname: EpicsMotor
+    components:
+      acceleration:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      direction_of_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      high_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      home_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_switch:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      low_limit_travel:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_egu:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      offset_freeze_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      set_use_switch:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_offset_dir:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_setpoint:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.epics_motor
   LAXm6:
     classname: EpicsMotor
     components:
@@ -2960,18 +3444,6 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: usaxs.devices.trajectories
-  fx4:
-    classname: QuadFX4
-    is_flyable: false
-    is_movable: false
-    is_readable: true
-    module: usaxs.devices.fx4_quadem
-  fx42:
-    classname: QuadFX4
-    is_flyable: false
-    is_movable: false
-    is_readable: true
-    module: usaxs.devices.fx4_quadem
   gslit_stage:
     classname: GuardSlitsStageDevice
     components:
@@ -5101,6 +5573,80 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: usaxs.devices.monochromator
+  pi_c867:
+    classname: SampleRotator
+    components:
+      home:
+        classname: SampleRotatorHoming
+        components:
+          forward:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+          reverse:
+            classname: EpicsSignal
+            is_flyable: false
+            is_movable: true
+            is_readable: true
+            module: ophyd.signal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: usaxs.devices.sample_rotator
+      jog_forward:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      jog_reverse:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_done_move:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_is_moving:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      motor_stop:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      speed:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      user_readback:
+        classname: EpicsSignalRO
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      velocity:
+        classname: EpicsSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+    is_flyable: false
+    is_movable: false
+    is_readable: true
+    module: usaxs.devices.sample_rotator
   ptc10:
     classname: USAXS_PTC10
     components:
@@ -5259,497 +5805,6 @@ existing_devices:
     is_movable: true
     is_readable: true
     module: usaxs.devices.ptc10_controller
-  rheometer_stage:
-    classname: RheometerStageDevice
-    components:
-      leg1:
-        classname: EpicsMotor
-        components:
-          acceleration:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          direction_of_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          high_limit_switch:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          high_limit_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          home_forward:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          home_reverse:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          low_limit_switch:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          low_limit_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_done_move:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_egu:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_is_moving:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_stop:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          offset_freeze_switch:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          set_use_switch:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_offset:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_offset_dir:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_readback:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_setpoint:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          velocity:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.epics_motor
-      leg2:
-        classname: EpicsMotor
-        components:
-          acceleration:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          direction_of_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          high_limit_switch:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          high_limit_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          home_forward:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          home_reverse:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          low_limit_switch:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          low_limit_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_done_move:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_egu:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_is_moving:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_stop:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          offset_freeze_switch:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          set_use_switch:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_offset:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_offset_dir:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_readback:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_setpoint:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          velocity:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.epics_motor
-      leg3:
-        classname: EpicsMotor
-        components:
-          acceleration:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          direction_of_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          high_limit_switch:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          high_limit_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          home_forward:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          home_reverse:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          low_limit_switch:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          low_limit_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_done_move:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_egu:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_is_moving:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_stop:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          offset_freeze_switch:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          set_use_switch:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_offset:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_offset_dir:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_readback:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_setpoint:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          velocity:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.epics_motor
-      x:
-        classname: EpicsMotor
-        components:
-          acceleration:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          direction_of_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          high_limit_switch:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          high_limit_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          home_forward:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          home_reverse:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          low_limit_switch:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          low_limit_travel:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_done_move:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_egu:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_is_moving:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          motor_stop:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          offset_freeze_switch:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          set_use_switch:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_offset:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_offset_dir:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_readback:
-            classname: EpicsSignalRO
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          user_setpoint:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-          velocity:
-            classname: EpicsSignal
-            is_flyable: false
-            is_movable: true
-            is_readable: true
-            module: ophyd.signal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: ophyd.epics_motor
-    is_flyable: false
-    is_movable: false
-    is_readable: true
-    module: usaxs.devices.rheometer
   s_stage:
     classname: UsaxsSampleStageDevice
     components:
@@ -17999,12 +18054,6 @@ existing_devices:
         is_movable: true
         is_readable: true
         module: ophyd.signal
-      progress_kick:
-        classname: ThreadKickSignal
-        is_flyable: false
-        is_movable: true
-        is_readable: true
-        module: usaxs.devices.usaxs_fly_scan
       scan_time:
         classname: EpicsSignal
         is_flyable: false
@@ -24310,7 +24359,7 @@ existing_plans:
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: title
+      name: scan_title
     - default: None
       description: Extra metadata merged into the run's start document.
       kind:
@@ -24319,6 +24368,20 @@ existing_plans:
       name: md
     properties:
       is_generator: false
+  MONO_FEEDBACK_OFF:
+    description: 'Bluesky plan: disable the monochromator energy-feedback loop.'
+    module: usaxs.plans.mono_feedback
+    name: MONO_FEEDBACK_OFF
+    parameters: []
+    properties:
+      is_generator: true
+  MONO_FEEDBACK_ON:
+    description: 'Bluesky plan: enable the monochromator energy-feedback loop.'
+    module: usaxs.plans.mono_feedback
+    name: MONO_FEEDBACK_ON
+    parameters: []
+    properties:
+      is_generator: true
   USAXSscan:
     description: 'Bluesky plan: collect a USAXS scan (fly or step) at the given position.'
     module: usaxs.plans.plans_usaxs
@@ -24330,21 +24393,21 @@ existing_plans:
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: pos_X
+      name: x
     - annotation:
         type: float
       description: Sample Y position in mm.
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: pos_Y
+      name: y
     - annotation:
         type: float
       description: Sample thickness in mm.
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: thickness
+      name: thickness_mm
     - annotation:
         type: str
       description: Human-readable title for the scan.
@@ -24359,7 +24422,7 @@ existing_plans:
         value: 1
       name: md
     properties:
-      is_generator: false
+      is_generator: true
   USAXSscanStep:
     description: 'Bluesky plan: collect a step-scan USAXS measurement at the given
       position.'
@@ -24393,7 +24456,7 @@ existing_plans:
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: title
+      name: scan_title
     - default: None
       description: Extra metadata merged into the run's start document.
       kind:
@@ -24402,6 +24465,232 @@ existing_plans:
       name: md
     properties:
       is_generator: false
+  adaptive_scan:
+    description: Scan over one variable with adaptively tuned step size.
+    module: bluesky.plans
+    name: adaptive_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: str
+      description: data field whose output is the focus of the adaptive tuning
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: target_field
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor
+    - annotation:
+        type: float
+      description: starting position of motor
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: start
+    - annotation:
+        type: float
+      description: ending position of motor
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stop
+    - annotation:
+        type: float
+      description: smallest step for fast-changing regions
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: min_step
+    - annotation:
+        type: float
+      description: largest step for slow-changing regions
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: max_step
+    - annotation:
+        type: float
+      description: desired fractional change in detector signal between steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: target_delta
+    - annotation:
+        type: bool
+      description: whether backward steps are allowed -- this is concern with some
+        motors
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: backstep
+    - annotation:
+        type: float | None
+      default: '0.8'
+      description: threshold for going backward and rescanning a region, default is
+        0.8
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: threshold
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  allUSAXStune:
+    description: 'Bluesky plan: full USAXS optics tune (mr, ar, a2rp).'
+    module: usaxs.plans.plans_tune
+    name: allUSAXStune
+    parameters:
+    - default: None
+      description: Metadata passed to each tuning sub-plan.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    properties:
+      is_generator: false
+  areaDetectorAcquire:
+    description: 'Bluesky plan: acquire image(s) from an area detector.'
+    module: usaxs.plans.area_detector_plans
+    name: areaDetectorAcquire
+    parameters:
+    - description: The detector to acquire from (must have ``cam`` and ``hdf1`` components).
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: det
+    - default: None
+      description: 'If not ``None``, written to ``det.hdf1.create_directory`` before
+
+        acquisition so that the file-writer creates missing subdirectories.'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: create_directory
+    - default: None
+      description: Extra metadata merged into the run's start document.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    properties:
+      is_generator: true
+  autoscale_amplifiers:
+    description: 'Bluesky plan: autoscale detector amplifiers simultaneously.'
+    module: usaxs.plans.amplifiers_plan
+    name: autoscale_amplifiers
+    parameters:
+    - description: List (or tuple) of amplifier control devices to autoscale.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: controls
+    - default: None
+      description: If supplied, opened before autoscaling begins (left open afterwards).
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: shutter
+    - annotation:
+        type: float
+      default: '0.05'
+      description: Integration time per trial count, seconds.  Default 0.05.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: count_time
+    - annotation:
+        type: int
+      default: '9'
+      description: Maximum gain-adjustment cycles before giving up.  Default 9.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: max_iterations
+    - annotation:
+        type: typing.Optional[bluesky.run_engine.RunEngine]
+      default: None
+      description: 'RunEngine instance; passed through to ``_scaler_autoscale_`` where
+        it
+
+        is used to suppress the ``AutoscaleError`` raise during dry-runs
+
+        (``summarize_plan``).'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: RE
+    properties:
+      is_generator: false
+  count:
+    description: Take one or more readings from detectors.
+    module: bluesky.plans
+    name: count
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: int | None
+      default: '1'
+      description: 'number of readings to take; default is 1
+
+
+        If None, capture data until canceled'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - annotation:
+        type: float | collections.abc.Iterable[float]
+      default: '0.0'
+      description: Time delay in seconds between successive readings; default is 0.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: delay
+    - default: None
+      description: "hook for customizing action of inner loop (messages per step)\n\
+        Expected signature ::\n\n   def f(detectors: Iterable[OphydObj]) -> Generator[Msg]:\n\
+        \       ..."
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_shot
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
   find_a2rp:
     description: 'Bluesky plan: wide-range A2RP search followed by a fine tune_a2rp.'
     module: usaxs.plans.axis_tuning
@@ -24432,6 +24721,165 @@ existing_plans:
       name: md
     properties:
       is_generator: true
+  fly:
+    description: Perform a fly scan with one or more 'flyers'.
+    module: bluesky.plans
+    name: fly
+    parameters:
+    - annotation:
+        type: list[__FLYABLE__]
+      convert_device_names: true
+      description: objects that support the flyer interface
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: flyers
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  grid_scan:
+    description: Scan over a mesh; each motor is on an independent trajectory.
+    module: bluesky.plans
+    name: grid_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - annotation:
+        type: collections.abc.Iterable[typing.Any] | bool | None
+      default: None
+      description: 'which axes should be snaked, either ``False`` (do not snake any
+        axes),
+
+        ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
+
+        is defined as following snake-like, winding trajectory instead of a
+
+        simple left-to-right trajectory. The elements of the list are motors
+
+        that are listed in `args`. The list must not contain the slowest
+
+        (first) motor, since it can''t be snaked.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: snake_axes
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  inner_product_scan:
+    module: bluesky.plans
+    name: inner_product_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: int
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - default: None
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  insertBlackflyFilters:
+    description: 'Bluesky plan: insert filters for Blackfly camera imaging.'
+    module: usaxs.plans.filter_plans
+    name: insertBlackflyFilters
+    parameters: []
+    properties:
+      is_generator: false
+  insertRadiographyFilters:
+    description: 'Bluesky plan: insert filters for radiography mode.'
+    module: usaxs.plans.filter_plans
+    name: insertRadiographyFilters
+    parameters: []
+    properties:
+      is_generator: false
+  insertSaxsFilters:
+    description: 'Bluesky plan: insert filters for SAXS measurements.'
+    module: usaxs.plans.filter_plans
+    name: insertSaxsFilters
+    parameters: []
+    properties:
+      is_generator: false
+  insertScanFilters:
+    description: 'Bluesky plan: insert filters for USAXS scanning.'
+    module: usaxs.plans.filter_plans
+    name: insertScanFilters
+    parameters: []
+    properties:
+      is_generator: false
+  insertTransmissionFilters:
+    description: 'Bluesky plan: insert energy-dependent filters for transmission measurements.'
+    module: usaxs.plans.filter_plans
+    name: insertTransmissionFilters
+    parameters: []
+    properties:
+      is_generator: true
+  insertWaxsFilters:
+    description: 'Bluesky plan: insert filters for WAXS measurements.'
+    module: usaxs.plans.filter_plans
+    name: insertWaxsFilters
+    parameters: []
+    properties:
+      is_generator: false
   lineup2:
     description: Lineup and center a given mover, relative to the current position.
     module: apstools.plans.alignment
@@ -24492,6 +24940,185 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: md
+    - default: '''signal_stats'''
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stats_stream
+    properties:
+      is_generator: false
+  list_grid_scan:
+    description: Scan over a mesh; each motor is on an independent trajectory.
+    module: bluesky.plans
+    name: list_grid_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      description: "patterned like (``motor1, position_list1,``\n                ``motor2,\
+        \ position_list2,``\n                ``motor3, position_list3,``\n       \
+        \         ``...,``\n                ``motorN, position_listN``)\n\nThe first\
+        \ motor is the \"slowest\", the outer loop. ``position_list``'s\nare lists\
+        \ of positions, all lists must have the same length. Motors\ncan be any 'settable'\
+        \ object (motor, temp controller, etc.)."
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - annotation:
+        type: bool
+      default: 'False'
+      description: 'which axes should be snaked, either ``False`` (do not snake any
+        axes),
+
+        ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
+
+        is defined as following snake-like, winding trajectory instead of a
+
+        simple left-to-right trajectory.The elements of the list are motors
+
+        that are listed in `args`. The list must not contain the slowest
+
+        (first) motor, since it can''t be snaked.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: snake_axes
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  list_scan:
+    description: Scan over one or more variables in steps simultaneously (inner product).
+    module: bluesky.plans
+    name: list_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: tuple[__MOVABLE__ | typing.Any, list[typing.Any]]
+      convert_device_names: true
+      description: "For one dimension, ``motor, [point1, point2, ....]``.\nIn general:\n\
+        \n.. code-block:: python\n\n    motor1, [point1, point2, ...],\n    motor2,\
+        \ [point1, point2, ...],\n    ...,\n    motorN, [point1, point2, ...]\n\n\
+        Motors can be any 'settable' object (motor, temp controller, etc.)"
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step)
+
+        Expected signature:
+
+        ``f(detectors, motor, step) -> plan (a generator)``'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  log_scan:
+    description: Scan over one variable in log-spaced steps.
+    module: bluesky.plans
+    name: log_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor
+    - annotation:
+        type: float
+      description: starting position of motor
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: start
+    - annotation:
+        type: float
+      description: ending position of motor
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stop
+    - annotation:
+        type: int
+      description: number of steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step)
+
+        Expected signature: ``f(detectors, motor, step)``'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  measure_USAXS_Transmission:
+    description: 'Bluesky plan: measure sample transmission in USAXS mode.'
+    module: usaxs.plans.sample_transmission
+    name: measure_USAXS_Transmission
+    parameters: []
     properties:
       is_generator: false
   mode_DirectBeam:
@@ -24572,52 +25199,1380 @@ existing_plans:
       name: md
     properties:
       is_generator: true
-  new_sample_plan:
-    description: 'Bluesky plan: queueable wrapper around ``newSample()``.'
-    module: usaxs.plans.user_actions_plans
-    name: new_sample_plan
-    parameters:
-    - description: 'Sample directory name (required). ``newUser()`` must have been
-        run first
-
-        (the ``.user_info.json`` state file must exist) or the underlying
-
-        function raises ``RuntimeError``.'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: sample
+  move_SAXSIn:
+    description: 'Bluesky plan: move the SAXS pinhole stage into the beam.'
+    module: usaxs.plans.move_instrument
+    name: move_SAXSIn
+    parameters: []
     properties:
       is_generator: true
-  new_user_plan:
-    description: 'Bluesky plan: queueable wrapper around ``newUser()``.'
-    module: usaxs.plans.user_actions_plans
-    name: new_user_plan
+  move_SAXSOut:
+    description: 'Bluesky plan: move the SAXS pinhole stage out of the beam.'
+    module: usaxs.plans.move_instrument
+    name: move_SAXSOut
+    parameters: []
+    properties:
+      is_generator: true
+  move_USAXSIn:
+    description: 'Bluesky plan: move the USAXS analyzer and detector stages into the
+      beam.'
+    module: usaxs.plans.move_instrument
+    name: move_USAXSIn
+    parameters: []
+    properties:
+      is_generator: true
+  move_USAXSOut:
+    description: 'Bluesky plan: move the USAXS analyzer and detector stages out of
+      the beam.'
+    module: usaxs.plans.move_instrument
+    name: move_USAXSOut
+    parameters: []
+    properties:
+      is_generator: true
+  move_WAXSIn:
+    description: 'Bluesky plan: move the WAXS detector into the beam.'
+    module: usaxs.plans.move_instrument
+    name: move_WAXSIn
+    parameters: []
+    properties:
+      is_generator: true
+  move_WAXSOut:
+    description: 'Bluesky plan: move the WAXS detector out of the beam.'
+    module: usaxs.plans.move_instrument
+    name: move_WAXSOut
+    parameters: []
+    properties:
+      is_generator: true
+  outer_product_scan:
+    description: Scan over a mesh; each motor is on an independent trajectory.
+    module: bluesky.plans
+    name: grid_scan
     parameters:
-    - description: User/beamtime name (required; used in the directory name and EPICS
-        PV).
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: user
-    - default: '''data'''
-      description: Initial sample directory name. Default ``"data"``.
+      name: detectors
+    - kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - annotation:
+        type: collections.abc.Iterable[typing.Any] | bool | None
+      default: None
+      description: 'which axes should be snaked, either ``False`` (do not snake any
+        axes),
+
+        ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
+
+        is defined as following snake-like, winding trajectory instead of a
+
+        simple left-to-right trajectory. The elements of the list are motors
+
+        that are listed in `args`. The list must not contain the slowest
+
+        (first) motor, since it can''t be snaked.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: snake_axes
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  preSWAXStune:
+    description: 'Bluesky plan: pre-scan tune for SAXS/WAXS optics (stub).'
+    module: usaxs.plans.plans_tune
+    name: preSWAXStune
+    parameters:
+    - default: None
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: sample
-    - default: '1'
-      description: Starting scan ID for the SPEC file. Default ``1``.
+      name: md
+    properties:
+      is_generator: false
+  preUSAXStune:
+    description: 'Bluesky plan: tune the USAXS optics (ar and a2rp) before a scan.'
+    module: usaxs.plans.plans_tune
+    name: preUSAXStune
+    parameters:
+    - default: '{}'
+      description: Metadata passed to each tuning sub-plan.
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: scan_id
-    - default: 'False'
-      description: If ``True``, skip the BSS lookup (commissioning / no active ESAF).
+      name: md
+    properties:
+      is_generator: false
+  ramp_plan:
+    description: Take data while ramping one or more positioners.
+    module: bluesky.plans
+    name: ramp_plan
+    parameters:
+    - description: 'plan to start the ramp.  This will be run inside of a open/close
+
+        run.
+
+
+        This plan must return a `ophyd.StatusBase` object.'
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: skip_bss
+      name: go_plan
+    - annotation:
+        type: __READABLE__
+      convert_device_names: true
+      description: signal to be monitored
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: monitor_sig
+    - description: 'generator which takes no input
+
+
+        This will be called for every data point.  This should create
+
+        one or more events.'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: inner_plan_func
+    - annotation:
+        type: bool
+      default: 'True'
+      description: If True, add a pre data at beginning
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: take_pre_data
+    - annotation:
+        type: float | None
+      default: None
+      description: 'If not None, the maximum time the ramp can run.
+
+
+        In seconds'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: timeout
+    - annotation:
+        type: float | None
+      default: None
+      description: 'If not None, take data no faster than this.  If None, take
+
+        data as fast as possible
+
+
+        If running the inner plan takes longer than `period` than take
+
+        data with no dead time.
+
+
+        In seconds.'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: period
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    properties:
+      is_generator: true
+  rel_adaptive_scan:
+    description: Relative scan over one variable with adaptively tuned step size.
+    module: bluesky.plans
+    name: rel_adaptive_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: str
+      description: data field whose output is the focus of the adaptive tuning
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: target_field
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor
+    - annotation:
+        type: float
+      description: starting position of motor, relative to the current position.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: start
+    - annotation:
+        type: float
+      description: ending position of motor, relative to the current position.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stop
+    - annotation:
+        type: float
+      description: smallest step for fast-changing regions
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: min_step
+    - annotation:
+        type: float
+      description: largest step for slow-changing regions
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: max_step
+    - annotation:
+        type: float
+      description: desired fractional change in detector signal between steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: target_delta
+    - annotation:
+        type: bool
+      description: whether backward steps are allowed -- this is concern with some
+        motors
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: backstep
+    - annotation:
+        type: float | None
+      default: '0.8'
+      description: threshold for going backward and rescanning a region, default is
+        0.8
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: threshold
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  rel_grid_scan:
+    description: Scan over a mesh relative to current position.
+    module: bluesky.plans
+    name: rel_grid_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - annotation:
+        type: collections.abc.Iterable[typing.Any] | bool | None
+      default: None
+      description: 'which axes should be snaked, either ``False`` (do not snake any
+        axes),
+
+        ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
+
+        is defined as following snake-like, winding trajectory instead of a
+
+        simple left-to-right trajectory. The elements of the list are motors
+
+        that are listed in `args`. The list must not contain the slowest
+
+        (first) motor, since it can''t be snaked.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: snake_axes
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  rel_list_grid_scan:
+    description: 'Scan over a mesh; each motor is on an independent trajectory. Each
+      point is
+
+      relative to the current position.'
+    module: bluesky.plans
+    name: rel_list_grid_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      description: "patterned like (``motor1, position_list1,``\n                ``motor2,\
+        \ position_list2,``\n                ``motor3, position_list3,``\n       \
+        \         ``...,``\n                ``motorN, position_listN``)\n\nThe first\
+        \ motor is the \"slowest\", the outer loop. ``position_list``'s\nare lists\
+        \ of positions, all lists must have the same length. Motors\ncan be any 'settable'\
+        \ object (motor, temp controller, etc.)."
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - annotation:
+        type: bool
+      default: 'False'
+      description: 'which axes should be snaked, either ``False`` (do not snake any
+        axes),
+
+        ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
+
+        is defined as following snake-like, winding trajectory instead of a
+
+        simple left-to-right trajectory.The elements of the list are motors
+
+        that are listed in `args`. The list must not contain the slowest
+
+        (first) motor, since it can''t be snaked.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: snake_axes
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  rel_list_scan:
+    description: Scan over one variable in steps relative to current position.
+    module: bluesky.plans
+    name: rel_list_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      description: "For one dimension, ``motor, [point1, point2, ....]``.\nIn general:\n\
+        \n.. code-block:: python\n\n    motor1, [point1, point2, ...],\n    motor2,\
+        \ [point1, point2, ...],\n    ...,\n    motorN, [point1, point2, ...]\n\n\
+        Motors can be any 'settable' object (motor, temp controller, etc.)\npoint1,\
+        \ point2 etc are relative to the current location."
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step)
+
+        Expected signature: ``f(detectors, motor, step)``'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  rel_log_scan:
+    description: Scan over one variable in log-spaced steps relative to current position.
+    module: bluesky.plans
+    name: rel_log_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor
+    - annotation:
+        type: float
+      description: starting position of motor
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: start
+    - annotation:
+        type: float
+      description: ending position of motor
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stop
+    - annotation:
+        type: int
+      description: number of steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step)
+
+        Expected signature: ``f(detectors, motor, step)``'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  rel_scan:
+    description: Scan over one multi-motor trajectory relative to current position.
+    module: bluesky.plans
+    name: rel_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      description: "For one dimension, ``motor, start, stop``.\nIn general:\n\n..\
+        \ code-block:: python\n\n    motor1, start1, stop1,\n    motor2, start2, start2,\n\
+        \    ...,\n    motorN, startN, stopN,\n\nMotors can be any 'settable' object\
+        \ (motor, temp controller, etc.)"
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - default: None
+      description: number of points
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: num
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  rel_spiral:
+    description: Relative spiral scan
+    module: bluesky.plans
+    name: rel_spiral
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_motor
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_motor
+    - annotation:
+        type: float
+      description: x width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_range
+    - annotation:
+        type: float
+      description: y width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_range
+    - annotation:
+        type: float
+      description: Delta radius along the minor axis of the ellipse.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dr
+    - annotation:
+        type: float
+      description: Number of theta steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: nth
+    - annotation:
+        type: float | None
+      default: None
+      description: 'Delta radius along the major axis of the ellipse. If None, it
+
+        defaults to dr.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: dr_y
+    - annotation:
+        type: float
+      default: '0.0'
+      description: Tilt angle in radians, default 0.0
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: tilt
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  rel_spiral_fermat:
+    description: Relative fermat spiral scan
+    module: bluesky.plans
+    name: rel_spiral_fermat
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_motor
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_motor
+    - annotation:
+        type: float
+      description: x width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_range
+    - annotation:
+        type: float
+      description: y width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_range
+    - annotation:
+        type: float
+      description: delta radius
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dr
+    - annotation:
+        type: float
+      description: radius gets divided by this
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: factor
+    - annotation:
+        type: float | None
+      default: None
+      description: 'Delta radius along the major axis of the ellipse, if not specifed
+
+        defaults to dr'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: dr_y
+    - annotation:
+        type: float | None
+      default: '0.0'
+      description: Tilt angle in radians, default 0.0
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: tilt
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  rel_spiral_square:
+    description: Relative square spiral scan, centered around current (x, y) position.
+    module: bluesky.plans
+    name: rel_spiral_square
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_motor
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_motor
+    - annotation:
+        type: float
+      description: x width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_range
+    - annotation:
+        type: float
+      description: y width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_range
+    - annotation:
+        type: float
+      description: number of x axis points
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_num
+    - annotation:
+        type: float
+      description: Number of y axis points.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_num
+    - default: None
+      description: 'hook for cutomizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plans.one_nd_step` (the default) for
+
+        details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  relative_adaptive_scan:
+    description: Relative scan over one variable with adaptively tuned step size.
+    module: bluesky.plans
+    name: rel_adaptive_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: str
+      description: data field whose output is the focus of the adaptive tuning
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: target_field
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor
+    - annotation:
+        type: float
+      description: starting position of motor, relative to the current position.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: start
+    - annotation:
+        type: float
+      description: ending position of motor, relative to the current position.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stop
+    - annotation:
+        type: float
+      description: smallest step for fast-changing regions
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: min_step
+    - annotation:
+        type: float
+      description: largest step for slow-changing regions
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: max_step
+    - annotation:
+        type: float
+      description: desired fractional change in detector signal between steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: target_delta
+    - annotation:
+        type: bool
+      description: whether backward steps are allowed -- this is concern with some
+        motors
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: backstep
+    - annotation:
+        type: float | None
+      default: '0.8'
+      description: threshold for going backward and rescanning a region, default is
+        0.8
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: threshold
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  relative_inner_product_scan:
+    module: bluesky.plans
+    name: relative_inner_product_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: int
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - default: None
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  relative_list_scan:
+    description: Scan over one variable in steps relative to current position.
+    module: bluesky.plans
+    name: rel_list_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      description: "For one dimension, ``motor, [point1, point2, ....]``.\nIn general:\n\
+        \n.. code-block:: python\n\n    motor1, [point1, point2, ...],\n    motor2,\
+        \ [point1, point2, ...],\n    ...,\n    motorN, [point1, point2, ...]\n\n\
+        Motors can be any 'settable' object (motor, temp controller, etc.)\npoint1,\
+        \ point2 etc are relative to the current location."
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step)
+
+        Expected signature: ``f(detectors, motor, step)``'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  relative_log_scan:
+    description: Scan over one variable in log-spaced steps relative to current position.
+    module: bluesky.plans
+    name: rel_log_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor
+    - annotation:
+        type: float
+      description: starting position of motor
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: start
+    - annotation:
+        type: float
+      description: ending position of motor
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stop
+    - annotation:
+        type: int
+      description: number of steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step)
+
+        Expected signature: ``f(detectors, motor, step)``'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  relative_outer_product_scan:
+    description: Scan over a mesh relative to current position.
+    module: bluesky.plans
+    name: rel_grid_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - annotation:
+        type: collections.abc.Iterable[typing.Any] | bool | None
+      default: None
+      description: 'which axes should be snaked, either ``False`` (do not snake any
+        axes),
+
+        ``True`` (snake all axes) or a list of axes to snake. "Snaking" an axis
+
+        is defined as following snake-like, winding trajectory instead of a
+
+        simple left-to-right trajectory. The elements of the list are motors
+
+        that are listed in `args`. The list must not contain the slowest
+
+        (first) motor, since it can''t be snaked.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: snake_axes
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  relative_scan:
+    description: Scan over one multi-motor trajectory relative to current position.
+    module: bluesky.plans
+    name: rel_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      description: "For one dimension, ``motor, start, stop``.\nIn general:\n\n..\
+        \ code-block:: python\n\n    motor1, start1, stop1,\n    motor2, start2, start2,\n\
+        \    ...,\n    motorN, startN, stopN,\n\nMotors can be any 'settable' object\
+        \ (motor, temp controller, etc.)"
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - default: None
+      description: number of points
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: num
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  relative_spiral:
+    description: Relative spiral scan
+    module: bluesky.plans
+    name: rel_spiral
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_motor
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_motor
+    - annotation:
+        type: float
+      description: x width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_range
+    - annotation:
+        type: float
+      description: y width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_range
+    - annotation:
+        type: float
+      description: Delta radius along the minor axis of the ellipse.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dr
+    - annotation:
+        type: float
+      description: Number of theta steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: nth
+    - annotation:
+        type: float | None
+      default: None
+      description: 'Delta radius along the major axis of the ellipse. If None, it
+
+        defaults to dr.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: dr_y
+    - annotation:
+        type: float
+      default: '0.0'
+      description: Tilt angle in radians, default 0.0
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: tilt
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  relative_spiral_fermat:
+    description: Relative fermat spiral scan
+    module: bluesky.plans
+    name: rel_spiral_fermat
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_motor
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_motor
+    - annotation:
+        type: float
+      description: x width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_range
+    - annotation:
+        type: float
+      description: y width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_range
+    - annotation:
+        type: float
+      description: delta radius
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dr
+    - annotation:
+        type: float
+      description: radius gets divided by this
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: factor
+    - annotation:
+        type: float | None
+      default: None
+      description: 'Delta radius along the major axis of the ellipse, if not specifed
+
+        defaults to dr'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: dr_y
+    - annotation:
+        type: float | None
+      default: '0.0'
+      description: Tilt angle in radians, default 0.0
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: tilt
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  remote_ops:
+    description: 'Bluesky plan: enable PV-directed data collection.'
+    module: usaxs.plans.autocollect_plan
+    name: remote_ops
+    parameters: []
     properties:
       is_generator: true
   reset_USAXS:
@@ -24675,13 +26630,522 @@ existing_plans:
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: title
+      name: scan_title
     - default: None
       description: Extra metadata merged into the run's start document.
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: md
+    properties:
+      is_generator: true
+  scan:
+    description: Scan over one multi-motor trajectory.
+    module: bluesky.plans
+    name: scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__ | typing.Any
+      convert_device_names: true
+      description: "For one dimension, ``motor, start, stop``.\nIn general:\n\n..\
+        \ code-block:: python\n\n    motor1, start1, stop1,\n    motor2, start2, stop2,\n\
+        \    ...,\n    motorN, startN, stopN\n\nMotors can be any 'settable' object\
+        \ (motor, temp controller, etc.)"
+      kind:
+        name: VAR_POSITIONAL
+        value: 2
+      name: args
+    - annotation:
+        type: int | None
+      default: None
+      description: number of points
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: num
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  scan_nd:
+    description: Scan over an arbitrary N-dimensional trajectory.
+    module: bluesky.plans
+    name: scan_nd
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - description: cycler.Cycler object mapping movable interfaces to positions
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: cycler
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  sim_count_plan:
+    description: 'Bluesky plan: demonstrate ``count()`` with the simulator detector.'
+    module: usaxs.plans.sim_plans
+    name: sim_count_plan
+    parameters:
+    - annotation:
+        type: int
+      default: '1'
+      description: Number of readings to take, by default 1.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - annotation:
+        type: float
+      default: '10000'
+      description: Peak intensity for the simulated detector, by default 10 000.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: imax
+    - annotation:
+        type: dict
+      default: '{''title'': ''test run with simulator(s)''}'
+      description: Metadata for the run, by default ``DEFAULT_MD``.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    properties:
+      is_generator: true
+  sim_print_plan:
+    description: 'Bluesky plan: print simulator motor and detector values (no data
+      stream).'
+    module: usaxs.plans.sim_plans
+    name: sim_print_plan
+    parameters: []
+    properties:
+      is_generator: true
+  sim_rel_scan_plan:
+    description: 'Bluesky plan: demonstrate ``rel_scan()`` with the simulator devices.'
+    module: usaxs.plans.sim_plans
+    name: sim_rel_scan_plan
+    parameters:
+    - annotation:
+        type: float
+      default: '5'
+      description: Total scan range in motor units, by default 5.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: span
+    - annotation:
+        type: int
+      default: '11'
+      description: Number of scan points, by default 11.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - annotation:
+        type: float
+      default: '10000'
+      description: Peak intensity for the simulated detector, by default 10 000.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: imax
+    - annotation:
+        type: float
+      default: '0'
+      description: Peak centre position in motor units, by default 0.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: center
+    - annotation:
+        type: float
+      default: '1'
+      description: Peak width (Gaussian sigma) in motor units, by default 1.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: sigma
+    - annotation:
+        type: str
+      default: '''uniform'''
+      description: 'Noise model: ``"none"``, ``"poisson"``, or ``"uniform"``,
+
+        by default ``"uniform"``.'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: noise
+    - annotation:
+        type: dict
+      default: '{''title'': ''test run with simulator(s)''}'
+      description: Metadata for the run, by default ``DEFAULT_MD``.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    properties:
+      is_generator: true
+  spiral:
+    description: Spiral scan, centered around (x_start, y_start)
+    module: bluesky.plans
+    name: spiral
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_motor
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_motor
+    - annotation:
+        type: float
+      description: x center
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_start
+    - annotation:
+        type: float
+      description: y center
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_start
+    - annotation:
+        type: float
+      description: x width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_range
+    - annotation:
+        type: float
+      description: y width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_range
+    - annotation:
+        type: float
+      description: Delta radius along the minor axis of the ellipse.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dr
+    - annotation:
+        type: float
+      description: Number of theta steps
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: nth
+    - annotation:
+        type: float | None
+      default: None
+      description: 'Delta radius along the major axis of the ellipse. If None, defaults
+        to
+
+        dr.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: dr_y
+    - annotation:
+        type: float | None
+      default: '0.0'
+      description: Tilt angle in radians, default 0.0
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: tilt
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  spiral_fermat:
+    description: Absolute fermat spiral scan, centered around (x_start, y_start)
+    module: bluesky.plans
+    name: spiral_fermat
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_motor
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_motor
+    - annotation:
+        type: float
+      description: x center
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_start
+    - annotation:
+        type: float
+      description: y center
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_start
+    - annotation:
+        type: float
+      description: x width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_range
+    - annotation:
+        type: float
+      description: y width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_range
+    - annotation:
+        type: float
+      description: delta radius
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: dr
+    - annotation:
+        type: float
+      description: radius gets divided by this
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: factor
+    - annotation:
+        type: float | None
+      default: None
+      description: 'Delta radius along the major axis of the ellipse, if not specifed
+
+        defaults to dr.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: dr_y
+    - annotation:
+        type: float | None
+      default: '0.0'
+      description: Tilt angle in radians, default 0.0
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: tilt
+    - default: None
+      description: 'hook for customizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  spiral_square:
+    description: Absolute square spiral scan, centered around (x_center, y_center)
+    module: bluesky.plans
+    name: spiral_square
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_motor
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_motor
+    - annotation:
+        type: float
+      description: x center
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_center
+    - annotation:
+        type: float
+      description: y center
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_center
+    - annotation:
+        type: float
+      description: x width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_range
+    - annotation:
+        type: float
+      description: y width of spiral
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_range
+    - annotation:
+        type: float
+      description: number of x axis points
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: x_num
+    - annotation:
+        type: float
+      description: Number of y axis points.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: y_num
+    - default: None
+      description: 'hook for cutomizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plans.one_nd_step` (the default) for
+
+        details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
+  sync_order_numbers:
+    description: Synchronize the order numbers between the various detectors.
+    module: usaxs.plans.command_list
+    name: sync_order_numbers
+    parameters: []
     properties:
       is_generator: false
   tune_a2rp:
@@ -24711,6 +27175,92 @@ existing_plans:
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
+      name: md
+    properties:
+      is_generator: true
+  tune_centroid:
+    description: 'plan: tune a motor to the centroid of signal(motor)'
+    module: bluesky.plans
+    name: tune_centroid
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: str
+      description: detector field whose output is to maximize
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: signal
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: any 'settable' object (motor, temp controller, etc.)
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor
+    - annotation:
+        type: float
+      description: start of range
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: start
+    - annotation:
+        type: float
+      description: 'end of range, note: start < stop'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stop
+    - annotation:
+        type: float
+      description: smallest step size to use.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: min_step
+    - annotation:
+        type: int
+      default: '10'
+      description: number of points with each traversal, default = 10
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - annotation:
+        type: float
+      default: '3.0'
+      description: 'used in calculating new range after each pass
+
+
+        note: step_factor > 1.0, default = 3'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: step_factor
+    - annotation:
+        type: bool
+      default: 'False'
+      description: if False (default), always scan from start to stop
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: snake
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
       name: md
     properties:
       is_generator: true
@@ -24774,6 +27324,21 @@ existing_plans:
       name: md
     properties:
       is_generator: true
+  tune_saxs_optics:
+    description: 'Bluesky plan: tune the SAXS optics sequence.'
+    module: usaxs.plans.axis_tuning
+    name: tune_saxs_optics
+    parameters:
+    - annotation:
+        type: typing.Optional[dict]
+      default: None
+      description: Extra metadata merged into the run's start document.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    properties:
+      is_generator: true
   tune_usaxs_optics:
     description: 'Bluesky plan: tune the full USAXS optics sequence.'
     module: usaxs.plans.axis_tuning
@@ -24794,6 +27359,49 @@ existing_plans:
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
+      name: md
+    properties:
+      is_generator: true
+  tweak:
+    description: Move and motor and read a detector with an interactive prompt.
+    module: bluesky.plans
+    name: tweak
+    parameters:
+    - annotation:
+        type: __READABLE__
+      convert_device_names: true
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detector
+    - annotation:
+        type: str
+      description: data field whose output is the focus of the adaptive tuning
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: target_field
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor
+    - annotation:
+        type: float
+      description: initial suggestion for step size
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
       name: md
     properties:
       is_generator: true
@@ -24829,7 +27437,7 @@ existing_plans:
       kind:
         name: POSITIONAL_OR_KEYWORD
         value: 1
-      name: title
+      name: scan_title
     - default: None
       description: Extra metadata merged into the run's start document.
       kind:
@@ -24837,4 +27445,78 @@ existing_plans:
         value: 1
       name: md
     properties:
-      is_generator: false
+      is_generator: true
+  x2x_scan:
+    description: Relatively scan over two motors in a 2:1 ratio
+    module: bluesky.plans
+    name: x2x_scan
+    parameters:
+    - annotation:
+        type: collections.abc.Sequence[__READABLE__]
+      convert_device_names: true
+      description: list of 'readable' objects
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: detectors
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: The second motor will move half as much as the first
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor1
+    - annotation:
+        type: __MOVABLE__
+      convert_device_names: true
+      description: The second motor will move half as much as the first
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: motor2
+    - annotation:
+        type: float
+      description: 'The relative limits of the first motor.  The second motor
+
+        will move between ``start / 2`` and ``stop / 2``'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: start
+    - annotation:
+        type: float
+      description: 'The relative limits of the first motor.  The second motor
+
+        will move between ``start / 2`` and ``stop / 2``'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: stop
+    - annotation:
+        type: int
+      description: number of steps in the scan
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: num
+    - default: None
+      description: 'hook for cutomizing action of inner loop (messages per step).
+
+        See docstring of :func:`bluesky.plan_stubs.one_nd_step` (the default)
+
+        for details.'
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: per_step
+    - annotation:
+        type: dict[str, typing.Any] | None
+      default: None
+      description: metadata
+      kind:
+        name: KEYWORD_ONLY
+        value: 3
+      name: md
+    properties:
+      is_generator: true
