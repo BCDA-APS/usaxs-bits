@@ -10,6 +10,7 @@ from .viewer import UsaxsViewer
 
 
 def main(argv=None):
+    """Parse ZMQ address args/env and launch the USAXS queue-monitor window."""
     parser = argparse.ArgumentParser(description="USAXS Queue Monitor")
     parser.add_argument(
         "--zmq-control-addr",

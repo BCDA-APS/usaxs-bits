@@ -12,28 +12,23 @@ Composes reusable Qt widgets from bluesky_widgets; USAXS customization lives in
 the arrangement here plus our own action-bar / plots widgets.
 """
 
+from bluesky_widgets.qt.run_engine_client import QtReConsoleMonitor
+from bluesky_widgets.qt.run_engine_client import QtReEnvironmentControls
+from bluesky_widgets.qt.run_engine_client import QtReExecutionControls
+from bluesky_widgets.qt.run_engine_client import QtReManagerConnection
+from bluesky_widgets.qt.run_engine_client import QtRePlanEditor
+from bluesky_widgets.qt.run_engine_client import QtRePlanHistory
+from bluesky_widgets.qt.run_engine_client import QtRePlanQueue
+from bluesky_widgets.qt.run_engine_client import QtReQueueControls
+from bluesky_widgets.qt.run_engine_client import QtReRunningPlan
+from bluesky_widgets.qt.run_engine_client import QtReStatusMonitor
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (
-    QHBoxLayout,
-    QLabel,
-    QSplitter,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-)
-
-from bluesky_widgets.qt.run_engine_client import (
-    QtReConsoleMonitor,
-    QtReEnvironmentControls,
-    QtReExecutionControls,
-    QtReManagerConnection,
-    QtRePlanEditor,
-    QtRePlanHistory,
-    QtRePlanQueue,
-    QtReQueueControls,
-    QtReRunningPlan,
-    QtReStatusMonitor,
-)
+from qtpy.QtWidgets import QHBoxLayout
+from qtpy.QtWidgets import QLabel
+from qtpy.QtWidgets import QSplitter
+from qtpy.QtWidgets import QTabWidget
+from qtpy.QtWidgets import QVBoxLayout
+from qtpy.QtWidgets import QWidget
 
 from .functions import QtUsaxsActionBar
 
@@ -42,6 +37,7 @@ class QtRunEngineManager_Control(QWidget):
     """Tab 1: everything for driving the queue."""
 
     def __init__(self, model, *args, **kwargs):
+        """Build the Queue Control tab bound to the RunEngine model."""
         super().__init__(*args, **kwargs)
         self.model = model
 
@@ -86,6 +82,7 @@ class QtRunEngineManager_LiveView(QWidget):
     """Tab 2: live plots over the console/terminal view."""
 
     def __init__(self, model, *args, **kwargs):
+        """Build the Live View tab (plots over console) for the model."""
         super().__init__(*args, **kwargs)
         self.model = model
 
@@ -112,7 +109,10 @@ class QtRunEngineManager_LiveView(QWidget):
 
 
 class QtViewer(QTabWidget):
+    """Top-level tab widget: Queue Control + Live View."""
+
     def __init__(self, model, *args, **kwargs):
+        """Build the two-tab viewer bound to the application model."""
         super().__init__(*args, **kwargs)
         self.model = model
 

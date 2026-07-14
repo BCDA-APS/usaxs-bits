@@ -26,9 +26,7 @@ class UsaxsRunEngineClient(RunEngineClient):
         """
         with open(file_path) as f:
             script = f.read()
-        return self._client.script_upload(
-            script, run_in_background=run_in_background
-        )
+        return self._client.script_upload(script, run_in_background=run_in_background)
 
     def task_result(self, task_uid):
         """Return the result dict for a task started by script_upload / function_execute."""

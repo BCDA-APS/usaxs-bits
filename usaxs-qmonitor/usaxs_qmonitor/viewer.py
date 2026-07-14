@@ -2,9 +2,9 @@
 
 import os
 
-from qtpy.QtWidgets import QAction, QFileDialog
-
 from bluesky_widgets.qt import Window
+from qtpy.QtWidgets import QAction
+from qtpy.QtWidgets import QFileDialog
 
 from .run_engine_client import UsaxsRunEngineClient
 from .settings import SETTINGS
@@ -15,6 +15,7 @@ class ViewerModel:
     """Holds the (non-Qt) models for the application."""
 
     def __init__(self):
+        """Construct the UsaxsRunEngineClient from SETTINGS."""
         self.run_engine = UsaxsRunEngineClient(
             zmq_control_addr=SETTINGS.zmq_re_manager_control_addr,
             zmq_info_addr=SETTINGS.zmq_re_manager_info_addr,
@@ -29,6 +30,7 @@ class UsaxsViewer(ViewerModel):
     """Extends the model with a Qt window as its view."""
 
     def __init__(self, *, show=True, title="USAXS Queue Monitor"):
+        """Build the window, menus, and wire status updates."""
         super().__init__()
 
         self._work_dir = os.path.expanduser("~")
@@ -112,14 +114,18 @@ class UsaxsViewer(ViewerModel):
             print(f"Failed to save data to file: {ex}")
 
     def on_update_widgets(self, event):
+        """React to a RunEngine status change (refresh menu state)."""
         self._update_action_env_destroy_state()
 
     @property
     def window(self):
+        """The Qt Window wrapping the viewer widget."""
         return self._window
 
     def show(self):
+        """Show and raise the window."""
         self._window.show()
 
     def close(self):
+        """Close the window."""
         self._window.close()

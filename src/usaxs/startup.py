@@ -119,6 +119,7 @@ from bluesky import preprocessors as bpp
 if running_in_queueserver():
     from .plans.axis_tuning import find_a2rp
     from .plans.axis_tuning import find_ar
+
     # these are all tuning plans facing users and staff
     from .plans.axis_tuning import tune_a2rp
     from .plans.axis_tuning import tune_ar
@@ -140,6 +141,8 @@ if running_in_queueserver():
     from .plans.plans_user_facing import saxsExp
     from .plans.plans_user_facing import waxsExp
     from .plans.resets import reset_USAXS
+    from .plans.user_actions_plans import new_sample_plan
+    from .plans.user_actions_plans import new_user_plan
     from .utils.setup_new_user import newSample
     from .utils.setup_new_user import newUser
 
@@ -205,6 +208,8 @@ else:
     from .plans.sim_plans import sim_count_plan
     from .plans.sim_plans import sim_print_plan
     from .plans.sim_plans import sim_rel_scan_plan
+    from .plans.user_actions_plans import new_sample_plan
+    from .plans.user_actions_plans import new_user_plan
     from .utils.setup_new_user import newSample
     from .utils.setup_new_user import newUser
 

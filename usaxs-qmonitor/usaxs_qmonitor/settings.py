@@ -11,6 +11,8 @@ import os
 
 
 class Settings:
+    """Runtime configuration for the USAXS queue-monitor GUI."""
+
     # --- Queueserver transport (ZMQ only for now) ---
     http_server_uri = None
     http_server_api_key = None
