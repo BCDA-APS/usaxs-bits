@@ -91,10 +91,23 @@ class UsaxsPlots(QWidget):
     # --- Document routing ---
     @staticmethod
     def _make_adder(model, plan_names):
+        seen_uids = set()
+
         def add_run(run):
-            plan_name = (run.metadata.get("start") or {}).get("plan_name")
-            if not plan_names or plan_name in plan_names:
-                model.add_run(run)
+            start = run.metadata.get("start") or {}
+            plan_name = start.get("plan_name")
+            if plan_names and plan_name not in plan_names:
+                return
+            uid = start.get("uid")
+            # bluesky-widgets' stream_documents_into_runs can deliver the same
+            # run twice (event_model.RunRouter >= 1.14 passes the 'start' doc to
+            # the factory callback a second time). Adding a run twice later
+            # crashes RunManager._cull_runs/_on_run_removed with a KeyError on
+            # the duplicate uid. Guard so each run is added at most once.
+            if uid is not None and uid in seen_uids:
+                return
+            seen_uids.add(uid)
+            model.add_run(run)
 
         return add_run
 

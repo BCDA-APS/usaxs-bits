@@ -185,6 +185,7 @@ historical scans; it shows subsequent ones.
 | A tune runs but **no curve** appears | Most likely the plot **field names** don't match the real document. See the [testing checklist](usaxs-qmonitor-testing-checklist.md) §D and fix `settings.py plot_config`. Wrong names draw nothing (no error). |
 | Plots never update at all | The document stream isn't reaching the GUI: is `DOC_STREAM.ENABLE` true in `iconfig.yml`, and is `bluesky-0MQ-proxy` running next to the Manager? Check **Connection Info** shows "connected". |
 | First scan right after connecting is missing | Known ZMQ "slow joiner": the very first run in the ~1 s after connecting can be dropped. Connect at startup and it won't affect real scans. |
+| Plots crashed the whole app after several scans | Fixed — a bluesky-widgets/event-model version quirk delivered each run twice, which crashed the plot's run-culling once `max_runs` was exceeded. The GUI now de-duplicates runs by uid. |
 | `New Sample` errors with "run newUser() first" | Run **New User** first this session. |
 | Uploaded plan file "Load failed" | Read the traceback dialog — it's the actual error from the worker. Fix the file and re-upload. |
 | Terminal doesn't return after closing the GUI | Fixed — the app now force-exits on close. If you run an older build and it hangs, it's only lingering background threads (nothing important); the queueserver is unaffected. Close the terminal or `kill` the process. |
