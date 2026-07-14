@@ -133,8 +133,8 @@ class UsaxsPlots(QWidget):
         self._pb_connect.setText("Disconnect stream")
         self._status_lbl.setText(f"stream: connected ({self._addr})")
 
-    def disconnect_stream(self):
-        """Stop receiving documents. A fresh dispatcher is made on reconnect."""
+    def _stop_dispatcher(self):
+        """Stop the document dispatcher only (no UI updates). Safe at shutdown."""
         if self._dispatcher is not None:
             try:
                 self._dispatcher.stop()
@@ -142,6 +142,10 @@ class UsaxsPlots(QWidget):
                 pass
             self._dispatcher = None
         self._connected = False
+
+    def disconnect_stream(self):
+        """Stop receiving documents. A fresh dispatcher is made on reconnect."""
+        self._stop_dispatcher()
         self._pb_connect.setChecked(False)
         self._pb_connect.setText("Connect stream")
         self._status_lbl.setText("stream: disconnected")
@@ -160,5 +164,9 @@ class UsaxsPlots(QWidget):
                 model.discard_run(run)
 
     def stop(self):
-        """Release background workers (call on application shutdown)."""
-        self.disconnect_stream()
+        """Release background workers (call on application shutdown).
+
+        Only stops the dispatcher; does not touch Qt widgets, which may already
+        be deleted during application teardown.
+        """
+        self._stop_dispatcher()
