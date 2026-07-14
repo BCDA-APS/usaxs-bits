@@ -228,8 +228,8 @@ Full plot/tune verification (Phase 3 acceptance) still requires the real beamlin
 - [x] Phase 1 — script upload
 - [x] Phase 2 — function_execute buttons + plan wrappers
 - [x] Phase 3 — Publisher + proxy + live plots tab
-- [ ] Phase 4 — two-tab layout polish
-- [ ] Phase 5 — verify + docs + pin versions
+- [x] Phase 4 — polish: window title+identity, Help→Connection Info, action-bar label, launcher script
+- [x] Phase 5 — user docs in `docs/` + tested-version record (beamline verification still pending)
 
 ### Phase 3 notes (verified end-to-end on this laptop)
 

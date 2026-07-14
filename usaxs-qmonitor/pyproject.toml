@@ -9,6 +9,10 @@ description = "Customized bluesky-queueserver monitor GUI for the USAXS/SAXS/WAX
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Jan Ilavsky" }]
+# Deps are intentionally unpinned for dev (bluesky-widgets is installed as an
+# editable local checkout on dev machines and from the env on the beamline).
+# Tested versions are recorded in docs/usaxs-qmonitor-testing-checklist.md;
+# pin bluesky-widgets before an APS run — it is beta and its API moves.
 dependencies = [
     "bluesky-widgets",
     "bluesky-queueserver-api",

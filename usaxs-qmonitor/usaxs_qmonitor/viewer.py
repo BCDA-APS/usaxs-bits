@@ -5,6 +5,7 @@ import os
 from bluesky_widgets.qt import Window
 from qtpy.QtWidgets import QAction
 from qtpy.QtWidgets import QFileDialog
+from qtpy.QtWidgets import QMessageBox
 
 from .run_engine_client import UsaxsRunEngineClient
 from .settings import SETTINGS
@@ -37,6 +38,12 @@ class UsaxsViewer(ViewerModel):
 
         self._widget = QtViewer(self)
         self._window = Window(self._widget, show=show)
+
+        qt_window = self._window._qt_window
+        qt_window.setWindowTitle(
+            f"USAXS Queue Monitor — {SETTINGS.user_name}@{SETTINGS.user_group}"
+        )
+        qt_window.resize(1280, 900)
 
         # Auto-connect the live document stream (harmless if the proxy is down).
         if SETTINGS.plots_autostart:
@@ -77,6 +84,13 @@ class UsaxsViewer(ViewerModel):
         )
         menu_item_save.addAction(self.action_save_history_as_yaml)
 
+        menu_item_help = menu_bar.addMenu("Help")
+        self.action_connection_info = QAction(
+            "Connection Info…", self._window._qt_window
+        )
+        self.action_connection_info.triggered.connect(self._show_connection_info)
+        menu_item_help.addAction(self.action_connection_info)
+
         self._widget.model.run_engine.events.status_changed.connect(
             self.on_update_widgets
         )
@@ -116,6 +130,27 @@ class UsaxsViewer(ViewerModel):
                 print(f"Plan history was successfully saved to file {file_path!r}")
         except Exception as ex:
             print(f"Failed to save data to file: {ex}")
+
+    def _show_connection_info(self):
+        """Show the queueserver / stream addresses and user identity."""
+        control = (
+            SETTINGS.zmq_re_manager_control_addr or "tcp://localhost:60615 (default)"
+        )
+        info = SETTINGS.zmq_re_manager_info_addr or "tcp://localhost:60625 (default)"
+        connected = self.plots._connected
+        lines = [
+            f"User / group:   {SETTINGS.user_name} / {SETTINGS.user_group}",
+            "",
+            f"ZMQ control:    {control}",
+            f"ZMQ info:       {info}",
+            "",
+            f"Doc stream:     {SETTINGS.zmq_proxy_info_addr} "
+            f"({'connected' if connected else 'disconnected'})",
+            f"Plans dir:      {SETTINGS.plans_dir}",
+        ]
+        QMessageBox.information(
+            self._window._qt_window, "Connection Info", "\n".join(lines)
+        )
 
     def on_update_widgets(self, event):
         """React to a RunEngine status change (refresh menu state)."""

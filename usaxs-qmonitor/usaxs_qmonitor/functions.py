@@ -143,6 +143,7 @@ class QtUsaxsActionBar(QWidget):
 
         hbox = QHBoxLayout()
         hbox.setContentsMargins(0, 0, 0, 0)
+        hbox.addWidget(QLabel("USAXS:"))
         hbox.addWidget(self._pb_new_user)
         hbox.addWidget(self._pb_new_sample)
         hbox.addWidget(self._pb_load_plan)
