@@ -38,6 +38,10 @@ class UsaxsViewer(ViewerModel):
         self._widget = QtViewer(self)
         self._window = Window(self._widget, show=show)
 
+        # Auto-connect the live document stream (harmless if the proxy is down).
+        if SETTINGS.plots_autostart:
+            self.plots.connect_stream()
+
         menu_bar = self._window._qt_window.menuBar()
         menu_item_control = menu_bar.addMenu("Control Actions")
         self.action_activate_env_destroy = QAction(
@@ -116,6 +120,11 @@ class UsaxsViewer(ViewerModel):
     def on_update_widgets(self, event):
         """React to a RunEngine status change (refresh menu state)."""
         self._update_action_env_destroy_state()
+
+    @property
+    def plots(self):
+        """The live-plot panel in the Live View tab."""
+        return self._widget._tab_liveview._plots
 
     @property
     def window(self):

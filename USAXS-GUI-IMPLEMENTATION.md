@@ -224,9 +224,31 @@ Full plot/tune verification (Phase 3 acceptance) still requires the real beamlin
 
 ## 10. Build order summary
 
-- [ ] Phase 0 — scaffold package, run stock behaviour vs demo qserver
-- [ ] Phase 1 — script upload
-- [ ] Phase 2 — function_execute buttons + plan wrappers
-- [ ] Phase 3 — Publisher + proxy + live plots tab
+- [x] Phase 0 — scaffold package, run stock behaviour vs demo qserver
+- [x] Phase 1 — script upload
+- [x] Phase 2 — function_execute buttons + plan wrappers
+- [x] Phase 3 — Publisher + proxy + live plots tab
 - [ ] Phase 4 — two-tab layout polish
 - [ ] Phase 5 — verify + docs + pin versions
+
+### Phase 3 notes (verified end-to-end on this laptop)
+
+Tested with a real `bluesky-0MQ-proxy 5567 5568` and a Publisher-fed RunEngine
+running synthetic scans: routing by `plan_name` (tune_ar→ar, tune_mr→mr, other→
+ignored), `max_runs=5` FIFO cap, artists drawn on the axes, and "Clear plots"
+all pass.
+
+Two things to know:
+- **ZMQ SUB slow-joiner**: the very first run published in the ~1 s right after
+  `connect_stream()` can be dropped before the subscription propagates. The GUI
+  auto-connects at startup and then sits idle, so real scans (which happen later)
+  are unaffected. Only relevant if you connect the stream mid-scan.
+- **Field names still need beamline confirmation.** `settings.plot_config` uses
+  the expected event-doc field names (`a_stage_r`/`UPD`, `m_stage_r`/`I0`, …) but
+  these must be checked against a live document once the Publisher is running (see
+  §5b). Wrong names produce an empty plot, not an error — so if a tune shows no
+  curve, check the field names first.
+
+Beamline wiring added: `iconfig.yml DOC_STREAM` block (ENABLE + PUBLISH_ADDR),
+the `Publisher` subscription in `startup.py` (guarded by that flag), and
+`bluesky-0MQ-proxy` start/stop in `scripts/usaxs_qs_host.sh`.

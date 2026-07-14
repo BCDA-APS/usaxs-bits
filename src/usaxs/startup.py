@@ -61,6 +61,17 @@ bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
+# Publish the RunEngine document stream over 0MQ so the queue-monitor GUI can
+# draw live tune/alignment plots. Harmless when no proxy is listening. Run the
+# proxy next to the RE Manager:  bluesky-0MQ-proxy 5567 5568
+_doc_stream_cfg = iconfig.get("DOC_STREAM", {})
+if _doc_stream_cfg.get("ENABLE", False):
+    from bluesky.callbacks.zmq import Publisher
+
+    _publish_addr = _doc_stream_cfg.get("PUBLISH_ADDR", "localhost:5567")
+    RE.subscribe(Publisher(_publish_addr))
+    logger.info("Publishing RunEngine documents to 0MQ proxy at %s", _publish_addr)
+
 # These imports must come after the above setup.
 # Queue server block
 if running_in_queueserver():

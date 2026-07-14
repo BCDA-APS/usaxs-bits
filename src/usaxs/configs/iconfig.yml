@@ -54,6 +54,14 @@ NEXUS_DATA_FILES:
     ENABLE: true
     FILE_EXTENSION: h5
 
+### Live document stream for the queue-monitor GUI (Phase 3).
+### When ENABLE=true, the RunEngine publishes documents over 0MQ to a
+### bluesky-0MQ-proxy so the GUI can draw live tune/alignment plots.
+### Run the proxy next to the RE Manager:  bluesky-0MQ-proxy 5567 5568
+DOC_STREAM:
+    ENABLE: true
+    PUBLISH_ADDR: localhost:5567
+
 ### APS Data Management
 ### Use bash shell, deactivate all conda environments, source this file:
 # DM_SETUP_FILE: "/home/dm/etc/dm.setup.sh"

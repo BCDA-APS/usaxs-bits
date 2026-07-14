@@ -35,5 +35,56 @@ class Settings:
         "QSERVER_ZMQ_PROXY_INFO_ADDRESS", "localhost:5568"
     )
 
+    # Auto-connect the live document stream when the window opens. If the proxy
+    # is not running the SUB socket simply receives nothing (harmless).
+    plots_autostart = True
+
+    # One line-plot per tune type. Each run is routed to the first config whose
+    # ``plan_names`` contains the run's start-doc ``plan_name``; ``max_runs``
+    # keeps the last N scans overlaid (FIFO).
+    #
+    # IMPORTANT: ``x`` and ``ys`` are event-document FIELD names, not device
+    # names. The values below are the expected names for the USAXS tune plans
+    # (motor readback = "<stage>_<axis>", detectors "UPD"/"I0"), but they MUST be
+    # confirmed against a live document once the Publisher is running — see
+    # USAXS-GUI-IMPLEMENTATION.md section 5b for the one-line verification.
+    plot_config = [
+        {
+            "title": "tune_ar",
+            "x": "a_stage_r",
+            "ys": ["UPD"],
+            "plan_names": {"tune_ar", "find_ar"},
+            "max_runs": 5,
+        },
+        {
+            "title": "tune_mr",
+            "x": "m_stage_r",
+            "ys": ["I0"],
+            "plan_names": {"tune_mr"},
+            "max_runs": 5,
+        },
+        {
+            "title": "tune_a2rp",
+            "x": "a_stage_r2p",
+            "ys": ["UPD"],
+            "plan_names": {"tune_a2rp", "find_a2rp"},
+            "max_runs": 5,
+        },
+        {
+            "title": "tune_dx",
+            "x": "d_stage_x",
+            "ys": ["UPD"],
+            "plan_names": {"tune_dx"},
+            "max_runs": 5,
+        },
+        {
+            "title": "tune_dy",
+            "x": "d_stage_y",
+            "ys": ["UPD"],
+            "plan_names": {"tune_dy"},
+            "max_runs": 5,
+        },
+    ]
+
 
 SETTINGS = Settings()

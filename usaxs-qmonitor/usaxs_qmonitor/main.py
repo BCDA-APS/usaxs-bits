@@ -41,7 +41,16 @@ def main(argv=None):
     SETTINGS.zmq_re_manager_info_addr = zmq_info_addr
 
     with gui_qt("USAXS Queue Monitor"):
-        viewer = UsaxsViewer()  # noqa: F841
+        from bluesky_widgets.qt.threading import wait_for_workers_to_quit
+        from qtpy.QtWidgets import QApplication
+
+        viewer = UsaxsViewer()
+
+        # Stop the document-stream background workers gracefully on exit.
+        app = QApplication.instance()
+        if app is not None:
+            app.aboutToQuit.connect(viewer.plots.stop)
+            app.aboutToQuit.connect(wait_for_workers_to_quit)
 
 
 if __name__ == "__main__":

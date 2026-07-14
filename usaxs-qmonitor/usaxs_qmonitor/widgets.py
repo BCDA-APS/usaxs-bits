@@ -24,13 +24,14 @@ from bluesky_widgets.qt.run_engine_client import QtReRunningPlan
 from bluesky_widgets.qt.run_engine_client import QtReStatusMonitor
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QHBoxLayout
-from qtpy.QtWidgets import QLabel
 from qtpy.QtWidgets import QSplitter
 from qtpy.QtWidgets import QTabWidget
 from qtpy.QtWidgets import QVBoxLayout
 from qtpy.QtWidgets import QWidget
 
 from .functions import QtUsaxsActionBar
+from .plots import UsaxsPlots
+from .settings import SETTINGS
 
 
 class QtRunEngineManager_Control(QWidget):
@@ -88,13 +89,9 @@ class QtRunEngineManager_LiveView(QWidget):
 
         splitter = QSplitter(Qt.Vertical)
 
-        # Plots area (Phase 3: RemoteDispatcher -> Lines -> QtFigures).
-        self._plots_placeholder = QLabel(
-            "Live tune/alignment plots appear here (Phase 3).\n"
-            "Requires bluesky-0MQ-proxy running and Publisher in the worker startup."
-        )
-        self._plots_placeholder.setAlignment(Qt.AlignCenter)
-        splitter.addWidget(self._plots_placeholder)
+        # Live tune/alignment plots (RemoteDispatcher -> Lines -> QtFigures).
+        self._plots = UsaxsPlots(SETTINGS.plot_config, SETTINGS.zmq_proxy_info_addr)
+        splitter.addWidget(self._plots)
 
         # Console / terminal view of the running Bluesky session.
         self._console_monitor = QtReConsoleMonitor(model)

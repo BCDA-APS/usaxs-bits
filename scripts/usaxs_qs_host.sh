@@ -30,6 +30,14 @@ QS_HOSTNAME="$(hostname)"
 PROCESS=start-re-manager  # from the conda environment
 STARTUP_COMMAND="${PROCESS} --config=${QS_CONFIG_YML} --user-group-permissions=${QSERVER_DIR}/user_group_permissions.yaml --existing-plans-devices=${QSERVER_DIR}/existing_plans_and_devices.yaml"
 
+# 0MQ document-stream proxy for the queue-monitor GUI live plots (Phase 3).
+# The RE Worker publishes documents to PROXY_IN; the GUI subscribes to PROXY_OUT.
+# Must match iconfig.yml DOC_STREAM.PUBLISH_ADDR (in) and the GUI settings (out).
+PROXY_SESSION_NAME="bluesky-0MQ-proxy-${DATABROKER_CATALOG}"
+PROXY_IN_PORT="${QSERVER_ZMQ_PROXY_IN_PORT:-5567}"
+PROXY_OUT_PORT="${QSERVER_ZMQ_PROXY_OUT_PORT:-5568}"
+PROXY_STARTUP_COMMAND="bluesky-0MQ-proxy ${PROXY_IN_PORT} ${PROXY_OUT_PORT}"
+
 #--------------------
 # internal configuration below
 
@@ -184,6 +192,12 @@ function start() {
         QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY="${HTTP_API_KEY}" \
         QSERVER_ZMQ_CONTROL_ADDRESS="tcp://localhost:60615" \
         screen -DmS "${HTTP_SESSION_NAME}" -h 5000 ${HTTP_STARTUP_COMMAND} &
+        if [ -n "$(which bluesky-0MQ-proxy)" ]; then
+            echo "Starting ${PROXY_SESSION_NAME} (${PROXY_IN_PORT} -> ${PROXY_OUT_PORT})"
+            screen -DmS "${PROXY_SESSION_NAME}" -h 5000 ${PROXY_STARTUP_COMMAND} &
+        else
+            echo "bluesky-0MQ-proxy not found; GUI live plots will be unavailable"
+        fi
         ${CMD} &
     fi
 }
@@ -205,6 +219,11 @@ function stop() {
         if [ -n "${HTTP_PID}" ]; then
             echo "Stopping ${HTTP_SESSION_NAME} (pid=${HTTP_PID})"
             kill ${HTTP_PID}
+        fi
+        PROXY_PID=$(pgrep -f "bluesky-0MQ-proxy")
+        if [ -n "${PROXY_PID}" ]; then
+            echo "Stopping ${PROXY_SESSION_NAME} (pid=${PROXY_PID})"
+            kill ${PROXY_PID}
         fi
     else
         echo "${SESSION_NAME} is not running"
