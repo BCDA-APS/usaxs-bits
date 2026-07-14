@@ -354,7 +354,6 @@ def newSample(sample=None):
         with open(filename, "r") as file:
             data = json.load(file)
             user = data.get("user_name")
-            sampleOld = data.get("sample_dir")
             year = data.get("year")
             month = data.get("month")
             day = data.get("day")
