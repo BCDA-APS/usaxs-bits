@@ -35,6 +35,8 @@ from bluesky_widgets.qt.run_engine_client import (
     QtReStatusMonitor,
 )
 
+from .functions import QtUsaxsActionBar
+
 
 class QtRunEngineManager_Control(QWidget):
     """Tab 1: everything for driving the queue."""
@@ -55,11 +57,9 @@ class QtRunEngineManager_Control(QWidget):
         hbox.addStretch()
         vbox.addLayout(hbox)
 
-        # --- USAXS action bar (New User / New Sample / Load plan file) ---
-        # Populated in Phases 1-2. Placeholder keeps the slot in the layout.
-        self._action_bar = QHBoxLayout()
-        self._action_bar.addStretch()
-        vbox.addLayout(self._action_bar)
+        # --- USAXS action bar (Load plan file [Phase 1]; New User/Sample [Phase 2]) ---
+        self._action_bar = QtUsaxsActionBar(model)
+        vbox.addWidget(self._action_bar)
 
         # --- Command designer (left) + running/history (right) ---
         hbox = QHBoxLayout()
