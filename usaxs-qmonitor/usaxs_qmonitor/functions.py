@@ -160,9 +160,39 @@ class QtUsaxsActionBar(QWidget):
         self._poll_timer.setInterval(_POLL_INTERVAL_MS)
         self._poll_timer.timeout.connect(self._poll_task)
 
+    # --- Readiness guard ---
+    def _ready_or_warn(self):
+        """Return True if the worker environment is open and the manager is idle.
+
+        Otherwise show a clear message. This avoids the raw manager errors
+        ("RE Worker environment is not open" / "must be in idle state") that
+        appear if an action is triggered before the environment has finished
+        opening — at the beamline, opening the environment can take a while.
+        """
+        status = self.model.re_manager_status or {}
+        if not status.get("worker_environment_exists"):
+            QMessageBox.warning(
+                self,
+                "Environment not open",
+                "The RE Worker environment is not open (or is still opening).\n\n"
+                "Open the environment and wait until the status shows 'idle', "
+                "then try again.",
+            )
+            return False
+        state = status.get("manager_state")
+        if state != "idle":
+            QMessageBox.warning(
+                self,
+                "Manager busy",
+                f"The RE Manager is not idle (state: {state!r}).\n\n"
+                "Wait until it is idle, then try again.",
+            )
+            return False
+        return True
+
     # --- Buttons ---
     def _new_user_clicked(self):
-        if self._busy():
+        if self._busy() or not self._ready_or_warn():
             return
         dlg = NewUserDialog(self)
         if dlg.exec_() != QDialog.Accepted:
@@ -176,7 +206,7 @@ class QtUsaxsActionBar(QWidget):
         )
 
     def _new_sample_clicked(self):
-        if self._busy():
+        if self._busy() or not self._ready_or_warn():
             return
         dlg = NewSampleDialog(self)
         if dlg.exec_() != QDialog.Accepted:
@@ -190,7 +220,7 @@ class QtUsaxsActionBar(QWidget):
         )
 
     def _load_plan_file_clicked(self):
-        if self._busy():
+        if self._busy() or not self._ready_or_warn():
             return
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Load plan file", self._work_dir, "Python (*.py);; All (*)"

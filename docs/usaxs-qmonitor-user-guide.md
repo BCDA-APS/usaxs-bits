@@ -180,6 +180,7 @@ historical scans; it shows subsequent ones.
 | Symptom | Likely cause / fix |
 |---|---|
 | GUI opens but everything is greyed out | Not connected to the Manager. Check **Connection Info**, the ports, and that the queueserver is running. |
+| New User / New Sample / Load-plan pops **"Environment not open"** | The environment isn't open yet — at the beamline, opening it (loading `usaxs.startup`) can take a while. Wait until the status shows **idle**, then retry. The GUI now guards these actions and warns instead of sending a doomed request. |
 | Console/terminal tab is blank | The Manager must publish console output (`zmq_publish_console: true`, `--zmq-info-addr` set). Already set in `qs-config.yml`. |
 | A tune runs but **no curve** appears | Most likely the plot **field names** don't match the real document. See the [testing checklist](usaxs-qmonitor-testing-checklist.md) §D and fix `settings.py plot_config`. Wrong names draw nothing (no error). |
 | Plots never update at all | The document stream isn't reaching the GUI: is `DOC_STREAM.ENABLE` true in `iconfig.yml`, and is `bluesky-0MQ-proxy` running next to the Manager? Check **Connection Info** shows "connected". |

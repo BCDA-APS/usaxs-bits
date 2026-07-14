@@ -41,6 +41,34 @@ user_data = oregistry["user_data"]
 
 logger = logging.getLogger(__name__)
 
+# Live RunEngine / NeXus writer references, populated by usaxs.startup via
+# set_runtime_context(). newUser() reads these when called without an explicit
+# RE (e.g. from the queue-monitor GUI / `qserver function execute newUser`).
+#
+# Why not `from usaxs.startup import RE`? In the queueserver worker the startup
+# code is executed as '__main__' and its modules are dropped from sys.modules
+# afterwards, so that lazy import RE-EXECUTES the whole of startup.py (creating a
+# second set of devices and failing). Because the newUser function object keeps
+# its __globals__ (this module's dict) alive, these references persist and stay
+# valid even after the worker clears sys.modules.
+_RE = None
+_nxwriter = None
+
+
+def set_runtime_context(RE=None, nxwriter=None):
+    """Register the live RunEngine / NeXus writer for later newUser() calls.
+
+    Called once by ``usaxs.startup`` after the RunEngine and NeXus writer are
+    created. Passing ``None`` for either leaves the previously registered value
+    unchanged.
+    """
+    global _RE, _nxwriter
+    if RE is not None:
+        _RE = RE
+    if nxwriter is not None:
+        _nxwriter = nxwriter
+
+
 APSBSS_SECTOR = "12"
 APSBSS_BEAMLINE = "12-ID-E"
 
@@ -147,12 +175,17 @@ def newUser(
 
     CWD = usaxscontrol:/share1/USAXS_data/YYYY-MM
     """
+    # Fall back to the references registered by startup (see set_runtime_context).
+    # Do NOT `from usaxs.startup import ...` here: in the queueserver worker that
+    # re-executes all of startup.py (see the module-level note above).
     if RE is None:
-        from usaxs.startup import RE
-        logger.warning("no instance of RE detected")
+        RE = _RE
+        if RE is None:
+            logger.warning("no instance of RE detected")
     if nxwriter is None:
-        from usaxs.startup import nxwriter
-        logger.warning("no instance of nxwriter detected")
+        nxwriter = _nxwriter
+        if nxwriter is None:
+            logger.warning("no instance of nxwriter detected")
 
     # this will revidse main to match what is needed for server...
     # it is useful for regular operations also...

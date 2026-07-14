@@ -243,9 +243,17 @@ waxsExp = bpp.suspend_decorator(suspend_BeamInHutch)(waxsExp)
 # customize the instrument configuration
 oregistry["usaxs_shutter"].delay_s = 0.01
 
+nxwriter = None
 if iconfig.get("NEXUS_DATA_FILES", {}).get("ENABLE", False):
     from .callbacks.nxwriter_usaxs import nxwriter_init
 
     nxwriter = nxwriter_init(RE, iconfig)
+
+# Register the live RE / NeXus writer so newUser() can be run later without an
+# explicit RE (e.g. from the queue-monitor GUI or `qserver function execute`)
+# without re-importing (and thus re-executing) this startup module.
+from .utils.setup_new_user import set_runtime_context
+
+set_runtime_context(RE=RE, nxwriter=nxwriter)
 
 newUser(RE=RE, nxwriter=nxwriter)
