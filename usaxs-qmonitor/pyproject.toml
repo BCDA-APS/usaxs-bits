@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "usaxs-qmonitor"
+version = "0.0.1"
+description = "Customized bluesky-queueserver monitor GUI for the USAXS/SAXS/WAXS instrument at APS 12-ID-E."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Jan Ilavsky" }]
+dependencies = [
+    "bluesky-widgets",
+    "bluesky-queueserver-api",
+    "qtpy",
+    "PyQt5",
+    "matplotlib",  # QtFigures plot backend (Phase 3); also required by the worker
+]
+
+[project.scripts]
+usaxs-qmonitor = "usaxs_qmonitor.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["usaxs_qmonitor*"]
