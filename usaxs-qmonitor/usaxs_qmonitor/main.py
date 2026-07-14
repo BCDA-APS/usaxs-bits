@@ -41,16 +41,28 @@ def main(argv=None):
     SETTINGS.zmq_re_manager_info_addr = zmq_info_addr
 
     with gui_qt("USAXS Queue Monitor"):
-        from bluesky_widgets.qt.threading import wait_for_workers_to_quit
         from qtpy.QtWidgets import QApplication
 
         viewer = UsaxsViewer()
 
-        # Stop the document-stream background workers gracefully on exit.
+        # Clean shutdown. bluesky-widgets' gui_qt wires wait_for_workers_to_quit
+        # to aboutToQuit, but the console-monitor worker runs a non-yielding loop
+        # that also restarts itself on finish, so that wait blocks forever and
+        # the process hangs on close (Ctrl-C does not help). Replace it: stop our
+        # background workers, then exit immediately. os._exit is required because
+        # the bluesky-queueserver-api client keeps non-daemon comm threads alive
+        # that would otherwise stall interpreter shutdown.
         app = QApplication.instance()
         if app is not None:
-            app.aboutToQuit.connect(viewer.plots.stop)
-            app.aboutToQuit.connect(wait_for_workers_to_quit)
+            try:
+                app.aboutToQuit.disconnect()  # drop gui_qt's blocking wait
+            except (TypeError, RuntimeError):
+                pass
+            app.aboutToQuit.connect(viewer.shutdown_background)
+            app.aboutToQuit.connect(lambda: os._exit(0))
+
+    # Backstop if the event loop ever returns normally.
+    os._exit(0)
 
 
 if __name__ == "__main__":

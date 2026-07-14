@@ -152,6 +152,17 @@ class UsaxsViewer(ViewerModel):
             self._window._qt_window, "Connection Info", "\n".join(lines)
         )
 
+    def shutdown_background(self):
+        """Stop the plot stream and console-monitor worker (idempotent)."""
+        try:
+            self.plots.stop()
+        except Exception as ex:
+            print(f"Error stopping plot stream: {ex}")
+        try:
+            self._widget.model.run_engine.stop_console_output_monitoring()
+        except Exception as ex:
+            print(f"Error stopping console monitor: {ex}")
+
     def on_update_widgets(self, event):
         """React to a RunEngine status change (refresh menu state)."""
         self._update_action_env_destroy_state()

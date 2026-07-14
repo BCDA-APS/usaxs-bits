@@ -187,6 +187,7 @@ historical scans; it shows subsequent ones.
 | First scan right after connecting is missing | Known ZMQ "slow joiner": the very first run in the ~1 s after connecting can be dropped. Connect at startup and it won't affect real scans. |
 | `New Sample` errors with "run newUser() first" | Run **New User** first this session. |
 | Uploaded plan file "Load failed" | Read the traceback dialog — it's the actual error from the worker. Fix the file and re-upload. |
+| Terminal doesn't return after closing the GUI | Fixed — the app now force-exits on close. If you run an older build and it hangs, it's only lingering background threads (nothing important); the queueserver is unaffected. Close the terminal or `kill` the process. |
 
 ---
 
