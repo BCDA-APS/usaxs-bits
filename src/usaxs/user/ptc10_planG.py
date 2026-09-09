@@ -60,7 +60,7 @@ MULTI-POSITION (SampleList) PATTERN:
     Then iterate:
         for pos_X, pos_Y, thickness, scan_title in SampleList:
             yield from collectAllThree(pos_X, pos_Y, thickness, scan_title, isDebugMode)
-    See ptc10_plan_template.py for a full working example of this pattern.
+    See usaxs/plan_templates/ptc10_template.py for a full working example of this pattern.
 
 CHANGE LOG:
     * JIL, 2025-06-07 : initial PTC10 plan template

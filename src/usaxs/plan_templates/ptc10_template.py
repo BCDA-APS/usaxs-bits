@@ -176,7 +176,7 @@ CUSTOMISATION CHECKLIST FOR AI
 ==============================================================================
 
 When creating a new plan from this template:
-    [ ] Rename the function (replace myPTC10Plan_AI_template or myPTC10PlanList_AI_template)
+    [ ] Rename the function (replace myPTC10Plan_template or myPTC10PlanList_template)
     [ ] Update the SampleList at module level (for multi-position plans)
     [ ] Update TemperatureList / TimeList if using the list-based pattern
     [ ] Add/remove parameters for extra heating segments
@@ -241,13 +241,14 @@ SampleList = [
 
 # TemperatureList / TimeList: used by list-driven multi-temperature plans.
 # Each pair (temperature, hold_time) is executed sequentially.
-TemperatureList = [200, 400, 600]   # °C — temperatures to step through
-TimeList = [30, 60, 30]             # minutes — hold time at each temperature
+TemperatureList = [200, 400, 600]  # °C — temperatures to step through
+TimeList = [30, 60, 30]  # minutes — hold time at each temperature
 
 
 # ==============================================================================
 # Heater control utilities (same as in ptc10_planG.py)
 # ==============================================================================
+
 
 def setheaterOff():
     """
@@ -257,8 +258,10 @@ def setheaterOff():
     Both 'enable' and 'pidmode' must be Off together.
     """
     yield from bps.mv(
-        ptc10.enable, "Off",
-        ptc10.pid.pidmode, "Off",
+        ptc10.enable,
+        "Off",
+        ptc10.pid.pidmode,
+        "Off",
     )
 
 
@@ -270,8 +273,10 @@ def setheaterOn():
     Both 'enable' and 'pidmode' must be On together.
     """
     yield from bps.mv(
-        ptc10.enable, "On",
-        ptc10.pid.pidmode, "On",
+        ptc10.enable,
+        "On",
+        ptc10.pid.pidmode,
+        "On",
     )
 
 
@@ -280,8 +285,9 @@ def setheaterOn():
 # Standard heat-hold-cool workflow for one sample at a fixed XY position.
 # ==============================================================================
 
+
 # DO NOT MODIFY THIS TEMPLATE — copy it to a new file and rename it.
-def myPTC10Plan_AI_template(
+def myPTC10Plan_template(
     pos_X,
     pos_Y,
     thickness,
@@ -339,13 +345,13 @@ def myPTC10Plan_AI_template(
         Extra metadata.
 
     Load:
-        %run -im usaxs.user.ptc10_plan_template
+        %run -im usaxs.plan_templates.ptc10_template
 
     Debug mode (no instrument operations):
         ptc10_debug.put(True)
 
     Run:
-        RE(myPTC10Plan_AI_template(0, 0, 1.3, "MySample", 500, 50, 60))
+        RE(myPTC10Plan_template(0, 0, 1.3, "MySample", 500, 50, 60))
     """
 
     # =========================================================================
@@ -435,8 +441,10 @@ def myPTC10Plan_AI_template(
     isDebugMode = ptc10_debug.get()
     recordFunctionRun()
     logger.info(
-        "Starting myPTC10Plan_AI_template | sample=%s | target=%s C | debug=%s",
-        scan_title, temp_target, isDebugMode,
+        "Starting myPTC10Plan_template | sample=%s | target=%s C | debug=%s",
+        scan_title,
+        temp_target,
+        isDebugMode,
     )
 
     # --- Block 1: Startup ------------------------------------------------
@@ -463,27 +471,29 @@ def myPTC10Plan_AI_template(
     # Set rate (°C/min → °C/s), set target, start heater.
     logger.info(
         "Heating to %s C at %s C/min (collect_during_heat=%s)",
-        temp_target, rate_heat, collect_during_heat,
+        temp_target,
+        rate_heat,
+        collect_during_heat,
     )
     appendToMdFile(
         f"Heating to {temp_target} C at {rate_heat} C/min"
         + (" — collecting WAXS during ramp" if collect_during_heat else "")
     )
-    yield from bps.mv(ptc10.ramp, rate_heat / 60.0)          # rate: °C/s
+    yield from bps.mv(ptc10.ramp, rate_heat / 60.0)  # rate: °C/s
     yield from bps.mv(ptc10.temperature.setpoint, temp_target)
     yield from setheaterOn()
 
     if collect_during_heat:
         # Collect WAXS frames continuously as temperature rises.
         while not ptc10.temperature.inposition:
-            logger.debug(
-                "Collecting WAXS during heating (T=%.1f C)", ptc10.position
-            )
+            logger.debug("Collecting WAXS during heating (T=%.1f C)", ptc10.position)
             yield from collectWAXS(isDebugMode)
     else:
         # Silent ramp: sleep-check loop until setpoint reached.
         while not ptc10.temperature.inposition:
-            logger.debug("Ramping to %s C, current T=%.1f C", temp_target, ptc10.position)
+            logger.debug(
+                "Ramping to %s C, current T=%.1f C", temp_target, ptc10.position
+            )
             yield from bps.sleep(5)
 
     # Reset t0 so file names count "hold time" from temperature arrival.
@@ -507,7 +517,9 @@ def myPTC10Plan_AI_template(
     # --- Block 5: Cool to temp_final -------------------------------------
     logger.info(
         "Cooling to %s C at %s C/min (collect_during_cool=%s)",
-        temp_final, rate_cool, collect_during_cool,
+        temp_final,
+        rate_cool,
+        collect_during_cool,
     )
     appendToMdFile(
         f"Cooling to {temp_final} C at {rate_cool} C/min"
@@ -557,8 +569,9 @@ def myPTC10Plan_AI_template(
 #   - SampleList and TemperatureList/TimeList are defined at module level
 # ==============================================================================
 
+
 # DO NOT MODIFY THIS TEMPLATE — copy it to a new file and rename it.
-def myPTC10PlanList_AI_template(
+def myPTC10PlanList_template(
     rate_heat,
     delay_hold_min,
     temp_final=40,
@@ -598,13 +611,13 @@ def myPTC10PlanList_AI_template(
     before loading. Then:
 
     Load:
-        %run -im usaxs.user.ptc10_plan_template
+        %run -im usaxs.plan_templates.ptc10_template
 
     Debug mode:
         ptc10_debug.put(True)
 
     Run:
-        RE(myPTC10PlanList_AI_template(50, 30))
+        RE(myPTC10PlanList_template(50, 30))
     """
 
     # =========================================================================
@@ -693,8 +706,10 @@ def myPTC10PlanList_AI_template(
     isDebugMode = ptc10_debug.get()
     recordFunctionRun()
     logger.info(
-        "Starting myPTC10PlanList_AI_template | %d samples | %d temperatures | debug=%s",
-        len(SampleList), len(TemperatureList), isDebugMode,
+        "Starting myPTC10PlanList_template | %d samples | %d temperatures | debug=%s",
+        len(SampleList),
+        len(TemperatureList),
+        isDebugMode,
     )
 
     # --- Block 1: Startup ------------------------------------------------
@@ -711,8 +726,13 @@ def myPTC10PlanList_AI_template(
 
     # --- Block 2: Baseline data at ambient temperature -------------------
     t0 = time.time()
-    logger.info("Collecting baseline datasets at ambient temperature (%d positions)", len(SampleList))
-    appendToMdFile(f"Collecting baseline data at ambient temperature for all {len(SampleList)} positions")
+    logger.info(
+        "Collecting baseline datasets at ambient temperature (%d positions)",
+        len(SampleList),
+    )
+    appendToMdFile(
+        f"Collecting baseline data at ambient temperature for all {len(SampleList)} positions"
+    )
     yield from collectAllPositions(isDebugMode)
 
     # --- Block 3: Iterate through TemperatureList ------------------------
@@ -726,7 +746,10 @@ def myPTC10PlanList_AI_template(
 
         logger.info(
             "Step %d/%d: heating to %s C, hold %s min",
-            step_idx + 1, len(TemperatureList), temp_target, effective_hold,
+            step_idx + 1,
+            len(TemperatureList),
+            temp_target,
+            effective_hold,
         )
         appendToMdFile(
             f"Step {step_idx+1}/{len(TemperatureList)}: "
@@ -759,7 +782,8 @@ def myPTC10PlanList_AI_template(
         while time.time() < hold_until:
             logger.debug(
                 "Hold at %s C: %.1f min remaining",
-                temp_target, (hold_until - time.time()) / MINUTE,
+                temp_target,
+                (hold_until - time.time()) / MINUTE,
             )
             yield from collectAllPositions(isDebugMode)
 
@@ -768,7 +792,8 @@ def myPTC10PlanList_AI_template(
     # --- Block 4: Cool to temp_final -------------------------------------
     logger.info(
         "All temperature steps complete. Cooling to %s C at %s C/min.",
-        temp_final, rate_cool,
+        temp_final,
+        rate_cool,
     )
     appendToMdFile(
         f"All steps complete. Cooling to {temp_final} C at {rate_cool} C/min."
@@ -795,7 +820,7 @@ def myPTC10PlanList_AI_template(
     yield from collectAllPositions(isDebugMode)
 
     appendToMdFile("Multi-position PTC10 plan complete.")
-    logger.info("myPTC10PlanList_AI_template finished")
+    logger.info("myPTC10PlanList_template finished")
 
     # --- Block 6: Teardown -----------------------------------------------
     if not isDebugMode:
@@ -811,7 +836,7 @@ def myPTC10PlanList_AI_template(
 # For experiments that visit a list of discrete temperatures, stabilise, then
 # collect — without a separate hold loop:
 #
-# def myPTC10StepPlan_AI_template(pos_X, pos_Y, thickness, scan_title,
+# def myPTC10StepPlan_template(pos_X, pos_Y, thickness, scan_title,
 #                                  start_T, end_T, step_T, rate, stabilize_min,
 #                                  md={}):
 #     """Step from start_T to end_T in step_T increments, collecting at each step."""
