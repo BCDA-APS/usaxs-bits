@@ -67,10 +67,13 @@ Two patterns satisfy the rule:
 
 Devices are declared in `src/usaxs/configs/*.yml` in Guarneri format (`module.path.ClassName: [{name, prefix, labels, ...}]`) and instantiated by `make_devices`. Device classes live in `src/usaxs/devices/`. To add a device, write the class **and** add an entry to the appropriate YAML — it will not appear in `oregistry` otherwise. Devices labeled `baseline` are added to the baseline stream by `setup_baseline_stream`.
 
-### Two `user/` directories — don't confuse them
+### Three plan directories — don't confuse them
 
-- **`user/` (repo root)** — ad-hoc experiment scripts loaded interactively with `%run -i user/foo.py` from the IPython session. They are excluded from `ruff`, `black`, and most lint. Treat as scratch space; do not refactor without asking.
-- **`src/usaxs/user/`** — committed, importable user plans for specific samples/setups (linkam, ptc10, etc.). These are part of the package and subject to lint.
+- **`src/usaxs/plan_templates/`** — canonical, ready-to-copy plan templates (`templates_dir` for the plan-writing agent). Never run directly and never edited in place: copy to `src/usaxs/user/` first. Excluded from `ruff`. See `src/usaxs/plan_templates/README.md`.
+- **`src/usaxs/user/`** — committed, importable user plans for specific samples/setups (linkam, ptc10, etc.), and where new user plans are written (`saved_scripts_dir`). Loaded with `%run -im usaxs.user.<name>`.
+- **`user/` (repo root)** — obsolete pre-BITS-cleanup scripts kept only for lookup; they will not run and lack Obsidian logging. Treat as scratch space; do not refactor without asking.
+
+`SKILL.md` (repo root) is the orientation file loaded by the plan-writing agent; keep it in sync when the plan API or directory layout changes.
 
 ### Callbacks
 

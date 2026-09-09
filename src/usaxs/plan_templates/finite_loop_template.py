@@ -35,22 +35,22 @@ Workflow for AI-assisted plan creation:
 TEMPLATE VARIANTS IN THIS FILE
 ==============================================================================
 
-1. myFiniteLoop_AI_template(pos_X, pos_Y, thickness, scan_title, delay_min)
+1. myFiniteLoop_template(pos_X, pos_Y, thickness, scan_title, delay_min)
        Single fixed position, time-based loop.
        Simplest possible plan — use as the default starting point.
 
-2. myFiniteMultiPosLoop_AI_template(delay_min)
+2. myFiniteMultiPosLoop_template(delay_min)
        Multiple positions defined in a module-level SampleList, time-based.
        Per-position sequential collection: USAXS→SAXS→WAXS per spot.
        Most common multi-sample plan.
 
-3. myFiniteListLoop_AI_template(delay_min)
+3. myFiniteListLoop_template(delay_min)
        Multiple positions, grouped-detector collection order:
        all-USAXS → all-SAXS → all-WAXS per complete round.
        Use when minimising detector-switching overhead matters more than
        grouping all data for one sample together.
 
-4. myFiniteYDriftLoop_AI_template(numIterations, yOffset)
+4. myFiniteYDriftLoop_template(numIterations, yOffset)
        Fixed number of complete iterations with a per-iteration Y-position drift.
        Use for radiation-dose spreading or spatial mapping over time.
        Sample names encode iteration number (not elapsed time).
@@ -211,7 +211,7 @@ SampleList = [
 
 
 # DO NOT MODIFY THIS TEMPLATE — copy to a new file and rename.
-def myFiniteLoop_AI_template(pos_X, pos_Y, thickness, scan_title, delay_min, md={}):
+def myFiniteLoop_template(pos_X, pos_Y, thickness, scan_title, delay_min, md={}):
     """
     Collect USAXS/SAXS/WAXS at one fixed position for delay_min minutes.
 
@@ -229,13 +229,13 @@ def myFiniteLoop_AI_template(pos_X, pos_Y, thickness, scan_title, delay_min, md=
         Extra metadata.
 
     Load:
-        %run -im usaxs.user.finite_loop_template
+        %run -im usaxs.plan_templates.finite_loop_template
 
     Debug mode (no instrument):
         loop_debug.put(True)
 
     Run:
-        RE(myFiniteLoop_AI_template(0, 0, 1.0, "MySample", 60))
+        RE(myFiniteLoop_template(0, 0, 1.0, "MySample", 60))
     """
 
     # ------------------------------------------------------------------
@@ -289,7 +289,7 @@ def myFiniteLoop_AI_template(pos_X, pos_Y, thickness, scan_title, delay_min, md=
     isDebugMode = loop_debug.get()
     recordFunctionRun()
     logger.info(
-        "Starting myFiniteLoop_AI_template | sample=%s | pos=(%.2f, %.2f) "
+        "Starting myFiniteLoop_template | sample=%s | pos=(%.2f, %.2f) "
         "| duration=%s min | debug=%s",
         scan_title,
         pos_X,
@@ -326,7 +326,7 @@ def myFiniteLoop_AI_template(pos_X, pos_Y, thickness, scan_title, delay_min, md=
 
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
-        "myFiniteLoop_AI_template finished | %d rounds | %.1f min elapsed",
+        "myFiniteLoop_template finished | %d rounds | %.1f min elapsed",
         loop_count,
         elapsed_min,
     )
@@ -349,7 +349,7 @@ def myFiniteLoop_AI_template(pos_X, pos_Y, thickness, scan_title, delay_min, md=
 
 
 # DO NOT MODIFY THIS TEMPLATE — copy to a new file and rename.
-def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
+def myFiniteMultiPosLoop_template(delay_min, md={}):
     """
     Cycle through SampleList collecting USAXS/SAXS/WAXS per position.
 
@@ -367,13 +367,13 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
         Extra metadata.
 
     Load:
-        %run -im usaxs.user.finite_loop_template
+        %run -im usaxs.plan_templates.finite_loop_template
 
     Debug mode:
         loop_debug.put(True)
 
     Run:
-        RE(myFiniteMultiPosLoop_AI_template(120))
+        RE(myFiniteMultiPosLoop_template(120))
     """
 
     # ------------------------------------------------------------------
@@ -428,7 +428,7 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
     isDebugMode = loop_debug.get()
     recordFunctionRun()
     logger.info(
-        "Starting myFiniteMultiPosLoop_AI_template | %d positions | "
+        "Starting myFiniteMultiPosLoop_template | %d positions | "
         "duration=%s min | debug=%s",
         len(SampleList),
         delay_min,
@@ -466,7 +466,7 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
 
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
-        "myFiniteMultiPosLoop_AI_template finished | %d rounds | %.1f min elapsed",
+        "myFiniteMultiPosLoop_template finished | %d rounds | %.1f min elapsed",
         round_count,
         elapsed_min,
     )
@@ -489,7 +489,7 @@ def myFiniteMultiPosLoop_AI_template(delay_min, md={}):
 
 
 # DO NOT MODIFY THIS TEMPLATE — copy to a new file and rename.
-def myFiniteListLoop_AI_template(delay_min, md={}):
+def myFiniteListLoop_template(delay_min, md={}):
     """
     Cycle through SampleList with grouped detector order for delay_min minutes.
 
@@ -513,13 +513,13 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
         Extra metadata.
 
     Load:
-        %run -im usaxs.user.finite_loop_template
+        %run -im usaxs.plan_templates.finite_loop_template
 
     Debug mode:
         loop_debug.put(True)
 
     Run:
-        RE(myFiniteListLoop_AI_template(120))
+        RE(myFiniteListLoop_template(120))
     """
 
     # ------------------------------------------------------------------
@@ -584,7 +584,7 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
     isDebugMode = loop_debug.get()
     recordFunctionRun()
     logger.info(
-        "Starting myFiniteListLoop_AI_template (grouped detectors) | "
+        "Starting myFiniteListLoop_template (grouped detectors) | "
         "%d positions | duration=%s min | debug=%s",
         len(SampleList),
         delay_min,
@@ -623,7 +623,7 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
 
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
-        "myFiniteListLoop_AI_template finished | %d rounds | %.1f min elapsed",
+        "myFiniteListLoop_template finished | %d rounds | %.1f min elapsed",
         counter,
         elapsed_min,
     )
@@ -646,7 +646,7 @@ def myFiniteListLoop_AI_template(delay_min, md={}):
 
 
 # DO NOT MODIFY THIS TEMPLATE — copy to a new file and rename.
-def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
+def myFiniteYDriftLoop_template(numIterations, yOffset, md={}):
     """
     Run numIterations complete passes over SampleList with a Y-position drift.
 
@@ -673,13 +673,13 @@ def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
         Extra metadata.
 
     Load:
-        %run -im usaxs.user.finite_loop_template
+        %run -im usaxs.plan_templates.finite_loop_template
 
     Debug mode:
         loop_debug.put(True)
 
     Run:
-        RE(myFiniteYDriftLoop_AI_template(50, 0.06))
+        RE(myFiniteYDriftLoop_template(50, 0.06))
     """
 
     # ------------------------------------------------------------------
@@ -738,7 +738,7 @@ def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
     recordFunctionRun()
     total_y = numIterations * yOffset
     logger.info(
-        "Starting myFiniteYDriftLoop_AI_template | %d iterations | "
+        "Starting myFiniteYDriftLoop_template | %d iterations | "
         "yOffset=%.3f mm (total %.2f mm) | %d samples | debug=%s",
         numIterations,
         yOffset,
@@ -776,7 +776,7 @@ def myFiniteYDriftLoop_AI_template(numIterations, yOffset, md={}):
 
     elapsed_min = (time.time() - t0) / MINUTE
     logger.info(
-        "myFiniteYDriftLoop_AI_template finished | %d iterations | %.1f min total",
+        "myFiniteYDriftLoop_template finished | %d iterations | %.1f min total",
         numIterations,
         elapsed_min,
     )

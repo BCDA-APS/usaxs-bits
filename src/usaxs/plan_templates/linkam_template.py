@@ -11,7 +11,7 @@ is asked to write a custom Linkam temperature-ramp experiment plan for a user.
 Workflow for AI-assisted plan creation:
     1. User describes their experiment (temperatures, ramp rates, hold times,
        which detectors to use during each segment, etc.).
-    2. AI copies myLinkamPlan_AI_template to a new function with a descriptive name.
+    2. AI copies myLinkamPlan_template to a new function with a descriptive name.
     3. AI fills in parameters, adds/removes heating segments, selects data-collection
        strategy for each segment, and updates the docstring.
     4. The new file is loaded with:
@@ -160,7 +160,7 @@ CUSTOMISATION CHECKLIST FOR AI
 ==============================================================================
 
 When creating a new plan from this template:
-    [ ] Rename the function (replace myLinkamPlan_AI_template)
+    [ ] Rename the function (replace myLinkamPlan_template)
     [ ] Update the module-level docstring and function docstring
     [ ] Add/remove parameters for extra heating segments
     [ ] Choose collect strategy (collectAllThree / collectWAXS / collectSAXS)
@@ -219,7 +219,7 @@ linkam_debug = Signal(name="linkam_debug", value=False)
 # DO NOT MODIFY THIS TEMPLATE FUNCTION.
 # Copy it to a new file and rename it for your experiment.
 # ==============================================================================
-def myLinkamPlan_AI_template(
+def myLinkamPlan_template(
     pos_X,
     pos_Y,
     thickness,
@@ -278,13 +278,13 @@ def myLinkamPlan_AI_template(
         Extra metadata passed into scan functions.
 
     Load with:
-        %run -im usaxs.user.linkam_template_AI
+        %run -im usaxs.plan_templates.linkam_template
 
     Enable debug mode (no instrument operations):
         linkam_debug.put(True)
 
     Run:
-        RE(myLinkamPlan_AI_template(0, 0, 1.0, "MySample", 200, 20, 30))
+        RE(myLinkamPlan_template(0, 0, 1.0, "MySample", 200, 20, 30))
     """
 
     # =========================================================================
@@ -433,7 +433,7 @@ def myLinkamPlan_AI_template(
     isDebugMode = linkam_debug.get()
     recordFunctionRun()
     logger.info(
-        "Starting myLinkamPlan_AI_template | sample=%s | debug=%s",
+        "Starting myLinkamPlan_template | sample=%s | debug=%s",
         scan_title,
         isDebugMode,
     )

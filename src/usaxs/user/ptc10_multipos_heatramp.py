@@ -53,7 +53,7 @@ SAMPLE NAME FORMAT
 CHANGE LOG
 ==============================================================================
 
-    * JIL, 2026-03-31 : Created from ptc10_plan_template.py
+    * JIL, 2026-03-31 : Created from usaxs/plan_templates/ptc10_template.py
 """
 
 import logging

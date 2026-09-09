@@ -176,7 +176,7 @@ CUSTOMISATION CHECKLIST FOR AI
 ==============================================================================
 
 When creating a new plan from this template:
-    [ ] Rename the function (replace myPTC10Plan_AI_template or myPTC10PlanList_AI_template)
+    [ ] Rename the function (replace myPTC10Plan_template or myPTC10PlanList_template)
     [ ] Update the SampleList at module level (for multi-position plans)
     [ ] Update TemperatureList / TimeList if using the list-based pattern
     [ ] Add/remove parameters for extra heating segments
@@ -287,7 +287,7 @@ def setheaterOn():
 
 
 # DO NOT MODIFY THIS TEMPLATE — copy it to a new file and rename it.
-def myPTC10Plan_AI_template(
+def myPTC10Plan_template(
     pos_X,
     pos_Y,
     thickness,
@@ -345,13 +345,13 @@ def myPTC10Plan_AI_template(
         Extra metadata.
 
     Load:
-        %run -im usaxs.user.ptc10_plan_template
+        %run -im usaxs.plan_templates.ptc10_template
 
     Debug mode (no instrument operations):
         ptc10_debug.put(True)
 
     Run:
-        RE(myPTC10Plan_AI_template(0, 0, 1.3, "MySample", 500, 50, 60))
+        RE(myPTC10Plan_template(0, 0, 1.3, "MySample", 500, 50, 60))
     """
 
     # =========================================================================
@@ -441,7 +441,7 @@ def myPTC10Plan_AI_template(
     isDebugMode = ptc10_debug.get()
     recordFunctionRun()
     logger.info(
-        "Starting myPTC10Plan_AI_template | sample=%s | target=%s C | debug=%s",
+        "Starting myPTC10Plan_template | sample=%s | target=%s C | debug=%s",
         scan_title,
         temp_target,
         isDebugMode,
@@ -571,7 +571,7 @@ def myPTC10Plan_AI_template(
 
 
 # DO NOT MODIFY THIS TEMPLATE — copy it to a new file and rename it.
-def myPTC10PlanList_AI_template(
+def myPTC10PlanList_template(
     rate_heat,
     delay_hold_min,
     temp_final=40,
@@ -611,13 +611,13 @@ def myPTC10PlanList_AI_template(
     before loading. Then:
 
     Load:
-        %run -im usaxs.user.ptc10_plan_template
+        %run -im usaxs.plan_templates.ptc10_template
 
     Debug mode:
         ptc10_debug.put(True)
 
     Run:
-        RE(myPTC10PlanList_AI_template(50, 30))
+        RE(myPTC10PlanList_template(50, 30))
     """
 
     # =========================================================================
@@ -706,7 +706,7 @@ def myPTC10PlanList_AI_template(
     isDebugMode = ptc10_debug.get()
     recordFunctionRun()
     logger.info(
-        "Starting myPTC10PlanList_AI_template | %d samples | %d temperatures | debug=%s",
+        "Starting myPTC10PlanList_template | %d samples | %d temperatures | debug=%s",
         len(SampleList),
         len(TemperatureList),
         isDebugMode,
@@ -820,7 +820,7 @@ def myPTC10PlanList_AI_template(
     yield from collectAllPositions(isDebugMode)
 
     appendToMdFile("Multi-position PTC10 plan complete.")
-    logger.info("myPTC10PlanList_AI_template finished")
+    logger.info("myPTC10PlanList_template finished")
 
     # --- Block 6: Teardown -----------------------------------------------
     if not isDebugMode:
@@ -836,7 +836,7 @@ def myPTC10PlanList_AI_template(
 # For experiments that visit a list of discrete temperatures, stabilise, then
 # collect — without a separate hold loop:
 #
-# def myPTC10StepPlan_AI_template(pos_X, pos_Y, thickness, scan_title,
+# def myPTC10StepPlan_template(pos_X, pos_Y, thickness, scan_title,
 #                                  start_T, end_T, step_T, rate, stabilize_min,
 #                                  md={}):
 #     """Step from start_T to end_T in step_T increments, collecting at each step."""
