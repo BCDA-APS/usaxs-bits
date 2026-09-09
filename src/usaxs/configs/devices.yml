@@ -19,6 +19,10 @@ usaxs.devices.diagnostics.DiagnosticsParameters:
   labels:
     - baseline
 
+usaxs.devices.fx4_quadem.QuadFX4:
+- name: fx4
+  prefix: "usxFX4:FX4:"
+
 usaxs.devices.general_terms.GeneralParameters:
 - name: terms
   labels:
