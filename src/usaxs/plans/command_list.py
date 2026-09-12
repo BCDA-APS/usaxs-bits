@@ -42,9 +42,11 @@ from .plans_tune import allUSAXStune
 from .plans_tune import preSWAXStune
 from .plans_tune import preUSAXStune
 from .requested_stop import RequestAbort
-from .sample_rotator_plans import PI_Off
-from .sample_rotator_plans import PI_onF
-from .sample_rotator_plans import PI_onR
+# pi_c867 device disabled — provide no-op stubs so command lists still parse
+# originals are in sample_rotator_plans
+def PI_Off(timeout=1): yield from bps.sleep(0)
+def PI_onF(timeout=1): yield from bps.sleep(0)
+def PI_onR(timeout=1): yield from bps.sleep(0)
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 s_stage = oregistry["s_stage"]

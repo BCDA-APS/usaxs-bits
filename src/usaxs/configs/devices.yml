@@ -115,9 +115,9 @@ usaxs.devices.sample_data.SampleDataDevice:
   labels:
   - baseline
 
-usaxs.devices.sample_rotator.SampleRotator:
-- name: pi_c867
-  prefix: usxPI:c867:c0:m1
+# usaxs.devices.sample_rotator.SampleRotator:
+# - name: pi_c867
+#   prefix: usxPI:c867:c0:m1
 
 apstools.devices.Struck3820:
 - name: struck
