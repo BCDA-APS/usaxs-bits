@@ -3450,12 +3450,6 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: usaxs.devices.fx4_quadem
-  grouped_debug:
-    classname: Signal
-    is_flyable: false
-    is_movable: true
-    is_readable: true
-    module: ophyd.signal
   gslit_stage:
     classname: GuardSlitsStageDevice
     components:
@@ -24346,7 +24340,7 @@ existing_plans:
         value: 1
       name: md
     properties:
-      is_generator: false
+      is_generator: true
   USAXSscanStep:
     description: 'Bluesky plan: collect a step-scan USAXS measurement at the given
       position.'
@@ -24387,40 +24381,6 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: md
-    properties:
-      is_generator: false
-  after_command_list:
-    description: Actions after a command list is run.
-    module: usaxs.plans.command_list
-    name: after_command_list
-    parameters:
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: md
-    - default: 'False'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: aborted
-    properties:
-      is_generator: false
-  before_command_list:
-    description: Actions before a command list is run.
-    module: usaxs.plans.command_list
-    name: before_command_list
-    parameters:
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: md
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: commands
     properties:
       is_generator: false
   find_a2rp:
@@ -24515,21 +24475,6 @@ existing_plans:
       name: md
     properties:
       is_generator: false
-  measure_grouped_samples:
-    description: Collect one USAXS/SAXS/WAXS set for every sample.
-    module: __main__
-    name: measure_grouped_samples
-    parameters:
-    - default: None
-      description: 'Additional metadata applied to each scan.  The scan title is updated
-
-        for each detector and is also passed as the positional scan title.'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: md
-    properties:
-      is_generator: true
   mode_DirectBeam:
     description: 'Bluesky plan: set the instrument to direct-beam Blackfly imaging
       mode.'
@@ -24719,7 +24664,7 @@ existing_plans:
         value: 1
       name: md
     properties:
-      is_generator: false
+      is_generator: true
   tune_a2rp:
     description: 'Bluesky plan: tune the analyzer second roll-pitch piezo (A2RP).'
     module: usaxs.plans.axis_tuning
@@ -24873,4 +24818,4 @@ existing_plans:
         value: 1
       name: md
     properties:
-      is_generator: false
+      is_generator: true

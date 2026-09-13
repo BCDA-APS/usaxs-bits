@@ -9,7 +9,7 @@ CONFIGS_DIR=$(readlink -f "${SCRIPT_DIR}/../src/usaxs/configs")
 QSERVER_DIR=$(readlink -f "${SCRIPT_DIR}/../src/usaxs/qserver")
 HTTP_SESSION_NAME="bluesky-httpserver-${DATABROKER_CATALOG}"
 HTTP_PORT="${QSERVER_HTTP_SERVER_PORT:-60610}"
-HTTP_HOST="${QSERVER_HTTP_SERVER_HOST:-localhost}"
+HTTP_HOST="${QSERVER_HTTP_SERVER_HOST:-0.0.0.0}"
 HTTP_API_KEY="${QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY:-test}"
 HTTP_STARTUP_COMMAND="uvicorn bluesky_httpserver.server:app --host ${HTTP_HOST} --port ${HTTP_PORT}"
 ###-----------------------------
@@ -189,6 +189,12 @@ function start() {
         # Run SESSION_NAME inside a screen session
         CMD="screen -DmS ${SESSION_NAME} -h 5000 ${STARTUP_COMMAND}"
         echo "Starting ${HTTP_SESSION_NAME} on ${HTTP_HOST}:${HTTP_PORT}"
+        if [ "${HTTP_API_KEY}" == "test" ]; then
+            echo "WARNING: HTTP server API key is the default value 'test'."
+            echo "         Now that HTTP_HOST=${HTTP_HOST}, this endpoint may be reachable"
+            echo "         from other machines on the network. Set a real secret via"
+            echo "         QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY before relying on this in production."
+        fi
         QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY="${HTTP_API_KEY}" \
         QSERVER_ZMQ_CONTROL_ADDRESS="tcp://localhost:60615" \
         screen -DmS "${HTTP_SESSION_NAME}" -h 5000 ${HTTP_STARTUP_COMMAND} &

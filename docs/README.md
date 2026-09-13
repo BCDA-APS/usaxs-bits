@@ -2,6 +2,13 @@
 
 Documentation for the USAXS / SAXS / WAXS Bluesky instrument at APS 12-ID-E.
 
+## AIda orientation docs (`docs/aida/`)
+
+Standalone reference material for the AIda agent, which operates the
+instrument through the bluesky-queueserver MCP tools and has weak/no access
+to this repo's source. See **[aida/README.md](aida/README.md)** for the
+terminology glossary, plan catalog, device guide, and safety placeholders.
+
 ## Queue-monitor GUI (`usaxs-qmonitor`)
 
 The custom queue-monitor GUI built on bluesky-widgets + bluesky-queueserver.

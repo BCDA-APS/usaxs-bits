@@ -64,6 +64,10 @@ class QtRunEngineManager_Control(QWidget):
         left = QVBoxLayout()
         pe = QtRePlanEditor(model)
         pq = QtRePlanQueue(model)
+        # bluesky_widgets hardcodes USER/GROUP columns (index 3, 4); every item is
+        # submitted under the same single-user API key, so these are never useful here.
+        pq._table.setColumnHidden(3, True)
+        pq._table.setColumnHidden(4, True)
         # Double-clicking a queued item opens it in the editor.
         pq.registered_item_editors.append(pe.edit_queue_item)
         left.addWidget(pe, stretch=1)
