@@ -29,8 +29,9 @@ def IfRequestedStopBeforeNextScan():
     If ``terms.PauseBeforeNextScan`` is set, waits in a 1-second loop until
     it is cleared, then re-opens the mono shutter.  If
     ``terms.StopBeforeNextScan`` is set, closes shutters, clears the flag,
-    records the abort in Obsidian, and raises ``RequestAbort`` to halt the
-    RunEngine.
+    runs ``after_command_list(aborted=True)`` so the instrument is cleaned up
+    the same way as at the end of a command file, records the abort in
+    Obsidian, and raises ``RequestAbort`` to halt the RunEngine.
 
     Yields
     ------
@@ -71,6 +72,17 @@ def IfRequestedStopBeforeNextScan():
             str(datetime.datetime.now()),
         ]
         yield from bps.mv(*mv_args)
+
+        # Clean up the instrument exactly as at the end of a command file.
+        # Imported here (not at module level) because command_list imports
+        # this module -- a top-level import would be circular.
+        from .command_list import after_command_list
+
+        try:
+            yield from after_command_list(aborted=True)
+        except Exception as exc:  # cleanup must not mask the abort
+            logger.error("Exception during after_command_list(): %s", exc)
+
         yield from user_data.set_state_plan("Aborted data collection")
 
         # record for Obsidian

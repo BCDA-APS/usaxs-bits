@@ -124,7 +124,10 @@ class UserDataDevice(Device):
     scanning = Component(EpicsSignal, "usxLAX:USAXS:scanning")
     scan_macro = Component(EpicsSignal, "usxLAX:scanMacro")
     spec_file = Component(EpicsSignal, "usxLAX:specFile", string=True)
-    spec_scan = Component(EpicsSignal, "usxLAX:specScan", string=True)
+    # NOTE: usxLAX:specScan is a longout record.  Do NOT use string=True here:
+    # describe() would report dtype "integer" while read() returns str, and the
+    # NeXus writer then builds a "<U1" array that h5py cannot store.
+    spec_scan = Component(EpicsSignal, "usxLAX:specScan")
     state = Component(EpicsSignal, "usxLAX:state", string=True, write_timeout=0.1)
     time_stamp = Component(EpicsSignal, "usxLAX:timeStamp")
     user_dir = Component(EpicsSignal, "usxLAX:userDir", string=True)

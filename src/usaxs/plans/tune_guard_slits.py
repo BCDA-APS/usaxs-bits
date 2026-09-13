@@ -63,7 +63,6 @@ def tune_GslitsCenter():
     yield from bps.mv(
         user_data.sample_title,
         title,
-        user_data.spec_scan,
         user_data.time_stamp,
         ts,
         user_data.scan_macro,

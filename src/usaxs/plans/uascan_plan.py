@@ -22,6 +22,7 @@ from ..utils.ustep import Ustep
 from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
+I0 = oregistry["I0"]
 I00 = oregistry["I00"]
 trd = oregistry["TRD"]
 upd = oregistry["UPD"]
@@ -193,12 +194,30 @@ def uascan(
         s_stage.y,
         d_stage.y,
     ]
+    # Recorded in the "primary" stream but NOT plotted by BestEffortCallback.
+    # Anything left "hinted" gets its own LivePlot axes; for a uascan the only
+    # useful plot is UPD vs AR, so demote every other hinted field to "normal".
+    # (I0 stays hinted: it is named in the "dimensions" hint below, which keeps
+    # it in the LiveTable while excluding it from the plot columns.)
+    unplotted_signals = [
+        a_stage.x.user_readback,
+        d_stage.x.user_readback,
+    ]
+
+    # remember every kind we touch so it can be restored after the scan
+    new_kinds = {}
     for obj in quiet_detectors:
-        obj.kind = "omitted"
+        new_kinds[obj] = "omitted"
     for obj in quiet_stages:
-        obj.kind = "omitted"
-        obj.user_setpoint.kind = "omitted"
-        obj.user_readback.kind = "omitted"
+        new_kinds[obj] = "omitted"
+        new_kinds[obj.user_setpoint] = "omitted"
+        new_kinds[obj.user_readback] = "omitted"
+    for obj in unplotted_signals:
+        new_kinds[obj] = "normal"
+
+    original_kinds = {obj: obj.kind for obj in new_kinds}
+    for obj, kind in new_kinds.items():
+        obj.kind = kind
 
     if terms.USAXS.useSBUSAXS.get():
         scan_cmd = "sb" + scan_cmd
@@ -223,6 +242,10 @@ def uascan(
     _md["ax0"] = ax0
     _md["SAD_mm"] = SAD_mm
     _md["useDynamicTime"] = str(useDynamicTime)
+    # Tell BestEffortCallback that AR is the independent variable.  Without this
+    # hint BEC guesses "time" as the x axis and plots every hinted field.
+    # The first field is the x axis; the rest are shown in the LiveTable only.
+    _md["hints"] = {"dimensions": [[["a_stage_r", "I0"], "primary"]]}
 
     def _triangulate_(angle: float, dist: float) -> float:
         """Calculate triangulated offset given angle of rotation.
@@ -320,12 +343,8 @@ def uascan(
         ]
         yield from bps.mv(*motor_resets)  # all at once
 
-        for obj in quiet_detectors:
-            obj.kind = "hinted"  # TODO: correct value?
-        for obj in quiet_stages:
-            obj.kind = 3  # config|normal
-            obj.user_setpoint.kind = "normal"
-            obj.user_readback.kind = "hinted"
+        for obj, kind in original_kinds.items():
+            obj.kind = kind
 
     # run the scan
     yield from _scan_()
