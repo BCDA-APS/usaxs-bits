@@ -79,7 +79,7 @@ def saxsExp(
     pos_X: float,
     pos_Y: float,
     thickness: float,
-    scan_title: str,
+    title: str,
     md=None,
 ):
     """Bluesky plan: collect a SAXS image at the given sample position.
@@ -96,7 +96,7 @@ def saxsExp(
         Sample Y position in mm.
     thickness : float
         Sample thickness in mm.
-    scan_title : str
+    title : str
         Human-readable title used for the output file name.
     md : dict, optional
         Extra metadata merged into the run's start document.
@@ -107,13 +107,13 @@ def saxsExp(
 
     Notes
     -----
-    Usage: ``RE(saxsExp(pos_X, pos_Y, thickness, scan_title))``
+    Usage: ``RE(saxsExp(pos_X, pos_Y, thickness, title))``
     """
 
     if md is None:
         md = {}
 
-    logger.info(f"Starting collection of SAXS for {scan_title}")
+    logger.info(f"Starting collection of SAXS for {title}")
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -155,13 +155,13 @@ def saxsExp(
     )
 
     # setup AD names, paths and set metadata
-    scan_title = getSampleTitle(scan_title)
+    title = getSampleTitle(title)
     _md = md or OrderedDict()
     _md["plan_name"] = "SAXS"
     _md["sample_thickness_mm"] = thickness
-    _md["title"] = scan_title
+    _md["title"] = title
 
-    scan_title_clean = cleanupText(scan_title)
+    title_clean = cleanupText(title)
 
     # SPEC-compatibility
     # SCAN_N = RE.md["scan_id"] + 1
@@ -171,7 +171,7 @@ def saxsExp(
 
     SAXSscan_path = techniqueSubdirectory("saxs")
     SAXS_file_name = local_file_template % (
-        scan_title_clean,
+        title_clean,
         saxs_det.hdf1.file_number.get(),
     )
     _md["hdf5_path"] = str(SAXSscan_path)
@@ -188,7 +188,7 @@ def saxsExp(
     yield from bps.mv(
         # fmt: off
         saxs_det.hdf1.file_name,
-        scan_title_clean,
+        title_clean,
         saxs_det.hdf1.file_path,
         pilatus_path,
         saxs_det.hdf1.file_template,
@@ -204,7 +204,7 @@ def saxsExp(
     yield from bps.mv(
         # fmt: off
         user_data.sample_title,
-        scan_title,
+        title,
         user_data.sample_thickness,
         thickness,
         # user_data.spec_scan,
@@ -295,7 +295,7 @@ def saxsExp(
         )
         yield from user_data.set_state_plan(f"SAXS collection for {terms.SAXS.acquire_time.get()} s")
 
-        yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
+        yield from record_sample_image_on_demand("saxs", title_clean, _md)
         yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
 
     yield from _image_acquisition_steps()
@@ -341,7 +341,7 @@ def waxsExp(
     pos_X: float,
     pos_Y: float,
     thickness: float,
-    scan_title: str,
+    title: str,
     md=None,
 ):
     """Bluesky plan: collect a WAXS image at the given sample position.
@@ -357,7 +357,7 @@ def waxsExp(
         Sample Y position in mm.
     thickness : float
         Sample thickness in mm.
-    scan_title : str
+    title : str
         Human-readable title used for the output file name.
     md : dict, optional
         Extra metadata merged into the run's start document.
@@ -368,13 +368,13 @@ def waxsExp(
 
     Notes
     -----
-    Usage: ``RE(waxsExp(pos_X, pos_Y, thickness, scan_title))``
+    Usage: ``RE(waxsExp(pos_X, pos_Y, thickness, title))``
     """
 
     if md is None:
         md = {}
 
-    logger.info(f"Starting collection of WAXS for {scan_title}")
+    logger.info(f"Starting collection of WAXS for {title}")
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -406,13 +406,13 @@ def waxsExp(
     )
 
     # setup names and paths here...
-    scan_title = getSampleTitle(scan_title)
+    title = getSampleTitle(title)
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
-    _md["title"] = scan_title
+    _md["title"] = title
     _md["plan_name"] = "WAXS"
 
-    scan_title_clean = cleanupText(scan_title)
+    title_clean = cleanupText(title)
 
     # SPEC-compatibility
     # SCAN_N = RE.md["scan_id"] + 1
@@ -422,7 +422,7 @@ def waxsExp(
 
     WAXSscan_path = techniqueSubdirectory("waxs")
     WAXS_file_name = local_file_template % (
-        scan_title_clean,
+        title_clean,
         waxs_det.hdf1.file_number.get(),
     )
     _md["hdf5_path"] = str(WAXSscan_path)
@@ -441,7 +441,7 @@ def waxsExp(
     yield from bps.mv(
         # fmt: off
         waxs_det.hdf1.file_name,
-        scan_title_clean,
+        title_clean,
         waxs_det.hdf1.file_path,
         pilatus_path,
         waxs_det.hdf1.file_template,
@@ -457,7 +457,7 @@ def waxsExp(
     yield from bps.mv(
         # fmt: off
         user_data.sample_title,
-        scan_title,
+        title,
         user_data.sample_thickness,
         thickness,
         # user_data.spec_scan,
@@ -543,7 +543,7 @@ def waxsExp(
         )
         yield from user_data.set_state_plan(f"WAXS collection for {terms.WAXS.acquire_time.get()} s")
 
-        yield from record_sample_image_on_demand("waxs", scan_title_clean, _md)
+        yield from record_sample_image_on_demand("waxs", title_clean, _md)
 
         yield from areaDetectorAcquire(waxs_det, create_directory=-5, md=_md)
 

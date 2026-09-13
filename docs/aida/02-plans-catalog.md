@@ -18,7 +18,7 @@ data/metadata after it completes.
 
 | Plan | Parameters | Purpose |
 |---|---|---|
-| `USAXSscan(x, y, thickness_mm, title, md=None)` | position (mm), position (mm), sample thickness (mm), scan title string | Collect a USAXS measurement at one sample position. Dispatches to fly-scan or step-scan automatically based on the instrument's `terms.FlyScan.use_flyscan` setting. **Use this**, not `Flyscan`/`USAXSscanStep`, unless you specifically need to force one mode. |
+| `USAXSscan(pos_X, pos_Y, thickness, scan_title, md=None)` | position (mm), position (mm), sample thickness (mm), scan title string | Collect a USAXS measurement at one sample position. Dispatches to fly-scan or step-scan automatically based on the instrument's `terms.FlyScan.use_flyscan` setting. **Use this**, not `Flyscan`/`USAXSscanStep`, unless you specifically need to force one mode. |
 | `Flyscan(pos_X, pos_Y, thickness, scan_title, md=None)` | same shape as above, note the different parameter names | Force a fly-scan USAXS measurement. |
 | `USAXSscanStep(pos_X, pos_Y, thickness, scan_title, md=None)` | same shape as `Flyscan` | Force a step-scan USAXS measurement (slower; a fallback when fly-scan hardware/alignment is unavailable). |
 | `saxsExp(pos_X, pos_Y, thickness, scan_title, md=None)` | position (mm), position (mm), thickness (mm), title | Collect one SAXS image at a sample position. |
