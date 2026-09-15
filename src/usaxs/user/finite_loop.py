@@ -31,10 +31,10 @@ FUNCTION INVENTORY:
 
     myTwoPosFiniteLoop(pos_XA, thicknessA, scan_titleA,
                        pos_XB, thicknessB, scan_titleB, delay1minutes)
-        Alternates between two positions using the LAXm2 (SAMX) motor.
-        Collects USAXS + SAXS at each position (WAXS intentionally disabled).
-        The LAXm2 motor performs the actual stage motion; pos_X is passed as
-        metadata only.  Sample name encodes elapsed time in minutes.
+        DISABLED 2026-09-15 (raises NotImplementedError) — depended on LAXm2,
+        which was reassigned to the rheometer stage (see
+        usaxs.devices.rheometer). Alternated between two positions using the
+        LAXm2 (SAMX) motor. Pick a different motor before re-enabling.
 
     myFiniteMultiPosLoop(delay1minutes)
         Cycles through a hardcoded SampleList collecting USAXS/SAXS/WAXS at
@@ -389,10 +389,19 @@ def myTwoPosFiniteLoop(
     Run:
         RE(myTwoPosFiniteLoop(0, 1, "SampleA", 5, 2, "SampleB", 20))
     """
-    from apsbits.core.instrument_init import oregistry
-
-    # LAXm2 is the SAMX stage motor used to switch between the two positions.
-    samx = oregistry["LAXm2"]
+    # DISABLED 2026-09-15: LAXm2 was removed from devices.yml (PV
+    # usxLAX:m58:c0:m2 is now claimed by rheometer_stage.x, see
+    # usaxs.devices.rheometer). This plan is unused; re-point it at a
+    # different motor before re-enabling.
+    # from apsbits.core.instrument_init import oregistry
+    #
+    # # LAXm2 is the SAMX stage motor used to switch between the two positions.
+    # samx = oregistry["LAXm2"]
+    raise NotImplementedError(
+        "myTwoPosFiniteLoop is disabled: it depended on LAXm2, which was "
+        "reassigned to the rheometer stage. Pick a different motor and "
+        "restore the code above before using this plan again."
+    )
 
     def setSampleName():
         """Return sample name encoding scan_title and elapsed minutes since t0."""

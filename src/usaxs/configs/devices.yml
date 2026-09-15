@@ -78,18 +78,6 @@ ophyd.EpicsMotor:
 - name: LAXm1
   prefix: usxLAX:m58:c0:m1
   labels: ["LAXm1"]
-- name: LAXm2
-  prefix: usxLAX:m58:c0:m2
-  labels: ["LAXm2"]
-- name: LAXm3
-  prefix: usxLAX:m58:c0:m3
-  labels: ["LAXm3"]
-- name: LAXm4
-  prefix: usxLAX:m58:c0:m4
-  labels: ["LAXm4"]
-- name: LAXm5
-  prefix: usxLAX:m58:c0:m5
-  labels: ["LAXtcam", "baseline"]
 - name: LAXm6
   prefix: usxLAX:m58:c0:m6
   labels: ["LAXgsy"]
@@ -164,6 +152,9 @@ usaxs.devices.stages.UsaxsAnalyzerStageDevice:
 
 usaxs.devices.stages.SaxsDetectorStageDevice:
 - name: saxs_stage
+
+usaxs.devices.rheometer.RheometerStageDevice:
+- name: rheometer_stage
 
 usaxs.devices.usaxs_fly_scan.UsaxsFlyScanDevice:
 - name: usaxs_flyscan

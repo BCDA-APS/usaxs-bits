@@ -12,6 +12,7 @@ load it with `%run -im usaxs.user.<experiment_name>`.
 | `linkam_template.py` | Linkam TC-1 temperature stage: ramps, holds, data during or after a ramp. |
 | `ptc10_template.py` | PTC10 furnace: ramps, holds, cooling. Single-position and SampleList variants. |
 | `external_device_template.py` | User hardware not declared in `src/usaxs/configs/*.yml` (load frame, pump, flow cell). Shows how to wrap PVs in an ophyd `Device`. |
+| `rheometer_template.py` | Rheometer stage (own x + 3-leg leveling motors) synchronised with Anton Paar RheoCompass via a single TTL trigger pulse. Baseline / trigger / response phases. |
 
 Every template carries the same mandatory structure:
 

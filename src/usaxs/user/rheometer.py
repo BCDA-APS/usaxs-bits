@@ -23,6 +23,16 @@ DEBUG MODE:
     collecting data, comment out the instrument calls inside collectAllThree
     and replace them with bps.sleep() calls.
 
+RHEOMETER STAGE:
+    The rheometer sits on a permanent stage device, ``rheometer_stage``
+    (``usaxs.devices.rheometer.RheometerStageDevice``, registered in
+    ``devices.yml``): ``x`` for horizontal translation, and ``leg1``/``leg2``/
+    ``leg3`` for the three vertical leveling motors arranged in a triangle.
+    The three legs are independent motors with no shared setpoint, so they
+    are not guaranteed to start at equal positions — use
+    ``levelRheometerStage()`` below to drive all three to the same absolute
+    target in a single concurrent move.
+
 CHANGE LOG:
     * JIL, 2022-11-17 : first release
     * JIL, 2022-11-18 : added different modes
@@ -30,6 +40,8 @@ CHANGE LOG:
     * JIL, 2025-07-09 : user changes
     * JIL, 2026-02-26 : reformatted, documented, removed unused imports,
                         fixed wrong call example in docstring
+    * JIL, 2026-09-15 : added rheometer_stage (x + 3-leg leveling) device and
+                        levelRheometerStage() helper
 """
 
 import logging
@@ -39,6 +51,7 @@ logger.info(__file__)
 
 import time
 
+from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from usaxs.plans.plans_user_facing import saxsExp
 from usaxs.plans.plans_user_facing import waxsExp
@@ -48,6 +61,9 @@ from usaxs.plans.command_list import after_command_list, sync_order_numbers
 from usaxs.plans.command_list import before_command_list
 from ophyd import Signal, EpicsSignal
 from usaxs.utils.obsidian import appendToMdFile, recordFunctionRun
+
+# Rheometer sample stage: x (horizontal) + leg1/leg2/leg3 (vertical leveling).
+rheometer_stage = oregistry["rheometer_stage"]
 
 # Time-unit constants for building delay expressions.
 SECOND = 1
@@ -65,6 +81,28 @@ loop_debug = Signal(name="loop_debug", value=False)
 # Galil analogue output used to synchronise the rheometer with each
 # USAXS/SAXS measurement.  Set to 5 V before acquisition, 0 V after.
 galil_voltage = EpicsSignal("usxRIO:GalilAo1_SP.VAL", name="galil_voltage")
+
+
+def levelRheometerStage(target_mm):
+    """
+    Drive all three vertical legs to the same absolute position at once.
+
+    leg1/leg2/leg3 are independent motors with no shared setpoint or
+    interlock, so they are not guaranteed to start at equal positions.
+    Moving them concurrently to the same absolute target — rather than one
+    at a time, or by a relative offset — is what actually levels the stage.
+
+    Run:
+        RE(levelRheometerStage(5.0))
+    """
+    yield from bps.mv(
+        rheometer_stage.leg1,
+        target_mm,
+        rheometer_stage.leg2,
+        target_mm,
+        rheometer_stage.leg3,
+        target_mm,
+    )
 
 
 def rheoLoop(scan_title, delay1minutes, md={}):
