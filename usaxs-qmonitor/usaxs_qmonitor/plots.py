@@ -8,27 +8,41 @@ Documents flow from the headless RE Worker to this GUI over the network:
         -> RemoteDispatcher("localhost:5568")   (here)
         -> stream_documents_into_runs(...)       (flat docs -> BlueskyRuns)
         -> Lines(x, ys, max_runs=N)              (one model per tune type)
-        -> QtFigures                             (embedded below)
+        -> QtFigure, grouped into tabs below
 
 Each incoming run is routed to the ``Lines`` model whose ``plan_names`` contains
 the run's start-doc ``plan_name`` (see ``settings.plot_config``). ``max_runs``
 keeps the last N scans overlaid; "Clear plots" drops them all.
+
+Plots are grouped into tabs by beamline sub-system (``PLOT_GROUPS``) with every
+plot in a tab shown side by side, so users can compare related tunes at a
+glance instead of clicking through one tab per plot (``QtFigures``' default).
 """
 
 from bluesky_widgets.models.plot_builders import Lines
-from bluesky_widgets.models.plot_specs import FigureList
-from bluesky_widgets.qt.figures import QtFigures
+from bluesky_widgets.qt.figures import QtFigure
 from bluesky_widgets.qt.zmq_dispatcher import RemoteDispatcher
 from bluesky_widgets.utils.streaming import stream_documents_into_runs
 from qtpy.QtWidgets import QHBoxLayout
 from qtpy.QtWidgets import QLabel
 from qtpy.QtWidgets import QPushButton
+from qtpy.QtWidgets import QTabWidget
 from qtpy.QtWidgets import QVBoxLayout
 from qtpy.QtWidgets import QWidget
 
+# Tab title -> plot_config titles shown side by side in that tab, in this order.
+PLOT_GROUPS = [
+    ("Optics", ["tune_mr", "tune_ar", "tune_a2rp"]),
+    ("Diode", ["tune_dx", "tune_dy"]),
+]
+
+# QtFigure hardcodes a 640px minimum canvas width; too wide to show three
+# plots side by side on a normal screen, so shrink it here.
+_CANVAS_MIN_WIDTH = 380
+
 
 class UsaxsPlots(QWidget):
-    """Live-plot panel: a QtFigures view fed by a 0MQ document stream."""
+    """Live-plot panel: tabbed QtFigure groups fed by a 0MQ document stream."""
 
     def __init__(self, plot_config, zmq_proxy_info_addr, *args, **kwargs):
         """Build Lines models from ``plot_config`` and wire the dispatcher.
@@ -46,15 +60,24 @@ class UsaxsPlots(QWidget):
         self._addr = zmq_proxy_info_addr
         self._models = []  # list of (Lines, plan_names set)
 
-        figures = []
+        lines_by_title = {}
         for cfg in plot_config:
             lines = Lines(cfg["x"], list(cfg["ys"]), max_runs=cfg.get("max_runs", 5))
             lines.figure.title = cfg["title"]
             self._models.append((lines, set(cfg.get("plan_names") or ())))
-            figures.append(lines.figure)
+            lines_by_title[cfg["title"]] = lines
 
-        self._figure_list = FigureList(figures)
-        self._qt_figures = QtFigures(self._figure_list)
+        self._qt_figures = QTabWidget()
+        for tab_title, plot_titles in PLOT_GROUPS:
+            page = QWidget()
+            page_hbox = QHBoxLayout()
+            page_hbox.setContentsMargins(0, 0, 0, 0)
+            for plot_title in plot_titles:
+                qt_figure = QtFigure(lines_by_title[plot_title].figure)
+                qt_figure.figure.canvas.setMinimumWidth(_CANVAS_MIN_WIDTH)
+                page_hbox.addWidget(qt_figure)
+            page.setLayout(page_hbox)
+            self._qt_figures.addTab(page, tab_title)
 
         # --- Controls row ---
         self._pb_connect = QPushButton("Connect stream")

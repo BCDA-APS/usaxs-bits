@@ -17,7 +17,6 @@ from bluesky_widgets.qt.run_engine_client import QtReEnvironmentControls
 from bluesky_widgets.qt.run_engine_client import QtReExecutionControls
 from bluesky_widgets.qt.run_engine_client import QtReManagerConnection
 from bluesky_widgets.qt.run_engine_client import QtRePlanEditor
-from bluesky_widgets.qt.run_engine_client import QtRePlanHistory
 from bluesky_widgets.qt.run_engine_client import QtRePlanQueue
 from bluesky_widgets.qt.run_engine_client import QtReQueueControls
 from bluesky_widgets.qt.run_engine_client import QtReRunningPlan
@@ -30,6 +29,7 @@ from qtpy.QtWidgets import QVBoxLayout
 from qtpy.QtWidgets import QWidget
 
 from .functions import QtUsaxsActionBar
+from .plan_history import QtRePlanHistoryReversed
 from .plots import UsaxsPlots
 from .settings import SETTINGS
 
@@ -63,6 +63,11 @@ class QtRunEngineManager_Control(QWidget):
 
         left = QVBoxLayout()
         pe = QtRePlanEditor(model)
+        # bluesky_widgets hardcodes "Plan Viewer" before "Plan Editor", but adding a
+        # plan (Plan Editor) is the first step of the flow and the one new users
+        # look for; put it first so it's what they see on start.
+        pe._tab_widget.tabBar().moveTab(1, 0)
+        pe._tab_widget.setCurrentIndex(0)
         pq = QtRePlanQueue(model)
         # bluesky_widgets hardcodes USER/GROUP columns (index 3, 4); every item is
         # submitted under the same single-user API key, so these are never useful here.
@@ -76,7 +81,9 @@ class QtRunEngineManager_Control(QWidget):
 
         right = QVBoxLayout()
         right.addWidget(QtReRunningPlan(model), stretch=1)
-        right.addWidget(QtRePlanHistory(model), stretch=2)
+        # Reversed so the newest run is at the top and rolls down, matching the
+        # top-to-bottom direction the queue itself runs in.
+        right.addWidget(QtRePlanHistoryReversed(model), stretch=2)
         hbox.addLayout(right)
 
         vbox.addLayout(hbox)
@@ -101,7 +108,7 @@ class QtRunEngineManager_LiveView(QWidget):
         self._console_monitor = QtReConsoleMonitor(model)
         splitter.addWidget(self._console_monitor)
 
-        splitter.setSizes([2, 1])
+        splitter.setSizes([65, 35])
 
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0, 0, 0, 0)
