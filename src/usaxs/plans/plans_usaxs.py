@@ -541,7 +541,7 @@ def Flyscan(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-    logger.info("Eric")
+    #logger.info("Eric")
     # SPEC-compatibility
     # SCAN_N = RE.md["scan_id"] + 1
     yield from bps.mv(
