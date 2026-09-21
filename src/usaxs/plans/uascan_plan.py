@@ -299,6 +299,15 @@ def uascan(
                 count_time,
             ]
 
+            # Suspender rewind boundary, one per point.  The run is already open
+            # here (see the run_decorator above), so the checkpoint must live
+            # inside the loop rather than before uascan() -- a replay that
+            # re-issued open_run would raise IllegalMessageSequence.  A beam-loss
+            # suspension therefore redoes only the current point instead of
+            # replaying the whole USAXSscanStep setup (filters, stage moves,
+            # Blackfly optical image).
+            yield from bps.checkpoint()
+
             yield from user_data.set_state_plan(f"moving motors {i + 1}/{intervals}")
             yield from bps.mv(*moves)
 

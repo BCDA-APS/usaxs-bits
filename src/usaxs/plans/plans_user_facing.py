@@ -18,6 +18,7 @@ from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
+from ..suspenders.beam_guard import beam_guarded
 from ..utils.constants import constants
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
@@ -75,6 +76,7 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 
 
 @plan
+@beam_guarded
 def saxsExp(
     pos_X: float,
     pos_Y: float,
@@ -296,6 +298,18 @@ def saxsExp(
         yield from user_data.set_state_plan(f"SAXS collection for {terms.SAXS.acquire_time.get()} s")
 
         yield from record_sample_image_on_demand("saxs", title_clean, _md)
+
+        # Suspender rewind boundary.  Caps how far back a beam-loss resume can
+        # replay: without it the RunEngine would re-issue every message since
+        # the checkpoint inside measure_SAXS_Transmission, including the Blackfly
+        # optical image setup above.  That replay runs outside the original
+        # generator frames, so the try/except in record_sample_image_on_demand
+        # cannot soften a camera failure and it aborts the command list.
+        # No run is open here -- bp.count inside areaDetectorAcquire opens its
+        # own and checkpoints again immediately (bluesky one_shot), so open_run
+        # is never replayed.
+        yield from bps.checkpoint()
+
         yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
 
     yield from _image_acquisition_steps()
@@ -337,6 +351,7 @@ def saxsExp(
 
 
 @plan
+@beam_guarded
 def waxsExp(
     pos_X: float,
     pos_Y: float,
@@ -544,6 +559,9 @@ def waxsExp(
         yield from user_data.set_state_plan(f"WAXS collection for {terms.WAXS.acquire_time.get()} s")
 
         yield from record_sample_image_on_demand("waxs", title_clean, _md)
+
+        # Suspender rewind boundary -- see the matching comment in saxsExp.
+        yield from bps.checkpoint()
 
         yield from areaDetectorAcquire(waxs_det, create_directory=-5, md=_md)
 

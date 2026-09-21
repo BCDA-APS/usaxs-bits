@@ -61,7 +61,7 @@ pytest path/to/test_file.py::test_name
 Two patterns satisfy the rule:
 
 - **Plans that need `RE` or `bec`** — import them lazily *inside* the function body (`def my_plan(...): from usaxs.startup import RE, bec; ...`). The import resolves at first call, well after `startup.py` has finished loading.
-- **Plans that need suspender decoration** (`@bpp.suspend_decorator(suspend_FE_shutter)`) — export the plan **bare** from its module (no decorators) and apply the suspenders in `startup.py`'s wiring block via `_with_beam_suspenders(...)`. Decorators evaluate at module-load time, so they cannot use lazy imports.
+- **Plans that need suspender decoration** — use `@beam_guarded` from `src/usaxs/suspenders/beam_guard.py`, applied at the plan's definition site *under* `@plan`. It resolves the suspenders at call time from a registry that `startup.py` fills via `set_beam_suspenders(...)`, so no suspender object is needed at module-load time. Do **not** apply the suspenders by rebinding names in `startup.py` — that only affects the `usaxs.startup` namespace, and user scripts importing `from usaxs.plans.plans_usaxs import USAXSscan` would get the undecorated original. Do not nest guarded plans: installing the same suspender twice and removing it once unguards the outer scope, which is why the `USAXSscan` dispatcher is bare and only `Flyscan`/`USAXSscanStep` carry the decorator.
 
 ### Device configuration is YAML, not Python
 

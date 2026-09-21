@@ -144,7 +144,14 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
         signal goes False or when the timeout is exceeded.
         """
         t = time.time()
-        # Total allowed wall time = scan duration + generous padding.
+        # Re-anchor the clock to *this* attempt.  After a suspender resume the
+        # RunEngine replays the progress_kick write, so this runs again for the
+        # restarted sweep; leaving the original t0 in place would report elapsed
+        # times that include the beam outage and would expire the deadline below
+        # partway through the new sweep.
+        usaxs_flyscan.t0 = t
+        usaxs_flyscan.update_time = t + usaxs_flyscan.update_interval_s
+        # Total allowed wall time = scan duration + padding.
         timeout = (
             t + usaxs_flyscan.scan_time.get() + usaxs_flyscan.timeout_s
         )  # extra padded time
@@ -287,6 +294,20 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     _md["hdf5_path"] = usaxs_flyscan.saveFlyData_HDF5_dir
 
     yield from bps.open_run(md=_md)
+
+    # Suspender rewind boundary.  On resume the RunEngine replays every message
+    # cached since the last checkpoint (run_engine.py: _rewind), so without this
+    # a beam-loss suspension would replay the whole Flyscan setup -- mode_USAXS,
+    # filters, stage moves and the Blackfly optical image.  That replay runs as a
+    # flat Msg list outside the original generator frames, so the try/except in
+    # record_sample_image_on_demand cannot catch a camera hiccup and it kills the
+    # command list instead of logging a warning.
+    # Placed *after* open_run so the replay never re-issues open_run (which would
+    # raise IllegalMessageSequence).  The cached set is then just "arm the busy
+    # record", so resuming re-triggers the AR sweep from the start and the scan
+    # is redone in full rather than left with a dead segment.
+    yield from bps.checkpoint()
+
     # specwriter._cmt("start USAXS Fly scan")
     # Switch UPD amplifier to auto-background mode for the scan.
     yield from bps.mv(
@@ -322,11 +343,17 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
         timeout=usaxs_flyscan.scan_time.get() + usaxs_flyscan.timeout_s,
     )
 
-    # if bluesky_runengine_running:
-        # Start logging scan progress in a background thread.
-        # This is launched here, before flying=True is set, because
-        # progress_reporting() has its own brief startup-wait loop.
-    progress_reporting()
+    # Start logging scan progress in a background thread, before flying=True is
+    # set, because progress_reporting() has its own brief startup-wait loop.
+    #
+    # Driven through a signal write rather than a bare call so it survives a
+    # suspender resume: the RunEngine replays cached Msg objects, not the Python
+    # between them, so a bare call would leave a restarted sweep unmonitored and
+    # the stale thread would expire mid-scan.  The handler is re-assigned each
+    # time (it closes over this plan's _report_), and the replayed write finds it
+    # still in place.
+    usaxs_flyscan.progress_kick.handler = progress_reporting
+    yield from bps.abs_set(usaxs_flyscan.progress_kick, 1)
 
     # ------------------------------------------------------------------
     # Set the software ``flying`` flag that the progress thread polls.

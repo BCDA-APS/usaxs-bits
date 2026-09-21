@@ -113,6 +113,20 @@ else:  # if not in_operation:
 
     suspend_FE_shutter, suspend_BeamInHutch = suspender_in_sim()
 
+# ── Arm the beam guard ────────────────────────────────────────────
+# Hands the suspenders to `@beam_guarded`, which the data-collection plans
+# (Flyscan, USAXSscanStep, saxsExp, waxsExp) carry at their definition sites.
+# Those plans then suspend on beam loss no matter how they were reached — the
+# IPython prompt, `%run -im usaxs.user.<script>`, or a command file.  Applying
+# the decorators here instead would only rebind names in *this* namespace,
+# leaving every script-launched scan unguarded.
+#
+# Deliberately NOT `RE.install_suspender(...)`: a global suspender blocks all
+# staff operations whenever there is no beam.
+from usaxs.suspenders.beam_guard import set_beam_suspenders  # noqa: E402
+
+set_beam_suspenders(suspend_FE_shutter, suspend_BeamInHutch)
+
 # Setup baseline stream with connect=False is default
 # Devices with the label 'baseline' will be added to the baseline stream.
 setup_baseline_stream(sd, oregistry, connect=False)
@@ -224,21 +238,10 @@ else:
     from .utils.setup_new_user import newSample
     from .utils.setup_new_user import newUser
 
-# ── Apply beam suspenders to user-entry scan plans ────────────────
-# These are the only plans that pause when the FE shutter closes or
-# the beam leaves the hutch. Other plans run unguarded.
-# Each line below is the literal equivalent of writing
-# `@bpp.suspend_decorator(...)` above the plan definition — kept here
-# (instead of in the plan files) so this whole story lives in one place
-# and each beamline can fork it without touching the shared plan modules.
-USAXSscan = bpp.suspend_decorator(suspend_FE_shutter)(USAXSscan)
-USAXSscan = bpp.suspend_decorator(suspend_BeamInHutch)(USAXSscan)
-
-saxsExp = bpp.suspend_decorator(suspend_FE_shutter)(saxsExp)
-saxsExp = bpp.suspend_decorator(suspend_BeamInHutch)(saxsExp)
-
-waxsExp = bpp.suspend_decorator(suspend_FE_shutter)(waxsExp)
-waxsExp = bpp.suspend_decorator(suspend_BeamInHutch)(waxsExp)
+# NOTE: the beam suspenders are no longer applied here.  They are registered
+# with `set_beam_suspenders(...)` above and applied by the `@beam_guarded`
+# decorator on Flyscan/USAXSscanStep/saxsExp/waxsExp in the plan modules, so
+# the guard survives `from usaxs.plans... import ...` in user scripts.
 
 # customize the instrument configuration
 oregistry["usaxs_shutter"].delay_s = 0.01

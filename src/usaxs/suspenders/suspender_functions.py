@@ -28,6 +28,7 @@ from ophyd import Signal
 
 from .suspenders import BeamInHutchSuspension
 from .suspenders import FeedbackHandlingDuringSuspension
+from .suspenders import abort_flyscan_if_flying
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,14 @@ def suspender_in_operations():
     logger.info(
         "Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired."
     )
-    suspend_FE_shutter = bluesky.suspenders.SuspendFloor(FE_shutter.pss_state, 1)  # noqa: F841
+    # pre_plan aborts an in-flight fly scan so its busy-record Status cannot age
+    # out while the RunEngine waits for beam (see abort_flyscan_if_flying).
+    # No-op for SAXS/WAXS/step scans.
+    suspend_FE_shutter = bluesky.suspenders.SuspendFloor(  # noqa: F841
+        FE_shutter.pss_state,
+        1,
+        pre_plan=abort_flyscan_if_flying,
+    )
 
     return suspend_FE_shutter, suspend_BeamInHutch
 

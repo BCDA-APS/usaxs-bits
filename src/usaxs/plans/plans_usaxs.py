@@ -19,6 +19,7 @@ from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
+from usaxs.suspenders.beam_guard import beam_guarded
 from usaxs.utils.override import user_override
 from usaxs.utils.user_sample_title import getSampleTitle
 from usaxs.utils.utils import techniqueSubdirectory
@@ -105,6 +106,10 @@ def USAXSscan(
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
     _md["title"] = title
+    # NOTE: the beam suspenders are applied to Flyscan/USAXSscanStep, not here.
+    # Decorating this dispatcher too would install the same suspenders twice;
+    # the inner remove_suspender would then unguard the outer scope.  Keeping
+    # them on the branches also guards scripts that call Flyscan directly.
     if terms.FlyScan.use_flyscan.get():
         yield from Flyscan(pos_X, pos_Y, thickness, title, md=_md)
     else:
@@ -114,6 +119,7 @@ def USAXSscan(
 
 
 @plan
+@beam_guarded
 def USAXSscanStep(
     pos_X: float,
     pos_Y: float,
@@ -351,6 +357,7 @@ def USAXSscanStep(
 
 
 @plan
+@beam_guarded
 def Flyscan(
     pos_X: float,
     pos_Y: float,
