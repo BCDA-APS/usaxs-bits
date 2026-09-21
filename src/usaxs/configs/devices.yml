@@ -22,6 +22,9 @@ usaxs.devices.diagnostics.DiagnosticsParameters:
 usaxs.devices.fx4_quadem.QuadFX4:
 - name: fx4
   prefix: "usxFX4:FX4:"
+# second FX4, will be used for ion chamber (I0)
+- name: fx42
+  prefix: "usxFX42:FX4:"
 
 usaxs.devices.general_terms.GeneralParameters:
 - name: terms
