@@ -127,7 +127,8 @@ class FeedbackHandlingDuringSuspension:
     def mono_beam_lost_plan(self):
         """Bluesky plan: called by the suspender immediately on beam loss.
 
-        Records the beam dump event in the Obsidian logbook, then turns
+        Records the beam dump event in the Obsidian logbook, aborts an
+        in-flight fly scan (see :func:`abort_flyscan_if_flying`), then turns
         monochromator feedback on so the mono is stable during the outage.
 
         Yields
@@ -135,6 +136,9 @@ class FeedbackHandlingDuringSuspension:
         Bluesky messages
         """
         recordBeamDump()
+        # Idempotent: a ring dump also closes the FE shutter, so that
+        # suspender's pre_plan may already have aborted the sweep.
+        yield from abort_flyscan_if_flying()
         yield from self.turn_feedback_on()
 
     def mono_beam_just_came_back_but_after_sleep_plan(self):

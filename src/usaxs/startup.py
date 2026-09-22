@@ -105,13 +105,17 @@ if in_operation:
     make_devices(file="shutters_op.yml", clear=False, device_manager=instrument)
     from usaxs.suspenders.suspender_functions import suspender_in_operations
 
-    suspend_FE_shutter, suspend_BeamInHutch = suspender_in_operations()
+    suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready = (
+        suspender_in_operations()
+    )
 
 else:  # if not in_operation:
     make_devices(file="shutters_sim.yml", clear=False, device_manager=instrument)
     from usaxs.suspenders.suspender_functions import suspender_in_sim
 
-    suspend_FE_shutter, suspend_BeamInHutch = suspender_in_sim()
+    suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready = (
+        suspender_in_sim()
+    )
 
 # ── Arm the beam guard ────────────────────────────────────────────
 # Hands the suspenders to `@beam_guarded`, which the data-collection plans
@@ -125,7 +129,11 @@ else:  # if not in_operation:
 # staff operations whenever there is no beam.
 from usaxs.suspenders.beam_guard import set_beam_suspenders  # noqa: E402
 
-set_beam_suspenders(suspend_FE_shutter, suspend_BeamInHutch)
+set_beam_suspenders(
+    suspend_FE_shutter,  # A-shutter closed
+    suspend_BeamInHutch,  # usxLAX:blCalc:userCalc1 hutch check
+    suspend_white_beam_ready,  # APS ring dump; 100 s settle for mono feedback
+)
 
 # Setup baseline stream with connect=False is default
 # Devices with the label 'baseline' will be added to the baseline stream.
