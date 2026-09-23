@@ -139,7 +139,21 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
     """
     # Strain steps in µm.  MUST start at 0.
     # Zero the strain actuator in EPICS before running this plan.
-    ListOfStrains = [0, 110, 220, 330, 440, 550, 990, 1430, 1870, 2310, 2750, 3190, 3630]
+    ListOfStrains = [
+        0,
+        110,
+        220,
+        330,
+        440,
+        550,
+        990,
+        1430,
+        1870,
+        2310,
+        2750,
+        3190,
+        3630,
+    ]
 
     def setSampleName():
         """
@@ -197,8 +211,10 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
 
     # --- Blank measurement: move frame out of the beam, measure air ---
     yield from bps.mv(
-        LoadFrame.x, -4,
-        LoadFrame.y, frame_y,
+        LoadFrame.x,
+        -4,
+        LoadFrame.y,
+        frame_y,
     )
     yield from USAXSscan(0, 0, 1, "Blank", md={})
     yield from saxsExp(0, 0, 1, "Blank", md={})
@@ -206,8 +222,10 @@ def measureFrame(frame_x, frame_y, thickness, scan_title, NumOfScans, md={}):
 
     # --- Move sample into beam at zero strain ---
     yield from bps.mv(
-        LoadFrame.x, frame_x,
-        LoadFrame.y, frame_y,
+        LoadFrame.x,
+        frame_x,
+        LoadFrame.y,
+        frame_y,
     )
 
     logger.info("Starting Frame collection")

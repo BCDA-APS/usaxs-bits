@@ -16,14 +16,9 @@ from apsbits.core.instrument_init import oregistry
 from apstools.plans import restorable_stage_sigs
 from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from usaxs.callbacks.demo_spec_callback import specwriter
-
-from ..startup import RE
-from ..startup import suspend_BeamInHutch
-from ..startup import suspend_FE_shutter
+from ..suspenders.beam_guard import beam_guarded
 from ..utils.constants import constants
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
@@ -80,14 +75,13 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 """.split()
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
+@beam_guarded
 def saxsExp(
     pos_X: float,
     pos_Y: float,
     thickness: float,
-    scan_title: str,
+    title: str,
     md=None,
 ):
     """Bluesky plan: collect a SAXS image at the given sample position.
@@ -104,7 +98,7 @@ def saxsExp(
         Sample Y position in mm.
     thickness : float
         Sample thickness in mm.
-    scan_title : str
+    title : str
         Human-readable title used for the output file name.
     md : dict, optional
         Extra metadata merged into the run's start document.
@@ -115,12 +109,13 @@ def saxsExp(
 
     Notes
     -----
-    Usage: ``RE(saxsExp(pos_X, pos_Y, thickness, scan_title))``
+    Usage: ``RE(saxsExp(pos_X, pos_Y, thickness, title))``
     """
+
     if md is None:
         md = {}
 
-    logger.info(f"Starting collection of SAXS for {scan_title}")
+    logger.info(f"Starting collection of SAXS for {title}")
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -162,44 +157,40 @@ def saxsExp(
     )
 
     # setup AD names, paths and set metadata
-    scan_title = getSampleTitle(scan_title)
+    title = getSampleTitle(title)
     _md = md or OrderedDict()
     _md["plan_name"] = "SAXS"
     _md["sample_thickness_mm"] = thickness
-    _md["title"] = scan_title
+    _md["title"] = title
 
-    scan_title_clean = cleanupText(scan_title)
+    title_clean = cleanupText(title)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1
+    # SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
     local_file_template = LOCAL_FILE_TEMPLATE
 
     SAXSscan_path = techniqueSubdirectory("saxs")
     SAXS_file_name = local_file_template % (
-        scan_title_clean,
+        title_clean,
         saxs_det.hdf1.file_number.get(),
     )
     _md["hdf5_path"] = str(SAXSscan_path)
     _md["hdf5_file"] = str(SAXS_file_name)
 
-    pilatus_path = os.path.join(
-        "/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:]
-    )
+    pilatus_path = os.path.join("/mnt/usaxscontrol", *SAXSscan_path.split(os.path.sep)[2:])
     if not pilatus_path.endswith("/"):
         pilatus_path += "/"
     local_name = os.path.join(SAXSscan_path, SAXS_file_name)
-    logger.debug(f"SAXS HDF5 file: {local_name}")
     pilatus_name = os.path.join(pilatus_path, SAXS_file_name)
-    logger.debug(f"Pilatus computer Area Detector HDF5 file: {pilatus_name}")
 
     saxs_det.hdf1.file_path._auto_monitor = False
     saxs_det.hdf1.file_template._auto_monitor = False
     yield from bps.mv(
         # fmt: off
         saxs_det.hdf1.file_name,
-        scan_title_clean,
+        title_clean,
         saxs_det.hdf1.file_path,
         pilatus_path,
         saxs_det.hdf1.file_template,
@@ -215,11 +206,11 @@ def saxsExp(
     yield from bps.mv(
         # fmt: off
         user_data.sample_title,
-        scan_title,
+        title,
         user_data.sample_thickness,
         thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
+        # user_data.spec_scan,
+        # str(SCAN_N),
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
@@ -227,15 +218,14 @@ def saxsExp(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-
     yield from user_data.set_state_plan("starting SAXS collection")
-    yield from bps.mv(
+    #yield from bps.mv(
         # fmt: off
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
-        timeout=MASTER_TIMEOUT,
+        # user_data.spec_file,
+        # os.path.split(specwriter.spec_filename)[-1],
+     #   timeout=MASTER_TIMEOUT,
         # fmt: on
-    )
+    #)
     old_delay = scaler0.delay.get()
 
     @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
@@ -279,7 +269,7 @@ def saxsExp(
         )
 
         # SPEC-compatibility
-        SCAN_N = RE.md["scan_id"] + 1
+        # SCAN_N = RE.md["scan_id"] + 1
         yield from bps.mv(
             # fmt: off
             scaler1.preset_time,
@@ -300,16 +290,26 @@ def saxsExp(
             0,
             terms.SAXS_WAXS.start_exposure_time,
             ts,
-            user_data.spec_scan,
-            str(SCAN_N),
+            # user_data.spec_scan,
+            # str(SCAN_N),
             timeout=MASTER_TIMEOUT,
             # fmt: on
         )
-        yield from user_data.set_state_plan(
-            f"SAXS collection for {terms.SAXS.acquire_time.get()} s"
-        )
+        yield from user_data.set_state_plan(f"SAXS collection for {terms.SAXS.acquire_time.get()} s")
 
-        yield from record_sample_image_on_demand("saxs", scan_title_clean, _md)
+        yield from record_sample_image_on_demand("saxs", title_clean, _md)
+
+        # Suspender rewind boundary.  Caps how far back a beam-loss resume can
+        # replay: without it the RunEngine would re-issue every message since
+        # the checkpoint inside measure_SAXS_Transmission, including the Blackfly
+        # optical image setup above.  That replay runs outside the original
+        # generator frames, so the try/except in record_sample_image_on_demand
+        # cannot soften a camera failure and it aborts the command list.
+        # No run is open here -- bp.count inside areaDetectorAcquire opens its
+        # own and checkpoints again immediately (bluesky one_shot), so open_run
+        # is never replayed.
+        yield from bps.checkpoint()
+
         yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
 
     yield from _image_acquisition_steps()
@@ -338,6 +338,7 @@ def saxsExp(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
+    logger.info("pre mono")
 
     yield from MONO_FEEDBACK_ON()
 
@@ -349,14 +350,13 @@ def saxsExp(
     yield from after_plan()
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
+@beam_guarded
 def waxsExp(
     pos_X: float,
     pos_Y: float,
     thickness: float,
-    scan_title: str,
+    title: str,
     md=None,
 ):
     """Bluesky plan: collect a WAXS image at the given sample position.
@@ -372,7 +372,7 @@ def waxsExp(
         Sample Y position in mm.
     thickness : float
         Sample thickness in mm.
-    scan_title : str
+    title : str
         Human-readable title used for the output file name.
     md : dict, optional
         Extra metadata merged into the run's start document.
@@ -383,12 +383,13 @@ def waxsExp(
 
     Notes
     -----
-    Usage: ``RE(waxsExp(pos_X, pos_Y, thickness, scan_title))``
+    Usage: ``RE(waxsExp(pos_X, pos_Y, thickness, title))``
     """
+
     if md is None:
         md = {}
 
-    logger.info(f"Starting collection of WAXS for {scan_title}")
+    logger.info(f"Starting collection of WAXS for {title}")
 
     yield from IfRequestedStopBeforeNextScan()
 
@@ -420,23 +421,23 @@ def waxsExp(
     )
 
     # setup names and paths here...
-    scan_title = getSampleTitle(scan_title)
+    title = getSampleTitle(title)
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
-    _md["title"] = scan_title
+    _md["title"] = title
     _md["plan_name"] = "WAXS"
 
-    scan_title_clean = cleanupText(scan_title)
+    title_clean = cleanupText(title)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1
+    # SCAN_N = RE.md["scan_id"] + 1
 
     ad_file_template = AD_FILE_TEMPLATE
     local_file_template = LOCAL_FILE_TEMPLATE
 
     WAXSscan_path = techniqueSubdirectory("waxs")
     WAXS_file_name = local_file_template % (
-        scan_title_clean,
+        title_clean,
         waxs_det.hdf1.file_number.get(),
     )
     _md["hdf5_path"] = str(WAXSscan_path)
@@ -455,7 +456,7 @@ def waxsExp(
     yield from bps.mv(
         # fmt: off
         waxs_det.hdf1.file_name,
-        scan_title_clean,
+        title_clean,
         waxs_det.hdf1.file_path,
         pilatus_path,
         waxs_det.hdf1.file_template,
@@ -471,11 +472,11 @@ def waxsExp(
     yield from bps.mv(
         # fmt: off
         user_data.sample_title,
-        scan_title,
+        title,
         user_data.sample_thickness,
         thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
+        # user_data.spec_scan,
+        # str(SCAN_N),
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
@@ -484,13 +485,13 @@ def waxsExp(
         # fmt: on
     )
     yield from user_data.set_state_plan("starting WAXS collection")
-    yield from bps.mv(
+    #yield from bps.mv(
         # fmt: off
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
-        timeout=MASTER_TIMEOUT,
+        # user_data.spec_file,
+        # os.path.split(specwriter.spec_filename)[-1],
+        #timeout=MASTER_TIMEOUT,
         # fmt: on
-    )
+   # )
     old_delay = scaler0.delay.get()
 
     @restorable_stage_sigs([waxs_det.cam, waxs_det.hdf1])
@@ -555,11 +556,12 @@ def waxsExp(
             timeout=MASTER_TIMEOUT,
             # fmt: on
         )
-        yield from user_data.set_state_plan(
-            f"WAXS collection for {terms.WAXS.acquire_time.get()} s"
-        )
+        yield from user_data.set_state_plan(f"WAXS collection for {terms.WAXS.acquire_time.get()} s")
 
-        yield from record_sample_image_on_demand("waxs", scan_title_clean, _md)
+        yield from record_sample_image_on_demand("waxs", title_clean, _md)
+
+        # Suspender rewind boundary -- see the matching comment in saxsExp.
+        yield from bps.checkpoint()
 
         yield from areaDetectorAcquire(waxs_det, create_directory=-5, md=_md)
 

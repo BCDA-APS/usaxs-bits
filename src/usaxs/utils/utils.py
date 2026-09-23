@@ -6,7 +6,6 @@ and building per-technique subdirectories (e.g. ``Sample1/Sample1_usaxs/``).
 """
 
 import logging
-import os
 from pathlib import Path
 
 from apsbits.core.instrument_init import oregistry
@@ -86,26 +85,28 @@ def techniqueSubdirectory(technique):
     #     os.mkdir(data_path)
 
     # stub = os.path.basename(data_path)                  # should be something like Sample1
-    # path = os.path.join(data_path, f"{stub}_{technique}")# shoudl add Sample1_usaxs etc. 
+    # path = os.path.join(data_path, f"{stub}_{technique}")# shoudl add Sample1_usaxs etc.
 
     # if not os.path.exists(path):
     #     logger.info("Creating technique directory: %s", path)
     #     os.mkdir(path)
 
     # return os.path.abspath(path)
-     # Get sample folder name
-    sampleFolder = user_data.sample_dir.get().strip() or "sample"   # should be set in newUser(), should return relatively simple name for sample, e.g., Sample1
-                                                                    # sets to "sample" if not set by user. 
-    sampleFolder = sampleFolder.replace(" ", "_")      # replace spaces with underscores
+    # Get sample folder name
+    sampleFolder = (
+        user_data.sample_dir.get().strip() or "sample"
+    )  # should be set in newUser(), should return relatively simple name for sample, e.g., Sample1
+    # sets to "sample" if not set by user.
+    sampleFolder = sampleFolder.replace(" ", "_")  # replace spaces with underscores
 
     # Build sample directory path
     data_path = Path(data_path) / sampleFolder
     data_path.mkdir(parents=True, exist_ok=True)
 
-   # Technique directory
-    stub = data_path.name                           # should be something like Sample1
-    path = data_path / f"{stub}_{technique}"        # should add Sample1_usaxs etc.
-    #logger.info("Ensuring technique directory exists: %s", path)
+    # Technique directory
+    stub = data_path.name  # should be something like Sample1
+    path = data_path / f"{stub}_{technique}"  # should add Sample1_usaxs etc.
+    # logger.info("Ensuring technique directory exists: %s", path)
     path.mkdir(parents=True, exist_ok=True)
 
     return str(path.resolve())

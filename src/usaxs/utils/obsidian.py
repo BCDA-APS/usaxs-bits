@@ -98,7 +98,7 @@ from pathlib import Path
 from apsbits.core.instrument_init import oregistry
 from ophyd import EpicsSignalRO
 
-from .check_file_exists import filename_exists  # available for callers; not used here
+from .check_file_exists import filename_exists # # noqa: F401 # available for callers; not used here
 
 
 user_data = oregistry["user_data"]

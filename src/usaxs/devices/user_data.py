@@ -107,7 +107,7 @@ class UserDataDevice(Device):
     ``scan_macro``           — name of the currently running scan macro.
     ``spec_file``            — SPEC data file name.
     ``spec_scan``            — current SPEC scan number.
-    ``state``                — free-form status string (max ~40 chars, ``write_timeout=0.1``).
+    ``state``                — free-form status string (max ~40 chars, ``write_timeout=2``).
     ``time_stamp``           — epoch timestamp of last update.
     ``user_dir``             — user data directory path.
     ``user_name``            — user name string.
@@ -124,8 +124,16 @@ class UserDataDevice(Device):
     scanning = Component(EpicsSignal, "usxLAX:USAXS:scanning")
     scan_macro = Component(EpicsSignal, "usxLAX:scanMacro")
     spec_file = Component(EpicsSignal, "usxLAX:specFile", string=True)
-    spec_scan = Component(EpicsSignal, "usxLAX:specScan", string=True)
-    state = Component(EpicsSignal, "usxLAX:state", string=True, write_timeout=0.1)
+    # NOTE: usxLAX:specScan is a longout record.  Do NOT use string=True here:
+    # describe() would report dtype "integer" while read() returns str, and the
+    # NeXus writer then builds a "<U1" array that h5py cannot store.
+    spec_scan = Component(EpicsSignal, "usxLAX:specScan")
+    # NOTE: write_timeout is the deadline for the readback to match the setpoint
+    # (put_complete is False, so ophyd polls the readback).  The previous 0.1 s
+    # was tighter than the CA monitor round-trip when the IOC is busy (e.g. while
+    # saving flyscan HDF5), producing spurious FailedStatus warnings even though
+    # the write succeeded.
+    state = Component(EpicsSignal, "usxLAX:state", string=True, write_timeout=2)
     time_stamp = Component(EpicsSignal, "usxLAX:timeStamp")
     user_dir = Component(EpicsSignal, "usxLAX:userDir", string=True)
     user_name = Component(EpicsSignal, "usxLAX:userName", string=True)

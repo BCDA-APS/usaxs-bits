@@ -86,8 +86,12 @@ class SampleRotator(Device):
     jog_forward = Component(EpicsSignal, ".JOGF", kind="omitted", auto_monitor=True)
     jog_reverse = Component(EpicsSignal, ".JOGR", kind="omitted", auto_monitor=True)
 
-    motor_done_move = Component(EpicsSignalRO, ".DMOV", kind="omitted", auto_monitor=True)
-    motor_is_moving = Component(EpicsSignalRO, ".MOVN", kind="omitted", auto_monitor=True)
+    motor_done_move = Component(
+        EpicsSignalRO, ".DMOV", kind="omitted", auto_monitor=True
+    )
+    motor_is_moving = Component(
+        EpicsSignalRO, ".MOVN", kind="omitted", auto_monitor=True
+    )
     motor_stop = Component(EpicsSignal, ".STOP", kind="omitted", auto_monitor=True)
     speed = Component(EpicsSignal, ".S", kind="config")
     user_readback = Component(EpicsSignalRO, ".RBV", kind="hinted", auto_monitor=True)

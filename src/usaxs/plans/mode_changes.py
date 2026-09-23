@@ -131,10 +131,13 @@ def mode_DirectBeam(md=None):
         0,
         user_data.collection_in_progress,
         0,
-        blackfly_det.cam.acquire,
-        1,  # we are using Blackfly now, let's start it...
         # fmt: on
     )
+
+    try:
+        yield from bps.mv(blackfly_det.cam.acquire, 1)
+    except Exception:
+        logger.warning("Could not start BlackFly camera (IOC may be offline).")
 
 
 def mode_USAXS(md=None):
@@ -197,10 +200,13 @@ def mode_USAXS(md=None):
         terms.USAXS.usaxs_h_size.get(),
         usaxs_slit.v_size,
         terms.USAXS.usaxs_v_size.get(),
-        blackfly_det.cam.acquire,
-        0,  # stop Blackfly if it is running...
         # fmt: on
     )
+
+    try:
+        yield from bps.mv(blackfly_det.cam.acquire, 0)
+    except Exception:
+        logger.warning("Could not stop BlackFly camera (IOC may be offline).")
 
     logger.debug("Prepared for USAXS mode")
     yield from user_data.set_state_plan("USAXS Mode")
@@ -387,10 +393,13 @@ def mode_Radiography(md=None):
         0,
         user_data.collection_in_progress,
         0,
-        blackfly_det.cam.acquire,
-        1,  # we are using Blackfly now, let's start it...
         # fmt: on
     )
+
+    try:
+        yield from bps.mv(blackfly_det.cam.acquire, 1)
+    except Exception:
+        logger.warning("Could not start BlackFly camera (IOC may be offline).")
 
     yield from user_data.set_state_plan("Radiography Mode")
     logger.info("Instrument is configured for Radiography now.")

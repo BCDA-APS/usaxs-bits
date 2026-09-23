@@ -17,18 +17,13 @@ from apsbits.core.instrument_init import oregistry
 from apstools.devices import SCALER_AUTOCOUNT_MODE
 from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
-from usaxs.callbacks.demo_spec_callback import specwriter
-from usaxs.startup import suspend_BeamInHutch
-from usaxs.startup import suspend_FE_shutter
+from usaxs.suspenders.beam_guard import beam_guarded
 from usaxs.utils.override import user_override
 from usaxs.utils.user_sample_title import getSampleTitle
 from usaxs.utils.utils import techniqueSubdirectory
 
-from ..startup import RE
-from ..startup import bec
 from ..utils.a2q_q2a import q2angle
 from .amplifiers_plan import autoscale_amplifiers
 from .command_list import after_plan
@@ -69,13 +64,11 @@ usaxs_slit = oregistry["usaxs_slit"]
 user_data = oregistry["user_data"]
 
 
-@bpp.suspend_decorator(suspend_FE_shutter)
-@bpp.suspend_decorator(suspend_BeamInHutch)
 @plan
 def USAXSscan(
-    x: float,
-    y: float,
-    thickness_mm: float,
+    pos_X: float,
+    pos_Y: float,
+    thickness: float,
     title: str,
     md=None,
 ):
@@ -86,11 +79,11 @@ def USAXSscan(
 
     Parameters
     ----------
-    x : float
+    pos_X : float
         Sample X position in mm.
-    y : float
+    pos_Y : float
         Sample Y position in mm.
-    thickness_mm : float
+    thickness : float
         Sample thickness in mm.
     title : str
         Human-readable title for the scan.
@@ -103,7 +96,7 @@ def USAXSscan(
 
     Notes
     -----
-    Usage: ``RE(USAXSscan(x, y, thickness_mm, title))``
+    Usage: ``RE(USAXSscan(pos_X, pos_Y, thickness, title))``
     """
     if md is None:
         md = {}
@@ -111,22 +104,27 @@ def USAXSscan(
     logger.info(f"Collecting USAXS for {title}")
 
     _md = md or OrderedDict()
-    _md["sample_thickness_mm"] = thickness_mm
+    _md["sample_thickness_mm"] = thickness
     _md["title"] = title
+    # NOTE: the beam suspenders are applied to Flyscan/USAXSscanStep, not here.
+    # Decorating this dispatcher too would install the same suspenders twice;
+    # the inner remove_suspender would then unguard the outer scope.  Keeping
+    # them on the branches also guards scripts that call Flyscan directly.
     if terms.FlyScan.use_flyscan.get():
-        yield from Flyscan(x, y, thickness_mm, title, md=_md)
+        yield from Flyscan(pos_X, pos_Y, thickness, title, md=_md)
     else:
-        yield from USAXSscanStep(x, y, thickness_mm, title, md=_md)
+        yield from USAXSscanStep(pos_X, pos_Y, thickness, title, md=_md)
 
     yield from MONO_FEEDBACK_ON()
 
 
 @plan
+@beam_guarded
 def USAXSscanStep(
     pos_X: float,
     pos_Y: float,
     thickness: float,
-    scan_title: str,
+    title: str,
     md=None,
 ):
     """Bluesky plan: collect a step-scan USAXS measurement at the given position.
@@ -139,7 +137,7 @@ def USAXSscanStep(
         Sample Y position in mm.
     thickness : float
         Sample thickness in mm.
-    scan_title : str
+    title : str
         Human-readable title for the scan.
     md : dict, optional
         Extra metadata merged into the run's start document.
@@ -150,8 +148,9 @@ def USAXSscanStep(
 
     Notes
     -----
-    Usage: ``RE(USAXSscanStep(pos_X, pos_Y, thickness, scan_title))``
+    Usage: ``RE(USAXSscanStep(pos_X, pos_Y, thickness, title))``
     """
+
     if md is None:
         md = {}
 
@@ -188,25 +187,25 @@ def USAXSscanStep(
     # Update Sample name. getSampleTitle is used to create proper sample name.
     # It may add time and temperature therefore it needs to be done close to real
     # data collection, after mode change and optional tuning.
-    scan_title = getSampleTitle(scan_title)
+    title = getSampleTitle(title)
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
-    _md["title"] = scan_title
+    _md["title"] = title
 
-    scan_title_clean = cleanupText(scan_title)
+    title_clean = cleanupText(title)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1  # update with next number
+    # SCAN_N = RE.md["scan_id"] + 1  # update with next number
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
         # fmt: off
         user_data.sample_title,
-        scan_title,
+        title,
         user_data.sample_thickness,
         thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
+        # user_data.spec_scan,
+        # str(SCAN_N),
         user_data.time_stamp,
         ts,
         user_data.scan_macro,
@@ -219,8 +218,8 @@ def USAXSscanStep(
 
     yield from bps.mv(  # set spec file and move to Q=0 position, if needed.
         # fmt: off
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
+        # user_data.spec_file,
+        # os.path.split(specwriter.spec_filename)[-1],
         a_stage.r,
         terms.USAXS.ar_val_center.get(),
         d_stage.x,
@@ -258,13 +257,13 @@ def USAXSscanStep(
     yield from user_data.set_state_plan("Running USAXS step scan")
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1  # update with next number
+    # SCAN_N = RE.md["scan_id"] + 1  # update with next number
     yield from bps.mv(
         # fmt: off
         user_data.scanning,
         "scanning",
-        user_data.spec_scan,
-        str(SCAN_N),
+        # user_data.spec_scan,
+        # str(SCAN_N),
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
@@ -274,33 +273,25 @@ def USAXSscanStep(
         pos_X=pos_X,
         pos_Y=pos_Y,
         thickness=thickness,
-        scan_title=scan_title,
+        title=title,
     )
 
     # setup names and paths as needed.
     uascan_path = techniqueSubdirectory("usaxs")
-    uascan_file_name = (
-        f"{scan_title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
-    )
+    uascan_file_name = f"{title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
     _md["hdf5_path"] = uascan_path
     _md["hdf5_file"] = uascan_file_name
     logger.debug("USAXSscan HDF5 data path: %s", _md["hdf5_path"])
     logger.info("USAXSscan HDF5 data file: %s %s", _md["hdf5_path"], _md["hdf5_file"])
     logger.debug("*" * 10)
 
-    startAngle = terms.USAXS.ar_val_center.get() - q2angle(
-        terms.USAXS.start_offset.get(), monochromator.dcm.wavelength.position
-    )
-    endAngle = terms.USAXS.ar_val_center.get() - q2angle(
-        terms.USAXS.finish.get(), monochromator.dcm.wavelength.position
-    )
-    bec.disable_plots()
+    startAngle = terms.USAXS.ar_val_center.get() - q2angle(terms.USAXS.start_offset.get(), monochromator.dcm.wavelength.position)
+    endAngle = terms.USAXS.ar_val_center.get() - q2angle(terms.USAXS.finish.get(), monochromator.dcm.wavelength.position)
+    # bec.disable_plots()
 
-    yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+    yield from record_sample_image_on_demand("usaxs", title_clean, _md)
 
-    use_dynamic_time = user_override.pick(
-        "useDynamicTime", terms.USAXS.useDynamicTime.get()
-    )
+    use_dynamic_time = user_override.pick("useDynamicTime", terms.USAXS.useDynamicTime.get())
     yield from uascan(
         startAngle,
         terms.USAXS.ar_val_center.get(),
@@ -316,7 +307,7 @@ def USAXSscanStep(
         useDynamicTime=use_dynamic_time,
         md=_md,
     )
-    bec.enable_plots()
+    # bec.enable_plots()
 
     yield from bps.mv(
         # fmt: off
@@ -366,11 +357,12 @@ def USAXSscanStep(
 
 
 @plan
+@beam_guarded
 def Flyscan(
     pos_X: float,
     pos_Y: float,
     thickness: float,
-    scan_title: str,
+    title: str,
     md=None,
 ):
     """Bluesky plan: collect a fly-scan USAXS measurement at the given position.
@@ -383,7 +375,7 @@ def Flyscan(
         Sample Y position in mm.
     thickness : float
         Sample thickness in mm.
-    scan_title : str
+    title : str
         Human-readable title for the scan.
     md : dict, optional
         Extra metadata merged into the run's start document.
@@ -394,8 +386,9 @@ def Flyscan(
 
     Notes
     -----
-    Usage: ``RE(Flyscan(pos_X, pos_Y, thickness, scan_title))``
+    Usage: ``RE(Flyscan(pos_X, pos_Y, thickness, title))``
     """
+
     if md is None:
         md = {}
 
@@ -447,57 +440,49 @@ def Flyscan(
     )
 
     # setup names and paths.
-    scan_title = getSampleTitle(scan_title)
+    title = getSampleTitle(title)
     _md = md or OrderedDict()
     _md["sample_thickness_mm"] = thickness
-    _md["title"] = scan_title
+    _md["title"] = title
 
-    scan_title_clean = cleanupText(scan_title)
+    title_clean = cleanupText(title)
 
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1
+    # SCAN_N = RE.md["scan_id"] + 1
 
     flyscan_path = techniqueSubdirectory("usaxs")
-    if not os.path.exists(flyscan_path) and RE.state != "idle":
+    # if not os.path.exists(flyscan_path) and RE.state != "idle":
+    #     os.mkdir(flyscan_path)
+    if not os.path.exists(flyscan_path):
         os.mkdir(flyscan_path)
-    flyscan_file_name = (
-        f"{scan_title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
-    )
+
+    flyscan_file_name = f"{title_clean}" f"_{terms.FlyScan.order_number.get():04d}" ".h5"
 
     usaxs_flyscan.saveFlyData_HDF5_dir = flyscan_path
     usaxs_flyscan.saveFlyData_HDF5_file = flyscan_file_name
     logger.debug("Flyscan HDF5 data path: %s", flyscan_path)
     logger.info("Flyscan HDF5 data file: %s %s", flyscan_path, flyscan_file_name)
     logger.debug("*" * 10)
-
     yield from user_data.set_state_plan("starting USAXS Flyscan")
+
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
         # fmt: off
-        user_data.sample_title,
-        scan_title,
-        user_data.sample_thickness,
-        thickness,
-        user_data.spec_scan,
-        str(SCAN_N),
-        user_data.time_stamp,
-        ts,
-        user_data.scan_macro,
-        "FlyScan",
-        user_data.spec_file,
-        os.path.split(specwriter.spec_filename)[-1],
-        a_stage.r,
-        terms.USAXS.ar_val_center.get(),
-        d_stage.x,
-        terms.USAXS.DX0.get(),
-        a_stage.x,
-        terms.USAXS.AX0.get(),
-        usaxs_q_calc.channels.B.input_value,
-        terms.USAXS.ar_val_center.get(),
-        timeout=MASTER_TIMEOUT,
+        user_data.sample_title,        title,
+        user_data.sample_thickness,    thickness,
+        # user_data.spec_scan,        # str(SCAN_N),
+        user_data.time_stamp,        ts,
+        user_data.scan_macro,        "FlyScan",
+        #user_data.spec_file,            # os.path.split(specwriter.spec_filename)[-1],
+        a_stage.r,                      terms.USAXS.ar_val_center.get(),
+        d_stage.x,                      terms.USAXS.DX0.get(),
+        a_stage.x,                      terms.USAXS.AX0.get(),
+        usaxs_q_calc.channels.B.input_value,        terms.USAXS.ar_val_center.get(),
+        #timeout=MASTER_TIMEOUT,
         # fmt: on
     )
+
     yield from insertScanFilters()  # make sure filters are in place for scan
 
     yield from measure_USAXS_Transmission()
@@ -563,15 +548,15 @@ def Flyscan(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-
+    #logger.info("Eric")
     # SPEC-compatibility
-    SCAN_N = RE.md["scan_id"] + 1
+    # SCAN_N = RE.md["scan_id"] + 1
     yield from bps.mv(
         # fmt: off
         user_data.scanning,
         "scanning",
-        user_data.spec_scan,
-        str(SCAN_N),
+        # user_data.spec_scan,
+        # str(SCAN_N),
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
@@ -581,11 +566,11 @@ def Flyscan(
         pos_X=pos_X,
         pos_Y=pos_Y,
         thickness=thickness,
-        scan_title=scan_title,
+        title=title,
     )
     _md["fly_scan_time"] = usaxs_flyscan.scan_time.get()
 
-    yield from record_sample_image_on_demand("usaxs", scan_title_clean, _md)
+    yield from record_sample_image_on_demand("usaxs", title_clean, _md)
 
     yield from Flyscan_internal_plan(md=_md)  # flyscan proper
 
@@ -600,7 +585,8 @@ def Flyscan(
     )
 
     diff = flyscan_trajectories.num_pulse_positions.get() - struck.current_channel.get()
-    if diff > 5 and RE.state != "idle":
+    # if diff > 5 and RE.state != "idle":
+    if diff > 5:
         msg = "WARNING: Flyscan finished with %g less points" % diff
         logger.info("*" * 20)
         logger.info(msg)
@@ -643,7 +629,6 @@ def Flyscan(
         timeout=MASTER_TIMEOUT,
         # fmt: on
     )
-
     yield from user_data.set_state_plan("Flyscan finished")
 
     yield from after_plan(weight=3)

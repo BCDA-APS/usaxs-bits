@@ -1,0 +1,133 @@
+"""
+USAXS queue-monitor layout: two tabs.
+
+Tab 1 "Queue Control" — connection/env/queue/execution controls, USAXS action
+bar (New User / New Sample / Load plan file — wired in Phases 1-2), the command
+designer (plan editor + queue), running plan, and history.
+
+Tab 2 "Live View" — live tune/alignment plots (Phase 3) over the console
+(terminal) view of the running Bluesky session.
+
+Composes reusable Qt widgets from bluesky_widgets; USAXS customization lives in
+the arrangement here plus our own action-bar / plots widgets.
+"""
+
+from bluesky_widgets.qt.run_engine_client import QtReConsoleMonitor
+from bluesky_widgets.qt.run_engine_client import QtReEnvironmentControls
+from bluesky_widgets.qt.run_engine_client import QtReExecutionControls
+from bluesky_widgets.qt.run_engine_client import QtReManagerConnection
+from bluesky_widgets.qt.run_engine_client import QtRePlanEditor
+from bluesky_widgets.qt.run_engine_client import QtRePlanQueue
+from bluesky_widgets.qt.run_engine_client import QtReQueueControls
+from bluesky_widgets.qt.run_engine_client import QtReRunningPlan
+from bluesky_widgets.qt.run_engine_client import QtReStatusMonitor
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QHBoxLayout
+from qtpy.QtWidgets import QSplitter
+from qtpy.QtWidgets import QTabWidget
+from qtpy.QtWidgets import QVBoxLayout
+from qtpy.QtWidgets import QWidget
+
+from .functions import QtUsaxsActionBar
+from .plan_history import QtRePlanHistoryReversed
+from .plots import UsaxsPlots
+from .settings import SETTINGS
+
+
+class QtRunEngineManager_Control(QWidget):
+    """Tab 1: everything for driving the queue."""
+
+    def __init__(self, model, *args, **kwargs):
+        """Build the Queue Control tab bound to the RunEngine model."""
+        super().__init__(*args, **kwargs)
+        self.model = model
+
+        vbox = QVBoxLayout()
+
+        # --- Top control row ---
+        hbox = QHBoxLayout()
+        hbox.addWidget(QtReManagerConnection(model))
+        hbox.addWidget(QtReEnvironmentControls(model))
+        hbox.addWidget(QtReQueueControls(model))
+        hbox.addWidget(QtReExecutionControls(model))
+        hbox.addWidget(QtReStatusMonitor(model))
+        hbox.addStretch()
+        vbox.addLayout(hbox)
+
+        # --- USAXS action bar (Load plan file [Phase 1]; New User/Sample [Phase 2]) ---
+        self._action_bar = QtUsaxsActionBar(model)
+        vbox.addWidget(self._action_bar)
+
+        # --- Command designer (left) + running/history (right) ---
+        hbox = QHBoxLayout()
+
+        left = QVBoxLayout()
+        pe = QtRePlanEditor(model)
+        # bluesky_widgets hardcodes "Plan Viewer" before "Plan Editor", but adding a
+        # plan (Plan Editor) is the first step of the flow and the one new users
+        # look for; put it first so it's what they see on start.
+        pe._tab_widget.tabBar().moveTab(1, 0)
+        pe._tab_widget.setCurrentIndex(0)
+        pq = QtRePlanQueue(model)
+        # bluesky_widgets hardcodes USER/GROUP columns (index 3, 4); every item is
+        # submitted under the same single-user API key, so these are never useful here.
+        pq._table.setColumnHidden(3, True)
+        pq._table.setColumnHidden(4, True)
+        # Double-clicking a queued item opens it in the editor.
+        pq.registered_item_editors.append(pe.edit_queue_item)
+        left.addWidget(pe, stretch=1)
+        left.addWidget(pq, stretch=1)
+        hbox.addLayout(left)
+
+        right = QVBoxLayout()
+        right.addWidget(QtReRunningPlan(model), stretch=1)
+        # Reversed so the newest run is at the top and rolls down, matching the
+        # top-to-bottom direction the queue itself runs in.
+        right.addWidget(QtRePlanHistoryReversed(model), stretch=2)
+        hbox.addLayout(right)
+
+        vbox.addLayout(hbox)
+        self.setLayout(vbox)
+
+
+class QtRunEngineManager_LiveView(QWidget):
+    """Tab 2: live plots over the console/terminal view."""
+
+    def __init__(self, model, *args, **kwargs):
+        """Build the Live View tab (plots over console) for the model."""
+        super().__init__(*args, **kwargs)
+        self.model = model
+
+        splitter = QSplitter(Qt.Vertical)
+
+        # Live tune/alignment plots (RemoteDispatcher -> Lines -> QtFigures).
+        self._plots = UsaxsPlots(SETTINGS.plot_config, SETTINGS.zmq_proxy_info_addr)
+        splitter.addWidget(self._plots)
+
+        # Console / terminal view of the running Bluesky session.
+        self._console_monitor = QtReConsoleMonitor(model)
+        splitter.addWidget(self._console_monitor)
+
+        splitter.setSizes([65, 35])
+
+        vbox = QVBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
+        vbox.addWidget(splitter)
+        self.setLayout(vbox)
+
+
+class QtViewer(QTabWidget):
+    """Top-level tab widget: Queue Control + Live View."""
+
+    def __init__(self, model, *args, **kwargs):
+        """Build the two-tab viewer bound to the application model."""
+        super().__init__(*args, **kwargs)
+        self.model = model
+
+        self.setTabPosition(QTabWidget.West)
+
+        self._tab_control = QtRunEngineManager_Control(model.run_engine)
+        self.addTab(self._tab_control, "Queue Control")
+
+        self._tab_liveview = QtRunEngineManager_LiveView(model.run_engine)
+        self.addTab(self._tab_liveview, "Live View")

@@ -10,8 +10,6 @@ import logging
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 
-from ..startup import bec
-
 logger = logging.getLogger(__name__)
 
 
@@ -34,7 +32,6 @@ def no_run_trigger_and_wait(objects):
     ------
     Bluesky messages consumed by the RunEngine.
     """
-    bec.disable_table()
     if not isinstance(objects, (tuple, set, list)):
         objects = [objects]
     group = bps._short_uid("trigger_and_wait_no_run")

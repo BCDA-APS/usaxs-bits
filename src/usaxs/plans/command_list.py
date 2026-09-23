@@ -23,6 +23,9 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 from ophyd import Signal
 
+from usaxs.utils.obsidian import recordProperEnd
+from usaxs.utils.obsidian import recordRunCommandFile
+
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
 from ..utils.constants import constants
 from ..utils.quoted_line import split_quoted_line
@@ -39,11 +42,11 @@ from .plans_tune import allUSAXStune
 from .plans_tune import preSWAXStune
 from .plans_tune import preUSAXStune
 from .requested_stop import RequestAbort
-from .sample_rotator_plans import PI_Off
-from .sample_rotator_plans import PI_onF
-from .sample_rotator_plans import PI_onR
-
-from usaxs.utils.obsidian import recordRunCommandFile, recordProperEnd,recordFunctionRun
+# pi_c867 device disabled — provide no-op stubs so command lists still parse
+# originals are in sample_rotator_plans
+def PI_Off(timeout=1): yield from bps.sleep(0)
+def PI_onF(timeout=1): yield from bps.sleep(0)
+def PI_onR(timeout=1): yield from bps.sleep(0)
 
 a_shutter_autoopen = oregistry["a_shutter_autoopen"]
 s_stage = oregistry["s_stage"]
@@ -61,6 +64,7 @@ upd_controls = oregistry["upd_controls"]
 MAXIMUM_ATTEMPTS = 1  # (>=1): try command list item no more than this many attempts
 
 logger = logging.getLogger(__name__)
+
 
 @plan
 def run_command_file(filename, md=None):
@@ -115,8 +119,10 @@ def postCommandsListfile2WWW(commands):
     # post to EPICS
     yield from bps.mv(
         # fmt: off
-        user_data.macro_file,         os.path.split(tbl_file)[-1],
-        user_data.macro_file_time,                      timestamp,
+        user_data.macro_file,
+        os.path.split(tbl_file)[-1],
+        user_data.macro_file_time,
+        timestamp,
         # fmt: on
     )
 
@@ -140,8 +146,10 @@ def before_command_list(md=None, commands=None):
 
     yield from bps.mv(
         # fmt: off
-        user_data.time_stamp,           str(datetime.datetime.now()),
-        user_data.collection_in_progress,                           1,
+        user_data.time_stamp,
+        str(datetime.datetime.now()),
+        user_data.collection_in_progress,
+        1,
         # fmt: on
     )
 
@@ -149,10 +157,14 @@ def before_command_list(md=None, commands=None):
 
     yield from bps.mv(
         # fmt: off
-        usaxs_shutter,           "close",
-        terms.SAXS.collecting,         0,
-        terms.WAXS.collecting,         0,
-        a_shutter_autoopen,            1,
+        usaxs_shutter,
+        "close",
+        terms.SAXS.collecting,
+        0,
+        terms.WAXS.collecting,
+        0,
+        a_shutter_autoopen,
+        1,
         # fmt: on
     )
 
@@ -244,8 +256,19 @@ def verify_commands(commands):
 
 
 @plan
-def after_command_list(md=None):
-    """Actions after a command list is run."""
+def after_command_list(md=None, aborted=False):
+    """Actions after a command list is run.
+
+    PARAMETERS
+
+    md : dict
+        Metadata (unused here, accepted for plan signature consistency).
+    aborted : bool
+        When True, the cleanup is being run because the user requested a stop
+        (``usxLAX:StopBeforeNextScan``).  The Obsidian "proper end" record and
+        the "macro file done" state text are skipped so the abort is reported
+        instead.  See ``IfRequestedStopBeforeNextScan()``.
+    """
     yield from bps.mv(
         # fmt: off
         user_data.time_stamp,
@@ -256,8 +279,11 @@ def after_command_list(md=None):
         "close",
         # fmt: on
     )
+    if aborted:
+        # the caller records the abort and sets the state text
+        return
     # record Obsidian
-    recordProperEnd() 
+    recordProperEnd()
     yield from user_data.set_state_plan("USAXS macro file done")
 
 
@@ -485,6 +511,7 @@ def execute_command_list(filename, commands, md=None):
     recordRunCommandFile(text)
 
     yield from before_command_list(md=md, commands=commands)
+    abort_requested = False  # set when the user requests stop from EPICS
     for command in commands:
         action, args, i, raw_command = command
         logger.debug("file line %d: %s", i, raw_command)
@@ -573,6 +600,9 @@ def execute_command_list(filename, commands, md=None):
             except Exception as exc:
                 if exc.__class__ in (RequestAbort,):
                     exit_requested = True
+                    # IfRequestedStopBeforeNextScan() already ran
+                    # after_command_list(aborted=True) before raising
+                    abort_requested = True
                     break  # we requested abort from EPICS
                 subject = (
                     f"{exc.__class__.__name__}"
@@ -594,9 +624,9 @@ def execute_command_list(filename, commands, md=None):
 
         if exit_requested:
             break
-    
 
-    yield from after_command_list(md=md)
+    if not abort_requested:
+        yield from after_command_list(md=md)
 
 
 @plan

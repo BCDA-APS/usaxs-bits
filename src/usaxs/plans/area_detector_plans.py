@@ -15,8 +15,6 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import plans as bp
 
-from ..startup import RE
-from ..startup import bec
 from ..utils.area_detector import area_detector_file_plugins
 from ..utils.area_detector import path_template_fixer
 from ..utils.reporter import remaining_time_reporter
@@ -51,6 +49,7 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
     ------
     Bluesky messages consumed by the RunEngine.
     """
+
     _md = md or {}
     acquire_time = det.cam.acquire_time.get()
     # Note: AD's HDF File Writer can use up to 5 seconds to finish writing the file
@@ -66,8 +65,7 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
     if _md.get("plan_name") is None:
         _md["plan_name"] = "image"
 
-    if RE.state != "idle":
-        remaining_time_reporter(_md["plan_name"], acquire_time)
+    remaining_time_reporter(_md["plan_name"], acquire_time)
 
     if create_directory is not None:
         yield from bps.mv(det.hdf1.create_directory, create_directory)
@@ -92,10 +90,8 @@ def areaDetectorAcquire(det, create_directory=None, md=None):
         if k in det.cam.stage_sigs:
             det.cam.stage_sigs.pop(k)
 
-    bec.disable_table()
     # TODO: SPEC showed users incremental progress (1 Hz updates) #175
     yield from bp.count([det], md=_md)
-    bec.enable_table()
 
     # Restore the original detector staging.
     det.cam.stage_sigs = original_detector_staging["cam"].copy()

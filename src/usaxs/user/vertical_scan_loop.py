@@ -98,7 +98,7 @@ tc_sample = EpicsSignalRO("usxLAX:adam1:rtd5.VAL", name="tc_sample")
 # Convenient time-unit constants.
 SECOND = 1
 MINUTE = 60 * SECOND
-HOUR   = 60 * MINUTE
+HOUR = 60 * MINUTE
 
 # Debug / dry-run flag.  Set at the IPython prompt before calling RE():
 #   loop_debug.put(True)   → debug mode (no instrument motion, 5 s sleep per position)
@@ -107,14 +107,15 @@ loop_debug = Signal(name="loop_debug", value=False)
 
 
 samples = [
-        ("NMRTubeBlank",  25.0, 4.0),   # (sample_name, sx_mm, thickness_mm)
-        ("AMC",  55, 4.0),
-        ("ACMC50",  75, 4.0),
-        ("ACMC75",  115, 4.0),
-        ("ACMC25",  135, 4.0),
-        #("NMRTubeBlank2",  55.0, 4.0),   # (sample_name, sx_mm, thickness_mm)
-        #("Sample3", 35.0, 4.0),   # optional third (or more) sample
-    ]
+    ("NMRTubeBlank", 25.0, 4.0),  # (sample_name, sx_mm, thickness_mm)
+    ("AMC", 55, 4.0),
+    ("ACMC50", 75, 4.0),
+    ("ACMC75", 115, 4.0),
+    ("ACMC25", 135, 4.0),
+    # ("NMRTubeBlank2",  55.0, 4.0),   # (sample_name, sx_mm, thickness_mm)
+    # ("Sample3", 35.0, 4.0),   # optional third (or more) sample
+]
+
 
 def verticalScanLoop(sy1, sy2, md={}):
     """
@@ -170,7 +171,7 @@ def verticalScanLoop(sy1, sy2, md={}):
     """
 
     # Build position list: sy1 to sy2 inclusive, 1 mm steps.
-    step  = 1.0 if sy2 >= sy1 else -1.0
+    step = 1.0 if sy2 >= sy1 else -1.0
     n_pos = int(abs(sy2 - sy1) / 1.0) + 1
     positions = [sy1 + i * step for i in range(n_pos)]
 
@@ -179,7 +180,7 @@ def verticalScanLoop(sy1, sy2, md={}):
         tc_temp = tc_sample.get()
         elapsed_min = round((time.time() - t0) / MINUTE)
         return f"{sample_name}_{round(tc_temp)}C_{elapsed_min}min"
-        #return f"{sample_name}_{elapsed_min}min"
+        # return f"{sample_name}_{elapsed_min}min"
 
     def collectAtPosition(sample_name, sx, thickness, sy, debug=False):
         """Collect USAXS → SAXS → WAXS for one sample at vertical position sy."""
@@ -211,7 +212,11 @@ def verticalScanLoop(sy1, sy2, md={}):
     logger.info(
         "Starting verticalScanLoop | samples=%s | "
         "Y: %.1f → %.1f (%d positions, 1 mm step) | debug=%s",
-        sample_names, sy1, sy2, len(positions), isDebugMode,
+        sample_names,
+        sy1,
+        sy2,
+        len(positions),
+        isDebugMode,
     )
 
     if not isDebugMode:
@@ -220,8 +225,7 @@ def verticalScanLoop(sy1, sy2, md={}):
         logger.info("[DEBUG] Skipping before_command_list()")
 
     sample_lines = "\n".join(
-        f"  - **{name}**: sx={sx} mm, thickness={th} mm"
-        for name, sx, th in samples
+        f"  - **{name}**: sx={sx} mm, thickness={th} mm" for name, sx, th in samples
     )
     appendToMdFile(
         f"## Vertical scan loop: {', '.join(sample_names)}\n"
@@ -238,9 +242,15 @@ def verticalScanLoop(sy1, sy2, md={}):
         tc_now = tc_sample.get()
         logger.info(
             "Sweep %d | TC=%.1f C (%d°C) | %d positions × %d samples | %.1f min elapsed",
-            sweep, tc_now, round(tc_now), len(positions), len(samples),
+            sweep,
+            tc_now,
+            round(tc_now),
+            len(positions),
+            len(samples),
             (time.time() - t0) / MINUTE,
         )
         for sy in positions:
             for sample_name, sx, thickness in samples:
-                yield from collectAtPosition(sample_name, sx, thickness, sy, isDebugMode)
+                yield from collectAtPosition(
+                    sample_name, sx, thickness, sy, isDebugMode
+                )

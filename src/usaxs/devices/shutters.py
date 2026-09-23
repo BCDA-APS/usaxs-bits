@@ -62,5 +62,3 @@ class My12IdPssShutter(ApsPssShutterWithStatus):
         if timeout is None:
             timeout = self.default_timeout
         return super().close(timeout=timeout)
-
-

@@ -83,7 +83,7 @@ tc_sample = EpicsSignalRO("usxLAX:adam2:tc1.VAL", name="tc_sample")
 # Convenient time constants.
 SECOND = 1
 MINUTE = 60 * SECOND
-HOUR   = 60 * MINUTE
+HOUR = 60 * MINUTE
 
 # Debug / dry-run flag.  Set before calling RE():
 #   ptc10_debug.put(True)   → debug mode (no instrument motion)
@@ -99,7 +99,7 @@ ptc10_debug = Signal(name="ptc10_debug", value=False)
 # ==============================================================================
 
 SampleList = [
-    [25.0, 15.0, 4, "WaterBlank"],  
+    [25.0, 15.0, 4, "WaterBlank"],
     [35.0, 16.0, 4, "Sa5g"],
     [35.0, 10.0, 4, "Sa5a"],
     [35.0, 14.0, 4, "Sa5e"],
@@ -115,11 +115,14 @@ SampleList = [
 # HEATER UTILITIES
 # ==============================================================================
 
+
 def setheaterOff():
     """Power down the PTC10 heater and stop the PID control loop."""
     yield from bps.mv(
-        ptc10.enable, "Off",
-        ptc10.pid.pidmode, "Off",
+        ptc10.enable,
+        "Off",
+        ptc10.pid.pidmode,
+        "Off",
     )
 
 
@@ -130,14 +133,17 @@ def setheaterOn():
     Always call AFTER setting ptc10.ramp and ptc10.temperature.setpoint.
     """
     yield from bps.mv(
-        ptc10.enable, "On",
-        ptc10.pid.pidmode, "On",
+        ptc10.enable,
+        "On",
+        ptc10.pid.pidmode,
+        "On",
     )
 
 
 # ==============================================================================
 # MAIN PLAN
 # ==============================================================================
+
 
 def ptc10MultiposaHeatRamp(
     scan_title,
@@ -207,9 +213,9 @@ def ptc10MultiposaHeatRamp(
 
         Format: {spot_title}_TC{secondary:.1f}C_PTC{ptc10:.0f}C_{elapsed:.0f}min
         """
-        tc_temp  = tc_sample.get()
+        tc_temp = tc_sample.get()
         ptc_temp = ptc10.position
-        elapsed  = (time.time() - t0) / MINUTE
+        elapsed = (time.time() - t0) / MINUTE
         return f"{spot_title}_TC{tc_temp:.1f}C_PTC{ptc_temp:.0f}C_{elapsed:.0f}min"
 
     def _x(entry_x):
@@ -247,12 +253,13 @@ def ptc10MultiposaHeatRamp(
             md["title"] = sampleMod
             logger.info("waxsExp: %s", sampleMod)
             yield from waxsExp(x, pos_Y, entry_thickness, sampleMod, md={})
-            
 
     def collectAllPositions(debug=False):
         """Cycle through every entry in SampleList, collecting full USAXS/SAXS/WAXS."""
         for entry_x, pos_Y, entry_thickness, spot_title in SampleList:
-            yield from collectAllThree(entry_x, pos_Y, entry_thickness, spot_title, debug)
+            yield from collectAllThree(
+                entry_x, pos_Y, entry_thickness, spot_title, debug
+            )
             yield from bps.sleep(600)
 
     # =========================================================================
@@ -264,7 +271,11 @@ def ptc10MultiposaHeatRamp(
     logger.info(
         "Starting ptc10MultiposaHeatRamp | sample=%s | %d positions | "
         "target=%s C @ %s C/min | debug=%s",
-        scan_title, len(SampleList), temp_target, rate_heat, isDebugMode,
+        scan_title,
+        len(SampleList),
+        temp_target,
+        rate_heat,
+        isDebugMode,
     )
 
     # --- Block 1: Startup ---------------------------------------------------
@@ -285,15 +296,15 @@ def ptc10MultiposaHeatRamp(
     # --- Block 2: Baseline at ambient temperature ---------------------------
     t0 = time.time()
     tc_now = tc_sample.get()
-    #logger.info(
+    # logger.info(
     #    "Collecting baseline at ambient T (TC=%.1f C, PTC10=%.1f C)",
     #    tc_now, ptc10.position,
-    #)
-    #appendToMdFile(
+    # )
+    # appendToMdFile(
     #    f"Baseline: TC={tc_now:.1f} °C, PTC10={ptc10.position:.1f} °C — "
     #    f"collecting all {len(SampleList)} positions"
-    #)
-    #yield from collectAllPositions(isDebugMode)
+    # )
+    # yield from collectAllPositions(isDebugMode)
 
     # --- Block 3: Start heating ramp ----------------------------------------
     # Ensure tolerance is at least 1 °C — this heater typically oscillates
@@ -304,7 +315,7 @@ def ptc10MultiposaHeatRamp(
         f"Heating to {temp_target} °C at {rate_heat} °C/min — "
         f"collecting all positions until arrival"
     )
-    yield from bps.mv(ptc10.ramp, rate_heat / 60.0)           # °C/min → °C/s
+    yield from bps.mv(ptc10.ramp, rate_heat / 60.0)  # °C/min → °C/s
     yield from bps.mv(ptc10.temperature.setpoint, temp_target)
     yield from setheaterOn()
 
@@ -316,13 +327,18 @@ def ptc10MultiposaHeatRamp(
         tc_now = tc_sample.get()
         logger.info(
             "Ramp loop %d | TC=%.1f C | PTC10=%.1f C → %s C",
-            loop_count, tc_now, ptc10.position, temp_target,
+            loop_count,
+            tc_now,
+            ptc10.position,
+            temp_target,
         )
         yield from collectAllPositions(isDebugMode)
 
     logger.info(
         "PTC10 reached %s C after %d position-sweep(s). TC=%.1f C",
-        temp_target, loop_count, tc_sample.get(),
+        temp_target,
+        loop_count,
+        tc_sample.get(),
     )
     appendToMdFile(
         f"PTC10 arrived at {temp_target} °C after {loop_count} sweep(s). "
@@ -342,12 +358,10 @@ def ptc10MultiposaHeatRamp(
     yield from setheaterOff()
 
     # --- Block 6: Final dataset at temp_final -------------------------------
-    t0 = time.time()   # reset so "elapsed" resets to 0 at final temp
+    t0 = time.time()  # reset so "elapsed" resets to 0 at final temp
     tc_now = tc_sample.get()
     logger.info("At %s C. Collecting final dataset. TC=%.1f C", temp_final, tc_now)
-    appendToMdFile(
-        f"Final dataset: PTC10={ptc10.position:.1f} °C, TC={tc_now:.1f} °C"
-    )
+    appendToMdFile(f"Final dataset: PTC10={ptc10.position:.1f} °C, TC={tc_now:.1f} °C")
     yield from collectAllPositions(isDebugMode)
 
     logger.info("Plan complete: %s", scan_title)

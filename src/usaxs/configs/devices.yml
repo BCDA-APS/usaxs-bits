@@ -19,6 +19,13 @@ usaxs.devices.diagnostics.DiagnosticsParameters:
   labels:
     - baseline
 
+usaxs.devices.fx4_quadem.QuadFX4:
+- name: fx4
+  prefix: "usxFX4:FX4:"
+# second FX4, will be used for ion chamber (I0)
+- name: fx42
+  prefix: "usxFX42:FX4:"
+
 usaxs.devices.general_terms.GeneralParameters:
 - name: terms
   labels:
@@ -74,18 +81,6 @@ ophyd.EpicsMotor:
 - name: LAXm1
   prefix: usxLAX:m58:c0:m1
   labels: ["LAXm1"]
-- name: LAXm2
-  prefix: usxLAX:m58:c0:m2
-  labels: ["LAXm2"]
-- name: LAXm3
-  prefix: usxLAX:m58:c0:m3
-  labels: ["LAXm3"]
-- name: LAXm4
-  prefix: usxLAX:m58:c0:m4
-  labels: ["LAXm4"]
-- name: LAXm5
-  prefix: usxLAX:m58:c0:m5
-  labels: ["LAXtcam", "baseline"]
 - name: LAXm6
   prefix: usxLAX:m58:c0:m6
   labels: ["LAXgsy"]
@@ -111,9 +106,9 @@ usaxs.devices.sample_data.SampleDataDevice:
   labels:
   - baseline
 
-usaxs.devices.sample_rotator.SampleRotator:
-- name: pi_c867
-  prefix: usxPI:c867:c0:m1
+# usaxs.devices.sample_rotator.SampleRotator:
+# - name: pi_c867
+#   prefix: usxPI:c867:c0:m1
 
 apstools.devices.Struck3820:
 - name: struck
@@ -161,6 +156,8 @@ usaxs.devices.stages.UsaxsAnalyzerStageDevice:
 usaxs.devices.stages.SaxsDetectorStageDevice:
 - name: saxs_stage
 
+usaxs.devices.rheometer.RheometerStageDevice:
+- name: rheometer_stage
+
 usaxs.devices.usaxs_fly_scan.UsaxsFlyScanDevice:
 - name: usaxs_flyscan
-

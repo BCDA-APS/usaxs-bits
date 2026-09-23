@@ -1,8 +1,8 @@
 import datetime as dt
 import json
-import os
 from base64 import b64encode
-from typing import Any, Mapping
+from typing import Any
+from typing import Mapping
 
 import httpx
 import stamina
@@ -126,7 +126,6 @@ def encode(string: str) -> bytes:
 
 
 class DMAuth(httpx.Auth):
-
     def __init__(self, username: str, password: str, base_uri: str):
         self.username = username
         self.password = password
@@ -225,12 +224,8 @@ class BssApi:
     def __exit__(self, exc_type, exc, tb):
         self.close()
 
-
-
     @stamina.retry(on=httpx.HTTPError, attempts=3)
-    def _http_get(
-        self, url: str, params: Mapping | None = None
-    ) -> httpx.Response:
+    def _http_get(self, url: str, params: Mapping | None = None) -> httpx.Response:
         # Clean up the URL in case there are missing parameters
         url = url.removesuffix("/b''")
         response = self.client.get(url, params=params)
@@ -264,13 +259,9 @@ class BssApi:
         return self.parser.proposal(response.text)
 
 
-
-
-
-
 # -----------------------------------------------------------------------------
 # adapted from: https://github.com/spc-group/haven/blob/\
-#	7458847b00c3fa7b2a1cfffb9fa0d37485c99913/src/haven/bss.py
+# 7458847b00c3fa7b2a1cfffb9fa0d37485c99913/src/haven/bss.py
 # :author:    Mark Wolfman
 # :email:     wolfman@anl.gov
 # :copyright: Copyright © 2025, UChicago Argonne, LLC

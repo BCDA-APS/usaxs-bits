@@ -12,7 +12,9 @@ suspenders and decide how to install them.
       block all RunEngine activity during any APS beam dump.  Apply it only
       to specific plans using ``@bpp.suspend_decorator(suspend_FE_shutter)``.
     - ``suspend_BeamInHutch`` : suspends when the beam-in-hutch check signal
-      goes low.  Safe to install globally.
+      goes low.
+    - ``suspend_white_beam_ready`` : suspends on an APS ring dump and waits
+      100 s after beam returns so mono feedback can recover.
 
 ``suspender_in_sim()``
     Dummy suspenders backed by a software ``Signal`` that is never triggered.
@@ -26,7 +28,9 @@ import bluesky.suspenders
 from apsbits.core.instrument_init import oregistry
 from ophyd import Signal
 
-from .suspenders import BeamInHutchSuspension, FeedbackHandlingDuringSuspension
+from .suspenders import BeamInHutchSuspension
+from .suspenders import FeedbackHandlingDuringSuspension
+from .suspenders import abort_flyscan_if_flying
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +45,15 @@ def suspender_in_operations():
 
     Creates three suspenders:
 
-    ``suspender_white_beam_ready``
-        Suspends when ``white_beam_ready.available`` goes low (beam lost).
-        Runs ``FeedbackHandlingDuringSuspension.mono_beam_lost_plan`` before
-        pausing and ``mono_beam_just_came_back_but_after_sleep_plan`` after a
-        100-second sleep when the beam returns.  Not returned — installed
-        internally via the feedback handler.
+    ``suspend_white_beam_ready``
+        Suspends when ``white_beam_ready.available`` (``usxLAX:userCalc9``) goes
+        low — FE shutter open AND ring current above threshold (with hysteresis)
+        AND energy sane, so it is a better ring-dump signal than the raw
+        A-shutter bit.  Runs ``mono_beam_lost_plan`` before pausing and
+        ``mono_beam_just_came_back_but_after_sleep_plan`` after a 100-second
+        sleep once beam returns, giving mono feedback time to recover.  This is
+        the *only* suspender with a settle delay; the other two resume
+        immediately (``sleep=0``).
 
     ``suspend_FE_shutter``
         Suspends when ``FE_shutter.pss_state`` drops below 1 (A-shutter
@@ -61,11 +68,11 @@ def suspender_in_operations():
 
     Returns
     -------
-    tuple[SuspendFloor, SuspendBoolLow]
-        ``(suspend_FE_shutter, suspend_BeamInHutch)``
+    tuple[SuspendFloor, SuspendBoolLow, SuspendBoolLow]
+        ``(suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready)``
     """
     fb = FeedbackHandlingDuringSuspension()
-    suspender_white_beam_ready = bluesky.suspenders.SuspendBoolLow(  # noqa: F841
+    suspend_white_beam_ready = bluesky.suspenders.SuspendBoolLow(
         white_beam_ready.available,
         pre_plan=fb.mono_beam_lost_plan,
         sleep=100,  # RE sleeps _before_ calling post_plan
@@ -82,9 +89,16 @@ def suspender_in_operations():
     logger.info(
         "Defining suspend_BeamInHutch.  Add as decorator to scan plans as desired."
     )
-    suspend_FE_shutter = bluesky.suspenders.SuspendFloor(FE_shutter.pss_state, 1)  # noqa: F841
+    # pre_plan aborts an in-flight fly scan so its busy-record Status cannot age
+    # out while the RunEngine waits for beam (see abort_flyscan_if_flying).
+    # No-op for SAXS/WAXS/step scans.
+    suspend_FE_shutter = bluesky.suspenders.SuspendFloor(  # noqa: F841
+        FE_shutter.pss_state,
+        1,
+        pre_plan=abort_flyscan_if_flying,
+    )
 
-    return suspend_FE_shutter, suspend_BeamInHutch
+    return suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready
 
 
 def suspender_in_sim():
@@ -96,11 +110,15 @@ def suspender_in_sim():
 
     Returns
     -------
-    tuple[SuspendBoolHigh, SuspendBoolHigh]
-        ``(suspend_FE_shutter, suspend_BeamInHutch)`` — both inert.
+    tuple[SuspendBoolHigh, SuspendBoolHigh, SuspendBoolHigh]
+        ``(suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready)``
+        — all inert.
     """
     _simulated_beam_in_hutch = Signal(name="_simulated_beam_in_hutch")
     suspend_BeamInHutch = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: F841
     suspend_FE_shutter = bluesky.suspenders.SuspendBoolHigh(_simulated_beam_in_hutch)  # noqa: F841
+    suspend_white_beam_ready = bluesky.suspenders.SuspendBoolHigh(  # noqa: F841
+        _simulated_beam_in_hutch
+    )
 
-    return suspend_FE_shutter, suspend_BeamInHutch
+    return suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready

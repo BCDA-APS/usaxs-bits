@@ -34,6 +34,29 @@ hdf5_file = fly_scan_settings.get("SAVE_FLY_DATA_HDF5_FILE")
 hdf5_dir = fly_scan_settings.get("SAVE_FLY_DATA_HDF5_DIR")
 
 
+class ThreadKickSignal(Signal):
+    """Soft signal that runs ``self.handler`` every time it is written.
+
+    Exists to make a background-thread start *replay-safe*.  When a suspender
+    resumes, the RunEngine replays the cached ``Msg`` objects but not the plain
+    Python calls between them, so a thread started with a bare call would not be
+    restarted and the resumed scan would run unmonitored.  Writing to this
+    signal is a ``Msg``, so it is replayed and the thread starts again.
+
+    The plan assigns ``handler`` (a closure over its own reporting function)
+    before the first write; the attribute persists on the device, so the
+    replayed write finds it still set.
+    """
+
+    handler = None
+
+    def put(self, value, **kwargs):
+        """Write *value*, then invoke ``handler`` if one is registered."""
+        super().put(value, **kwargs)
+        if self.handler is not None:
+            self.handler()
+
+
 class UsaxsFlyScanDevice(Device):
     """EPICS interface and runtime state for the USAXS fly scan.
 
@@ -50,7 +73,19 @@ class UsaxsFlyScanDevice(Device):
     scan_time = Component(EpicsSignal, "usxLAX:USAXS:FS_ScanTime")
     num_points = Component(EpicsSignal, "usxLAX:USAXS:FS_NumberOfPoints")
     flying = Component(Signal, value=False)
-    timeout_s = 120
+    # Written once per fly-scan attempt to (re)start progress reporting.
+    progress_kick = Component(ThreadKickSignal, value=0)
+
+    # Padding added to scan_time for BOTH the progress-thread deadline and the
+    # busy-record Status timeout (fly_scan_plan.py).  That Status is wall-clock
+    # and keeps ticking while the RunEngine is suspended, so this value used to
+    # have to exceed the longest tolerable beam outage -- hence the old 120 s.
+    # The suspenders now abort the trajectory on beam loss
+    # (suspenders.abort_flyscan_if_flying), which closes the Status immediately
+    # instead of letting it age out, so outage length no longer matters and this
+    # only has to cover trajectory jitter.  Do NOT raise this back without also
+    # keeping that abort in place.
+    timeout_s = 15
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

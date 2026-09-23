@@ -17,7 +17,9 @@ PVs are expected at the prefix ``usxTerms:bss:`` in the usxTerms IOC.
 They are populated by ``usaxs.utils.setup_new_user.matchUserInApsBss()``.
 """
 
-from ophyd import Component, Device, EpicsSignal
+from ophyd import Component
+from ophyd import Device
+from ophyd import EpicsSignal
 
 __all__ = ["BssDevice"]
 

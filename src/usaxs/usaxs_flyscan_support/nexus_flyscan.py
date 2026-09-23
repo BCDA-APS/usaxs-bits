@@ -216,10 +216,7 @@ class NeXus_Structure:
         Returns:
             bool: True if all PVs are connected, False otherwise
         """
-        arr = [
-            pv.ophyd_signal.connected
-            for pv in self.pv_registry.values()
-        ]
+        arr = [pv.ophyd_signal.connected for pv in self.pv_registry.values()]
         return False not in arr
 
     @property
@@ -230,9 +227,7 @@ class NeXus_Structure:
             list: List of PV_Specification objects for unconnected signals
         """
         disconnects = [
-            pv
-            for pv in self.pv_registry.values()
-            if not pv.ophyd_signal.connected
+            pv for pv in self.pv_registry.values() if not pv.ophyd_signal.connected
         ]
         return disconnects
 
