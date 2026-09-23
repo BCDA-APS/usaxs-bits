@@ -2966,6 +2966,12 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: usaxs.devices.fx4_quadem
+  fx42:
+    classname: QuadFX4
+    is_flyable: false
+    is_movable: false
+    is_readable: true
+    module: usaxs.devices.fx4_quadem
   gslit_stage:
     classname: GuardSlitsStageDevice
     components:
@@ -17993,6 +17999,12 @@ existing_devices:
         is_movable: true
         is_readable: true
         module: ophyd.signal
+      progress_kick:
+        classname: ThreadKickSignal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: usaxs.devices.usaxs_fly_scan
       scan_time:
         classname: EpicsSignal
         is_flyable: false
@@ -24347,7 +24359,7 @@ existing_plans:
         value: 1
       name: md
     properties:
-      is_generator: true
+      is_generator: false
   USAXSscanStep:
     description: 'Bluesky plan: collect a step-scan USAXS measurement at the given
       position.'
@@ -24671,7 +24683,7 @@ existing_plans:
         value: 1
       name: md
     properties:
-      is_generator: true
+      is_generator: false
   tune_a2rp:
     description: 'Bluesky plan: tune the analyzer second roll-pitch piezo (A2RP).'
     module: usaxs.plans.axis_tuning
@@ -24825,4 +24837,4 @@ existing_plans:
         value: 1
       name: md
     properties:
-      is_generator: true
+      is_generator: false

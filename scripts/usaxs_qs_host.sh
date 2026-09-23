@@ -7,11 +7,12 @@ SHELL_SCRIPT_NAME=${BASH_SOURCE:-${0}}
 SCRIPT_DIR="$(dirname $(readlink -f  "${SHELL_SCRIPT_NAME}"))"
 CONFIGS_DIR=$(readlink -f "${SCRIPT_DIR}/../src/usaxs/configs")
 QSERVER_DIR=$(readlink -f "${SCRIPT_DIR}/../src/usaxs/qserver")
-HTTP_SESSION_NAME="bluesky-httpserver-${DATABROKER_CATALOG}"
 HTTP_PORT="${QSERVER_HTTP_SERVER_PORT:-60610}"
 HTTP_HOST="${QSERVER_HTTP_SERVER_HOST:-0.0.0.0}"
 HTTP_API_KEY="${QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY:-test}"
-HTTP_STARTUP_COMMAND="uvicorn bluesky_httpserver.server:app --host ${HTTP_HOST} --port ${HTTP_PORT}"
+ZMQ_CONTROL_PORT="${QSERVER_ZMQ_CONTROL_PORT:-60615}"
+# Session names and startup commands are built further below, once
+# DATABROKER_CATALOG and the conda environment have been resolved.
 ###-----------------------------
 ### Change program defaults here
 
@@ -28,22 +29,35 @@ export QS_CONFIG_YML="${QSERVER_DIR}/qs-config.yml"
 QS_HOSTNAME="$(hostname)"
 
 PROCESS=start-re-manager  # from the conda environment
-STARTUP_COMMAND="${PROCESS} --config=${QS_CONFIG_YML} --user-group-permissions=${QSERVER_DIR}/user_group_permissions.yaml --existing-plans-devices=${QSERVER_DIR}/existing_plans_and_devices.yaml"
+# STARTUP_COMMAND is built further below, once the conda environment is known.
 
 # 0MQ document-stream proxy for the queue-monitor GUI live plots (Phase 3).
 # The RE Worker publishes documents to PROXY_IN; the GUI subscribes to PROXY_OUT.
 # Must match iconfig.yml DOC_STREAM.PUBLISH_ADDR (in) and the GUI settings (out).
-PROXY_SESSION_NAME="bluesky-0MQ-proxy-${DATABROKER_CATALOG}"
 PROXY_IN_PORT="${QSERVER_ZMQ_PROXY_IN_PORT:-5567}"
 PROXY_OUT_PORT="${QSERVER_ZMQ_PROXY_OUT_PORT:-5568}"
-PROXY_STARTUP_COMMAND="bluesky-0MQ-proxy ${PROXY_IN_PORT} ${PROXY_OUT_PORT}"
 
 #--------------------
 # internal configuration below
 
-# echo "PROCESS=${PROCESS}"
-if [ ! -f $(which "${PROCESS}") ]; then
+# Resolve the conda environment that provides the queueserver, then address every
+# executable by absolute path from *that* environment.
+#
+# Do NOT use bare command names here.  On this host ~/.local/bin and other conda
+# envs sit ahead of ${CONDA_PREFIX}/bin in $PATH, so a bare "uvicorn" or "python"
+# silently resolves to the wrong environment even with bits_usaxs activated.
+# That is what kept the HTTP server (port ${HTTP_PORT}) from ever starting: it
+# died instantly with "ModuleNotFoundError: No module named 'bluesky_httpserver'".
+QS_PROCESS_PATH="$(command -v "${PROCESS}")"
+if [ -z "${QS_PROCESS_PATH}" ] || [ ! -x "${QS_PROCESS_PATH}" ]; then
     echo "PROCESS '${PROCESS}': file not found. CONDA_PREFIX='${CONDA_PREFIX}'"
+    exit 1
+fi
+QS_PROCESS_PATH="$(readlink -f "${QS_PROCESS_PATH}")"
+QS_ENV_BIN="$(dirname "${QS_PROCESS_PATH}")"
+QS_PYTHON="${QS_ENV_BIN}/python"
+if [ ! -x "${QS_PYTHON}" ]; then
+    echo "No 'python' in '${QS_ENV_BIN}'; cannot start the queueserver."
     exit 1
 fi
 
@@ -59,6 +73,13 @@ if [ "${DATABROKER_CATALOG}" == "" ]; then
     fi
 fi
 DEFAULT_SESSION_NAME="bluesky_queueserver-${DATABROKER_CATALOG}"
+HTTP_SESSION_NAME="bluesky-httpserver-${DATABROKER_CATALOG}"
+PROXY_SESSION_NAME="bluesky-0MQ-proxy-${DATABROKER_CATALOG}"
+
+# Startup commands, all by absolute path (see the $PATH note above).
+STARTUP_COMMAND="${QS_PROCESS_PATH} --config=${QS_CONFIG_YML} --user-group-permissions=${QSERVER_DIR}/user_group_permissions.yaml --existing-plans-devices=${QSERVER_DIR}/existing_plans_and_devices.yaml"
+HTTP_STARTUP_COMMAND="${QS_PYTHON} -m uvicorn bluesky_httpserver.server:app --host ${HTTP_HOST} --port ${HTTP_PORT}"
+PROXY_STARTUP_COMMAND="${QS_ENV_BIN}/bluesky-0MQ-proxy ${PROXY_IN_PORT} ${PROXY_OUT_PORT}"
 
 #--------------------
 
@@ -154,9 +175,39 @@ function exit_if_running() {
     fi
 }
 
+function port_open() {
+    # $1 = port.  True if something is listening on localhost:$1.
+    (exec 3<>"/dev/tcp/127.0.0.1/${1}") >/dev/null 2>&1
+}
+
+function wait_for_port() {
+    # $1 = port, $2 = label, $3 = timeout in seconds
+    local port="${1}" label="${2}" timeout="${3}" i
+    for ((i = 0; i < timeout * 2; i++)); do
+        if port_open "${port}"; then
+            echo "    OK    ${label}: listening on ${port}"
+            return 0
+        fi
+        sleep 0.5
+    done
+    echo "    FAIL  ${label}: nothing listening on ${port} after ${timeout}s"
+    return 1
+}
+
 function restart() {
     stop
-    sleep 0.1  # empirical, 0.01 is too short, 1.0 is plenty.
+    # Wait for the old processes to actually exit before starting new ones.
+    # The previous fixed "sleep 0.1" raced: start() still saw the dying manager
+    # and reported "is already running", leaving HTTP server and proxy down.
+    local i
+    for ((i = 0; i < 50; i++)); do
+        checkpid || break
+        sleep 0.2
+    done
+    if checkpid; then
+        echo "WARNING: ${SESSION_NAME} (pid=${MY_PID}) did not exit; not restarting."
+        exit 1
+    fi
     start
 }
 
@@ -186,8 +237,12 @@ function start() {
         fi
         echo "Starting ${SESSION_NAME}"
         cd "${STARTUP_DIR}"
-        # Run SESSION_NAME inside a screen session
-        CMD="screen -DmS ${SESSION_NAME} -h 5000 ${STARTUP_COMMAND}"
+
+        # "screen -dm" forks a real daemon, so the session survives this script
+        # exiting.  The previous "screen -Dm ... &" left screen as a child of
+        # this shell and tied its lifetime to the calling terminal.
+        screen -dmS "${SESSION_NAME}" -h 5000 ${STARTUP_COMMAND}
+
         echo "Starting ${HTTP_SESSION_NAME} on ${HTTP_HOST}:${HTTP_PORT}"
         if [ "${HTTP_API_KEY}" == "test" ]; then
             echo "WARNING: HTTP server API key is the default value 'test'."
@@ -196,15 +251,34 @@ function start() {
             echo "         QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY before relying on this in production."
         fi
         QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY="${HTTP_API_KEY}" \
-        QSERVER_ZMQ_CONTROL_ADDRESS="tcp://localhost:60615" \
-        screen -DmS "${HTTP_SESSION_NAME}" -h 5000 ${HTTP_STARTUP_COMMAND} &
-        if [ -n "$(which bluesky-0MQ-proxy)" ]; then
+        QSERVER_ZMQ_CONTROL_ADDRESS="tcp://localhost:${ZMQ_CONTROL_PORT}" \
+        screen -dmS "${HTTP_SESSION_NAME}" -h 5000 ${HTTP_STARTUP_COMMAND}
+
+        if [ -x "${QS_ENV_BIN}/bluesky-0MQ-proxy" ]; then
             echo "Starting ${PROXY_SESSION_NAME} (${PROXY_IN_PORT} -> ${PROXY_OUT_PORT})"
-            screen -DmS "${PROXY_SESSION_NAME}" -h 5000 ${PROXY_STARTUP_COMMAND} &
+            screen -dmS "${PROXY_SESSION_NAME}" -h 5000 ${PROXY_STARTUP_COMMAND}
         else
-            echo "bluesky-0MQ-proxy not found; GUI live plots will be unavailable"
+            echo "bluesky-0MQ-proxy not found in ${QS_ENV_BIN}; GUI live plots will be unavailable"
         fi
-        ${CMD} &
+
+        # Verify.  Previously every service was launched with "&" and nothing
+        # checked the result, so a service that died on startup was silent.
+        echo "Verifying services ..."
+        RC=0
+        wait_for_port "${ZMQ_CONTROL_PORT}" "RE Manager (ZMQ control)" 60 || RC=1
+        wait_for_port "${HTTP_PORT}" "HTTP server" 30 || RC=1
+        if [ -x "${QS_ENV_BIN}/bluesky-0MQ-proxy" ]; then
+            wait_for_port "${PROXY_OUT_PORT}" "0MQ document proxy" 15 || RC=1
+        fi
+        if [ "${RC}" -ne 0 ]; then
+            echo ""
+            echo "One or more services failed to start.  Inspect them with:"
+            echo "    screen -ls"
+            echo "    ${SHELL_SCRIPT_NAME} console"
+            echo "    screen -r ${HTTP_SESSION_NAME}"
+            return 1
+        fi
+        echo "All queueserver services are up."
     fi
 }
 
@@ -221,18 +295,22 @@ function stop() {
     if checkpid; then
         echo "Stopping ${SCREEN_SESSION} (pid=${MY_PID})"
         kill "${MY_PID}"
-        HTTP_PID=$(pgrep -f "bluesky_httpserver.server")
-        if [ -n "${HTTP_PID}" ]; then
-            echo "Stopping ${HTTP_SESSION_NAME} (pid=${HTTP_PID})"
-            kill ${HTTP_PID}
-        fi
-        PROXY_PID=$(pgrep -f "bluesky-0MQ-proxy")
-        if [ -n "${PROXY_PID}" ]; then
-            echo "Stopping ${PROXY_SESSION_NAME} (pid=${PROXY_PID})"
-            kill ${PROXY_PID}
-        fi
     else
         echo "${SESSION_NAME} is not running"
+    fi
+
+    # Always clean these up, even when the manager was already down.  A stale
+    # HTTP server or proxy keeps holding ports ${HTTP_PORT}/${PROXY_IN_PORT}/${PROXY_OUT_PORT}
+    # and makes the next start fail with "address already in use".
+    HTTP_PID=$(pgrep -f "bluesky_httpserver.server")
+    if [ -n "${HTTP_PID}" ]; then
+        echo "Stopping ${HTTP_SESSION_NAME} (pid=${HTTP_PID})"
+        kill ${HTTP_PID}
+    fi
+    PROXY_PID=$(pgrep -f "bluesky-0MQ-proxy")
+    if [ -n "${PROXY_PID}" ]; then
+        echo "Stopping ${PROXY_SESSION_NAME} (pid=${PROXY_PID})"
+        kill ${PROXY_PID}
     fi
 }
 
