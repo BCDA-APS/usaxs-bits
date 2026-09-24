@@ -30,6 +30,7 @@ from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
 from epics import caget
 
+from usaxs.utils.fx4_channels import setup_fx4_channels
 from usaxs.utils.scalers_setup import setup_scalers
 
 # Configuration block
@@ -89,12 +90,20 @@ else:
 
 # Experiment specific logic, device and plan loading. # Create the devices.
 make_devices(clear=False, file="scalers_and_amplifiers.yml", device_manager=instrument)
-setup_scalers()
+# The FX4 owns the UPD / I0 / I00 / TRD names now, so the scaler must not claim
+# them.  Pass claim_detector_names=True to revert to the Femto/scaler chain --
+# see usaxs/utils/scalers_setup.py and configs/autorange_devices.yml.
+setup_scalers(claim_detector_names=False)
 
 make_devices(file="devices.yml", clear=False, device_manager=instrument)
 make_devices(file="devices_aps_only.yml", clear=False, device_manager=instrument)
 make_devices(file="ad_devices.yml", clear=False, device_manager=instrument)
+# Binds UPD/TRD -> fx4 and I0/I00 -> fx42; needs devices.yml to have run.
 make_devices(file="autorange_devices.yml", clear=False, device_manager=instrument)
+# ... and this names those channels UPD / I0 / I00 / TRD, so BEC hints, the
+# uascan dimension hints, the NeXus stream keys and the queue-monitor plot
+# configuration keep working. Must follow autorange_devices.yml.
+setup_fx4_channels()
 
 ##operation variables
 in_operation = caget("usxLAX:blCalc:userCalc2.VAL") == 1

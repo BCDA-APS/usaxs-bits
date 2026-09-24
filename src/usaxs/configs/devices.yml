@@ -20,11 +20,33 @@ usaxs.devices.diagnostics.DiagnosticsParameters:
     - baseline
 
 usaxs.devices.fx4_quadem.QuadFX4:
+# UPD on Current1, transmission diode (TRD) on Current4.
 - name: fx4
   prefix: "usxFX4:FX4:"
-# second FX4, will be used for ion chamber (I0)
+# second FX4: I0 on Current1, I00 on Current2 (I00 not yet connected).
 - name: fx42
   prefix: "usxFX42:FX4:"
+# NOTE: deliberately NOT labelled `baseline`.  QuadFX4 is an areaDetector-style
+# device with five lazy stats plugins; a baseline read would touch hundreds of
+# PVs at the start and end of every scan.  The values reduction actually needs
+# (range, ValuesPerRead, RingOverflows) are recorded explicitly instead: in the
+# uascan read list, in the fly-scan HDF5, and as areaDetector NDAttributes.
+# The autorange sequence programs below are small and real, so they do go in.
+
+# Autorange sequence programs.  One per FX4, and its `channel` record selects
+# which of the four channels it watches -- the whole box shares one Range.
+usaxs.devices.fx4_quadem.FX4AutorangeDevice:
+- name: fx4_autorange
+  prefix: "usxFX4:FX4:seq01:"
+  labels:
+    - baseline
+# usxFX42 autoranging is not in service yet; I0 and I00 run at a fixed range
+# set by hand.  Uncomment this and add `autorange: fx42_autorange` to the
+# I0_controls entry in autorange_devices.yml once it exists.
+# - name: fx42_autorange
+#   prefix: "usxFX42:FX4:seq01:"
+#   labels:
+#     - baseline
 
 usaxs.devices.general_terms.GeneralParameters:
 - name: terms

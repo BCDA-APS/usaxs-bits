@@ -1,24 +1,81 @@
-# Must be loaded _after_ separate file with amplifiers, scalers, etc.
+# Detector -> (electrometer, channel, autoranger) bindings.
+# Must be loaded _after_ devices.yml, which creates fx4 / fx42 / fx4_autorange.
+#
+# These names (upd_controls, I0_controls, I00_controls, trd_controls) are the
+# same ones the Femto-era DetectorAmplifierAutorangeDevice used, so the ~19
+# call sites in the plans keep working.  What changed is the type: see
+# usaxs/devices/fx4_quadem.py.
+#
+# `autorange:` is optional.  A detector without one runs at a fixed range set
+# by hand and is skipped by the autoscale plans -- that is I0 and I00 until the
+# usxFX42 sequence program is in service.
+#
+# One Range serves all four channels of an electrometer, so two autoranged
+# detectors on the same box is a configuration error and
+# fx4_setup.group_controls_by_box raises FX4RangeConflictError if you try.
+# UPD and TRD are never in use at the same time, which is what makes sharing
+# usxFX4 workable; the plans point fx4_autorange:channel at whichever is live.
 
-usaxs.devices.amplifiers.DetectorAmplifierAutorangeDevice:
+usaxs.devices.fx4_quadem.FX4DetectorControls:
+  - name: upd_controls
+    nickname: UPD
+    quadem: fx4
+    channel: 1
+    autorange: fx4_autorange
+    labels:
+      - fx4_detector
+
+  - name: trd_controls
+    nickname: TRD
+    quadem: fx4
+    channel: 4
+    autorange: fx4_autorange
+    labels:
+      - fx4_detector
+
   - name: I0_controls
     nickname: I0
-    scaler: scaler0
-    det: I0
+    quadem: fx42
+    channel: 1
+    # autorange: fx42_autorange   # not in service yet -- fixed range
+    labels:
+      - fx4_detector
 
   - name: I00_controls
     nickname: I00
-    scaler: scaler0
-    det: I00
+    quadem: fx42
+    channel: 2
+    # autorange: fx42_autorange   # not in service yet -- fixed range
+    labels:
+      - fx4_detector
 
-  # Nothing for I000
 
-  - name: trd_controls
-    nickname: "TRD"
-    scaler: scaler0
-    det: trd
-
-  - name: upd_controls
-    nickname: UPD
-    scaler: scaler0
-    det: upd
+# ---------------------------------------------------------------------------
+# Superseded: the Femto amplifier / V-F converter / scaler chain.
+# Kept commented so a rollback is one uncomment here plus
+# `setup_scalers(claim_detector_names=True)` in startup.py.  Note that the two
+# blocks cannot both be active: they claim the same device names, and
+# setup_scalers would claim the UPD / I0 / I00 / TRD signal names as well.
+#
+# usaxs.devices.amplifiers.DetectorAmplifierAutorangeDevice:
+#   - name: I0_controls
+#     nickname: I0
+#     scaler: scaler0
+#     det: I0
+#
+#   - name: I00_controls
+#     nickname: I00
+#     scaler: scaler0
+#     det: I00
+#
+#   # Nothing for I000
+#
+#   - name: trd_controls
+#     nickname: "TRD"
+#     scaler: scaler0
+#     det: trd
+#
+#   - name: upd_controls
+#     nickname: UPD
+#     scaler: scaler0
+#     det: upd

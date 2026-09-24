@@ -1,4 +1,15 @@
 # USAXS: amplifiers and scalers are tightly-coupled.
+#
+# SUPERSEDED by the FX4 electrometers for UPD, I0, I00 and TRD; see
+# configs/autorange_devices.yml and usaxs/devices/fx4_quadem.py.  The
+# scalers and Femto devices stay declared so a rollback to this chain is a
+# configuration change rather than a code change, but nothing feeds their
+# detector channels once the diodes are wired to the FX4.
+#
+# The scaler0 I000 channel, I000_femto_amplifier and I000_photocurrent_calc
+# are gone: nothing referenced them.  (The I000 that *is* in use is
+# scaler2_I000_counts/cps on usxLAX:vsc:c2 in devices.yml, a different
+# scaler, unaffected by this conversion.)
 
 ophyd.scaler.ScalerCH:
   - { name: scaler0, prefix: "usxLAX:vsc:c0" }
@@ -8,14 +19,12 @@ ophyd.scaler.ScalerCH:
 usaxs.devices.amplifiers.usaxs_calculated_signal:
   - { name: I0_photocurrent_calc, prefix: "usxLAX:USAXS:I0" }
   - { name: I00_photocurrent_calc, prefix: "usxLAX:USAXS:I00" }
-  - { name: I000_photocurrent_calc, prefix: "usxLAX:USAXS:I000" }
   - { name: trd_photocurrent_calc, prefix: "usxLAX:USAXS:trd" }
   - { name: upd_photocurrent_calc, prefix: "usxLAX:USAXS:upd" }
 
 usaxs.devices.amplifiers.FemtoAmplifierDevice:
   - { name: I0_femto_amplifier, prefix: "usxRIO:fem02:seq01:" }
   - { name: I00_femto_amplifier, prefix: "usxRIO:fem03:seq01:" }
-  - { name: I000_femto_amplifier, prefix: "usxRIO:fem04:seq01:" }
   - { name: trd_femto_amplifier, prefix: "usxRIO:fem05:seq01:" }
 
   # DLCPA200

@@ -35,7 +35,9 @@ guard_slit = oregistry["guard_slit"]
 scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 user_data = oregistry["user_data"]
-UPD_SIGNAL = oregistry["UPD_SIGNAL"]
+# The FX4 has no ScalerChannel indirection: the detector signal is simply
+# named "UPD" by usaxs.utils.fx4_channels.setup_fx4_channels().
+UPD_SIGNAL_NAME = "UPD"
 I0_controls = oregistry["I0_controls"]
 I00_controls = oregistry["I00_controls"]
 autoscale_amplifiers = oregistry["autoscale_amplifiers"]
@@ -97,10 +99,10 @@ def tune_GslitsCenter():
         x_0 = x_c - abs(width) / 2
         x_n = x_c + abs(width) / 2
 
-        scaler0.select_channels([UPD_SIGNAL.chname.get()])
+        scaler0.select_channels([UPD_SIGNAL_NAME])
         scaler0.channels.chan01.kind = Kind.config
 
-        tuner = TuneAxis([scaler0], motor, signal_name=UPD_SIGNAL.chname.get())
+        tuner = TuneAxis([scaler0], motor, signal_name=UPD_SIGNAL_NAME)
         yield from tuner.tune(width=-width, num=steps + 1)
 
         found = tuner.peak_detected()
@@ -241,10 +243,10 @@ def _USAXS_tune_guardSlits():
         )
         scan_width = end - start
 
-        scaler0.select_channels([UPD_SIGNAL.chname.get()])
+        scaler0.select_channels([UPD_SIGNAL_NAME])
         scaler0.channels.chan01.kind = Kind.config
 
-        tuner = TuneAxis([scaler0], axis, signal_name=UPD_SIGNAL.chname.get())
+        tuner = TuneAxis([scaler0], axis, signal_name=UPD_SIGNAL_NAME)
         yield from tuner.tune(width=scan_width, num=steps + 1)
 
         diff = abs(tuner.peaks.y_data[0] - tuner.peaks.y_data[-1])

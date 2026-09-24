@@ -33,11 +33,7 @@ scaler0.select_channels()
 scaler1.select_channels()
 
 I0 = oregistry["I0"]
-I0_SIGNAL = oregistry["I0_SIGNAL"]
 I00 = oregistry["I00"]
-I00_SIGNAL = oregistry["I00_SIGNAL"]
-TRD_SIGNAL = oregistry["TRD_SIGNAL"]
-UPD_SIGNAL = oregistry["UPD_SIGNAL"]
 
 
 AD_FILE_TEMPLATE = "%s%s_%4.4d.hdf"

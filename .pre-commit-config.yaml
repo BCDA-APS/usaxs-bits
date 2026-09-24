@@ -24,3 +24,7 @@ repos:
           - --exclude=user
           - --exclude=src/usaxs/original_plans
           - --exclude=src/usaxs/plan_templates
+          # areaDetector / fly-scan IOC configuration, deployed to
+          # /share1/AreaDetectorConfig/.  Data, not package code; the one .py
+          # in there is a Python 2 helper run by hand on the beamline host.
+          - --exclude=ADconfigs

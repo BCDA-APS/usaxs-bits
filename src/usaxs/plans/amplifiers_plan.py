@@ -58,7 +58,6 @@ from ..devices.amplifiers import DetectorAmplifierAutorangeDevice
 # ---------------------------------------------------------------------------
 I0 = oregistry["I0"]
 I00 = oregistry["I00"]
-I000 = oregistry["I000"]
 I0_controls = oregistry["I0_controls"]
 I00_controls = oregistry["I00_controls"]
 a_stage = oregistry["a_stage"]
