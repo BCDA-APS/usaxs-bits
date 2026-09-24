@@ -16,28 +16,31 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
+from ..utils.count_time import quantize_count_time
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
 from ..utils.ustep import Ustep
+from .fx4_setup import check_ring_overflows
+from .fx4_setup import enable_fx4_autorange
+from .fx4_setup import prepare_fx4_counting
+from .fx4_setup import usaxs_electrometers
 from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
 I0 = oregistry["I0"]
 I00 = oregistry["I00"]
 trd = oregistry["TRD"]
-upd = oregistry["UPD"]
+# fx4 carries UPD and TRD, fx42 carries I0 and I00.  Both are read at every
+# point, so I0 lands in the same document as UPD -- the shared scaler gate used
+# to give that for free.
+FX4_DETECTORS = usaxs_electrometers()
 
-I0_controls = oregistry["I0_controls"]
-I00_controls = oregistry["I00_controls"]
-trd_controls = oregistry["trd_controls"]
 upd_controls = oregistry["upd_controls"]
 
 a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
-monochromator = oregistry["monochromator"]
 s_stage = oregistry["s_stage"]
-scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_data"]
@@ -136,23 +139,14 @@ def uascan(
 
     count_time_base = count_time
 
-    # stop scaler, if it is counting
-    yield from bps.mv(
-        scaler0.count,
-        0,
-        scaler0.preset_time,
-        count_time,
-        scaler0.count_mode,
-        "OneShot",
-        upd_controls.auto.mode,
-        "automatic",
-        I0_controls.auto.mode,
-        "manual",
-        I00_controls.auto.mode,
-        "manual",
-        usaxs_shutter,
-        "open",
-    )
+    yield from prepare_fx4_counting(count_time)
+    # UPD ranges live through the scan: the signal falls many decades from the
+    # rocking-curve peak out to high q.  Through enable_fx4_autorange so
+    # seq01:channel is pointed at UPD first -- the transmission measurement
+    # that runs just before this leaves it on TRD, and one Range serves both.
+    yield from enable_fx4_autorange(upd_controls, "automatic")
+    # I0 and I00 stay on their fixed range; they have no sequence program.
+    yield from bps.mv(usaxs_shutter, "open")
 
     # original values before scan
     prescan_positions = {
@@ -169,18 +163,19 @@ def uascan(
         a_stage.x.user_readback,
         s_stage.y.user_readback,
         d_stage.x.user_readback,
-        scaler0,
-        upd_controls.auto.gain,
-        I0_controls.auto.gain,
-        I00_controls.auto.gain,
-        trd_controls.auto.gain,
+        *FX4_DETECTORS,
+        # Range diagnostics.  Nothing downstream divides by these -- the FX4
+        # reading is gain-independent -- but a range that railed mid-scan has
+        # to be visible afterwards.  Only UPD has a sequence program.
+        upd_controls.auto.lurange,
         upd_controls.auto.reqrange,
-        I0_controls.auto.reqrange,
-        I00_controls.auto.reqrange,
-        trd_controls.auto.reqrange,
     ]
 
-    # do not report the "quiet" detectors/stages during a uascan
+    # Do not report the "quiet" detectors/stages during a uascan.
+    # TRD shares usxFX4's single Range with UPD, which the autoranger is
+    # optimising for the scattered beam, so TRD is railed for the whole scan
+    # and its value is meaningless here.  I00 has nothing connected.  Setting
+    # them "omitted" keeps them out of the parent electrometer's read.
     quiet_detectors = [
         I00,
         trd,
@@ -242,6 +237,9 @@ def uascan(
     _md["ax0"] = ax0
     _md["SAD_mm"] = SAD_mm
     _md["useDynamicTime"] = str(useDynamicTime)
+    # Same marker name as the fly-scan and areaDetector files: signals that
+    # UPD / I0 are gain-independent picoamps, not counts per second.
+    _md["counting_chain"] = "FX4"
     # Tell BestEffortCallback that AR is the independent variable.  Without this
     # hint BEC guesses "time" as the x axis and plots every hinted field.
     # The first field is the x axis; the rest are shown in the LiveTable only.
@@ -295,9 +293,15 @@ def uascan(
                 target_dx,
                 s_stage.y,
                 target_sy,
-                scaler0.preset_time,
-                count_time,
             ]
+            # Same dwell on both electrometers, set alongside the stage moves
+            # the way scaler0.preset_time used to be.  Quantised to whole mains
+            # cycles: useDynamicTime divides the base by three, which otherwise
+            # lands mid-cycle and leaves 60 Hz pickup that averaging cannot
+            # remove.
+            dwell = quantize_count_time(count_time)
+            for det in FX4_DETECTORS:
+                moves += [det.averaging_time, dwell]
 
             # Suspender rewind boundary, one per point.  The run is already open
             # here (see the run_decorator above), so the checkpoint must live
@@ -313,8 +317,13 @@ def uascan(
 
             # count
             yield from user_data.set_state_plan(f"counting {i + 1}/{intervals}")
-            yield from bps.trigger(scaler0, group="uascan_count")  # start the scaler
-            yield from bps.wait(group="uascan_count")  # wait for the scaler
+            # Fire both electrometers before waiting on either, so the two
+            # integration windows are offset by one channel-access round trip
+            # rather than by a whole exposure.  UPD and I0 are on separate
+            # boxes now; the scaler used to gate them from one clock.
+            for det in FX4_DETECTORS:
+                yield from bps.trigger(det, group="uascan_count")
+            yield from bps.wait(group="uascan_count")
 
             # collect data for the primary stream
             yield from write_stream(read_devices, "primary")
@@ -324,18 +333,14 @@ def uascan(
             # indicate USAXS scan is not running
             terms.USAXS.scanning,
             0,
-            scaler0.count_mode,
-            "AutoCount",
-            upd_controls.auto.mode,
-            "auto+background",
-            I0_controls.auto.mode,
-            "manual",
-            I00_controls.auto.mode,
-            "manual",
             # close the shutter after each scan to preserve the detector
             usaxs_shutter,
             "close",
         )
+        yield from enable_fx4_autorange(upd_controls, "auto+background")
+        # A ring-buffer overflow biases every mean toward the end of its count
+        # and shows up nowhere else in the data.
+        yield from check_ring_overflows(FX4_DETECTORS, "uascan")
         yield from MONO_FEEDBACK_ON()
         yield from user_data.set_state_plan("returning AR, AX, SY, and DX")
 
