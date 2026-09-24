@@ -26,6 +26,7 @@ from ..devices.fx4_quadem import FX4RangeConflictError
 from ..utils.count_time import max_count_time
 from ..utils.count_time import quantize_count_time
 from ..utils.count_time import samples_per_reading
+from ..utils.fx4_ranges import full_scale_pA
 
 logger = logging.getLogger(__name__)
 
@@ -285,6 +286,69 @@ def select_fx4_channel(controls):
         controls.quadem.name,
         controls.channel_number,
     )
+
+
+def fraction_of_full_scale(controls):
+    """Return the reading as a fraction of the active range's full scale.
+
+    Replaces the old ``counts > TR_MAX_ALLOWED_COUNTS`` saturation test.  That
+    threshold worked because a scaler channel had a fixed maximum count rate;
+    the FX4's useful maximum moves with the range, so the test has to move with
+    it too.
+
+    Works for fixed-range detectors as well -- it reads the electrometer's
+    ``Range``, not the sequence program.
+
+    Parameters
+    ----------
+    controls : FX4DetectorControls
+        The detector to check.
+
+    Returns
+    -------
+    float or None
+        ``reading / full scale``, or ``None`` when the range label could not be
+        parsed, in which case the caller has no basis to judge and should not
+        guess.
+    """
+    try:
+        label = controls.quadem.em_range.get(as_string=True)
+        full_scale = full_scale_pA(label)
+        if not full_scale:
+            return None
+        return controls.signal.get() / full_scale
+    except Exception as exc:  # noqa: BLE001 - a missing readback is "unknown"
+        logger.debug("%s: cannot judge saturation: %s", controls.nickname, exc)
+        return None
+
+
+def any_near_full_scale(controls_list, limit):
+    """Return True if any detector is reading above *limit* of full scale.
+
+    Parameters
+    ----------
+    controls_list : iterable of FX4DetectorControls
+        Detectors to check.
+    limit : float
+        Fraction of full scale, e.g. ``0.90``.
+
+    Returns
+    -------
+    bool
+        False when no detector can be judged -- an unparseable range is not
+        evidence of saturation.
+    """
+    for controls in controls_list:
+        fraction = fraction_of_full_scale(controls)
+        if fraction is not None and fraction > limit:
+            logger.info(
+                "%s at %.0f %% of full scale, above the %.0f %% limit",
+                controls.nickname,
+                100 * fraction,
+                100 * limit,
+            )
+            return True
+    return False
 
 
 @plan

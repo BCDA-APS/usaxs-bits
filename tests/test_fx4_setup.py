@@ -100,3 +100,68 @@ def test_group_controls_rejects_a_bare_control():
     """Passing one control instead of a list is a common slip."""
     with pytest.raises(ValueError):
         group_controls_by_box(FakeControls("UPD", FakeBox("fx4"), 1))
+
+
+class FakeRangeBox:
+    """Electrometer stand-in exposing just the Range readback."""
+
+    def __init__(self, label):
+        """Store the range enum label this box reports."""
+        self.name = "fx4"
+        self._label = label
+
+    class _Range:
+        def __init__(self, label):
+            self._label = label
+
+        def get(self, as_string=False):
+            """Return the range label."""
+            return self._label
+
+    @property
+    def em_range(self):
+        """Return the Range signal stand-in."""
+        return self._Range(self._label)
+
+
+class FakeReading:
+    """Detector stand-in with a fixed reading, in pA."""
+
+    def __init__(self, nickname, reading, range_label="100 nA"):
+        """Store nickname, reading and the electrometer's range label."""
+        self.nickname = nickname
+        self.quadem = FakeRangeBox(range_label)
+        self.signal = type("S", (), {"get": staticmethod(lambda: reading)})()
+
+
+def test_fraction_of_full_scale():
+    """100 nA full scale is 1e5 pA, so 9e4 pA is 90 %."""
+    from usaxs.plans.fx4_setup import fraction_of_full_scale
+
+    assert fraction_of_full_scale(FakeReading("I0", 9.0e4)) == pytest.approx(0.9)
+    assert fraction_of_full_scale(FakeReading("I0", 1.0e3)) == pytest.approx(0.01)
+
+
+def test_fraction_is_unknown_when_the_range_label_does_not_parse():
+    """An unfamiliar label must not be turned into a number by guessing."""
+    from usaxs.plans.fx4_setup import fraction_of_full_scale
+
+    assert fraction_of_full_scale(FakeReading("I0", 1e4, "fast 100 nA")) is None
+
+
+def test_saturation_is_detected_on_any_detector():
+    """Either channel topping out means the range needs redoing."""
+    from usaxs.plans.fx4_setup import any_near_full_scale
+
+    low = FakeReading("I0", 1.0e3)
+    high = FakeReading("TRD", 9.9e4)
+    assert any_near_full_scale([low, high], 0.90) is True
+    assert any_near_full_scale([low, low], 0.90) is False
+
+
+def test_unknown_range_is_not_treated_as_saturated():
+    """No basis to judge is not the same as evidence of saturation."""
+    from usaxs.plans.fx4_setup import any_near_full_scale
+
+    unknown = FakeReading("I0", 1e12, "fast 100 nA")
+    assert any_near_full_scale([unknown], 0.90) is False

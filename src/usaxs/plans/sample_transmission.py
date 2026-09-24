@@ -12,12 +12,17 @@ import logging
 import numpy as np
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
 from ..utils.constants import constants
 from .filter_plans import insertScanFilters
 from .filter_plans import insertTransmissionFilters
 from .fx4_autorange_plan import autoscale_amplifiers
+from .fx4_setup import any_near_full_scale
+from .fx4_setup import prepare_fx4_counting
+from .fx4_setup import select_fx4_channel
+from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .no_run import no_run_trigger_and_wait
@@ -28,17 +33,82 @@ logger = logging.getLogger(__name__)
 # Device instances
 I0_controls = oregistry["I0_controls"]
 trd_controls = oregistry["trd_controls"]
+upd_controls = oregistry["upd_controls"]
 
 a_stage = oregistry["a_stage"]
 saxs_stage = oregistry["saxs_stage"]
-scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_data"]
 
+# fx4 carries TRD (and UPD), fx42 carries I0.  Both are triggered for every
+# transmission measurement.
+FX4_DETECTORS = usaxs_electrometers()
+
+
+@plan
+def _restore_upd_channel():
+    """Plan: hand usxFX4's shared Range back to UPD.
+
+    Every transmission measurement points ``seq01:channel`` at TRD, and one
+    Range serves all four channels of an electrometer.  Both callers of these
+    plans -- ``USAXSscanStep`` and ``Flyscan`` -- start scanning immediately
+    afterwards, so leaving the channel on TRD would range the whole scan for
+    the transmitted beam.  Because the reading is gain-independent the result
+    would still look like a plausible current, which is exactly why this runs
+    from a finaliser rather than on the success path.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    yield from select_fx4_channel(upd_controls)
+
+
+@plan
+def _count_transmission(count_time):
+    """Plan: take one reading on both electrometers.
+
+    Parameters
+    ----------
+    count_time : float
+        Integration time, seconds.  Quantised to whole mains cycles.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+
+    Returns
+    -------
+    tuple of float
+        ``(diode pA, I0 pA)``.
+    """
+    yield from prepare_fx4_counting(count_time)
+    # Both boxes fire before either is waited on, so their integration windows
+    # differ by a channel-access round trip rather than a whole exposure.
+    yield from no_run_trigger_and_wait(FX4_DETECTORS)
+    return trd_controls.signal.get(), I0_controls.signal.get()
+
 
 @plan
 def measure_USAXS_Transmission():
+    """Bluesky plan: measure sample transmission in USAXS mode.
+
+    Wraps the measurement so that usxFX4's shared Range is always handed back
+    to UPD, including on an exception or an abort -- see
+    :func:`_restore_upd_channel`.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    yield from bpp.finalize_wrapper(
+        _measure_USAXS_Transmission(), _restore_upd_channel()
+    )
+
+
+@plan
+def _measure_USAXS_Transmission():
     """Bluesky plan: measure sample transmission in USAXS mode.
 
     Does not create a Bluesky run.  Moves the analyzer stage to the
@@ -76,26 +146,20 @@ def measure_USAXS_Transmission():
 
             yield from autoscale_amplifiers([I0_controls, trd_controls])
 
-            yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
-            scaler0.select_channels(["I0", "TRD"])
-            yield from no_run_trigger_and_wait([scaler0])
-            scaler0.select_channels()
-            s = scaler0.read()
-            secs = s["scaler0_time"]["value"]
-            _tr_diode = s["TRD"]["value"]
-            _I0 = s["I0"]["value"]
+            _tr_diode, _I0 = yield from _count_transmission(
+                trmssn.count_time.get()
+            )
 
-            if (
-                _tr_diode > secs * constants["TR_MAX_ALLOWED_COUNTS"]
-                or _I0 > secs * constants["TR_MAX_ALLOWED_COUNTS"]
+            # Topped out means the range is wrong, so re-range and re-measure.
+            # Judged as a fraction of the active range rather than an absolute
+            # number: the FX4's useful maximum moves with the range.
+            if any_near_full_scale(
+                [trd_controls, I0_controls], constants["TR_MAX_FRACTION_OF_RANGE"]
             ):
                 yield from autoscale_amplifiers([I0_controls, trd_controls])
-
-                yield from bps.mv(scaler0.preset_time, trmssn.count_time.get())
-                scaler0.select_channels(["I0", "TRD"])
-                yield from no_run_trigger_and_wait([scaler0])
-                scaler0.select_channels(None)
-                s = scaler0.read()
+                _tr_diode, _I0 = yield from _count_transmission(
+                    trmssn.count_time.get()
+                )
 
             yield from bps.mv(
                 # fmt: off
@@ -106,24 +170,28 @@ def measure_USAXS_Transmission():
                 # fmt: on
             )
             yield from insertScanFilters()
+            # The FX4 reading is gain-independent picoamps, so transmission is
+            # just diode / I0.  The *_gain PVs are kept at 1.0 rather than
+            # retired: anything downstream that still divides by them then gets
+            # the right answer.  Writing the FX4 range index here instead would
+            # be silently wrong by orders of magnitude.
             yield from bps.mv(
                 # fmt: off
                 trmssn.diode_counts,
-                s["TRD"]["value"],
+                _tr_diode,
                 trmssn.diode_gain,
-                trd_controls.femto.gain.get(),
+                1.0,
                 trmssn.I0_counts,
-                s["I0"]["value"],
+                _I0,
                 trmssn.I0_gain,
-                I0_controls.femto.gain.get(),
+                1.0,
                 # fmt: on
             )
             logger.info(
-                "Measured USAXS transmission values :"
-                f" Diode = {terms.USAXS.transmission.diode_counts.get():.0f}"
-                f" with gain {terms.USAXS.transmission.diode_gain.get():g}"
-                f" and I0 = {terms.USAXS.transmission.I0_counts.get():.0f}"
-                f" with gain {terms.USAXS.transmission.I0_gain.get():g}"
+                "Measured USAXS transmission:"
+                f" diode = {_tr_diode:.4g} pA,"
+                f" I0 = {_I0:.4g} pA,"
+                f" ratio = {_tr_diode / _I0 if _I0 else float('nan'):.4g}"
             )
 
         else:
@@ -148,6 +216,23 @@ def measure_USAXS_Transmission():
 
 @plan
 def measure_SAXS_Transmission():
+    """Bluesky plan: measure sample transmission in SAXS mode.
+
+    Wraps the measurement so that usxFX4's shared Range is always handed back
+    to UPD, including on an exception or an abort -- see
+    :func:`_restore_upd_channel`.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    yield from bpp.finalize_wrapper(
+        _measure_SAXS_Transmission(), _restore_upd_channel()
+    )
+
+
+@plan
+def _measure_SAXS_Transmission():
     """Bluesky plan: measure sample transmission in SAXS mode.
 
     Does not create a Bluesky run.  Moves the SAXS pinhole stage to the
@@ -178,34 +263,15 @@ def measure_SAXS_Transmission():
             # fmt: on
         )
 
-        yield from bps.mv(
-            # fmt: off
-            scaler0.preset_time,
-            constants["SAXS_TR_TIME"],
-            # fmt: on
-        )
-        scaler0.select_channels(["I0", "TRD"])
-        yield from no_run_trigger_and_wait([scaler0])
-        scaler0.select_channels(None)
-        s = scaler0.read()
-        secs = s["scaler0_time"]["value"]
-        _tr_diode = s["TRD"]["value"]
-        _I0 = s["I0"]["value"]
+        _tr_diode, _I0 = yield from _count_transmission(constants["SAXS_TR_TIME"])
 
-        if (
-            _tr_diode > secs * constants["TR_MAX_ALLOWED_COUNTS"]
-            or _I0 > secs * constants["TR_MAX_ALLOWED_COUNTS"]
+        if any_near_full_scale(
+            [trd_controls, I0_controls], constants["TR_MAX_FRACTION_OF_RANGE"]
         ):
             yield from autoscale_amplifiers([I0_controls, trd_controls])
-
-            yield from bps.mv(
-                # fmt: off
-                scaler0.preset_time,
-                constants["SAXS_TR_TIME"],
-                # fmt: on
+            _tr_diode, _I0 = yield from _count_transmission(
+                constants["SAXS_TR_TIME"]
             )
-            yield from no_run_trigger_and_wait([scaler0])
-            s = scaler0.read()
 
         # x has to move before z, close shutter...
         yield from bps.mv(
@@ -220,26 +286,25 @@ def measure_SAXS_Transmission():
         yield from bps.mv(saxs_stage.z, terms.SAXS.z_in.get())
 
         yield from insertScanFilters()
+        # gain = 1.0: the FX4 reading is already gain-independent pA.  See the
+        # matching note in measure_USAXS_Transmission.
         yield from bps.mv(
             # fmt: off
             terms.SAXS_WAXS.diode_transmission,
-            s["TRD"]["value"],
+            _tr_diode,
             terms.SAXS_WAXS.diode_gain,
-            trd_controls.femto.gain.get(),
+            1.0,
             terms.SAXS_WAXS.I0_transmission,
-            s["I0"]["value"],
+            _I0,
             terms.SAXS_WAXS.I0_gain,
-            I0_controls.femto.gain.get(),
+            1.0,
             # fmt: on
         )
         logger.info(
-            (
-                "Measured SAXS transmission values :"
-                f" Diode = {terms.SAXS_WAXS.diode_transmission.get():.0f}"
-                f" with gain {terms.SAXS_WAXS.diode_gain.get():g}"
-                f" and I0 = {terms.SAXS_WAXS.I0_transmission.get():.0f}"
-                f" with gain {terms.SAXS_WAXS.I0_gain.get():g}"
-            )
+            "Measured SAXS transmission:"
+            f" diode = {_tr_diode:.4g} pA,"
+            f" I0 = {_I0:.4g} pA,"
+            f" ratio = {_tr_diode / _I0 if _I0 else float('nan'):.4g}"
         )
 
     except Exception as e:

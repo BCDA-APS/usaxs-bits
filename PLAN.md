@@ -1031,8 +1031,8 @@ defensive fallback, not a code edit**. Specifically:
 | `fx4_autorange_plan.py`: autoscale + `measure_background` in pA | ✅ done |
 | Tune plans (8), `tune_guard_slits` | ✅ done |
 | `uascan` | ✅ done |
-| Transmission (both), with the `channel=4` switch in a `finally` | **next** |
-| Fly-scan plan: arm TS, harvest, progress reporting off `ts_current_point` | todo |
+| Transmission (both), with the `channel=4` switch in a `finally` | ✅ done |
+| Fly-scan plan: arm TS, harvest, progress reporting off `ts_current_point` | **next** |
 | SAXS/WAXS plans: software-triggered `fx42` I0 (section 5.0) | todo |
 | Delete `gainU`/`gainD` writes + `setpoint_up/down` signals (Q18) | todo |
 | Drop scaler0 `I000`, `I000_femto_amplifier`, `I000_photocurrent_calc` | todo |
