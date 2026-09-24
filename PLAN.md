@@ -502,9 +502,13 @@ put it back to 1. The `[upd, I0, I00]` sites are fine while I00 is fixed-range,
 and will raise the moment it is not — which is the desired behaviour.
 
 **Convergence window.** `min_count_rate=500` / `max_count_rate=950000` become
-current limits. Express them as a **fraction of full scale** of the active range
-(e.g. converge into 5-90 %) rather than absolute amps, so a range-table change
-does not silently invalidate them. `seq01:gainU`/`gainD` are the IOC-side setpoints, already tuned. The plans must
+`min_fraction=0.10` / `max_fraction=0.90` -- matching the IOC, which switches
+down below 10 % of full scale and up above 90 %. Fractions rather than absolute
+currents, so a range-table change cannot silently invalidate them; full scale
+comes from parsing the `Range` enum label
+(`utils/fx4_ranges.py: full_scale_pA`). Absolute backstops of 1 pA and 1e10 pA
+(10 mA, the top of the FX4 range table) catch a nonsense reading -- a dead PV,
+a unit error -- that the fractional test would pass. `seq01:gainU`/`gainD` are the IOC-side setpoints, already tuned. The plans must
 **stop writing them** — see the trap below.
 
 #### ⚠️ A guaranteed Sunday bug: the plans will overwrite your tuned `gainU`/`gainD`
@@ -796,36 +800,33 @@ The `usxLAX:USAXSfly:<det>:{mcsChan,ampGain,ampReqGain}` gain-change arrays are
 **dropped** — that patch has not been used in a long time and is not being
 carried forward. Record `lurange` before and after the sweep and leave it there.
 
-#### (2)+(3) SAXS / WAXS — `ADconfigs/{SAXS,WAXS}_config/`
+#### (2)+(3) SAXS / WAXS -- DONE (offline)
 
-`attributes.xml` — add these. Leave the existing `*_cts` attributes in place:
-they will read zero/stale once rewired, but removing them changes the file
-schema for readers that expect them, and a zero is a clearer signal than a
-missing field. Revisit after the conversion is proven.
+`ADconfigs/{SAXS,WAXS}_config/attributes.xml` and the two layout files now
+carry the FX4 chain. Decisions worth knowing on the reduction side:
 
-```xml
-<Attribute name="I0_current"    type="EPICS_PV" source="usxFX42:FX4:Current1:MeanValue_RBV" .../>
-<Attribute name="I00_current"   type="EPICS_PV" source="usxFX42:FX4:Current2:MeanValue_RBV" .../>
-<Attribute name="TRD_current"   type="EPICS_PV" source="usxFX4:FX4:Current4:MeanValue_RBV"  .../>
-<Attribute name="I0_range"      type="EPICS_PV" source="usxFX42:FX4:Range_RBV"              .../>  <!-- diagnostic -->
-<Attribute name="FX4_AvgTime"   type="EPICS_PV" source="usxFX4:FX4:AveragingTime_RBV"       .../>
-```
-
-Because of `ndattr_default="true"` these appear in `/entry/Metadata`
-automatically — **no `layout.xml` edit needed for the additions**. Two layout
-edits *are* needed:
-
-1. the version marker constants (§1.4);
-2. `/entry/control/integral` currently hardlinks `Metadata/I0_cts_gated`. If
-   I0-gated moves off `scaler1` this target must change (Q7). If `scaler1` stays
-   — the low-risk Sunday answer — leave it exactly as is.
-
-Note the ordering rule at the top of `attributes.xml`: EPICS_PV entries must
-come before PARAM before FUNCTION. Insert in the right block or the AD plugin
-rejects the file.
-
-`ADconfigs/WAXS_config/copy_attributes_to_template.py` propagates the attribute
-list into the template as an `NXcollection`; re-run it after editing.
+* **`I0_cts_gated` keeps its name, and now sources `Current1:Total_RBV`** --
+  the sum of samples in the reading, i.e. the scaler-like integral. That is the
+  semantically right thing behind `/entry/control/integral` (an NXmonitor
+  integral, not a mean), and it means the `layout.xml` hardlink needed no
+  change at all. Absolute charge is `I0_cts_gated x FX4_SampleTime`, in pA.s.
+  `MeanValue_RBV` is exposed separately as `I0_current`.
+  *Using `Total` rather than `MeanValue` also makes normalisation robust to a
+  varying exposure time, which the software-triggered window (section 5.0) will
+  have.*
+* Added: `I0_current`, `I00_current`, `FX4_SampleTime`, `I0_range`
+  (diagnostic), `FX4_RingOverflows`; WAXS additionally gets `TR_cts_gated` and
+  `TR_current` from `usxFX4:FX4:Current4`.
+* The old-chain attributes (`I0_cts`, `I00_cts`, `TR_cts`, `scaler_freq`,
+  `*_gain`) are **commented out, not deleted** -- one uncomment each to roll
+  back. Nothing feeds them after the rewire, and a stale value is worse than an
+  absent one.
+* `I000_cts` is untouched: it comes from `usxLAX:vsc:c2`, a different scaler,
+  outside this conversion (section 1.5).
+* `counting_chain = "FX4"` and `config_version = "2.0"` added to both layouts as
+  constants under `/entry`.
+* ⚠️ Re-run `ADconfigs/WAXS_config/copy_attributes_to_template.py` before
+  deploying, so the template's `NXcollection` matches the new attribute list.
 
 #### (4) uascan HDF5 — `callbacks/nxwriter_usaxs.py`
 
@@ -996,61 +997,62 @@ idle config the plans restore the same way?
 
 ## 9. Order of work
 
-Everything is in scope. The rollback window is weeks (§6), so this is ordered by
-**risk**, not by deadline: the fly scan moves up, because PSO/VPR commissioning
-is the one thing that cannot be resolved at a desk and needs instrument time that
-cannot be compressed.
+**Constraint that drives everything: there is no instrument access until
+Sunday, and beamtime is the scarce resource, not coding time.** So the goal for
+the next two days is to arrive on Sunday with nothing left to *write* -- only
+things to *check and tweak*.
 
-**First**
-1. §7 bench script. Confirms pA units, TS record names and the PSO strobe width.
-   Q14 is already answered, so the `seq0*` query can be skipped.
+### Design rule for everything written offline
 
-**Foundation — everything depends on these**
-2. Extend `QuadFX4`: staging-independent `trigger()`, `TriggerPolarity`, TS
-   control records, `FX4AutorangeDevice` (drop `gain`/`gainN`/`vfc`/`lucounts`/
-   `lurate`, add `channel`/`current`/`modeRdbk`/`speed`), `FX4DetectorControls`
-   carrying a channel number. Testable standalone, no plan changes.
-3. `fx4_setup.py` config plans, `quantize_count_time`, config-driven channel
-   naming (`UPD`/`I0`/`I00`/`TRD`).
-4. `select_fx4_channel` + `group_controls_by_box` with the range-conflict guard
-   (§2.3/§4.1). Small, but every later phase depends on getting it right.
+Anything that might turn out wrong on Sunday should be a **config value or a
+defensive fallback, not a code edit**. Specifically:
 
-**Risk first**
-5. **PSO/VPR commissioning** (§5.2). Needs the instrument and a trajectory; runs
-   in parallel with the coding below once step 3 lands.
-6. Fly-scan plan + `saveFlyData.xml` v2.0.
+* channel map in `iconfig.yml`, never a literal in a plan;
+* enum values written as strings (`"Free run"`, `"Ext. bulb"`) so a menu-order
+  surprise does not matter;
+* range full scale parsed from the `Range` label, returning `None` and falling
+  back to absolute backstops rather than guessing
+  (`utils/fx4_ranges.py`);
+* thresholds as ophyd `Signal`s so they can be changed live from the console;
+* the TS record suffixes are the one place a live surprise means a real edit
+  (section 3.1) -- so keep them in one class, not scattered.
 
-**Mechanical**
-7. `tune_mr` end to end — prove the trigger/exposure model on one plan before
-   replicating to the other seven.
-8. Remaining tune plans, `tune_guard_slits`, `uascan` (drop TRD/I00 and most of
-   the `quiet_detectors` machinery).
-9. Transmission, with the `channel=4` switch in a `finally` (§5.1). Autoscale and
-   `measure_background` in pA (Q16, Q19). **Delete the `gainU`/`gainD` write
-   blocks and the `setpoint_up/down` signals** (Q18).
-10. SAXS/WAXS: software-triggered `fx42` I0 (§5.0) and
-    `ADconfigs/{SAXS,WAXS}_config/attributes.xml`.
+### Offline: can be finished before Sunday
 
-**Wrap-up**
-11. `counting_chain`/`config_version` in all four formats; `SKILL.md`
-    counting-chain section; `CLAUDE.md` architecture update;
-    `ADconfigs/README.md`; regenerate
-    `src/usaxs/qserver/existing_plans_and_devices.yaml`;
-    `pre-commit run --all-files`.
+| | status |
+|---|---|
+| Phase 0 device layer: `QuadFX4`, `FX4AutorangeDevice`, `FX4DetectorControls` | ✅ done (`2c48e0f`) |
+| `quantize_count_time`, ring-buffer helpers, tests | ✅ done |
+| `fx4_setup.py`: mode plans, `select_fx4_channel`, `group_controls_by_box` | ✅ done |
+| Fraction-of-full-scale thresholds + `fx4_ranges.py` | ✅ done |
+| SAXS/WAXS `attributes.xml` + `layout.xml` v2.0 | ✅ done |
+| `saveFlyData.xml` v2.0 (+ `channel_time` in `saveFlyData.py`) | **next** |
+| Device/config YAML: `fx4`/`fx42` entries, autorange devices, channel map, baseline labels | todo |
+| `fx4_autorange_plan.py`: autoscale + `measure_background` in pA | todo |
+| Tune plans (8), `tune_guard_slits` | todo |
+| `uascan` | todo |
+| Transmission (both), with the `channel=4` switch in a `finally` | todo |
+| Fly-scan plan: arm TS, harvest, progress reporting off `ts_current_point` | todo |
+| SAXS/WAXS plans: software-triggered `fx42` I0 (section 5.0) | todo |
+| Delete `gainU`/`gainD` writes + `setpoint_up/down` signals (Q18) | todo |
+| Drop scaler0 `I000`, `I000_femto_amplifier`, `I000_photocurrent_calc` | todo |
+| `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` | todo |
 
-### Where the uncertainty actually is
+### Needs the instrument: keep this list short
 
-Steps 2-4 and 7-10 are a lot of edits but low uncertainty — gated by typing and
-by Q19. Step 9 got noticeably smaller once gain bookkeeping went away (§2.1), and
-step 8 got smaller once TRD/I00 left the uascan stream (§2.3).
+1. **Bench script (section 7)** -- pA units, TS record names, `Range` enum
+   labels, PSO strobe width. 15 minutes, and it is the input to everything
+   below.
+2. **PSO/VPR commissioning (section 5.2)** -- the only genuinely empirical
+   task. Bisect VPR against captured-pulse count, with both boxes streaming.
+3. **Threshold tuning** -- `min_fraction`/`max_fraction` are live `Signal`s, so
+   this is console typing, not editing.
+4. **Validation** against the standard reference material (section 6).
+5. **Regenerate** `src/usaxs/qserver/existing_plans_and_devices.yaml` -- needs a
+   live session.
 
-Steps 5-6 are the real risk. The PSO/VPR window has to be found empirically, and
-if it is narrow — or the strobe needs widening in the Aerotech config — that is
-instrument time nobody can compress. Front-loading step 5 is the main lever, and
-the weeks-long rollback window means a fly scan that is not ready on Sunday is a
-delay rather than a failure.
+### If Sunday goes badly
 
-The quiet risk is step 4. A missed `seq01:channel` restore does not raise
-anything — it silently autoranges the wrong detector, and on a gain-independent
-readout the resulting numbers still look like currents. Hence the explicit
-conflict guard and the `finally` on the transmission restore.
+The rollback window is weeks (section 6). A fly scan that is not working on
+Sunday is a delay, not a failure: step scans, tuning and transmission are
+independent of the PSO question and can be validated on their own.

@@ -6,6 +6,13 @@
     <attribute name="default"       value="data"    source="constant" type="string"/>
     
     <dataset  name="definition"     value="NXsas" source="constant" type="string"/>
+
+    <!-- Which counting chain produced this file.  Absent or "SCALER" means the
+         Femto/V-F/scaler chain and counts; "FX4" means the FX4 electrometers
+         and gain-independent pA.  Data reduction should branch on this.
+         Use the same two names in every USAXS file format. -->
+    <dataset  name="counting_chain" value="FX4"   source="constant" type="string"/>
+    <dataset  name="config_version" value="2.0"   source="constant" type="string"/>
     <dataset  name="program_name"   value="EPICS areaDetector" source="constant" type="string"/>
     <hardlink name="run_cycle"      target="/entry/Metadata/APS_run_cycle"/>
     <hardlink name="start_time"     target="/entry/Metadata/StartTime"/>
@@ -18,6 +25,11 @@
       <attribute name="NX_class" value="NXmonitor" source="constant" type="string"/> 
       <dataset  name="mode"      value="timer"     source="constant" type="string"/>
       <hardlink name="preset"    target="/entry/Metadata/PresetTime"/>
+      <!-- I0_cts_gated is now the FX4 Total_RBV: the sum of samples in the
+           reading, i.e. the scaler-like integral.  Multiply by
+           Metadata/FX4_SampleTime for charge in pA.s.  Unchanged target, so
+           readers of /entry/control/integral keep working; counting_chain
+           says the units changed. -->
       <hardlink name="integral"  target="/entry/Metadata/I0_cts_gated"/>
     </group>                 <!-- end group control -->
  

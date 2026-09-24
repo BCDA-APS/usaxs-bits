@@ -95,6 +95,49 @@
     -->
 
     <Attribute name="I000_cts"		     type="EPICS_PV" source="usxLAX:vsc:c2_cts1.B"		 dbrtype="DBR_NATIVE" description="I000 counts"/>
+    <!-- ==================================================================
+         COUNTING CHAIN: FX4 electrometers          counting_chain = "FX4"
+         ==================================================================
+         Replaces the Femto amplifier / V-F converter / scaler chain.
+         See PLAN.md and docs/FX4_config_cheatsheet.md.
+
+         Units are pA and the reading is GAIN-INDEPENDENT: there is no
+         amplifier gain to divide by.  Normalisation is simply
+         image / I0_cts_gated.  The *_range attributes are diagnostics only;
+         nothing downstream consumes them.
+
+         Channel map (configs/iconfig.yml is authoritative):
+             usxFX4:FX4:   Current1 = UPD    Current4 = TRD
+             usxFX42:FX4:  Current1 = I0     Current2 = I00
+
+         I0_cts_gated keeps its name so /entry/control/integral and any
+         reduction path that reads it keep working.  Its source is now
+         Total_RBV, the sum of samples in the reading, which is the
+         scaler-like integral and therefore the right thing for an NXmonitor
+         "integral".  Absolute charge is Total x FX4_SampleTime, in pA.s.
+         MeanValue_RBV is exposed separately as I0_current.
+
+         SUNDAY STOPGAP (PLAN.md section 5.0): the FX4 has no hardware gate
+         tied to the detector exposure, so the integration window is
+         software-triggered to approximately the image exposure time.  Good
+         enough while exposures are uniform; proper gating is a shutdown task.
+         ================================================================== -->
+    <Attribute name="I0_cts_gated"             type="EPICS_PV" source="usxFX42:FX4:Current1:Total_RBV"       dbrtype="DBR_NATIVE" description="I0 integral over the exposure (sum of samples; x FX4_SampleTime = pA.s)"/>
+    <Attribute name="I0_current"               type="EPICS_PV" source="usxFX42:FX4:Current1:MeanValue_RBV"   dbrtype="DBR_NATIVE" description="I0 mean photocurrent, pA"/>
+    <Attribute name="I00_current"              type="EPICS_PV" source="usxFX42:FX4:Current2:MeanValue_RBV"   dbrtype="DBR_NATIVE" description="I00 mean photocurrent, pA"/>
+    <Attribute name="TR_cts_gated"             type="EPICS_PV" source="usxFX4:FX4:Current4:Total_RBV"        dbrtype="DBR_NATIVE" description="transmission diode integral over the exposure (sum of samples)"/>
+    <Attribute name="TR_current"               type="EPICS_PV" source="usxFX4:FX4:Current4:MeanValue_RBV"    dbrtype="DBR_NATIVE" description="transmission diode mean photocurrent, pA"/>
+    <Attribute name="Exp_time_gated"           type="EPICS_PV" source="usxFX42:FX4:AveragingTime_RBV"        dbrtype="DBR_NATIVE" description="FX4 integration time, s"/>
+    <Attribute name="FX4_SampleTime"           type="EPICS_PV" source="usxFX42:FX4:SampleTime_RBV"           dbrtype="DBR_NATIVE" description="FX4 sample period, s (ValuesPerRead x 10 us)"/>
+    <Attribute name="I0_range"                 type="EPICS_PV" source="usxFX42:FX4:Range_RBV"                dbrtype="DBR_NATIVE" description="FX4 range for I0 and I00. DIAGNOSTIC ONLY, not a gain"/>
+    <Attribute name="FX4_RingOverflows"        type="EPICS_PV" source="usxFX42:FX4:RingOverflows"            dbrtype="DBR_NATIVE" description="non-zero means samples were dropped and the mean is biased"/>
+
+    <!-- Superseded by the FX4 block above.  These PVs still exist but nothing
+         feeds them once the diodes are rewired: the I0 V-F frequency that was
+         split into vsc:c0 and vsc:c1 is gone with the Femto amplifiers, so
+         they would report a stale value rather than a wrong but live one.
+         Kept commented (not deleted) so a rollback to the scaler chain is one
+         uncomment per entry.
     <Attribute name="I0_cts"		     type="EPICS_PV" source="usxLAX:vsc:c0.S2"		       dbrtype="DBR_NATIVE" description="I0 counts"/>
     <Attribute name="TR_cts"		     type="EPICS_PV" source="usxLAX:vsc:c0.S5"		       dbrtype="DBR_NATIVE" description="TR counts"/>
     <Attribute name="I0_cts_gated"	     type="EPICS_PV" source="usxLAX:vsc:c1.S2"		   dbrtype="DBR_NATIVE" description="I0 counts gated"/>
@@ -105,6 +148,7 @@
     <Attribute name="I0_gain"		     type="EPICS_PV" source="usxRIO:fem02:seq01:gain" 	 dbrtype="DBR_NATIVE" description="I0 V/A gain"/>
     <Attribute name="I00_gain"		     type="EPICS_PV" source="usxRIO:fem03:seq01:gain"  dbrtype="DBR_NATIVE" description="I00 V/A gain"/>
     <Attribute name="TR_gain"		     type="EPICS_PV" source="usxRIO:fem05:seq01:gain" 	 dbrtype="DBR_NATIVE" description="TR V/A gain"/>
+    -->
 
     <Attribute name="GuardslitVap"	     type="EPICS_PV" source="usxLAX:GSlit1V:size.VAL"		dbrtype="DBR_NATIVE" description="Guard slit, vertical aperture, mm"/>
     <Attribute name="GuardslitHap"	     type="EPICS_PV" source="usxLAX:GSlit1H:size.VAL"		dbrtype="DBR_NATIVE" description="Guard slit, horizontal aperture, mm"/>

@@ -544,13 +544,22 @@ class FX4AutorangeDevice(Device):
     speed = Component(EpicsSignal, "speed", kind="config")
     debug = Component(EpicsSignal, "debug", kind="omitted")
 
-    # Sanity bounds for the Bluesky-side convergence check, in pA.  The IOC's
-    # own gainU/gainD do the actual ranging; these only answer "did it settle
-    # somewhere sensible, and is it not railed?".
-    # TODO: set on the instrument -- placeholders until the FX4 ranges and
-    # typical UPD/TRD currents are measured (PLAN.md section 4.1).
-    max_current = Component(Signal, value=1.0e9, kind="config")
+    # --- convergence window for the Bluesky-side sanity check -------------
+    # The IOC does the actual ranging; these only answer "did it settle
+    # somewhere sensible, and is it not railed?".  Expressed as a fraction of
+    # the active range's full scale rather than an absolute current, so a
+    # change to the range table does not silently invalidate them.  The IOC
+    # currently switches down below 10 % and up above 90 %; matching those
+    # means the check passes exactly when the sequence program is content.
+    min_fraction = Component(Signal, value=0.10, kind="config")
+    max_fraction = Component(Signal, value=0.90, kind="config")
+
+    # Absolute backstops, pA.  1 pA is well under any real dark current
+    # (~10 nA); 1e10 pA is the 10 mA top of the FX4's range table, above the
+    # ~1 mA maximum real current.  These only catch a nonsense reading -- a
+    # disconnected PV, a unit error -- that the fractional test would miss.
     min_current = Component(Signal, value=1.0e0, kind="config")
+    max_current = Component(Signal, value=1.0e10, kind="config")
 
     settling_time = Component(Signal, value=0.08, kind="config")
 
@@ -602,6 +611,28 @@ class FX4AutorangeDevice(Device):
         if v:
             v = self.updating.get() in (1, "Updating")
         return v
+
+    def current_window(self, full_scale_pA):
+        """Return the acceptable current window for a range, in pA.
+
+        Parameters
+        ----------
+        full_scale_pA : float or None
+            Full-scale current of the active range, pA.  ``None`` when the
+            range could not be parsed, in which case only the absolute
+            backstops apply.
+
+        Returns
+        -------
+        tuple of float
+            ``(low, high)`` in pA.
+        """
+        low = self.min_current.get()
+        high = self.max_current.get()
+        if full_scale_pA:
+            low = max(low, self.min_fraction.get() * full_scale_pA)
+            high = min(high, self.max_fraction.get() * full_scale_pA)
+        return low, high
 
 
 class FX4DetectorControls(Device):
