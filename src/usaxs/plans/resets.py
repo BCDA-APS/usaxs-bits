@@ -12,7 +12,7 @@ from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
-from usaxs.devices.amplifiers import AutorangeSettings
+from usaxs.devices.fx4_quadem import FX4AutorangeSettings as AutorangeSettings
 
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON

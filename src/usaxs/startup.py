@@ -200,7 +200,6 @@ else:
     from usaxs.utils.obsidian import recordUserAbort
     from usaxs.utils.obsidian import recordUserStart
 
-    from .plans.amplifiers_plan import autoscale_amplifiers
     from .plans.area_detector_plans import areaDetectorAcquire
     from .plans.autocollect_plan import remote_ops
     from .plans.axis_tuning import find_a2rp
@@ -223,6 +222,7 @@ else:
     from .plans.filter_plans import insertScanFilters
     from .plans.filter_plans import insertTransmissionFilters
     from .plans.filter_plans import insertWaxsFilters
+    from .plans.fx4_autorange_plan import autoscale_amplifiers
     from .plans.mode_changes import mode_DirectBeam
     from .plans.mode_changes import mode_OpenBeamPath
     from .plans.mode_changes import mode_Radiography

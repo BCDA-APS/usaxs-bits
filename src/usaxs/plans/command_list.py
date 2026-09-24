@@ -29,10 +29,10 @@ from usaxs.utils.obsidian import recordRunCommandFile
 from ..usaxs_flyscan_support.nexus_flyscan import reset_manager
 from ..utils.constants import constants
 from ..utils.quoted_line import split_quoted_line
-from .amplifiers_plan import measure_background
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
 from .axis_tuning import user_defined_settings
+from .fx4_autorange_plan import measure_background
 from .mode_changes import mode_DirectBeam
 from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
@@ -42,6 +42,8 @@ from .plans_tune import allUSAXStune
 from .plans_tune import preSWAXStune
 from .plans_tune import preUSAXStune
 from .requested_stop import RequestAbort
+
+
 # pi_c867 device disabled — provide no-op stubs so command lists still parse
 # originals are in sample_rotator_plans
 def PI_Off(timeout=1): yield from bps.sleep(0)
@@ -169,9 +171,11 @@ def before_command_list(md=None, commands=None):
     )
 
     if constants["MEASURE_DARK_CURRENTS"]:
-        yield from measure_background(
-            [upd_controls, I0_controls, I00_controls, trd_controls],
-        )
+        # UPD only.  I0 and I00 run at a fixed range and have no sequence
+        # program to store a dark reading in; TRD shares usxFX4's single bkg
+        # table with UPD, and transmission is a ratio of two strong signals so
+        # its dark does not matter (PLAN.md Q19).
+        yield from measure_background([upd_controls])
 
     # reset the ranges to be used when tuning optical axes (issue #129)
     # These routines are defined in file: 29-axis-tuning.py

@@ -36,7 +36,7 @@ from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
-from ..devices.amplifiers import AutorangeSettings
+from ..devices.fx4_quadem import FX4AutorangeSettings as AutorangeSettings
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 
 logger = logging.getLogger(__name__)

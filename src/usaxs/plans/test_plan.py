@@ -16,8 +16,8 @@ from bluesky.utils import plan
 
 from usaxs.utils.utils import techniqueSubdirectory
 
-from .amplifiers_plan import autoscale_amplifiers
 from .area_detector_plans import areaDetectorAcquire
+from .fx4_autorange_plan import autoscale_amplifiers
 from .sample_imaging import record_sample_image_on_demand
 
 saxs_det = oregistry["saxs_det"]

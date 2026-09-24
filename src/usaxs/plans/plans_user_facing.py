@@ -23,12 +23,12 @@ from ..utils.constants import constants
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
 from ..utils.utils import techniqueSubdirectory
-from .amplifiers_plan import autoscale_amplifiers
 from .area_detector_plans import areaDetectorAcquire
 from .command_list import after_plan
 from .command_list import before_plan
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertWaxsFilters
+from .fx4_autorange_plan import autoscale_amplifiers
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_WAXS
 from .mono_feedback import MONO_FEEDBACK_OFF

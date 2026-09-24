@@ -37,7 +37,7 @@ from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 
-from .amplifiers_plan import autoscale_amplifiers
+from .fx4_autorange_plan import autoscale_amplifiers
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
 

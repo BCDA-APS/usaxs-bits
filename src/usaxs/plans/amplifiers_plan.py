@@ -1,5 +1,19 @@
 """Amplifier autoscale and background-measurement plans for USAXS detectors.
 
+.. deprecated::
+   SUPERSEDED by :mod:`usaxs.plans.fx4_autorange_plan`, which provides the same
+   public names (``autoscale_amplifiers``, ``measure_background``,
+   ``UPDRange``) for the FX4 electrometers.  Nothing imports this module any
+   more; it is kept alongside the commented Femto block in
+   ``configs/autorange_devices.yml`` so that reverting the counting chain is a
+   configuration change.
+
+   Do not import it while the FX4 configuration is active: the module-level
+   lookups below resolve to ``FX4DetectorControls`` objects, and
+   ``group_controls_by_scaler`` asserts they are
+   ``DetectorAmplifierAutorangeDevice``.
+
+
 This module provides Bluesky plans that drive the Femto current-amplifier
 autorange sequence programs.  The main public entry points are:
 

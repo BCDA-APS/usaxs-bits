@@ -15,9 +15,9 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
 from ..utils.constants import constants
-from .amplifiers_plan import autoscale_amplifiers
 from .filter_plans import insertScanFilters
 from .filter_plans import insertTransmissionFilters
+from .fx4_autorange_plan import autoscale_amplifiers
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
 from .no_run import no_run_trigger_and_wait

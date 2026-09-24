@@ -25,11 +25,11 @@ from usaxs.utils.user_sample_title import getSampleTitle
 from usaxs.utils.utils import techniqueSubdirectory
 
 from ..utils.a2q_q2a import q2angle
-from .amplifiers_plan import autoscale_amplifiers
 from .command_list import after_plan
 from .command_list import before_plan
 from .filter_plans import insertScanFilters
 from .fly_scan_plan import Flyscan_internal_plan
+from .fx4_autorange_plan import autoscale_amplifiers
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
