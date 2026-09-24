@@ -20,6 +20,7 @@ from bluesky.utils import plan
 from .axis_tuning import tune_a2rp
 from .axis_tuning import tune_ar
 from .axis_tuning import tune_mr
+from .fx4_setup import prepare_fx4_counting
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
 from .requested_stop import IfRequestedStopBeforeNextScan
@@ -38,7 +39,6 @@ s_stage = oregistry["s_stage"]
 d_stage = oregistry["d_stage"]
 usaxs_slit = oregistry["usaxs_slit"]
 guard_slit = oregistry["guard_slit"]
-scaler0 = oregistry["scaler0"]
 m_stage = oregistry["m_stage"]
 a_stage = oregistry["a_stage"]
 
@@ -105,8 +105,6 @@ def preUSAXStune(md={}):  # noqa: B006
         terms.SAXS.usaxs_guard_v_size.get(),
         guard_slit.h_size,
         terms.SAXS.usaxs_guard_h_size.get(),
-        scaler0.preset_time,
-        0.1,
         timeout=MASTER_TIMEOUT,
         # fmt:on
     )
@@ -132,10 +130,11 @@ def preUSAXStune(md={}):  # noqa: B006
         yield from bps.sleep(0.5)
 
     logger.debug("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
+    # Restore the measurement count time the tunes overrode. Separate from the
+    # bps.mv below because it also re-applies the FX4 scaler-mode settings.
+    yield from prepare_fx4_counting(terms.USAXS.usaxs_time.get())
     yield from bps.mv(
         # fmt:off
-        scaler0.preset_time,
-        terms.USAXS.usaxs_time.get(),
         user_data.time_stamp,
         str(datetime.datetime.now()),
         terms.preUSAXStune.num_scans_last_tune,
@@ -208,8 +207,6 @@ def allUSAXStune(md=None):
         terms.SAXS.usaxs_guard_v_size.get(),
         guard_slit.h_size,
         terms.SAXS.usaxs_guard_h_size.get(),
-        scaler0.preset_time,
-        0.1,
         timeout=MASTER_TIMEOUT,
         # fmt:on
     )
@@ -235,10 +232,11 @@ def allUSAXStune(md=None):
         yield from bps.sleep(0.5)
 
     logger.debug("USAXS count time: %s second(s)", terms.USAXS.usaxs_time.get())
+    # Restore the measurement count time the tunes overrode. Separate from the
+    # bps.mv below because it also re-applies the FX4 scaler-mode settings.
+    yield from prepare_fx4_counting(terms.USAXS.usaxs_time.get())
     yield from bps.mv(
         # fmt:off
-        scaler0.preset_time,
-        terms.USAXS.usaxs_time.get(),
         user_data.time_stamp,
         str(datetime.datetime.now()),
         terms.preUSAXStune.num_scans_last_tune,

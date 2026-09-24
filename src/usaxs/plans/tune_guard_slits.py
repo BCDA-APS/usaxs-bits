@@ -17,11 +17,14 @@ from apsbits.core.instrument_init import oregistry
 from apstools.plans import TuneAxis
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
-from ophyd import Kind
 
 from ..utils.derivative import numerical_derivative
 from ..utils.peak_centers import peak_center
 from .filter_plans import insertTransmissionFilters
+from .fx4_autorange_plan import autoscale_amplifiers
+from .fx4_setup import prepare_fx4_counting
+from .fx4_setup import select_fx4_plot
+from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON
@@ -32,15 +35,15 @@ logger = logging.getLogger(__name__)
 
 # Device instances
 guard_slit = oregistry["guard_slit"]
-scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 user_data = oregistry["user_data"]
 # The FX4 has no ScalerChannel indirection: the detector signal is simply
 # named "UPD" by usaxs.utils.fx4_channels.setup_fx4_channels().
 UPD_SIGNAL_NAME = "UPD"
+# Both electrometers are read at each point, as the scaler used to give.
+FX4_DETECTORS = usaxs_electrometers()
 I0_controls = oregistry["I0_controls"]
 I00_controls = oregistry["I00_controls"]
-autoscale_amplifiers = oregistry["autoscale_amplifiers"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 usaxs_slit = oregistry["usaxs_slit"]
 upd_controls = oregistry["upd_controls"]
@@ -86,8 +89,8 @@ def tune_GslitsCenter():
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
     yield from user_data.set_state_plan(title)
 
-    old_preset_time = scaler0.preset_time.get()
-    yield from bps.mv(scaler0.preset_time, 0.2)
+    old_preset_time = FX4_DETECTORS[0].averaging_time.get()
+    yield from prepare_fx4_counting(0.2)
 
     def tune_guard_slit_motor(motor, width, steps):
         if steps < 10:
@@ -99,10 +102,9 @@ def tune_GslitsCenter():
         x_0 = x_c - abs(width) / 2
         x_n = x_c + abs(width) / 2
 
-        scaler0.select_channels([UPD_SIGNAL_NAME])
-        scaler0.channels.chan01.kind = Kind.config
+        select_fx4_plot([UPD_SIGNAL_NAME])
 
-        tuner = TuneAxis([scaler0], motor, signal_name=UPD_SIGNAL_NAME)
+        tuner = TuneAxis(FX4_DETECTORS, motor, signal_name=UPD_SIGNAL_NAME)
         yield from tuner.tune(width=-width, num=steps + 1)
 
         found = tuner.peak_detected()
@@ -120,12 +122,11 @@ def tune_GslitsCenter():
 
         def cleanup_then_GuardSlitTuneError(msg):
             logger.warning(f"{motor.name}: move to {x_c} (initial position)")
-            scaler0.select_channels(None)
+            select_fx4_plot([])
+            yield from prepare_fx4_counting(old_preset_time)
             yield from bps.mv(
                 motor,
                 x_c,
-                scaler0.preset_time,
-                old_preset_time,
                 usaxs_shutter,
                 "close",
             )
@@ -156,7 +157,7 @@ def tune_GslitsCenter():
     yield from tune_guard_slit_motor(guard_slit.y, 2, 50)
     yield from tune_guard_slit_motor(guard_slit.x, 4, 20)
 
-    yield from bps.mv(scaler0.preset_time, old_preset_time)
+    yield from prepare_fx4_counting(old_preset_time)
 
     yield from bps.mv(usaxs_shutter, "close")
 
@@ -232,21 +233,19 @@ def _USAXS_tune_guardSlits():
 
     def tune_blade_edge(axis, start, end, steps, ct_time, results):
         logger.info(f"{axis.name}: scan from {start} to {end}")
-        old_ct_time = scaler0.preset_time.get()
+        old_ct_time = FX4_DETECTORS[0].averaging_time.get()
         old_position = axis.position
 
+        yield from prepare_fx4_counting(ct_time)
         yield from bps.mv(  # move to center of scan range for tune
-            scaler0.preset_time,
-            ct_time,
             axis,
             (start + end) / 2,
         )
         scan_width = end - start
 
-        scaler0.select_channels([UPD_SIGNAL_NAME])
-        scaler0.channels.chan01.kind = Kind.config
+        select_fx4_plot([UPD_SIGNAL_NAME])
 
-        tuner = TuneAxis([scaler0], axis, signal_name=UPD_SIGNAL_NAME)
+        tuner = TuneAxis(FX4_DETECTORS, axis, signal_name=UPD_SIGNAL_NAME)
         yield from tuner.tune(width=scan_width, num=steps + 1)
 
         diff = abs(tuner.peaks.y_data[0] - tuner.peaks.y_data[-1])
@@ -273,9 +272,8 @@ def _USAXS_tune_guardSlits():
         logger.info(f"{axis.name}: will be tuned to {position}")
         logger.info(f"{axis.name}: width = {width}")
 
+        yield from prepare_fx4_counting(old_ct_time)
         yield from bps.mv(
-            scaler0.preset_time,
-            old_ct_time,
             axis,
             old_position,  # reset position for other scans
         )

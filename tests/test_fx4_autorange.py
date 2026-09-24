@@ -236,3 +236,32 @@ def test_non_convergence_is_reported_not_raised_outside_user_operations():
     auto.on_read = never_settles
     run(arp._autoscale_one_(control, RE=None), auto)  # RE=None: must not raise
     assert ("fx4", 1) not in arp._last_range_  # nothing to remember
+
+
+def test_enable_autorange_selects_the_channel_before_arming():
+    """Arming without selecting the channel ranges whichever was last chosen.
+
+    That is the UPD/TRD failure mode: after a transmission measurement the
+    sequence program points at TRD, and a UPD scan armed without re-selecting
+    would range for the transmitted beam.
+    """
+    from usaxs.plans.fx4_setup import enable_fx4_autorange
+
+    control, auto = _make(nickname="UPD", channel=1)
+    auto.channel.value = 4  # left on TRD by a transmission measurement
+
+    seen = run(enable_fx4_autorange(control, "automatic"), auto)
+
+    assert auto.channel.get() == 1
+    assert ("set_channel", 1) in seen
+    assert seen.index(("set_channel", 1)) < seen.index("set")
+    assert auto.mode.get() == "automatic"
+
+
+def test_enable_autorange_is_a_noop_for_a_fixed_range_detector():
+    """I0 and I00 have no sequence program to arm."""
+    from usaxs.plans.fx4_setup import enable_fx4_autorange
+
+    control, auto = _make(nickname="I0", channel=1)
+    control.auto = None
+    assert list(enable_fx4_autorange(control, "automatic")) == []

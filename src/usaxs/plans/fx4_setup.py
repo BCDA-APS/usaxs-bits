@@ -287,6 +287,39 @@ def select_fx4_channel(controls):
     )
 
 
+@plan
+def enable_fx4_autorange(controls, mode="automatic"):
+    """Plan: let the sequence program range *this* detector, live.
+
+    Always prefer this over writing ``controls.auto.mode`` directly.  One
+    ``Range`` serves all four channels of an electrometer, so enabling
+    automatic ranging without first pointing ``seq01:channel`` at the detector
+    in use silently optimises for whichever channel was selected last.  After a
+    transmission measurement that is TRD, and a UPD scan would then run on a
+    range chosen for the transmitted beam -- orders of magnitude out, and with
+    a gain-independent readout the numbers still look like plausible currents.
+
+    A no-op for detectors on a fixed range.
+
+    Parameters
+    ----------
+    controls : FX4DetectorControls
+        The detector to range on.
+    mode : str
+        ``"automatic"`` or ``"auto+background"``; see
+        :class:`~usaxs.devices.fx4_quadem.FX4AutorangeSettings`.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    if not controls.autoranged:
+        logger.debug("%s: fixed range, autoranging not enabled", controls.nickname)
+        return
+    yield from select_fx4_channel(controls)
+    yield from bps.mv(controls.auto.mode, mode)
+
+
 def group_controls_by_box(controls):
     """Return autoranged controls grouped by electrometer, one per box.
 
@@ -331,6 +364,71 @@ def group_controls_by_box(controls):
             )
         by_box[box] = control
     return by_box
+
+
+def usaxs_electrometers():
+    """Return the electrometers a USAXS measurement reads, in a stable order.
+
+    ``fx4`` carries UPD and TRD, ``fx42`` carries I0 and I00.  Both are read at
+    every point: the scaler this replaces gated all channels from one clock, so
+    a plan that read UPD got I0 in the same document, and keeping that means
+    normalisation data is present without every plan having to ask for it.
+
+    Returns
+    -------
+    list
+        ``[fx4, fx42]``.
+    """
+    from apsbits.core.instrument_init import oregistry
+
+    return [oregistry["fx4"], oregistry["fx42"]]
+
+
+@plan
+def prepare_fx4_counting(count_time, dets=None):
+    """Plan: put every USAXS electrometer into fixed-time counting mode.
+
+    The replacement for ``bps.mv(scaler0.preset_time, count_time)`` plus the
+    scaler's ``OneShot`` count mode.  Configures the full mode each time rather
+    than only the count time: it is a handful of channel-access writes against
+    a scan that takes seconds, and it means a plan cannot inherit a fly scan's
+    bulb-mode settings and silently take one average per PSO strobe.
+
+    Parameters
+    ----------
+    count_time : float
+        Integration time per point, seconds.  Quantised to whole mains cycles.
+    dets : iterable of QuadFX4, optional
+        Electrometers to configure.  Defaults to :func:`usaxs_electrometers`.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    for det in dets if dets is not None else usaxs_electrometers():
+        yield from fx4_scaler_mode(det, count_time)
+
+
+@plan
+def set_usaxs_count_time(count_time, dets=None):
+    """Plan: change the integration time on every USAXS electrometer.
+
+    For the inner loop of a scan, where the mode is already set and only the
+    dwell changes -- ``uascan``'s dynamic timing, for instance.
+
+    Parameters
+    ----------
+    count_time : float
+        Integration time, seconds.  Quantised to whole mains cycles.
+    dets : iterable of QuadFX4, optional
+        Electrometers to set.  Defaults to :func:`usaxs_electrometers`.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    for det in dets if dets is not None else usaxs_electrometers():
+        yield from set_fx4_count_time(det, count_time)
 
 
 @plan

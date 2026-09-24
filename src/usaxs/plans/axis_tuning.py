@@ -38,6 +38,10 @@ from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 
 from .fx4_autorange_plan import autoscale_amplifiers
+from .fx4_setup import enable_fx4_autorange
+from .fx4_setup import prepare_fx4_counting
+from .fx4_setup import select_fx4_plot
+from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
 
@@ -47,7 +51,6 @@ I00_controls = oregistry["I00_controls"]
 upd_controls = oregistry["upd_controls"]
 
 terms = oregistry["terms"]
-scaler0 = oregistry["scaler0"]
 mono_shutter = oregistry["mono_shutter"]
 usaxs_shutter = oregistry["usaxs_shutter"]
 a_stage = oregistry["a_stage"]
@@ -55,10 +58,16 @@ d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
 usaxs_q_calc = oregistry["usaxs_q_calc"]
+# UPD and I0 are the FX4 MeanValue signals, named by
+# usaxs.utils.fx4_channels.setup_fx4_channels().  They read picoamps directly,
+# which is why the old upd_photocurrent_calc / I0_photocurrent_calc swait
+# records are gone: those existed only to turn scaler counts plus a Femto gain
+# back into a photocurrent, and the FX4 reports one already.
 UPD = oregistry["UPD"]
 I0 = oregistry["I0"]
-upd_photocurrent_calc = oregistry["upd_photocurrent_calc"]
-I0_photocurrent_calc = oregistry["I0_photocurrent_calc"]
+# Both electrometers are read at every tune point, so I0 lands in the same
+# document as UPD -- the scaler used to give that for free.
+FX4_DETECTORS = usaxs_electrometers()
 
 user_data = oregistry["user_data"]
 monochromator = oregistry["monochromator"]
@@ -88,17 +97,17 @@ def tune_mr(md: Optional[dict] = None):
     yield from IfRequestedStopBeforeNextScan()
     try:
         yield from bps.mv(usaxs_shutter, "open")
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from prepare_fx4_counting(0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_mr"
         logger.info(f"tuning axis: {m_stage.r.name}")
 
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        scaler0.select_channels(["I0"])
+        select_fx4_plot(["I0"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [I0, scaler0],
+            [I0, *FX4_DETECTORS],
             m_stage.r,
             -m_stage.r.tune_range.get(),
             m_stage.r.tune_range.get(),
@@ -111,12 +120,10 @@ def tune_mr(md: Optional[dict] = None):
         yield from bps.mv(
             usaxs_shutter,
             "close",
-            scaler0.count_mode,
-            "AutoCount",
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()
+        select_fx4_plot([])
         if stats.analysis.success:
             yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
             logger.debug(f"final position: {m_stage.r.position}")
@@ -152,7 +159,7 @@ def tune_ar(md: Optional[dict] = None):
     success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from prepare_fx4_counting(0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_ar"
         yield from IfRequestedStopBeforeNextScan()
@@ -165,10 +172,10 @@ def tune_ar(md: Optional[dict] = None):
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
-        scaler0.select_channels(["UPD"])
+        select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD, scaler0],
+            [UPD, *FX4_DETECTORS],
             a_stage.r,
             -a_stage.r.tune_range.get(),
             a_stage.r.tune_range.get(),
@@ -181,12 +188,10 @@ def tune_ar(md: Optional[dict] = None):
         yield from bps.mv(
             usaxs_shutter,
             "close",
-            scaler0.count_mode,
-            "AutoCount",
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()
+        select_fx4_plot([])
         success = stats.analysis.success
         print(f"Result: {success}")
         if success:
@@ -234,7 +239,7 @@ def find_ar(md: Optional[dict] = None):
     success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
-        yield from bps.mv(scaler0.preset_time, 0.2)
+        yield from prepare_fx4_counting(0.2)
         md["plan_name"] = "find_ar"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r.name}")
@@ -243,18 +248,20 @@ def find_ar(md: Optional[dict] = None):
             "open",
             usaxs_shutter,
             "open",
-            upd_controls.auto.mode,
-            "automatic",  # set UPD amplifier to automatic so it does not saturate
         )
-        # NOTE: do NOT call autoscale_amplifiers here — it forces manual mode,
-        # which prevents the automatic gain-ranging needed for the wide scan.
+        # Let the sequence program keep ranging as the wide scan sweeps over
+        # several decades.  Via enable_fx4_autorange, so seq01:channel is
+        # pointed at UPD first -- after a transmission measurement it is on
+        # TRD, and ranging for the transmitted beam would wreck this scan.
+        yield from enable_fx4_autorange(upd_controls, "automatic")
+        # NOTE: do NOT call autoscale_amplifiers here -- it ends in manual
+        # mode, and the wide scan needs the sequence program to keep
+        # re-ranging as the signal sweeps over several decades.
         trim_plot_by_name(5)
-        # control BEC plotting since we use upd_photocurrent_calc
-        scaler0.kind = "normal"
-        scaler0.select_channels([])  # no scaler channels plotted
+        select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [upd_photocurrent_calc, scaler0],
+            [UPD, *FX4_DETECTORS],
             a_stage.r,
             -1 * howWiderRangeToScan * a_stage.r.tune_range.get(),
             howWiderRangeToScan * a_stage.r.tune_range.get(),
@@ -265,7 +272,7 @@ def find_ar(md: Optional[dict] = None):
         )
         print(stats.report())
         # Now run a standard tune_ar at normal range and gain settings.
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from prepare_fx4_counting(0.1)
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -274,10 +281,10 @@ def find_ar(md: Optional[dict] = None):
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
-        scaler0.select_channels(["UPD"])
+        select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD, scaler0],
+            [UPD, *FX4_DETECTORS],
             a_stage.r,
             -a_stage.r.tune_range.get(),
             a_stage.r.tune_range.get(),
@@ -290,12 +297,10 @@ def find_ar(md: Optional[dict] = None):
         yield from bps.mv(
             usaxs_shutter,
             "close",
-            scaler0.count_mode,
-            "AutoCount",
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()
+        select_fx4_plot([])
         success = stats.analysis.success
         print(f"Result: {success}")
         if success:
@@ -336,7 +341,7 @@ def tune_a2rp(md: Optional[dict] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from prepare_fx4_counting(0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_a2rp"
         yield from IfRequestedStopBeforeNextScan()
@@ -348,11 +353,11 @@ def tune_a2rp(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        scaler0.select_channels(["UPD"])
+        select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD, scaler0],
+            [UPD, *FX4_DETECTORS],
             a_stage.r2p,
             -a_stage.r2p.tune_range.get(),
             a_stage.r2p.tune_range.get(),
@@ -365,12 +370,10 @@ def tune_a2rp(md: Optional[dict] = None):
         yield from bps.mv(
             usaxs_shutter,
             "close",
-            scaler0.count_mode,
-            "AutoCount",
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()
+        select_fx4_plot([])
         if stats.analysis.success:
             logger.debug(f"final position: {a_stage.r2p.position}")
         else:
@@ -405,10 +408,9 @@ def find_a2rp(md: Optional[dict] = None):
     howManyPoints = 61
     if md is None:
         md = {}
-    success = False
     try:
         yield from bps.mv(usaxs_shutter, "open")
-        yield from bps.mv(scaler0.preset_time, 0.2)
+        yield from prepare_fx4_counting(0.2)
         md["plan_name"] = "find_a2rp"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r2p.name}")
@@ -418,15 +420,17 @@ def find_a2rp(md: Optional[dict] = None):
             "open",
             usaxs_shutter,
             "open",
-            upd_controls.auto.mode,
-            "automatic",  # set UPD amplifier to automatic so it does not saturate
         )
-        # NOTE: do NOT call autoscale_amplifiers here — it forces manual mode,
-        # which prevents the automatic gain-ranging needed for the wide scan.
+        # Let the sequence program keep ranging as the wide scan sweeps over
+        # several decades.  Via enable_fx4_autorange, so seq01:channel is
+        # pointed at UPD first -- after a transmission measurement it is on
+        # TRD, and ranging for the transmitted beam would wreck this scan.
+        yield from enable_fx4_autorange(upd_controls, "automatic")
+        # NOTE: do NOT call autoscale_amplifiers here -- it ends in manual
+        # mode, and the wide scan needs the sequence program to keep
+        # re-ranging as the signal sweeps over several decades.
         trim_plot_by_name(5)
-        # control BEC plotting since we use upd_photocurrent_calc
-        scaler0.kind = "normal"
-        scaler0.select_channels([])  # no scaler channels plotted
+        select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
         tune_start = -1 * howWiderRangeToScan * a_stage.r2p.tune_range.get()
         tune_end = howWiderRangeToScan * a_stage.r2p.tune_range.get()
@@ -434,7 +438,7 @@ def find_a2rp(md: Optional[dict] = None):
         tune_start = max(tune_start, -1 * axis_start)
         tune_end = min(tune_end, 88)
         yield from lineup2(
-            [upd_photocurrent_calc, scaler0],
+            [UPD, *FX4_DETECTORS],
             a_stage.r2p,
             tune_start,
             tune_end,
@@ -445,7 +449,7 @@ def find_a2rp(md: Optional[dict] = None):
         )
         print(stats.report())
         # Now run a standard tune_a2rp at normal range and gain settings.
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from prepare_fx4_counting(0.1)
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -454,11 +458,11 @@ def find_a2rp(md: Optional[dict] = None):
         )
 
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        scaler0.select_channels(["UPD"])
+        select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD, scaler0],
+            [UPD, *FX4_DETECTORS],
             a_stage.r2p,
             -a_stage.r2p.tune_range.get(),
             a_stage.r2p.tune_range.get(),
@@ -471,12 +475,10 @@ def find_a2rp(md: Optional[dict] = None):
         yield from bps.mv(
             usaxs_shutter,
             "close",
-            scaler0.count_mode,
-            "AutoCount",
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()
+        select_fx4_plot([])
         if stats.analysis.success:
             logger.debug(f"final position: {a_stage.r2p.position}")
         else:
@@ -509,7 +511,7 @@ def tune_dx(md: Optional[dict] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from prepare_fx4_counting(0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_dx"
         yield from IfRequestedStopBeforeNextScan()
@@ -522,10 +524,10 @@ def tune_dx(md: Optional[dict] = None):
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
         trim_plot_by_name(5)
-        scaler0.select_channels(["UPD"])
+        select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD, scaler0],
+            [UPD, *FX4_DETECTORS],
             d_stage.x,
             -d_stage.x.tune_range.get(),
             d_stage.x.tune_range.get(),
@@ -538,12 +540,10 @@ def tune_dx(md: Optional[dict] = None):
         yield from bps.mv(
             usaxs_shutter,
             "close",
-            scaler0.count_mode,
-            "AutoCount",
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()
+        select_fx4_plot([])
         if stats.analysis.success:
             yield from bps.mv(
                 terms.USAXS.DX0,
@@ -580,7 +580,7 @@ def tune_dy(md: Optional[dict] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
-        yield from bps.mv(scaler0.preset_time, 0.1)
+        yield from prepare_fx4_counting(0.1)
         yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_dy"
         yield from IfRequestedStopBeforeNextScan()
@@ -592,11 +592,11 @@ def tune_dy(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        scaler0.select_channels(["UPD"])
+        select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
         yield from lineup2(
-            [UPD, scaler0],
+            [UPD, *FX4_DETECTORS],
             d_stage.y,
             -d_stage.y.tune_range.get(),
             d_stage.y.tune_range.get(),
@@ -609,12 +609,10 @@ def tune_dy(md: Optional[dict] = None):
         yield from bps.mv(
             usaxs_shutter,
             "close",
-            scaler0.count_mode,
-            "AutoCount",
             upd_controls.auto.mode,
             "auto+background",
         )
-        scaler0.select_channels()
+        select_fx4_plot([])
         if stats.analysis.success:
             yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
             logger.info(f"final position: {d_stage.y.position}")
