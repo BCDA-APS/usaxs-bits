@@ -1026,9 +1026,9 @@ defensive fallback, not a code edit**. Specifically:
 | `fx4_setup.py`: mode plans, `select_fx4_channel`, `group_controls_by_box` | ✅ done |
 | Fraction-of-full-scale thresholds + `fx4_ranges.py` | ✅ done |
 | SAXS/WAXS `attributes.xml` + `layout.xml` v2.0 | ✅ done |
-| `saveFlyData.xml` v2.0 (+ `channel_time` in `saveFlyData.py`) | **next** |
-| Device/config YAML: `fx4`/`fx42` entries, autorange devices, channel map, baseline labels | todo |
-| `fx4_autorange_plan.py`: autoscale + `measure_background` in pA | todo |
+| `saveFlyData.xml` v2.0 (+ `channel_time` in `saveFlyData.py`) | ✅ done |
+| Device/config YAML: `fx4`/`fx42` entries, autorange devices, channel naming | ✅ done |
+| `fx4_autorange_plan.py`: autoscale + `measure_background` in pA | **next** |
 | Tune plans (8), `tune_guard_slits` | todo |
 | `uascan` | todo |
 | Transmission (both), with the `channel=4` switch in a `finally` | todo |

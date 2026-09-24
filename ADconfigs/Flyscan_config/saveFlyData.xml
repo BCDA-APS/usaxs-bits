@@ -16,7 +16,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
  -->
 
 
-<saveFlyData version="1.2">
+<saveFlyData version="2.0">
     <triggerPV pvname="usxLAX:USAXSfly:Start"
         start_value="1"
         start_text="Busy"
@@ -37,7 +37,8 @@ Additionally, you can check this file for validity and that all PVs exist with t
 
                 <field name="program_name">
                     <!-- version of this configuration file -->
-                    <attribute name="config_version" value="1.2" />
+                    <attribute name="config_version" value="2.0" />
+                    <attribute name="counting_chain" value="FX4" />
                     <text>saveFlyData.py</text>
                 </field>
                 <PV label="title" pvname="usxLAX:sampleTitle" string="true" />
@@ -124,7 +125,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
 
                 <group name="flyScan" class="NXdata">
                     <!-- this raw data group is not SASdata, that comes from data reduction -->
-                    <attribute name="signal"     value="mca3" />
+                    <attribute name="signal"     value="upd_current" />
 
                     <!-- positioners -->
                     <PV label="AR_PulsePositions" pvname="usxAERO:pm1:PulsePositions">
@@ -174,7 +175,108 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     </PV>
 
 
-                    <!-- detectors -->
+                    <!-- ==========================================================
+                         DETECTORS: FX4 electrometers      counting_chain = "FX4"
+                         ==========================================================
+                         PSO-gated ("Ext. bulb") mode: each strobe closes one
+                         exposure and the driver appends that interval's average
+                         current to a per-channel time series.
+
+                         Units are pA and the reading is GAIN-INDEPENDENT.  There
+                         is no amplifier gain to divide by and no per-range gain
+                         table: I(q) comes from upd_current / I0_current directly.
+
+                         Nor is there a dwell-time term.  The Struck recorded
+                         accumulated counts, so mca2/mca3 had to be divided by
+                         mca1 (the 50 MHz clock) to get a rate.  TSMeanValue is
+                         already an average over the interval, and both
+                         electrometers take the same PSO gate, so the ratio is
+                         valid point by point with no timing correction.
+
+                         channel_time is therefore a DIAGNOSTIC, not part of
+                         normalisation.  It is derived by saveFlyData.py as
+                             N[i]  = I0_total[i] / I0_current[i]
+                             dt[i] = N[i] * sample_time
+                         and is useful for stage-tuning jitter and for the
+                         uncertainty of each point (sigma_mean = sigma / sqrt(N)).
+
+                         Check ring_overflows: non-zero means the driver's ring
+                         buffer filled, the oldest samples were dropped, and the
+                         means are biased toward the end of each interval.
+                         ========================================================== -->
+
+                    <PV label="n_points" pvname="usxFX4:FX4:Current1:TSCurrentPoint" acquire_after_scan="true">
+                        <attribute name="meaning" value="PSO pulses actually captured; array length limit" />
+                    </PV>
+                    <PV label="sample_time" pvname="usxFX4:FX4:SampleTime_RBV">
+                        <attribute name="units" value="s" />
+                        <attribute name="meaning" value="ValuesPerRead x 10 us" />
+                    </PV>
+                    <PV label="values_per_read" pvname="usxFX4:FX4:ValuesPerRead" />
+                    <PV label="ring_overflows" pvname="usxFX4:FX4:RingOverflows" acquire_after_scan="true">
+                        <attribute name="meaning" value="non-zero: samples dropped, means biased" />
+                    </PV>
+                    <PV label="ring_overflows_I0" pvname="usxFX42:FX4:RingOverflows" acquire_after_scan="true" />
+
+                    <!-- UPD: usxFX4 Current1 -->
+                    <PV label="upd_current" pvname="usxFX4:FX4:Current1:TSMeanValue" length_limit="n_points" acquire_after_scan="true">
+                        <attribute name="signal" value="1" />
+                        <attribute name="units" value="pA" />
+                        <attribute name="USAXS_name" value="upd" />
+                        <attribute name="meaning" value="mean photocurrent over each PSO interval" />
+                    </PV>
+                    <PV label="upd_sigma" pvname="usxFX4:FX4:Current1:TSSigma" length_limit="n_points" acquire_after_scan="true">
+                        <attribute name="units" value="pA" />
+                        <attribute name="meaning" value="std of samples WITHIN each interval, not the error of the mean; divide by sqrt(N) for that" />
+                    </PV>
+                    <PV label="upd_total" pvname="usxFX4:FX4:Current1:TSTotal" length_limit="n_points" acquire_after_scan="true">
+                        <attribute name="meaning" value="sum of samples in each interval; / mean = sample count N" />
+                    </PV>
+
+                    <!-- I0: usxFX42 Current1 -->
+                    <PV label="I0_current" pvname="usxFX42:FX4:Current1:TSMeanValue" length_limit="n_points" acquire_after_scan="true">
+                        <attribute name="units" value="pA" />
+                        <attribute name="USAXS_name" value="I0" />
+                    </PV>
+                    <PV label="I0_sigma" pvname="usxFX42:FX4:Current1:TSSigma" length_limit="n_points" acquire_after_scan="true">
+                        <attribute name="units" value="pA" />
+                    </PV>
+                    <PV label="I0_total" pvname="usxFX42:FX4:Current1:TSTotal" length_limit="n_points" acquire_after_scan="true">
+                        <attribute name="meaning" value="used with I0_current to derive channel_time" />
+                    </PV>
+
+                    <!-- I00: usxFX42 Current2.  Nothing connected yet. -->
+                    <PV label="I00_current" pvname="usxFX42:FX4:Current2:TSMeanValue" length_limit="n_points" acquire_after_scan="true">
+                        <attribute name="units" value="pA" />
+                        <attribute name="USAXS_name" value="I00" />
+                    </PV>
+
+                    <!-- Ranges. DIAGNOSTIC ONLY: the reading is gain-independent,
+                         so nothing downstream divides by these. They are here so a
+                         railed range is visible after the fact. -->
+                    <PV label="fx4_range" pvname="usxFX4:FX4:Range" acquire_after_scan="true" />
+                    <PV label="fx42_range" pvname="usxFX42:FX4:Range" acquire_after_scan="true" />
+                    <PV label="upd_lurange" pvname="usxFX4:FX4:seq01:lurange" acquire_after_scan="true" />
+                    <PV label="upd_autorange_channel" pvname="usxFX4:FX4:seq01:channel" />
+
+                    <!-- UPD dark current per range, from the FX4 sequence program.
+                         One table per program, and on usxFX4 that program serves
+                         both UPD and TRD, so only UPD's dark is recorded here. -->
+                    <PV label="upd_bkg0" pvname="usxFX4:FX4:seq01:bkg0" />
+                    <PV label="upd_bkgErr0" pvname="usxFX4:FX4:seq01:bkgErr0" />
+                    <PV label="upd_bkg1" pvname="usxFX4:FX4:seq01:bkg1" />
+                    <PV label="upd_bkgErr1" pvname="usxFX4:FX4:seq01:bkgErr1" />
+                    <PV label="upd_bkg2" pvname="usxFX4:FX4:seq01:bkg2" />
+                    <PV label="upd_bkgErr2" pvname="usxFX4:FX4:seq01:bkgErr2" />
+                    <PV label="upd_bkg3" pvname="usxFX4:FX4:seq01:bkg3" />
+                    <PV label="upd_bkgErr3" pvname="usxFX4:FX4:seq01:bkgErr3" />
+                    <PV label="upd_bkg4" pvname="usxFX4:FX4:seq01:bkg4" />
+                    <PV label="upd_bkgErr4" pvname="usxFX4:FX4:seq01:bkgErr4" />
+
+                    <!-- Superseded: Struck 3820 MCS and the Femto amplifiers.
+                         Nothing feeds these once the diodes are wired to the FX4.
+                         Kept commented so a rollback is an uncomment.
+                    [  detectors  ]
                     <PV label="mca_clock_frequency" pvname="usxLAX:3820:clock_frequency">
                         <attribute name="units" value="1/s" />
                     </PV>
@@ -185,7 +287,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     </PV>
 
                     <PV label="mca1_name" pvname="usxLAX:3820:scaler1.NM1" />
-                    <PV label="mca1" pvname="usxLAX:3820:mca1" length_limit="mca_channels"  acquire_after_scan="true">     <!-- counts of 50 MHz clock -->
+                    <PV label="mca1" pvname="usxLAX:3820:mca1" length_limit="mca_channels"  acquire_after_scan="true">     [  counts of 50 MHz clock  ]
                         <attribute name="units" value="pulses" />
                         <attribute name="USAXS_name" value="clock_pulses" />
                     </PV>
@@ -200,16 +302,16 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="mca3" pvname="usxLAX:3820:mca3" length_limit="mca_channels" acquire_after_scan="true">
                         <attribute name="signal" value="1" />
                         <attribute name="units" value="pulses" />
-                        <!-- <attribute name="axes" value="AR" /> -->
-                        <!-- The proper ordinate is obtained via the MAC channel index:
+                        [  <attribute name="axes" value="AR" />  ]
+                        [  The proper ordinate is obtained via the MAC channel index:
                             AR[i] = AR_start + AR_increment * i
 
                             Can the AR array be made available in EPICS?
-                        -->
+                         ]
                         <attribute name="USAXS_name" value="upd" />
                     </PV>
 
-                    <!-- 2014-02-28, PRJ
+                    [  2014-02-28, PRJ
                         The following PVs record amplifier gain changes
                         and the corresponding MCS channel number at which the change occurred
                         for each of four detector amplifiers.  (Two monitors and two UPD amplifiers)
@@ -217,15 +319,15 @@ Additionally, you can check this file for validity and that all PVs exist with t
                         which takes either of these two values:
                         * 0: "DLPCA200"
                         * 1: "DDPCA300"
-                        -->
+                         ]
 
                     <PV label="upd_flyScan_amplifier"         pvname="usxRIO:femto:model" />   
-			<!--saves as number, not string
+			[ saves as number, not string
                  	   <PV label="upd_flyScan_amplifier_ZNAM"    pvname="usxRIO:femto:model.ZNAM" />
                   	   <PV label="upd_flyScan_amplifier_ONAM"    pvname="usxRIO:femto:model.ONAM" />
-			-->
+			 ]
 
-                    <!-- these record when the amplifiers have changed gain during the fly scan -->
+                    [  these record when the amplifiers have changed gain during the fly scan  ]
                     <PV label="changes_I0_mcsChan"       pvname="usxLAX:USAXSfly:I0:mcsChan" acquire_after_scan="true" />
                     <PV label="changes_I0_ampGain"       pvname="usxLAX:USAXSfly:I0:ampGain" acquire_after_scan="true" />
                     <PV label="changes_I0_ampReqGain"    pvname="usxLAX:USAXSfly:I0:ampReqGain" acquire_after_scan="true" />
@@ -242,14 +344,14 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="changes_DDPCA300_ampGain"    pvname="usxLAX:USAXSfly:DDPCA300:ampGain" acquire_after_scan="true" />
                     <PV label="changes_DDPCA300_ampReqGain" pvname="usxLAX:USAXSfly:DDPCA300:ampReqGain" acquire_after_scan="true" />
 		    
-                    <!-- These do nto sseem to exist, not needed? 
+                    [  These do nto sseem to exist, not needed? 
 						<PV label="dyMaxSpeed" pvname="usxLAX:USAXSfly:dyMaxSpeed" />
 						<PV label="ayMaxSpeed" pvname="usxLAX:USAXSfly:ayMaxSpeed" />
 						<PV label="arMaxSpeed" pvname="usxLAX:USAXSfly:arMaxSpeed" />
                         <PV label="FS_AyMaxSpeed" pvname="usxLAX:USAXS:FS_AyMaxSpeed" />
                         <PV label="FS_DyMaxSpeed" pvname="usxLAX:USAXS:FS_DyMaxSpeed" />
                         <PV label="FS_ArMaxSpeed" pvname="usxLAX:USAXS:FS_ArMaxSpeed" />
-                    -->
+                     ]
                     <PV label="FS_ElapsedTime" pvname="usxLAX:3820:ElapsedReal" acquire_after_scan="true" />
 
                     <PV label="FS_NumberOfPoints" pvname="usxLAX:USAXS:FS_NumberOfPoints">
@@ -266,13 +368,13 @@ Additionally, you can check this file for validity and that all PVs exist with t
                         <attribute name="meaning"     value="does this scan use 2D collimated geometry" />
                     </PV>
 
-                </group>    <!-- entry:NXentry/flyScan:NXdata -->
+                </group>    [  entry:NXentry/flyScan:NXdata  ]
 
 
-                <!-- metadata -->
-                <group name="metadata" class="NXcollection">    <!-- metadata:NXcollection -->
+                [  metadata  ]
+                <group name="metadata" class="NXcollection">    [  metadata:NXcollection  ]
 
-                    <!-- beam line conditions -->
+                    [  beam line conditions  ]
                     <PV label="SR_current" pvname="S:SRcurrentAI">
                         <attribute name="units" value="A" />
                     </PV>
@@ -289,7 +391,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
                         <attribute name="units" value="degrees" />
                     </PV>
 
-                    <!-- SPEC -->
+                    [  SPEC  ]
                     <PV label="SPEC_macro_file_string19" pvname="usxLAX:string19" string="true" />
                     <PV label="SPEC_macro_file" pvname="usxLAX:macroFile" string="true" />
                     <PV label="SPEC_data_file" pvname="usxLAX:specFile" string="true" />
@@ -298,7 +400,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="state" pvname="usxLAX:state" string="true" />
                     <PV label="timeStamp" pvname="usxLAX:timeStamp" string="true" />
 
-                    <!-- USAXS terms -->
+                    [  USAXS terms  ]
                     <PV label="analyzer_distance" pvname="usxLAX:USAXS:SAD" />
                     <PV label="detector_distance" pvname="usxLAX:USAXS:SDD" />
                     <PV label="UATerm" pvname="usxLAX:USAXS:UATerm" />
@@ -310,14 +412,14 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="feedback_ON" pvname="usxLAX:fbe:omega:on" />
                     <PV label="UPDsize" pvname="usxLAX:USAXS:UPDsize" />
 
-                    <!-- USAXS sample slit positions -->
+                    [  USAXS sample slit positions  ]
                     <PV label="uslit_v_center" pvname="usxLAX:m58:c1:m6" />
                     <PV label="uslit_h_center" pvname="usxLAX:m58:c1:m5" />
                     <PV label="uslit_v_gap" pvname="usxLAX:m58:c1:m7" />
                     <PV label="uslit_h_gap" pvname="usxLAX:m58:c1:m8" />
 
 
-                    <!-- USAXS sample pin transmission -->
+                    [  USAXS sample pin transmission  ]
                     <PV label="measure_trans_pin" pvname="usxLAX:USAXS:TR_MeasurePinTrans" />
                     <PV label="trans_pin_aypos" pvname="usxLAX:ay_in" />
                     <PV label="trans_pin_time" pvname="usxLAX:USAXS:TR_MeasurementTime" />
@@ -326,11 +428,11 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="trans_I0_counts" pvname="usxLAX:USAXS:TR_I0Counts" />
                     <PV label="trans_I0_gain" pvname="usxLAX:USAXS:TR_I0Gain" />
 
-                    <!-- I0 amplifier gains at start of scan and gains and measured backgrounds -->
+                    [  I0 amplifier gains at start of scan and gains and measured backgrounds  ]
                     <PV label="I0AmpGain"    pvname="usxRIO:fem02:seq01:gain" />
 		
 
-                    <!-- I00 amplifier gains at start of scan and gains and measured backgrounds 
+                    [  I00 amplifier gains at start of scan and gains and measured backgrounds 
                     these are not likely to be used at 12IDE - 7/16/2024
                     <PV label="I00AmpGain"   pvname="usxUSX:fem03:seq01:gain" />
 
@@ -353,10 +455,10 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="I00_gain4"    pvname="usxUSX:pd03:seq01:gain4" />
                     <PV label="I00_bkg4"     pvname="usxUSX:pd03:seq01:bkg4" />
                     <PV label="I00_bkg_err4" pvname="usxUSX:pd03:seq01:bkgErr4" />
-                    -->
+                     ]
 
-                    <!-- photodiode amplifier gains and measured backgrounds -->
-                    <!-- these names will go away in the near future but are here now to allow downstream s/w to work -->
+                    [  photodiode amplifier gains and measured backgrounds  ]
+                    [  these names will go away in the near future but are here now to allow downstream s/w to work  ]
                     <PV label="upd_gain0"    pvname="usxLAX:pd01:seq02:gain0" />
                     <PV label="upd_bkg0"     pvname="usxLAX:pd01:seq02:bkg0" />
                     <PV label="upd_bkgErr0" pvname="usxLAX:pd01:seq02:bkgErr0" />
@@ -377,7 +479,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="upd_bkg4" pvname="usxLAX:pd01:seq02:bkg4" />
                     <PV label="upd_bkgErr4" pvname="usxLAX:pd01:seq02:bkgErr4" />
                      
-                    <!-- photodiode DLPCA-200 amplifier gains and measured backgrounds -->
+                    [  photodiode DLPCA-200 amplifier gains and measured backgrounds  ]
                     <PV label="DLPCA200_gain0"    pvname="usxLAX:pd01:seq01:gain0" />
                     <PV label="DLPCA200_bkg0"     pvname="usxLAX:pd01:seq01:bkg0" />
                     <PV label="DLPCA200_bkg_err0" pvname="usxLAX:pd01:seq01:bkgErr0" />
@@ -397,8 +499,13 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="DLPCA200_gain4" pvname="usxLAX:pd01:seq01:gain4" />
                     <PV label="DLPCA200_bkg4" pvname="usxLAX:pd01:seq01:bkg4" />
                     <PV label="DLPCA200_bkgErr4" pvname="usxLAX:pd01:seq01:bkgErr4" />
+                    -->
 
-                    <!-- photodiode DDPCA-300 amplifier gains and measured backgrounds -->
+                    <!-- Superseded: DDPCA-300 Femto autorange records.
+                         The FX4 sequence program's bkg0..4 are recorded above;
+                         gainU/gainD live in the IOC and Bluesky no longer writes
+                         them (PLAN.md Q18).
+                    [  photodiode DDPCA-300 amplifier gains and measured backgrounds  ]
                     <PV label="DDPCA300_gain0"    pvname="usxLAX:pd01:seq02:gain0" />
                     <PV label="DDPCA300_bkg0"     pvname="usxLAX:pd01:seq02:bkg0" />
                     <PV label="DDPCA300_bkg_err0" pvname="usxLAX:pd01:seq02:bkgErr0" />
@@ -419,9 +526,10 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="DDPCA300_bkg4" pvname="usxLAX:pd01:seq02:bkg4" />
                     <PV label="DDPCA300_bkgErr4" pvname="usxLAX:pd01:seq02:bkgErr4" />
 
-                    <!-- photodiode amplifier range-changing setpoints -->
+                    [  photodiode amplifier range-changing setpoints  ]
                     <PV label="upd_gainU" pvname="usxLAX:pd01:seq02:gainU" />
                     <PV label="upd_gainD" pvname="usxLAX:pd01:seq02:gainD" />
+                    -->
 
                     <!-- amplifier range-change mask times -->
                     <PV label="upd_amp_change_mask_time0" pvname="usxLAX:USAXS:FS_AmpR1BlockTime" />

@@ -19,6 +19,7 @@
           <xs:restriction base="xs:NMTOKEN">
             <xs:enumeration value="1.1" />  <!-- data acquired before 2015-01-20 -->
             <xs:enumeration value="1.2" />  <!-- starting 2015-01-20, meets latest NXcanSAS -->
+            <xs:enumeration value="2.0" />  <!-- FX4 counting chain; currents in pA, no gain term -->
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>

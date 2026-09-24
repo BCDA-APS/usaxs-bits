@@ -239,12 +239,101 @@ class SaveFlyScan(object):
                 logger.debug("RESOLUTION: writing as error message string")
                 makeDataset(hdf5_parent, pv_spec.label, [str(e).encode("utf8")])
 
+        self._write_derived_channel_time(f)
+
         # as the final step, make all the links as directed
         for _k, v in self.mgr.link_registry.items():
             v.make_link(f)
 
         f.close()  # be CERTAIN to close the file
         logger.debug("saveFile(): file closed")
+
+    def _write_derived_channel_time(self, f) -> None:
+        """Add ``flyScan/channel_time``: the duration of each PSO interval.
+
+        The Struck chain got this for free -- ``mca1`` counted a 50 MHz clock
+        per channel -- and data reduction needed it, because ``mca2``/``mca3``
+        were accumulated counts that had to be divided by dwell to give a rate.
+
+        The FX4 reports an average current per interval instead, so dwell has
+        dropped out of the normalisation entirely: ``upd_current /
+        I0_current`` is already correct point by point. This array is kept as a
+        **diagnostic**. Its two uses are stage-tuning health (a jittery
+        distribution of interval lengths means the AR sweep is not tracking)
+        and per-point uncertainty, ``sigma_mean = upd_sigma / sqrt(N)``.
+
+        Derived rather than read, because the FX4 exposes no per-pulse duration
+        array. Since ``mean = total / N``::
+
+            N[i]  = I0_total[i] / I0_current[i]      exact sample count
+            dt[i] = N[i] * sample_time               seconds
+
+        I0 is used for the ratio because it is always well illuminated, so the
+        division is numerically safe; UPD drops into the noise at high q.
+        Resolution is one ``sample_time``.
+
+        Skipped silently when the inputs are absent -- an old Struck-chain
+        configuration file, or a scan that recorded no I0.
+
+        Parameters
+        ----------
+        f : h5py.File
+            The open output file.
+        """
+        try:
+            group = f["/entry/flyScan"]
+        except KeyError:
+            logger.debug("channel_time: no /entry/flyScan group, skipping")
+            return
+
+        missing = [k for k in ("I0_total", "I0_current", "sample_time") if k not in group]
+        if missing:
+            logger.debug("channel_time: %s not in the file, skipping", ", ".join(missing))
+            return
+
+        try:
+            total = numpy.asarray(group["I0_total"], dtype=float)
+            mean = numpy.asarray(group["I0_current"], dtype=float)
+            sample_time = float(numpy.asarray(group["sample_time"]).ravel()[0])
+
+            n = min(len(total), len(mean))
+            if n == 0:
+                logger.debug("channel_time: empty I0 arrays, skipping")
+                return
+            total, mean = total[:n], mean[:n]
+
+            # A zero mean means that interval saw no signal at all; leave those
+            # points as NaN rather than inventing a duration for them.
+            with numpy.errstate(divide="ignore", invalid="ignore"):
+                samples = numpy.where(mean != 0, total / mean, numpy.nan)
+            channel_time = samples * sample_time
+
+            ds = makeDataset(group, "channel_time", channel_time)
+            addAttributes(
+                ds,
+                units="s",
+                meaning=(
+                    "duration of each PSO interval, derived as"
+                    " (I0_total / I0_current) * sample_time"
+                ),
+                note=(
+                    "DIAGNOSTIC ONLY: the FX4 reports average current, so this is"
+                    " not part of normalisation. Use it for stage-tuning jitter"
+                    " and for sigma_mean = sigma / sqrt(N), N = channel_time /"
+                    " sample_time. NaN marks an interval with zero I0."
+                ),
+            )
+            finite = numpy.isfinite(channel_time)
+            if finite.any():
+                values = channel_time[finite]
+                logger.info(
+                    "channel_time: %d points, mean %.4f s, spread %.2f %%",
+                    len(values),
+                    values.mean(),
+                    100 * values.std() / values.mean() if values.mean() else float("nan"),
+                )
+        except Exception as exc:  # noqa: BLE001 - never lose the scan over a diagnostic
+            logger.warning("channel_time could not be derived: %s", exc)
 
     def _get_support_code_dir(self):
         """Return the absolute directory containing this source file."""
