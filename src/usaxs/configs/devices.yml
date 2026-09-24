@@ -40,13 +40,10 @@ usaxs.devices.fx4_quadem.FX4AutorangeDevice:
   prefix: "usxFX4:FX4:seq01:"
   labels:
     - baseline
-# usxFX42 autoranging is not in service yet; I0 and I00 run at a fixed range
-# set by hand.  Uncomment this and add `autorange: fx42_autorange` to the
-# I0_controls entry in autorange_devices.yml once it exists.
-# - name: fx42_autorange
-#   prefix: "usxFX42:FX4:seq01:"
-#   labels:
-#     - baseline
+- name: fx42_autorange
+  prefix: "usxFX42:FX4:seq01:"
+  labels:
+    - baseline
 
 usaxs.devices.general_terms.GeneralParameters:
 - name: terms

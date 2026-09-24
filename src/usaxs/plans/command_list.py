@@ -171,11 +171,12 @@ def before_command_list(md=None, commands=None):
     )
 
     if constants["MEASURE_DARK_CURRENTS"]:
-        # UPD only.  I0 and I00 run at a fixed range and have no sequence
-        # program to store a dark reading in; TRD shares usxFX4's single bkg
-        # table with UPD, and transmission is a ratio of two strong signals so
-        # its dark does not matter (PLAN.md Q19).
-        yield from measure_background([upd_controls])
+        # One detector per electrometer: each sequence program has a single
+        # bkg0..4 table.  UPD and TRD share usxFX4's, and UPD is the one whose
+        # dark matters -- transmission is a ratio of two strong signals
+        # (PLAN.md Q19).  I0 has usxFX42's table to itself.  I00 has no
+        # autoranger yet and so nowhere to store a reading.
+        yield from measure_background([upd_controls, I0_controls])
 
     # reset the ranges to be used when tuning optical axes (issue #129)
     # These routines are defined in file: 29-axis-tuning.py

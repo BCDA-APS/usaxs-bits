@@ -7,8 +7,8 @@
 # usaxs/devices/fx4_quadem.py.
 #
 # `autorange:` is optional.  A detector without one runs at a fixed range set
-# by hand and is skipped by the autoscale plans -- that is I0 and I00 until the
-# usxFX42 sequence program is in service.
+# by hand and is skipped by the autoscale plans -- that is I00, which has
+# nothing connected to it yet.
 #
 # One Range serves all four channels of an electrometer, so two autoranged
 # detectors on the same box is a configuration error and
@@ -37,15 +37,20 @@ usaxs.devices.fx4_quadem.FX4DetectorControls:
     nickname: I0
     quadem: fx42
     channel: 1
-    # autorange: fx42_autorange   # not in service yet -- fixed range
+    autorange: fx42_autorange
     labels:
       - fx4_detector
 
+  # I00: nothing is connected yet, so it stays fixed-range and the autoscale
+  # plans skip it.  When it is wired, adding `autorange: fx42_autorange` here
+  # makes fx42 a two-autoranged-channel box like fx4, and
+  # fx4_setup.group_controls_by_box will start refusing calls that ask for I0
+  # and I00 together -- the four tune_guard_slits / Flyscan sites that pass
+  # [upd, I0, I00] are the ones that will need splitting.
   - name: I00_controls
     nickname: I00
     quadem: fx42
     channel: 2
-    # autorange: fx42_autorange   # not in service yet -- fixed range
     labels:
       - fx4_detector
 

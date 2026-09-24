@@ -1,7 +1,60 @@
 # PLAN — FX4 counting-chain conversion
 
-Branch: `fx4-conversion` (from `main` @ 89adbc4)
-Status: **planning / questions open** — no code written yet.
+## 0. Current state — read this first
+
+**Branch:** `fx4-conversion`, off `main` @ 89adbc4.
+**Last updated:** 2026-09-24, end of the second working session.
+
+### What is done
+
+| commit | what landed |
+|---|---|
+| `a023bea` | this plan; `ADconfigs/` brought under version control |
+| `2c48e0f` | device layer: `QuadFX4`, `FX4AutorangeDevice`, `FX4DetectorControls`, count-time helpers |
+| `9281bda` | SAXS/WAXS NeXus schema v2.0; fraction-of-full-scale ranging |
+| `09cf018` | device/config YAML; `UPD`/`I0`/`I00`/`TRD` names moved from the scaler to the FX4 |
+| `cfc3482` | fly-scan HDF5 schema v2.0; derived `channel_time` |
+| `7b28c0f` | `fx4_autorange_plan.py`: autoscale + dark currents |
+| `892149b` | the eight tune plans, `plans_tune`, `tune_guard_slits` |
+| `40b8a17` | `uascan` |
+| `e7c7b51` | transmission (both), with the channel restore in a finaliser |
+| `b97cf9f` | fly scan; Q18 (stop overwriting `gainU`/`gainD`) |
+
+### What is left
+
+1. **SAXS/WAXS plans** (`plans_user_facing.py`) — the software-triggered `fx42`
+   I0 described in §5.0. The last plan bodies. `plans_user_facing.py` and a
+   handful of others still hold `scaler0`/`struck` lookups; most are
+   housekeeping, but this file has real work.
+2. Docs: `SKILL.md` counting-chain section, `CLAUDE.md` architecture update,
+   `ADconfigs/README.md`.
+3. Regenerate `src/usaxs/qserver/existing_plans_and_devices.yaml` (needs a live
+   session).
+
+### What has and has not been exercised
+
+* 44 unit tests pass. They cover the pure logic -- count-time quantisation,
+  ring-buffer limits, range-label parsing, the autoscale convergence loop
+  against a fake sequence program, the channel-before-arm ordering, and the
+  saturation test.
+* **Nothing has touched real hardware.** There is no EPICS access from the
+  development machine: the FX4 device answers on `10.54.122.170:80`, but
+  channel access to `usxFX4:`/`usxFX42:` does not resolve. Every PV name in
+  the FX4 device layer is therefore *assumed*, and §7's bench script is the
+  first thing to run.
+* The riskiest assumptions, in order: the time-series record suffixes (§3.1),
+  that `MeanValue_RBV` really reads pA and not A (§2.1), the `Range` enum
+  labels that `utils/fx4_ranges.py` parses, and the `usxFX42:FX4:seq01:`
+  record names, which are assumed to mirror `usxFX4:FX4:seq01:` and have not
+  been checked at all.
+
+### Where to resume
+
+Next coding task is item 1 above. Everything needed is in §5.0.
+
+---
+
+
 Target: usable at the beamline for the coming Sunday start-up, with a clean
 rollback to `main` if the new chain misbehaves.
 
@@ -914,9 +967,12 @@ caget -d 31 usxFX4:FX4:TriggerPolarity
 caget -d 31 usxFX4:FX4:AcquireMode
 caget -d 31 usxFX4:FX4:Range
 
-# ── 4. Is FX42 alive, and does it look the same? ──
+# ── 4. FX42's autoranger (added 2026-09-24, NOT yet checked from the code side)
+#      The code assumes these mirror usxFX4:FX4:seq01: exactly.  If any record
+#      name differs, FX4AutorangeDevice needs a variant for it.
+dbl "usxFX42:FX4:seq01:*" | sort
 caget usxFX42:FX4:Model usxFX42:FX4:Firmware
-dbl "usxFX42:FX4:seq01:*" | head          # does it have an autoranger yet?
+caget usxFX42:FX4:seq01:channel           # should be 1 (I0)
 
 # ── 5. PSO strobe width — sets the fly-scan VPR ceiling (§3.3) ──
 dbl "usxAERO:pm1:*" | grep -i "pulse\|width"
@@ -966,7 +1022,7 @@ against `camonitor usxFX4:FX4:NumAveraged_RBV`. The `channel_time` derivation
 | # | Answer | Consequence |
 |---|--------|-------------|
 | Q1 | TRD = `fx4` **Current4**, expected to move | channel map lives in `iconfig.yml`, not code (§1.3) |
-| Q2 | I0 on `fx42` Current1, **fixed manual range** Sunday | autoscale loop runs on `fx4` only; autorange-vs-fixed is config-driven (§4.1) |
+| Q2 | I0 on `fx42` Current1. **Autoranging arrived 2026-09-24**: `usxFX42:FX4:seq01:` | `I0_controls` now carries `autorange: fx42_autorange`; I0 joins the autoscale loop and gets its own dark table. I00 stays fixed-range (nothing connected) |
 | Q3 | I00 → `fx42` Current2 | but §1.5 — scaler0 I000 droppable, **scaler2 I000 is in use**, leave it |
 | Q4 | seq program `usxFX4:FX4:seq01:`, PV list received | close port of `AmplifierAutoDevice`; `gain`/`gainN`/`vfc`/`lucounts`/`lurate` gone, `channel`/`current`/`modeRdbk`/`speed` new (§4.1) |
 | Q4b | gain-change-array patch obsolete | **dropped** from the fly-scan file (§5.3); real task is PSO/VPR commissioning (§5.2) |
@@ -1034,6 +1090,7 @@ defensive fallback, not a code edit**. Specifically:
 | Transmission (both), with the `channel=4` switch in a `finally` | ✅ done |
 | Fly-scan plan: arm TS, harvest, progress reporting off `ts_current_point` | ✅ done |
 | SAXS/WAXS plans: software-triggered `fx42` I0 (section 5.0) | **next** |
+| Enable `fx42_autorange` for I0 | ✅ done (2026-09-24) |
 | Delete `gainU`/`gainD` writes + `setpoint_up/down` signals (Q18) | ✅ done |
 | Drop scaler0 `I000`, `I000_femto_amplifier`, `I000_photocurrent_calc` | todo |
 | `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` | todo |
