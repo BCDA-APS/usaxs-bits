@@ -1,0 +1,207 @@
+<?xml version="1.0" standalone="no" ?>
+
+<Attributes
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://epics.aps.anl.gov/areaDetector/attributes ../attributes.xsd"
+    >
+
+    <!--
+	    Important Note
+	    ==============
+
+	    Order of the "type" of attributes matters.
+	    Required order is:
+	    * EPICS_PV
+	    * PARAM
+	    * FUNCTION
+     -->
+
+    <!-- TODO: add EGU to all float PVs once ADCore bug is fixed -->
+
+    <Attribute name="UserName"		     type="EPICS_PV"	 source="usxLAX:UserName"			    dbrtype="DBR_NATIVE"     description="user name listed as GUP PI"/>
+    <Attribute name="SampleTitle"	     type="EPICS_PV"	 source="usxLAX:sampleTitle"		    dbrtype="DBR_STRING"     description="sample name"/>
+    <Attribute name="sthick"		     type="EPICS_PV"	 source="usxLAX:sampleThickness"		    dbrtype="DBR_NATIVE"     description="sample thickness"/>
+    <Attribute name="ScanMacro" 	     type="EPICS_PV"	 source="usxLAX:SpecMacroFileName"		    dbrtype="DBR_NATIVE"     description="name of SPEC macro file"/>
+
+    <!-- BSS ESAF & Proposal PVs (usxTerms IOC, populated by matchUserInApsBss()) -->
+    <Attribute name="BSS_esaf_id"              type="EPICS_PV" source="usxTerms:bss:esaf:id"              dbrtype="DBR_STRING" description="ESAF ID number"/>
+    <Attribute name="BSS_esaf_title"           type="EPICS_PV" source="usxTerms:bss:esaf:title"           dbrtype="DBR_STRING" description="ESAF title"/>
+    <Attribute name="BSS_esaf_sector"          type="EPICS_PV" source="usxTerms:bss:esaf:sector"          dbrtype="DBR_STRING" description="ESAF sector"/>
+    <Attribute name="BSS_esaf_status"          type="EPICS_PV" source="usxTerms:bss:esaf:status"          dbrtype="DBR_STRING" description="ESAF status"/>
+    <Attribute name="BSS_esaf_start"           type="EPICS_PV" source="usxTerms:bss:esaf:start"           dbrtype="DBR_STRING" description="ESAF start date-time"/>
+    <Attribute name="BSS_esaf_end"             type="EPICS_PV" source="usxTerms:bss:esaf:end"             dbrtype="DBR_STRING" description="ESAF end date-time"/>
+    <Attribute name="BSS_esaf_pi_name"         type="EPICS_PV" source="usxTerms:bss:esaf:pi_name"         dbrtype="DBR_STRING" description="ESAF PI full name"/>
+    <Attribute name="BSS_esaf_user_last_names" type="EPICS_PV" source="usxTerms:bss:esaf:user_last_names" dbrtype="DBR_STRING" description="ESAF users, comma-separated last names"/>
+    <Attribute name="BSS_esaf_user_count"      type="EPICS_PV" source="usxTerms:bss:esaf:user_count"      dbrtype="DBR_NATIVE" description="ESAF number of users"/>
+
+    <Attribute name="BSS_proposal_id"              type="EPICS_PV" source="usxTerms:bss:proposal:id"              dbrtype="DBR_STRING" description="Proposal ID"/>
+    <Attribute name="BSS_proposal_title"           type="EPICS_PV" source="usxTerms:bss:proposal:title"           dbrtype="DBR_STRING" description="Proposal title"/>
+    <Attribute name="BSS_proposal_start"           type="EPICS_PV" source="usxTerms:bss:proposal:start"           dbrtype="DBR_STRING" description="Proposal start date-time"/>
+    <Attribute name="BSS_proposal_end"             type="EPICS_PV" source="usxTerms:bss:proposal:end"             dbrtype="DBR_STRING" description="Proposal end date-time"/>
+    <Attribute name="BSS_proposal_pi_name"         type="EPICS_PV" source="usxTerms:bss:proposal:pi_name"         dbrtype="DBR_STRING" description="Proposal PI full name"/>
+    <Attribute name="BSS_proposal_user_last_names" type="EPICS_PV" source="usxTerms:bss:proposal:user_last_names" dbrtype="DBR_STRING" description="Proposal users, comma-separated last names"/>
+    <Attribute name="BSS_proposal_mail_in"         type="EPICS_PV" source="usxTerms:bss:proposal:mail_in"         dbrtype="DBR_NATIVE" description="Mail-in flag (0=No 1=Yes)"/>
+    <Attribute name="BSS_proposal_proprietary"     type="EPICS_PV" source="usxTerms:bss:proposal:proprietary"     dbrtype="DBR_NATIVE" description="Proprietary flag (0=No 1=Yes)"/>
+
+<!-- Sample PVs info  -->
+    <Attribute name="Sample_Description"     type="EPICS_PV"	 source="usxSample:Description"	        dbrtype="DBR_STRING"     description="Sample Description"/>
+    <Attribute name="Sample_ChemicalFormula" type="EPICS_PV"	 source="usxSample:ChemicalFormula"        dbrtype="DBR_STRING"     description="Sample Chemical Formula (CIF)"/>
+    <Attribute name="Sample_Temperature"     type="EPICS_PV"	 source="usxSample:Temperature"		    dbrtype="DBR_NATIVE"     description="Sample Temperature [C]"/>
+    <Attribute name="Sample_Concentration"   type="EPICS_PV"	 source="usxSample:Concentration"		    dbrtype="DBR_NATIVE"     description="Sample Concentration"/>
+    <Attribute name="Sample_Density"         type="EPICS_PV"	 source="usxSample:Density"    		    dbrtype="DBR_NATIVE"     description="Sample Density [g/cm3]"/>
+    <Attribute name="Sample_VolumeFraction"  type="EPICS_PV"	 source="usxSample:VolumeFraction"		    dbrtype="DBR_NATIVE"     description="Sample VolumeFraction"/>
+    <Attribute name="Sample_ScatteringLengthDensity"   type="EPICS_PV"	 source="usxSample:ScatteringLengthDensity"  dbrtype="DBR_NATIVE"     description="Sample ScatteringLengthDensity"/>
+    <Attribute name="Sample_MagneticField"   type="EPICS_PV"	 source="usxSample:MagneticField"		    dbrtype="DBR_NATIVE"     description="Sample MagneticField"/>
+    <Attribute name="Sample_MagneticFieldDir"   type="EPICS_PV"	 source="usxSample:MagneticFieldDir"		dbrtype="DBR_STRING"     description="Sample MagneticField Dir (x/y/z)"/>
+    <Attribute name="Sample_StressField"     type="EPICS_PV"	 source="usxSample:StressField"		    dbrtype="DBR_NATIVE"     description="Sample StressField"/>
+    <Attribute name="Sample_StressFieldDir"  type="EPICS_PV"	 source="usxSample:StressFieldDir"		    dbrtype="DBR_STRING"     description="Sample StressField Dir (x/y/z)"/>
+    <Attribute name="Sample_ElectricField"   type="EPICS_PV"	 source="usxSample:ElectricField"		    dbrtype="DBR_NATIVE"     description="Sample ElectricField"/>
+    <Attribute name="Sample_ElectricFieldDir"           type="EPICS_PV"	 source="usxSample:ElectricFieldDir"    dbrtype="DBR_STRING"     description="Sample ElectricField Dir (x/y/z)"/>
+    <Attribute name="Sample_XTranslation"    type="EPICS_PV"	 source="usxSample:XTranslation"		    dbrtype="DBR_NATIVE"     description="Sample XTranslation [mm]"/>
+    <Attribute name="Sample_RotationAngle"   type="EPICS_PV"	 source="usxSample:RotationAngle"		    dbrtype="DBR_NATIVE"     description="Sample RotationAngle [deg]"/>
+
+    <!--
+    <Attribute name="EmptyFileName"	     type="EPICS_PV"	 source="usxLAX:SAXS:EmptyFileName"	    dbrtype="DBR_NATIVE"     description="Name of file to use as empty scan"/>
+    -->
+    <Attribute name="GUPNumber" 	     type="EPICS_PV"	 source="usxLAX:GUPNumber"			    dbrtype="DBR_NATIVE"     description="GUP proposal number"/>
+
+    <Attribute name="StartTime" 	     type="EPICS_PV"	 source="usxLAX:SAXS:StartExposureTime"	    dbrtype="DBR_NATIVE"     description="image starting time"/>
+    <Attribute name="EndTime" 	         type="EPICS_PV"	 source="usxLAX:SAXS:EndExposureTime"	    dbrtype="DBR_NATIVE"     description="image starting time"/>
+    <Attribute name="SDD"		         type="EPICS_PV"	 source="usxLAX:SAXS:Distance"		    dbrtype="DBR_NATIVE"     description="SDD: distance between sample and detector, mm"/>
+    <Attribute name="I_scaling"  		 type="EPICS_PV"	 source="usxLAX:SAXS:CalibrationConstant" dbrtype="DBR_NATIVE"     description="Calibration constant for absolute Int. scale"/>
+    <Attribute name="PresetTime"	     type="EPICS_PV"	 source="usaxs_pilatus3:cam1:AcquireTime"	    dbrtype="DBR_NATIVE"     description="specified time for this exposure, s"/>
+    <Attribute name="APS_run_cycle"	     type="EPICS_PV"	 source="usxLAX:RunCycle"			    dbrtype="DBR_NATIVE"     description="APS operating cycle"/>
+
+    <Attribute name="USAXSslitVap"	     type="EPICS_PV"	 source="usxLAX:m58:c1:m7"			    dbrtype="DBR_NATIVE"     description="USAXS slit, vertical aperture, mm"/>
+    <Attribute name="USAXSslitHap"	     type="EPICS_PV"	 source="usxLAX:m58:c1:m8"			    dbrtype="DBR_NATIVE"     description="USAXS slit, horizontal aperture, mm"/>
+    <Attribute name="USAXSslitVpos"	     type="EPICS_PV"	 source="usxLAX:m58:c1:m5"			    dbrtype="DBR_NATIVE"     description="USAXS slit, vertical position, mm"/>
+    <Attribute name="USAXSslitHpos"	     type="EPICS_PV"	 source="usxLAX:m58:c1:m6"			    dbrtype="DBR_NATIVE"     description="USAXS slit, horizontal position, mm"/>
+
+    <Attribute name="wavelength"	     type="EPICS_PV"     source="12ida2:LambdaCalc"				dbrtype="DBR_NATIVE"	 description="monochromator wavelength, A"/>
+    <Attribute name="wavelength_EGU"	 type="EPICS_PV"	 source="12ida2:LambdaCalc.EGU"			dbrtype="DBR_NATIVE"     description="monochromator wavelength units"/>
+    <Attribute name="wavelength_spread"  type="EPICS_PV"     source="usxLAX:WavelengthSpread"  		dbrtype="DBR_NATIVE"	 description="delta-lambda / lambda"/>
+
+    <Attribute name="monoE"		         type="EPICS_PV"	 source="12ida2:EnCalc.VAL"			    dbrtype="DBR_NATIVE"     description="monochromator energy, keV"/>
+    <Attribute name="monoE_EGU"		     type="EPICS_PV"	 source="12ida2:EnCalc.EGU"			    dbrtype="DBR_NATIVE"     description="monochromator energy units"/>
+    <Attribute name="idE_ds"		     type="EPICS_PV"	 source="EnergyM" 		 				dbrtype="DBR_NATIVE"     description="ID energy, keV"/>
+
+    <Attribute name="SRcurrent" 	     type="EPICS_PV"	 source="S:SRcurrentAI" 			    dbrtype="DBR_NATIVE"     description="Storage Ring Current, mA"/>
+
+    <Attribute name="filterAttenuation"	 type="EPICS_PV"	 source="12idPyFilter:FL1:attenuation"  dbrtype="DBR_NATIVE"     description="Filter attenuation"/>
+    <!-- 
+    <Attribute name="filterAl"		     type="EPICS_PV"	 source="usxRIO:pf4:filterAl"  		    dbrtype="DBR_NATIVE"     description="Al filter, mm"/>
+    <Attribute name="filterTi"		     type="EPICS_PV"	 source="usxRIO:pf4:filterTi"  		    dbrtype="DBR_NATIVE"     description="Ti filter, mm"/>
+    <Attribute name="filterGlass"	     type="EPICS_PV"	 source="usxRIO:pf42:filterGlass"		dbrtype="DBR_NATIVE"     description="Glass filter, mm"/>
+    <Attribute name="filterTrans"	     type="EPICS_PV"	 source="usxRIO:pf4:trans"			    dbrtype="DBR_NATIVE"     description="filter transmission"/>
+    -->
+    <Attribute name="I000_cts"		     type="EPICS_PV"     source="usxLAX:vsc:c2_cts1.B"		    dbrtype="DBR_NATIVE"     description="I000 counts"/>
+    <Attribute name="I0_cts"		     type="EPICS_PV"	 source="usxLAX:vsc:c0.S2"	            dbrtype="DBR_NATIVE"     description="I0 counts"/>
+    <Attribute name="I0_cts_gated"	     type="EPICS_PV"	 source="usxLAX:vsc:c1.S2"	            dbrtype="DBR_NATIVE"     description="I0 counts gated"/>
+    <Attribute name="Exp_time_gated"	 type="EPICS_PV"     source="usxLAX:vsc:c1.T"	            dbrtype="DBR_NATIVE"     description="Exposure time gated"/>
+    <Attribute name="I00_cts"		     type="EPICS_PV"	 source="usxLAX:vsc:c0.S3"	            dbrtype="DBR_NATIVE"     description="I00 counts"/>
+    <Attribute name="scaler_freq"	     type="EPICS_PV"	 source="usxLAX:vsc:c0.FREQ"		    dbrtype="DBR_NATIVE"     description="scaler frequency, Hz"/>
+    <Attribute name="I0_gain"		     type="EPICS_PV"	 source="usxRIO:fem02:seq01:gain"	    dbrtype="DBR_NATIVE"     description="I0 V/A gain"/>
+    <Attribute name="I00_gain"		     type="EPICS_PV"	 source="usxRIO:fem03:seq01:gain"	    dbrtype="DBR_NATIVE"     description="I00 V/A gain"/>
+
+    <Attribute name="GuardslitVap"	     type="EPICS_PV"	 source="usxLAX:GSlit1V:size.VAL"		    dbrtype="DBR_NATIVE"     description="Guard slit, vertical aperture, mm"/>
+    <Attribute name="GuardslitHap"	     type="EPICS_PV"	 source="usxLAX:GSlit1H:size.VAL"		    dbrtype="DBR_NATIVE"     description="Guard slit, horizontal aperture, mm"/>
+    <Attribute name="GuardslitVpos"	     type="EPICS_PV"	 source="usxLAX:GSlit1V:center.VAL"		    dbrtype="DBR_NATIVE"     description="Guard slit, vertical position, mm"/>
+    <Attribute name="GuardslitHpos"	     type="EPICS_PV"	 source="usxLAX:GSlit1H:center.VAL"		    dbrtype="DBR_NATIVE"     description="Guard slit, horizontal position, mm"/>
+
+    <Attribute name="SAXS_X"		     type="EPICS_PV" source="usxAERO:m13.RBV"		    dbrtype="DBR_NATIVE" description="pinhole y stage position, mm"/>
+    <Attribute name="SAXS_Y"		     type="EPICS_PV" source="usxAERO:m15.RBV"		    dbrtype="DBR_NATIVE" description="pinhole y stage position, mm"/>
+    <Attribute name="SAXS_Z"		     type="EPICS_PV" source="usxAERO:m14.RBV"		    dbrtype="DBR_NATIVE" description="pinhole z stage position, mm"/>
+    <Attribute name="WAXS_X"		     type="EPICS_PV" source="usxAERO:m3.RBV"		    dbrtype="DBR_NATIVE" description="waxs x stage position, mm"/>
+
+    <Attribute name="mr_enc"		     type="EPICS_PV" source="usxAERO:m12.RBV"		    dbrtype="DBR_NATIVE" description="mr readback, deg"/>
+
+    <Attribute name="mx"		   		type="EPICS_PV" source="usxAERO:m10.RBV"		        dbrtype="DBR_NATIVE" description="mx stage position, mm"/>
+    <Attribute name="my"		     	type="EPICS_PV" source="usxAERO:m11.RBV"		        dbrtype="DBR_NATIVE" description="my stage position, mm"/>
+    <Attribute name="m2rp"		     	type="EPICS_PV"	 source="usxLAX:pi:c0:m2.VAL"			    dbrtype="DBR_NATIVE"     description="m2rp voltage, V"/>
+    <Attribute name="msrp"		     	type="EPICS_PV"	 source="usxLAX:pi:c0:m3.VAL"			    dbrtype="DBR_NATIVE"     description="msrp voltage, V"/>
+
+    <Attribute name="sx"		     type="EPICS_PV"	 source="usxAERO:m8.RBV" 		    dbrtype="DBR_NATIVE"     description="sample x stage position, mm"/>
+    <Attribute name="sy"		     type="EPICS_PV"	 source="usxAERO:m9.RBV" 		    dbrtype="DBR_NATIVE"     description="sample y stage position, mm"/>
+    <Attribute name="sa"		     type="EPICS_PV"	 source="usxLAX:m58:c0:m1.RBV" 		    dbrtype="DBR_NATIVE"     description="sample azimuthal rotation, degrees"/>
+
+    <Attribute name="pin_ccd_center_x"	     type="EPICS_PV"	 source="usxLAX:SAXS:BeamCenterX:NXdetector"  dbrtype="DBR_NATIVE"     description="horizontal position of beam center on CCD, mm"/>
+    <Attribute name="pin_ccd_center_y"	     type="EPICS_PV"	 source="usxLAX:SAXS:BeamCenterY:NXdetector"  dbrtype="DBR_NATIVE"     description="vertical position of beam center on CCD, mm"/>
+    <Attribute name="pin_ccd_center_x_pixel" type="EPICS_PV"	 source="usxLAX:SAXS:BeamCenterX" 	    dbrtype="DBR_NATIVE"     description="horizontal position of beam center on CCD, pixels"/>
+    <Attribute name="pin_ccd_center_y_pixel" type="EPICS_PV"	 source="usxLAX:SAXS:BeamCenterY" 	    dbrtype="DBR_NATIVE"     description="vertical position of beam center on CCD, pixels"/>
+    <Attribute name="pin_ccd_pixel_size_x"   type="EPICS_PV"	 source="usxLAX:SAXS:PinPixSizeX" 	    dbrtype="DBR_NATIVE"     description="CCD pixel size, horizontal, mm"/>
+    <Attribute name="pin_ccd_pixel_size_y"   type="EPICS_PV"	 source="usxLAX:SAXS:PinPixSizeY" 	    dbrtype="DBR_NATIVE"     description="CCD pixel size, vertical, mm"/>
+    <Attribute name="pin_ccd_tilt_x"   	     type="EPICS_PV"	 source="usxLAX:SAXS:DetectorTiltX"	    dbrtype="DBR_NATIVE"     description="CCD tilt, x direction, degrees"/>
+    <Attribute name="pin_ccd_tilt_y"   	     type="EPICS_PV"	 source="usxLAX:SAXS:DetectorTiltY"	    dbrtype="DBR_NATIVE"     description="CCD tilt, y direction, degrees"/>
+
+    <Attribute name="Pin_TrPD"		     type="EPICS_PV"	 source="usxLAX:SAXS:SAXS_TrPD"		    dbrtype="DBR_NATIVE"     description="SAXS_TrPD"/>
+    <Attribute name="Pin_TrI0"		     type="EPICS_PV"	 source="usxLAX:SAXS:SAXS_TrI0"		    dbrtype="DBR_NATIVE"     description="SAXS_TrI0"/>
+    <Attribute name="Pin_TrPDgain"	     type="EPICS_PV"	 source="usxLAX:SAXS:SAXS_TrPDgain"	    dbrtype="DBR_NATIVE"     description="SAXS_TrPDgain"/>
+    <Attribute name="Pin_TrI0gain"	     type="EPICS_PV"	 source="usxLAX:SAXS:SAXS_TrI0gain"	    dbrtype="DBR_NATIVE"     description="SAXS_TrI0gain"/>
+
+    <!-- Linkam temperature controller
+    < Attribute name="linkam_ci94_temp"       type="EPICS_PV"	 source="usxLAX:ci94:temp"			    dbrtype="DBR_NATIVE"     description="linkam_ci94_temp"/>
+    <Attribute name="linkam_ci94_temp2"      type="EPICS_PV"	 source="usxLAX:ci94:temp2"			dbrtype="DBR_NATIVE"     description="linkam_ci94_temp2"/>
+    <Attribute name="linkam_ci94_status"	type="EPICS_PV"	 source="usxLAX:ci94:status"				dbrtype="DBR_NATIVE"     description="linkam_ci94_status"/>
+    <Attribute name="linkam_ci94_rate"  	type="EPICS_PV"	 source="usxLAX:ci94:setRate"				dbrtype="DBR_NATIVE"     description="linkam_ci94_rate"/>
+    <Attribute name="linkam_ci94_limit" 	type="EPICS_PV"	 source="usxLAX:ci94:setLimit"				dbrtype="DBR_NATIVE"     description="linkam_ci94_limit"/>
+    <Attribute name="linkam_ci94_errors"	type="EPICS_PV"	 source="usxLAX:ci94:errorByte"			dbrtype="DBR_NATIVE"     description="linkam_ci94_errors"/>
+    < end Linkam CI94 status PVs -->
+
+    <!-- Linkam T96 status PVs JIL 2026-1 -->
+    <Attribute name="linkam_T96_temp"   	type="EPICS_PV" 	source="usxLINKAM:tc1:TEMP"			dbrtype="DBR_NATIVE" description="linkam T96 temp, degC"/>
+    <Attribute name="linkam_T96_rate"   	type="EPICS_PV" 	source="usxLINKAM:tc1:RAMPRATE"		dbrtype="DBR_NATIVE" description="linkam T96 rate, degC/min"/>
+    <Attribute name="linkam_T96_limit"   	type="EPICS_PV" 	source="usxLINKAM:tc1:SETPOINT"		dbrtype="DBR_NATIVE" description="linkam T96 SetPoint, degC"/>
+    <Attribute name="linkam_T96_errors"   	type="EPICS_PV" 	source="usxLINKAM:tc1:CTRLLR:ERR"	dbrtype="DBR_NATIVE" description="linkam T96 errors"/>
+    <Attribute name="linkam_T96_ln2Status"  type="EPICS_PV" 	source="usxLINKAM:tc1:LNP_MODE"		dbrtype="DBR_NATIVE" description="linkam T96 ln2Status"/>
+    <Attribute name="linkam_T96_pressure"   type="EPICS_PV" 	source="usxLINKAM:tc1:PRESSURE"		dbrtype="DBR_NATIVE" description="linkam T96 pressure"/>
+    <Attribute name="linkam_T96_vacuumStatus"   type="EPICS_PV" source="usxLINKAM:tc1:VACUUM"		dbrtype="DBR_NATIVE" description="linkam T96 vacuumStatus"/>
+    <!-- end Linkam T96 status PVs -->
+
+    <!-- PTC10 status PVs JIL 2026-1 -->
+    <Attribute name="PCT10_temp"   		type="EPICS_PV" 	source="usxTEMP:tc1:2A:temperature"	 dbrtype="DBR_NATIVE" description="PTC10 temp, degC"/>
+    <Attribute name="PCT10_rate"   		type="EPICS_PV" 	source="usxTEMP:tc1:5A:rampRate_RBV" dbrtype="DBR_NATIVE" description="PTC10 rate, degC/sec"/>
+    <Attribute name="PCT10_limit"   	type="EPICS_PV" 	source="usxTEMP:tc1:5A:setPoint_RBV" dbrtype="DBR_NATIVE" description="PTC10 SetPoint, degC"/>
+    <!-- end PTC10 status PVs -->
+
+
+    <!-- Temperatures  -->
+    <Attribute name="Hutch_Temperature"   	      type="EPICS_PV" source="usxLAX:adam1:rtd0"	dbrtype="DBR_NATIVE" description="Hutch_Temperature, degC"/>
+    <Attribute name="RTD1"   	      type="EPICS_PV" source="usxLAX:adam1:rtd1"	dbrtype="DBR_NATIVE" description="RTD1_Temperature, degC"/>
+    <Attribute name="RTD2"   	      type="EPICS_PV" source="usxLAX:adam1:rtd2"	dbrtype="DBR_NATIVE" description="RTD2_Temperature, degC"/>
+    <Attribute name="RTD3"   	      type="EPICS_PV" source="usxLAX:adam1:rtd3"	dbrtype="DBR_NATIVE" description="RTD3_Temperature, degC"/>
+    <Attribute name="RTD4"   	      type="EPICS_PV" source="usxLAX:adam1:rtd4"	dbrtype="DBR_NATIVE" description="RTD4_Temperature, degC"/>
+    <Attribute name="RTD5"   	      type="EPICS_PV" source="usxLAX:adam1:rtd5"	dbrtype="DBR_NATIVE" description="RTD5_Temperature, degC"/>
+    <Attribute name="TC0"   	      type="EPICS_PV" source="usxLAX:adam2:tc0"	dbrtype="DBR_NATIVE" description="TC0_Temperature, degC"/>
+    <Attribute name="TC1"   	      type="EPICS_PV" source="usxLAX:adam2:tc1"	dbrtype="DBR_NATIVE" description="TC1_Temperature, degC"/>
+    <Attribute name="TC2"   	      type="EPICS_PV" source="usxLAX:adam2:tc2"	dbrtype="DBR_NATIVE" description="TC2_Temperature, degC"/>
+    <Attribute name="TC3"   	      type="EPICS_PV" source="usxLAX:adam2:tc3"	dbrtype="DBR_NATIVE" description="TC3_Temperature, degC"/>
+    <Attribute name="TC4"   	      type="EPICS_PV" source="usxLAX:adam2:tc4"	dbrtype="DBR_NATIVE" description="TC4_Temperature, degC"/>
+    <Attribute name="TC5"   	      type="EPICS_PV" source="usxLAX:adam2:tc5"	dbrtype="DBR_NATIVE" description="TC5_Temperature, degC"/>
+
+    <!-- Params -->
+
+    <Attribute name="Manufacturer"	     type="PARAM"	 source="MANUFACTURER"  			    datatype="STRING"	     description="Camera manufacturer"/>
+    <Attribute name="Model"		         type="PARAM"	 source="MODEL" 				        datatype="STRING"	     description="Camera model"/>
+    <Attribute name="MaxSizeX"		     type="PARAM"	 source="MAX_SIZE_X"				    datatype="INT"	         description="Detector X size"/>
+    <Attribute name="MaxSizeY"		     type="PARAM"	 source="MAX_SIZE_Y"				    datatype="INT"	         description="Detector Y size"/>
+    <Attribute name="ImageCounter"	     type="PARAM"	 source="ARRAY_COUNTER" 			    datatype="INT"	         description="Image counter"/>
+    <Attribute name="DriverFileName"     type="PARAM"	 source="FULL_FILE_NAME"			    datatype="STRING"	     description="Driver full file name"/>
+    <Attribute name="FileName"	         type="PARAM"	 source="FILE_NAME"			            datatype="STRING"	     description="Driver file name"/>
+    <Attribute name="AttributesFile"     type="PARAM"	 source="ND_ATTRIBUTES_FILE"		    datatype="STRING"	     description="Attributes file name"/>
+    <Attribute name="ADCoreVersion"	     type="PARAM"	 source="ADCORE_VERSION"			    datatype="STRING"	     description="ADCore version number"/>
+
+</Attributes>
+
+
+<!--
+########### SVN repository information ###################
+# $Date: 2015-06-09 14:39:50 -0500 (Tue, 09 Jun 2015) $
+# $Author: jemian $
+# $Revision: 8473 $
+# $HeadURL: https://subversion.xray.aps.anl.gov/bcdaioc/9idc_AD/area_detector/SAXS_config/attributes.xml $
+# $Id: attributes.xml 8473 2015-06-09 19:39:50Z jemian $
+########### SVN repository information ###################
+    <Attribute name="ADCoreVersion"	     type="PARAM"	 source="ADCORE_VERSION"			    datatype="STRING"	     description="ADCore version number"/>
+    <Attribute name="ADCoreVersion"	  type="EPICS_PV" source="usaxs_pilatus1:cam1:ADCoreVersion"   dbrtype="STRING"     description="ADCore version number"/>
+
+-->
