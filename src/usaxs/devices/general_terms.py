@@ -38,10 +38,6 @@ from ophyd import Signal
 class FlyScanParameters(Device):
     """EPICS PVs that control fly-scan operation.
 
-    ``setpoint_up`` / ``setpoint_down``
-        Software-only signals (no EPICS PV) used as count-rate thresholds for
-        the amplifier autorange logic: below ``setpoint_up`` the range
-        decreases; above ``setpoint_down`` it increases.
     """
 
     number_points = Component(EpicsSignal, "usxLAX:USAXS:FS_NumberOfPoints")
@@ -51,8 +47,10 @@ class FlyScanParameters(Device):
     order_number = Component(EpicsSignal, "usxLAX:USAXS:FS_OrderNumber")
     elapsed_time = Component(EpicsSignal, "usxLAX:USAXS:FS_ElapsedTime")
 
-    setpoint_up = Component(Signal, value=6000)  # decrease range
-    setpoint_down = Component(Signal, value=850000)  # increase range
+    # setpoint_up / setpoint_down removed: they were soft signals holding
+    # scaler count rates, pushed into the autoranger at every scan.  The FX4
+    # sequence program owns its own thresholds (seq01:gainU / gainD), tuned in
+    # EPICS.  See PLAN.md Q18.
 
 
 class PreUsaxsTuneParameters(Device):
@@ -208,9 +206,7 @@ class Parameters_USAXS(Device):
 
     retune_needed = Component(Signal, value=False)  # does not *need* an EPICS PV
 
-    # TODO: these are particular to the amplifier
-    setpoint_up = Component(Signal, value=4000)  # decrease range
-    setpoint_down = Component(Signal, value=650000)  # increase range
+    # setpoint_up / setpoint_down removed -- see FlyScanParameters above.
 
     transmission = Component(Parameters_transmission)
 

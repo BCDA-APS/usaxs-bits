@@ -430,10 +430,6 @@ def tune_GslitsSize():
     yield from MONO_FEEDBACK_OFF()
 
     yield from bps.mv(
-        upd_controls.auto.gainU,
-        terms.FlyScan.setpoint_up.get(),
-        upd_controls.auto.gainD,
-        terms.FlyScan.setpoint_down.get(),
         usaxs_shutter,
         "open",
     )

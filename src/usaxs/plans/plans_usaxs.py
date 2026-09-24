@@ -14,7 +14,6 @@ import os
 from collections import OrderedDict
 
 from apsbits.core.instrument_init import oregistry
-from apstools.devices import SCALER_AUTOCOUNT_MODE
 from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
@@ -53,8 +52,6 @@ m_stage = oregistry["m_stage"]
 mono_shutter = oregistry["mono_shutter"]
 monochromator = oregistry["monochromator"]
 s_stage = oregistry["s_stage"]
-scaler0 = oregistry["scaler0"]
-struck = oregistry["struck"]
 terms = oregistry["terms"]
 upd_controls = oregistry["upd_controls"]
 usaxs_flyscan = oregistry["usaxs_flyscan"]
@@ -236,15 +233,13 @@ def USAXSscanStep(
 
     yield from MONO_FEEDBACK_OFF()
 
-    old_femto_change_gain_up = upd_controls.auto.gainU.get()
-    old_femto_change_gain_down = upd_controls.auto.gainD.get()
-
+    # The autorange thresholds (seq01:gainU / gainD) belong to the IOC and are
+    # tuned there.  This used to overwrite them from terms.*.setpoint_up/down,
+    # which are soft signals that reset to hard-coded scaler count rates on
+    # every session restart -- so the first scan after startup wiped whatever
+    # had been tuned by hand.  See PLAN.md Q18.
     yield from bps.mv(
         # fmt: off
-        upd_controls.auto.gainU,
-        terms.USAXS.setpoint_up.get(),
-        upd_controls.auto.gainD,
-        terms.USAXS.setpoint_down.get(),
         usaxs_shutter,
         "open",
         timeout=MASTER_TIMEOUT,
@@ -329,20 +324,6 @@ def USAXSscanStep(
         # fmt: off
         usaxs_shutter,
         "close",
-        scaler0.update_rate,
-        5,
-        scaler0.auto_count_delay,
-        0.25,
-        scaler0.delay,
-        0.05,
-        scaler0.preset_time,
-        1,
-        scaler0.auto_count_time,
-        1,
-        upd_controls.auto.gainU,
-        old_femto_change_gain_up,
-        upd_controls.auto.gainD,
-        old_femto_change_gain_down,
         a_stage.r,
         terms.USAXS.ar_val_center.get(),
         a_stage.x,
@@ -489,15 +470,13 @@ def Flyscan(
 
     yield from MONO_FEEDBACK_OFF()
 
-    old_femto_change_gain_up = upd_controls.auto.gainU.get()
-    old_femto_change_gain_down = upd_controls.auto.gainD.get()
-
+    # The autorange thresholds (seq01:gainU / gainD) belong to the IOC and are
+    # tuned there.  This used to overwrite them from terms.*.setpoint_up/down,
+    # which are soft signals that reset to hard-coded scaler count rates on
+    # every session restart -- so the first scan after startup wiped whatever
+    # had been tuned by hand.  See PLAN.md Q18.
     yield from bps.mv(
         # fmt: off
-        upd_controls.auto.gainU,
-        terms.FlyScan.setpoint_up.get(),
-        upd_controls.auto.gainD,
-        terms.FlyScan.setpoint_down.get(),
         usaxs_shutter,
         "open",
         timeout=MASTER_TIMEOUT,
@@ -506,25 +485,14 @@ def Flyscan(
 
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
 
-    FlyScanAutoscaleTime = 0.025
+    # The scaler block that used to live here set a 25 ms free-running count so
+    # the Femto autoranger had something to re-range on during the sweep.  The
+    # FX4 needs no equivalent: in bulb mode the PSO gate itself completes a
+    # reading at every strobe, which is what the sequence program acts on.
+    # Flyscan_internal_plan puts the electrometers in bulb mode and arms UPD's
+    # autoranger.
     yield from bps.mv(
         # fmt: off
-        scaler0.update_rate,
-        0,
-        scaler0.auto_count_update_rate,
-        0,
-        upd_controls.auto.mode,
-        "auto+background",
-        scaler0.preset_time,
-        FlyScanAutoscaleTime,
-        scaler0.auto_count_time,
-        FlyScanAutoscaleTime,
-        scaler0.auto_count_delay,
-        FlyScanAutoscaleTime,
-        scaler0.delay,
-        0,
-        scaler0.count_mode,
-        SCALER_AUTOCOUNT_MODE,
         lax_autosave.disable,
         1,
         lax_autosave.max_time,
@@ -584,13 +552,9 @@ def Flyscan(
         # fmt: on
     )
 
-    diff = flyscan_trajectories.num_pulse_positions.get() - struck.current_channel.get()
-    # if diff > 5 and RE.state != "idle":
-    if diff > 5:
-        msg = "WARNING: Flyscan finished with %g less points" % diff
-        logger.info("*" * 20)
-        logger.info(msg)
-        logger.info("*" * 20)
+    # The captured-pulse check moved into Flyscan_internal_plan: it has to read
+    # TSCurrentPoint before acquisition is stopped, and it can distinguish
+    # dropped samples from merged exposures using NumAveraged.
 
     yield from bps.mvr(terms.FlyScan.order_number, 1)
 
@@ -606,20 +570,6 @@ def Flyscan(
         0,
         usaxs_shutter,
         "close",
-        scaler0.update_rate,
-        5,
-        scaler0.auto_count_delay,
-        0.25,
-        scaler0.delay,
-        0.05,
-        scaler0.preset_time,
-        1,
-        scaler0.auto_count_time,
-        1,
-        upd_controls.auto.gainU,
-        old_femto_change_gain_up,
-        upd_controls.auto.gainD,
-        old_femto_change_gain_down,
         a_stage.r,
         terms.USAXS.ar_val_center.get(),
         a_stage.x,
