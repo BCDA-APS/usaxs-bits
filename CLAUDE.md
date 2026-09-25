@@ -44,8 +44,8 @@ pytest path/to/test_file.py::test_name
 2. `init_instrument("guarneri")` creates the device manager; `oregistry.clear()` discards apsbits' default devices so only USAXS devices remain.
 3. `init_RE` builds `RE`, `sd`, with `bec` and `cat` (databroker `usaxs`) as subscribers.
 4. `make_devices(file=...)` is called multiple times against per-area Guarneri YAML files in `configs/`:
-   - `scalers_and_amplifiers.yml` (loaded first; `setup_scalers()` runs after)
-   - `devices.yml`, `devices_aps_only.yml`, `ad_devices.yml`, `autorange_devices.yml`
+   - `scalers_and_amplifiers.yml` (loaded first; `setup_scalers(claim_detector_names=False)` runs after — the FX4 owns the `UPD`/`I0`/`I00`/`TRD` names now, so the scaler must not claim them)
+   - `devices.yml` (creates `fx4`, `fx42`, `fx4_autorange`, `fx42_autorange`), `devices_aps_only.yml`, `ad_devices.yml`, `autorange_devices.yml` (binds detector → electrometer/channel/autoranger), then `setup_fx4_channels()` names those channels `UPD`/`I0`/`I00`/`TRD`
    - **then** either `shutters_op.yml` or `shutters_sim.yml` based on `caget("usxLAX:blCalc:userCalc2.VAL") == 1`
 5. Suspenders are wired (`suspender_in_operations` vs `suspender_in_sim`) accordingly.
 6. Bluesky/apstools plans are imported with `bp`/`bps` prefixes in IPython, but `import *` when `running_in_queueserver()` (so the QS sees flat plan names).
@@ -62,6 +62,38 @@ Two patterns satisfy the rule:
 
 - **Plans that need `RE` or `bec`** — import them lazily *inside* the function body (`def my_plan(...): from usaxs.startup import RE, bec; ...`). The import resolves at first call, well after `startup.py` has finished loading.
 - **Plans that need suspender decoration** — use `@beam_guarded` from `src/usaxs/suspenders/beam_guard.py`, applied at the plan's definition site *under* `@plan`. It resolves the suspenders at call time from a registry that `startup.py` fills via `set_beam_suspenders(...)`, so no suspender object is needed at module-load time. Do **not** apply the suspenders by rebinding names in `startup.py` — that only affects the `usaxs.startup` namespace, and user scripts importing `from usaxs.plans.plans_usaxs import USAXSscan` would get the undecorated original. Do not nest guarded plans: installing the same suspender twice and removing it once unguards the outer scope, which is why the `USAXSscan` dispatcher is bare and only `Flyscan`/`USAXSscanStep` carry the decorator.
+
+### Counting chain: FX4 electrometers (since 2026-09)
+
+UPD, TRD, I0 and I00 read out through **Pyramid FX4 electrometers**, replacing
+the Femto amplifier / V-F converter / scaler chain.  Three consequences shape
+the code:
+
+- **Readings are gain-independent picoamps.**  Nothing divides by an amplifier
+  gain; transmission and data reduction are `diode / I0`.  Range readbacks are
+  diagnostics only.
+- **One `Range` serves all four channels of an electrometer.**  `fx4` carries
+  UPD (ch1) and TRD (ch4), `fx42` carries I0 (ch1) and I00 (ch2).  The sequence
+  program's `channel` record selects which one it optimises for, so plans must
+  point it at the detector in use — always via
+  `fx4_setup.enable_fx4_autorange` or `fx4_autorange_plan.autoscale_amplifiers`,
+  never by writing `auto.mode` directly.  Getting this wrong yields
+  plausible-looking wrong numbers, not an error.
+- **Count times are quantised to whole mains cycles** so 60 Hz pickup averages
+  out (`utils.count_time.quantize_count_time`).
+
+Key modules: `devices/fx4_quadem.py` (device layer), `plans/fx4_setup.py` (mode
+configuration, channel selection, plot selection), `plans/fx4_autorange_plan.py`
+(autoscale, dark currents), `utils/fx4_channels.py` (names the channels `UPD` /
+`I0` / `I00` / `TRD`), `utils/fx4_ranges.py`.
+
+`scaler0`, `scaler1` and `struck` are still declared so the old chain can be
+restored, but nothing feeds them — **do not use them in new code**.  Rollback is
+a branch switch, not a runtime flag: the hardware is rewired.
+
+`PLAN.md` is the running record of the conversion, including what has not yet
+been verified against hardware.  `ADconfigs/` holds the IOC-side data-format
+configuration.
 
 ### Device configuration is YAML, not Python
 

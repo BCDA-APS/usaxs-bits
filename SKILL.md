@@ -127,6 +127,46 @@ Other useful plans: `mode_USAXS`, `mode_SAXS`, `mode_WAXS`, `mode_Radiography`,
 `measure_SAXS_Transmission` (`plans.sample_transmission`); `uascan`
 (`plans.uascan_plan`).
 
+## Counting chain: FX4 electrometers
+
+Since 2026-09 the detectors read out through **Pyramid FX4 electrometers**, not
+the old Femto amplifier / V-F converter / scaler chain.  A plan almost never
+touches this directly, but three facts change what plan code may say:
+
+| | |
+|---|---|
+| Signal names | `UPD`, `I0`, `I00`, `TRD` -- unchanged, so hints, plots and stream keys still work |
+| Units | **picoamps**, gain-independent.  Not counts, and not counts per second |
+| No gain term | Transmission and reduction are `diode / I0`.  There is nothing to divide by |
+| Devices | `fx4` (UPD ch1, TRD ch4), `fx42` (I0 ch1, I00 ch2) |
+
+```python
+from usaxs.plans.fx4_setup import prepare_fx4_counting   # set the count time
+from usaxs.plans.fx4_setup import select_fx4_plot        # choose what BEC plots
+from usaxs.plans.fx4_autorange_plan import autoscale_amplifiers
+```
+
+**Do not write `scaler0` / `scaler1` / `struck` in new plan code.** Those devices
+are still declared so the old chain can be restored, but nothing feeds them.
+`scaler0.preset_time` becomes `prepare_fx4_counting(count_time)`;
+`scaler0.select_channels([...])` becomes `select_fx4_plot([...])`; there is no
+`AutoCount` equivalent and none is needed.
+
+Two traps worth knowing if you ever write lower-level code:
+
+- **One `Range` serves all four channels of an electrometer.**  UPD and TRD
+  share `fx4`, so autoranging one leaves the other on the wrong range.  Always
+  go through `autoscale_amplifiers` or `enable_fx4_autorange`, which point the
+  sequence program at the right channel first.  Writing `auto.mode` directly is
+  how a scan ends up ranged for the transmitted beam -- and because the reading
+  is gain-independent, that produces plausible numbers rather than an error.
+- **Count times are quantised to whole mains cycles** by
+  `utils.count_time.quantize_count_time`, so 60 Hz pickup averages out.  Let
+  `prepare_fx4_counting` do it rather than writing `averaging_time` yourself.
+
+`PLAN.md` is the full record of the conversion, including what is still
+unverified against hardware.
+
 ## Hard rules
 
 - **Never** `from usaxs.startup import ...` at module top level. If a plan needs
@@ -143,6 +183,9 @@ Other useful plans: `mode_USAXS`, `mode_SAXS`, `mode_WAXS`, `mode_Radiography`,
   and WAXS names must record the temperature and time at *their* acquisition.
 - Set `thickness` per sample. It drives the transmission correction; a copied-over
   value is a silent data error, not a cosmetic one.
+- Detector readings are picoamps, gain-independent (see above). Never write
+  `scaler0`/`scaler1`/`struck` into a new plan, and never divide by an amplifier
+  gain.
 - Most of this code only works with live EPICS PVs at 12-ID-E. You cannot execute
   or test plans here — verify by reading, and hand the user the debug-mode recipe.
 - `src/usaxs/plan_templates/` and `user/` are excluded from `ruff`; `src/usaxs/user/`

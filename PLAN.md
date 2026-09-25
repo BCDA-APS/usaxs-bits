@@ -3,7 +3,8 @@
 ## 0. Current state — read this first
 
 **Branch:** `fx4-conversion`, off `main` @ 89adbc4.
-**Last updated:** 2026-09-24, end of the second working session.
+**Last updated:** 2026-09-25. **All offline work is complete.**
+What remains needs the instrument.
 
 ### What is done
 
@@ -19,17 +20,32 @@
 | `40b8a17` | `uascan` |
 | `e7c7b51` | transmission (both), with the channel restore in a finaliser |
 | `b97cf9f` | fly scan; Q18 (stop overwriting `gainU`/`gainD`) |
+| `5355754` | I0 autoranging on `usxFX42`; this status section |
+| `0ddc6da` | SAXS/WAXS plans, and the remaining stragglers |
+| (this one) | `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` |
 
-### What is left
+### What is left — all of it needs the instrument
 
-1. **SAXS/WAXS plans** (`plans_user_facing.py`) — the software-triggered `fx42`
-   I0 described in §5.0. The last plan bodies. `plans_user_facing.py` and a
-   handful of others still hold `scaler0`/`struck` lookups; most are
-   housekeeping, but this file has real work.
-2. Docs: `SKILL.md` counting-chain section, `CLAUDE.md` architecture update,
-   `ADconfigs/README.md`.
-3. Regenerate `src/usaxs/qserver/existing_plans_and_devices.yaml` (needs a live
-   session).
+1. **Run the bench script (§7).** Fifteen minutes, mostly read-only. It is the
+   first thing to do and everything else depends on it.
+2. **PSO/VPR commissioning (§5.2).** The one genuinely empirical task.
+3. **Threshold tuning.** `min_fraction` / `max_fraction` are live ophyd
+   `Signal`s, so this is console typing, not editing.
+4. **Regenerate** `src/usaxs/qserver/existing_plans_and_devices.yaml`.
+5. **Validate** against the standard reference material (§6) — check the
+   absolute level, not only the curve shape.
+
+### Deliberately not done
+
+* `plans/test_plan.py` is **not** converted. It is a scratch plan, `startup.py`
+  does not import it, and its docstring now says so.
+* `plans/amplifiers_plan.py` is kept, marked superseded, next to the commented
+  Femto block in `configs/autorange_devices.yml` — the rollback surface.
+* The module-scope `ScalerCH` objects in `filter_plans.py`, `mode_changes.py`
+  and `move_instrument.py` are left in place. They touch no hardware at run
+  time.
+* `scaler0`, `scaler1` and `struck` stay declared in the YAML for the same
+  reason.
 
 ### What has and has not been exercised
 
@@ -1093,7 +1109,7 @@ defensive fallback, not a code edit**. Specifically:
 | Enable `fx42_autorange` for I0 | ✅ done (2026-09-24) |
 | Delete `gainU`/`gainD` writes + `setpoint_up/down` signals (Q18) | ✅ done |
 | Drop scaler0 `I000`, `I000_femto_amplifier`, `I000_photocurrent_calc` | todo |
-| `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` | **next** |
+| `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` | ✅ done |
 
 ### Needs the instrument: keep this list short
 
