@@ -4,6 +4,12 @@ Test SAXS acquisition plan for the USAXS instrument.
 ``test_plan`` collects a single SAXS image with fixed 5 s exposure and
 hardcoded ``scan_title="test"``, useful for verifying detector setup without
 a full sample scan.
+
+.. warning::
+   NOT converted to the FX4 counting chain.  This is a scratch plan and is not
+   imported by ``startup.py``; its ``scaler0`` / ``scaler1`` blocks address
+   hardware that no longer feeds the USAXS detectors.  Convert it before use,
+   or take ``plans/axis_tuning.py`` as the pattern.
 """
 
 import os

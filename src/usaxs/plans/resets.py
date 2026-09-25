@@ -8,11 +8,12 @@ restores amplifier modes and motor kinds, and clears the collection flag.
 import logging
 
 from apsbits.core.instrument_init import oregistry
-from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
 from usaxs.devices.fx4_quadem import FX4AutorangeSettings as AutorangeSettings
+from usaxs.plans.fx4_setup import enable_fx4_autorange
+from usaxs.plans.fx4_setup import select_fx4_plot
 
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
@@ -31,7 +32,6 @@ a_stage = oregistry["a_stage"]
 d_stage = oregistry["d_stage"]
 m_stage = oregistry["m_stage"]
 s_stage = oregistry["s_stage"]
-scaler0 = oregistry["scaler0"]
 terms = oregistry["terms"]
 upd_controls = oregistry["upd_controls"]
 usaxs_shutter = oregistry["usaxs_shutter"]
@@ -56,14 +56,6 @@ def reset_USAXS():
     yield from MONO_FEEDBACK_ON()
     yield from bps.mv(
         # fmt: off
-        scaler0.count_mode,
-        SCALER_AUTOCOUNT_MODE,
-        upd_controls.auto.mode,
-        AutorangeSettings.auto_background,
-        I0_controls.auto.mode,
-        AutorangeSettings.manual,
-        I00_controls.auto.mode,
-        AutorangeSettings.manual,
         usaxs_shutter,
         "close",
         user_data.scanning,
@@ -77,11 +69,17 @@ def reset_USAXS():
         # fmt: on
     )
 
+    # Hand usxFX4's shared Range back to UPD and let the sequence program range
+    # it again.  I0 has its own program on usxFX42; I00 has none.
+    yield from enable_fx4_autorange(upd_controls, AutorangeSettings.auto_background)
+    yield from enable_fx4_autorange(I0_controls, AutorangeSettings.auto_background)
+
     # fix omitted stuff from uascan see #584, #583
-    upd_controls.kind = "hinted"  # correct value
-    TRD.kind = "hinted"  # correct value
-    I0.kind = "hinted"  # correct value
-    I00.kind = "hinted"  # correct value
+    # The FX4 detector signals go back to "normal": read and tabulated but not
+    # plotted.  They used to be set "hinted" here, which was right for scaler
+    # channels but would now put a trace on the plot for every detector --
+    # select_fx4_plot is what a scan uses to choose one.
+    select_fx4_plot([])
     for obj in (m_stage.r, a_stage.r, a_stage.x, s_stage.y, s_stage.x, d_stage.x):
         obj.kind = "normal"  #  correct value
         obj.user_setpoint.kind = "normal"  #  correct value

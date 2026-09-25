@@ -15,12 +15,15 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
+from .fx4_setup import usaxs_electrometers
+
 logger = logging.getLogger(__name__)
 
 
 # Device instances
 pi_c867 = oregistry["pi_c867"]
-scaler0 = oregistry["scaler0"]
+# fx4 (UPD, TRD) and fx42 (I0, I00)
+FX4_DETECTORS = usaxs_electrometers()
 user_data = oregistry["user_data"]
 
 
@@ -118,8 +121,10 @@ def rotate_sample(
     @bpp.run_decorator(md=_md)
     def _inner():
         yield from user_data.set_state_plan(f"rotating sample to {angle} degrees")
-        yield from bps.mv(scaler0.count_mode, "OneShot")
-        yield from bps.trigger(scaler0, group="rotation")
+        # One reading while the sample is at the requested angle.  Both
+        # electrometers, fired before either is waited on.
+        for det in FX4_DETECTORS:
+            yield from bps.trigger(det, group="rotation")
         yield from bps.wait(group="rotation")
 
     return (yield from _inner())

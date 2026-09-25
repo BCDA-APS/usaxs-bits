@@ -21,7 +21,7 @@ from .filter_plans import insertTransmissionFilters
 from .fx4_autorange_plan import autoscale_amplifiers
 from .fx4_setup import any_near_full_scale
 from .fx4_setup import prepare_fx4_counting
-from .fx4_setup import select_fx4_channel
+from .fx4_setup import restore_upd_channel
 from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
@@ -44,25 +44,6 @@ user_data = oregistry["user_data"]
 # fx4 carries TRD (and UPD), fx42 carries I0.  Both are triggered for every
 # transmission measurement.
 FX4_DETECTORS = usaxs_electrometers()
-
-
-@plan
-def _restore_upd_channel():
-    """Plan: hand usxFX4's shared Range back to UPD.
-
-    Every transmission measurement points ``seq01:channel`` at TRD, and one
-    Range serves all four channels of an electrometer.  Both callers of these
-    plans -- ``USAXSscanStep`` and ``Flyscan`` -- start scanning immediately
-    afterwards, so leaving the channel on TRD would range the whole scan for
-    the transmitted beam.  Because the reading is gain-independent the result
-    would still look like a plausible current, which is exactly why this runs
-    from a finaliser rather than on the success path.
-
-    Yields
-    ------
-    Bluesky messages consumed by the RunEngine.
-    """
-    yield from select_fx4_channel(upd_controls)
 
 
 @plan
@@ -103,7 +84,7 @@ def measure_USAXS_Transmission():
     Bluesky messages consumed by the RunEngine.
     """
     yield from bpp.finalize_wrapper(
-        _measure_USAXS_Transmission(), _restore_upd_channel()
+        _measure_USAXS_Transmission(), restore_upd_channel()
     )
 
 
@@ -227,7 +208,7 @@ def measure_SAXS_Transmission():
     Bluesky messages consumed by the RunEngine.
     """
     yield from bpp.finalize_wrapper(
-        _measure_SAXS_Transmission(), _restore_upd_channel()
+        _measure_SAXS_Transmission(), restore_upd_channel()
     )
 
 

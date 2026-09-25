@@ -24,7 +24,6 @@ import logging
 
 from apsbits.core.instrument_init import oregistry
 from apsbits.utils.config_loaders import get_config
-from apstools.devices import SCALER_AUTOCOUNT_MODE
 from bluesky import plan_stubs as bps
 from ophyd.scaler import ScalerCH
 
@@ -180,8 +179,6 @@ def mode_USAXS(md=None):
     # this mostly checks if we were not in USAXS mode in wrong place (e.g., radiography)
     yield from bps.mv(
         # fmt: off
-        scaler0.count_mode,
-        SCALER_AUTOCOUNT_MODE,
         a_stage.x,
         terms.USAXS.AX0.get(),
         m_stage.x,

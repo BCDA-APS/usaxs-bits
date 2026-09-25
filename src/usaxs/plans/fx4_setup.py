@@ -496,6 +496,94 @@ def set_usaxs_count_time(count_time, dets=None):
 
 
 @plan
+def restore_upd_channel():
+    """Plan: hand usxFX4's shared Range back to UPD.
+
+    Anything that autoranges TRD points ``seq01:channel`` at it, and one Range
+    serves all four channels.  Consumers are defended -- both
+    :func:`enable_fx4_autorange` and the autoscale plan select the channel
+    before using it -- but leaving the instrument pointed at the transmitted
+    beam invites a hand-run scan to pick up the wrong range, and with a
+    gain-independent readout that produces plausible numbers rather than an
+    error.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    from apsbits.core.instrument_init import oregistry
+
+    yield from select_fx4_channel(oregistry["upd_controls"])
+
+
+I0_GATED_GROUP = "fx4_gated_I0"
+"""Bluesky group for the I0 integration that runs under an image exposure."""
+
+
+@plan
+def start_gated_I0(exposure_time):
+    """Plan: begin the I0 integration that normalises an area-detector frame.
+
+    The stopgap for the one thing the FX4 cannot do (PLAN.md section 5.0).
+    ``scaler1`` was **hardware**-gated by the detector exposure: the I0 V-F
+    frequency was split, one copy free-running and one gated, and the gated
+    count normalised the frame.  There is no frequency to split now and no gate
+    wired to the detector, so the integration is started in software with
+    ``AveragingTime`` set to the exposure time.
+
+    Returns immediately, so the integration overlaps the exposure rather than
+    adding to it.  Pair with :func:`finish_gated_I0` after the acquisition.
+
+    The window therefore only *approximates* the exposure window: it drifts
+    with detector dead time, with multi-image series, and with acquire-period
+    overhead.  Good enough while exposures are uniform, and the reason the
+    shutdown TODO in PLAN.md section 5.0 exists.
+
+    Parameters
+    ----------
+    exposure_time : float
+        Image exposure time, seconds.  Quantised to whole mains cycles.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    from apsbits.core.instrument_init import oregistry
+
+    det = oregistry["fx42"]
+    yield from fx4_scaler_mode(det, exposure_time, channels=(1, 2))
+    yield from bps.trigger(det, group=I0_GATED_GROUP)
+
+
+@plan
+def finish_gated_I0():
+    """Plan: wait for the gated I0 integration and return the charge.
+
+    Returns ``Total`` rather than ``MeanValue``: it is the sum of the samples
+    in the reading, which is the scaler-like integral and therefore the right
+    quantity behind an NXmonitor ``integral``.  Unlike a mean it also stays
+    correct when the exposure time varies, which the software-timed window
+    makes likely.  ``ADconfigs`` records it under the unchanged attribute name
+    ``I0_cts_gated``, so the NeXus hardlink and the reduction path are
+    untouched; absolute charge is that value times ``FX4_SampleTime``.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+
+    Returns
+    -------
+    float
+        The I0 integral over the exposure.
+    """
+    from apsbits.core.instrument_init import oregistry
+
+    det = oregistry["fx42"]
+    yield from bps.wait(group=I0_GATED_GROUP)
+    return det.channel_stats(1).total.get()
+
+
+@plan
 def check_ring_overflows(dets, context=""):
     """Plan: warn if an FX4 dropped samples during the last acquisition.
 

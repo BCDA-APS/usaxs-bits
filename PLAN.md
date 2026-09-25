@@ -1089,11 +1089,11 @@ defensive fallback, not a code edit**. Specifically:
 | `uascan` | ✅ done |
 | Transmission (both), with the `channel=4` switch in a `finally` | ✅ done |
 | Fly-scan plan: arm TS, harvest, progress reporting off `ts_current_point` | ✅ done |
-| SAXS/WAXS plans: software-triggered `fx42` I0 (section 5.0) | **next** |
+| SAXS/WAXS plans: software-triggered `fx42` I0 (section 5.0) | ✅ done |
 | Enable `fx42_autorange` for I0 | ✅ done (2026-09-24) |
 | Delete `gainU`/`gainD` writes + `setpoint_up/down` signals (Q18) | ✅ done |
 | Drop scaler0 `I000`, `I000_femto_amplifier`, `I000_photocurrent_calc` | todo |
-| `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` | todo |
+| `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` | **next** |
 
 ### Needs the instrument: keep this list short
 

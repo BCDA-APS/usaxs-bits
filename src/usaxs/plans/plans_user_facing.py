@@ -29,6 +29,9 @@ from .command_list import before_plan
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertWaxsFilters
 from .fx4_autorange_plan import autoscale_amplifiers
+from .fx4_setup import finish_gated_I0
+from .fx4_setup import restore_upd_channel
+from .fx4_setup import start_gated_I0
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_WAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
@@ -52,9 +55,6 @@ mono_shutter = oregistry["mono_shutter"]
 s_stage = oregistry["s_stage"]
 saxs_det = oregistry["saxs_det"]
 saxs_stage = oregistry["saxs_stage"]
-scaler0 = oregistry["scaler0"]
-scaler1 = oregistry["scaler1"]
-struck = oregistry["struck"]
 terms = oregistry["terms"]
 trd_controls = oregistry["trd_controls"]
 usaxs_flyscan = oregistry["usaxs_flyscan"]
@@ -226,7 +226,10 @@ def saxsExp(
      #   timeout=MASTER_TIMEOUT,
         # fmt: on
     #)
-    old_delay = scaler0.delay.get()
+    # Filled in by _image_acquisition_steps below.  A dict rather than a
+    # return value because the generator is wrapped by restorable_stage_sigs,
+    # and a decorator is free not to pass one through.
+    measured = {}
 
     @restorable_stage_sigs([saxs_det.cam, saxs_det.hdf1])
     def _image_acquisition_steps():
@@ -272,22 +275,6 @@ def saxsExp(
         # SCAN_N = RE.md["scan_id"] + 1
         yield from bps.mv(
             # fmt: off
-            scaler1.preset_time,
-            terms.SAXS.acquire_time.get() + 1,
-            scaler0.preset_time,
-            1.2 * terms.SAXS.acquire_time.get() + 1,
-            scaler0.count_mode,
-            "OneShot",
-            scaler1.count_mode,
-            "OneShot",
-            scaler0.update_rate,
-            60,
-            scaler1.update_rate,
-            60,
-            scaler0.count,
-            0,
-            scaler0.delay,
-            0,
             terms.SAXS_WAXS.start_exposure_time,
             ts,
             # user_data.spec_scan,
@@ -310,27 +297,22 @@ def saxsExp(
         # is never replayed.
         yield from bps.checkpoint()
 
+        # Start the I0 integration and let it run under the exposure.  This is
+        # the software stand-in for scaler1's hardware gate; see
+        # fx4_setup.start_gated_I0.
+        yield from start_gated_I0(terms.SAXS.acquire_time.get())
         yield from areaDetectorAcquire(saxs_det, create_directory=-5, md=_md)
+        measured["I0_gated"] = yield from finish_gated_I0()
 
     yield from _image_acquisition_steps()
 
     ts = str(datetime.datetime.now())
     yield from bps.mv(
         # fmt: off
-        scaler0.count,
-        0,
-        scaler1.count,
-        0,
         terms.SAXS_WAXS.I0_gated,
-        scaler1.channels.chan02.s.get(),
-        scaler0.update_rate,
-        5,
-        scaler1.update_rate,
-        5,
+        measured.get("I0_gated", 0),
         terms.SAXS_WAXS.end_exposure_time,
         ts,
-        scaler0.delay,
-        old_delay,
         terms.SAXS.collecting,
         0,
         user_data.time_stamp,
@@ -492,7 +474,8 @@ def waxsExp(
         #timeout=MASTER_TIMEOUT,
         # fmt: on
    # )
-    old_delay = scaler0.delay.get()
+    # See the matching note in saxsExp.
+    measured = {}
 
     @restorable_stage_sigs([waxs_det.cam, waxs_det.hdf1])
     def _image_acquisition_steps():
@@ -525,6 +508,18 @@ def waxsExp(
         yield from bps.sleep(0.2)
         yield from autoscale_amplifiers([I0_controls, trd_controls])
 
+        # Capture the direct-beam readings here, with the shutter still open
+        # and both channels freshly counted by the autoscale above.  The old
+        # code read them from scaler0 at the very end of the plan, relying on
+        # its free-running AutoCount; the FX4 only updates when triggered, so
+        # the values have to be taken while they mean something.
+        measured["diode"] = trd_controls.signal.get()
+        measured["I0"] = I0_controls.signal.get()
+
+        # Autoscaling TRD left usxFX4's shared Range pointed at it.  TRD is not
+        # needed again in this plan, so hand it straight back to UPD.
+        yield from restore_upd_channel()
+
         yield from bps.mv(
             # fmt: off
             usaxs_shutter,
@@ -535,22 +530,6 @@ def waxsExp(
 
         yield from bps.mv(
             # fmt: off
-            scaler1.preset_time,
-            terms.WAXS.acquire_time.get() + 1,
-            scaler0.preset_time,
-            1.2 * terms.WAXS.acquire_time.get() + 1,
-            scaler0.count_mode,
-            "OneShot",
-            scaler1.count_mode,
-            "OneShot",
-            scaler0.update_rate,
-            60,
-            scaler1.update_rate,
-            60,
-            scaler0.count,
-            0,
-            scaler0.delay,
-            0,
             terms.SAXS_WAXS.start_exposure_time,
             ts,
             timeout=MASTER_TIMEOUT,
@@ -563,40 +542,36 @@ def waxsExp(
         # Suspender rewind boundary -- see the matching comment in saxsExp.
         yield from bps.checkpoint()
 
+        yield from start_gated_I0(terms.WAXS.acquire_time.get())
         yield from areaDetectorAcquire(waxs_det, create_directory=-5, md=_md)
+        measured["I0_gated"] = yield from finish_gated_I0()
 
     yield from _image_acquisition_steps()
 
     ts = str(datetime.datetime.now())
+    # The *_gain PVs stay at 1.0: the FX4 reading is already gain-independent
+    # picoamps, so anything downstream that still divides by gain gets the
+    # right answer.  See the matching note in sample_transmission.
     yield from bps.mv(
         # fmt: off
-        scaler0.count,
-        0,
-        scaler1.count,
-        0,
         terms.SAXS_WAXS.I0_gated,
-        scaler1.channels.chan02.s.get(),
+        measured.get("I0_gated", 0),
         terms.SAXS_WAXS.diode_transmission,
-        scaler0.channels.chan05.s.get(),
+        measured.get("diode", 0),
         terms.SAXS_WAXS.diode_gain,
-        trd_controls.femto.gain.get(),
+        1.0,
         terms.SAXS_WAXS.I0_transmission,
-        scaler0.channels.chan02.s.get(),
+        measured.get("I0", 0),
         terms.SAXS_WAXS.I0_gain,
-        I0_controls.femto.gain.get(),
-        scaler0.update_rate,
-        5,
-        scaler1.update_rate,
-        5,
+        1.0,
         terms.SAXS_WAXS.end_exposure_time,
         ts,
-        scaler0.delay,
-        old_delay,
         terms.WAXS.collecting,
         0,
         user_data.time_stamp,
         ts,
         timeout=MASTER_TIMEOUT,
+        # fmt: on
     )
     yield from MONO_FEEDBACK_ON()
 
