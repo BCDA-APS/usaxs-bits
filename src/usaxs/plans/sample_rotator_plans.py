@@ -7,6 +7,16 @@ Public entry points
 * ``PI_onF``         — start continuous rotation in the forward direction.
 * ``PI_onR``         — start continuous rotation in the reverse direction.
 * ``rotate_sample``  — move the rotator to a specific angle.
+
+.. warning::
+   This module cannot be imported as things stand: ``pi_c867`` is commented out
+   in ``configs/devices.yml``, so the module-level registry lookup below raises
+   ``KeyError``.  That predates the FX4 conversion.  ``command_list.py`` stubs
+   ``PI_Off`` / ``PI_onF`` / ``PI_onR`` as no-ops so command lists still parse,
+   and nothing imports this module.
+
+   The counting inside ``rotate_sample`` *has* been converted to the FX4, so
+   re-enabling the rotator is a matter of uncommenting the device entry.
 """
 
 import logging

@@ -22,7 +22,12 @@ What remains needs the instrument.
 | `b97cf9f` | fly scan; Q18 (stop overwriting `gainU`/`gainD`) |
 | `5355754` | I0 autoranging on `usxFX42`; this status section |
 | `0ddc6da` | SAXS/WAXS plans, and the remaining stragglers |
-| (this one) | `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` |
+| `5b963e6` | `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` |
+| (this one) | the Sunday commissioning runbook |
+
+> **Commissioning runs from `docs/FX4_Sunday_commissioning.md`** — stage by
+> stage, with what "good" looks like and what to change when it is not. This
+> section says what state the code is in; that file says what to do next.
 
 ### What is left — all of it needs the instrument
 
