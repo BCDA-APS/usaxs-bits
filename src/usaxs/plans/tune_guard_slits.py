@@ -23,7 +23,7 @@ from ..utils.peak_centers import peak_center
 from .filter_plans import insertTransmissionFilters
 from .fx4_autorange_plan import autoscale_amplifiers
 from .fx4_setup import prepare_fx4_counting
-from .fx4_setup import select_fx4_plot
+from ..utils.fx4_channels import select_fx4_plot
 from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_OFF

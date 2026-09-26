@@ -31,6 +31,7 @@ from apsbits.utils.logging_setup import configure_logging
 from epics import caget
 
 from usaxs.utils.fx4_channels import setup_fx4_channels
+from usaxs.utils.scalers_setup import release_scaler_detector_names
 from usaxs.utils.scalers_setup import setup_scalers
 
 # Configuration block
@@ -104,6 +105,10 @@ make_devices(file="autorange_devices.yml", clear=False, device_manager=instrumen
 # uascan dimension hints, the NeXus stream keys and the queue-monitor plot
 # configuration keep working. Must follow autorange_devices.yml.
 setup_fx4_channels()
+# scaler0's EPICS .NM records still read UPD / I0 / I00 / TRD, so its channels
+# hold those names too and oregistry["UPD"] would find two devices.  Release
+# the scaler's claim now that the FX4 has taken them.
+release_scaler_detector_names()
 
 ##operation variables
 in_operation = caget("usxLAX:blCalc:userCalc2.VAL") == 1
@@ -222,7 +227,16 @@ else:
     from .plans.filter_plans import insertScanFilters
     from .plans.filter_plans import insertTransmissionFilters
     from .plans.filter_plans import insertWaxsFilters
+    from .plans.fx4_autorange_plan import UPDRange
     from .plans.fx4_autorange_plan import autoscale_amplifiers
+    from .plans.fx4_autorange_plan import measure_background
+
+    # FX4 counting-chain helpers: set the count time on both electrometers,
+    # and choose which detector the tune plots follow.
+    from .plans.fx4_setup import prepare_fx4_counting
+    from .plans.fx4_setup import restore_fx4_autoranging
+    from .plans.fx4_setup import resume_fx4_monitoring
+    from .plans.fx4_setup import set_usaxs_count_time
     from .plans.mode_changes import mode_DirectBeam
     from .plans.mode_changes import mode_OpenBeamPath
     from .plans.mode_changes import mode_Radiography
@@ -252,6 +266,7 @@ else:
     from .plans.sim_plans import sim_rel_scan_plan
     from .plans.user_actions_plans import new_sample_plan
     from .plans.user_actions_plans import new_user_plan
+    from .utils.fx4_channels import select_fx4_plot
     from .utils.setup_new_user import newSample
     from .utils.setup_new_user import newUser
 

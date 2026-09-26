@@ -44,6 +44,7 @@ from bluesky import RunEngine
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
+from ..devices.fx4_quadem import MOST_SENSITIVE_RANGE
 from ..devices.fx4_quadem import NUM_AUTORANGE_RANGES
 from ..devices.fx4_quadem import FX4AutorangeSettings
 from ..devices.fx4_quadem import FX4AutoscaleError
@@ -321,9 +322,11 @@ def measure_background(
       program serves both UPD and TRD, so they cannot both be recorded.
       ``group_controls_by_box`` enforces one per electrometer; pass UPD.
 
-    By default only the **most sensitive** range is measured, which is where
-    dark current actually matters relative to signal.  ``sweep_all_ranges``
-    restores the full five-range sweep.
+    By default only the **most sensitive** range is measured (index
+    :data:`~usaxs.devices.fx4_quadem.MOST_SENSITIVE_RANGE`, i.e. 100 nA --
+    *not* index 0, which is 1 mA), because that is where dark current actually
+    matters relative to signal.  ``sweep_all_ranges`` restores the full
+    five-range sweep.
 
     Parameters
     ----------
@@ -398,9 +401,13 @@ def _measure_background_one_(
     # Manual, so the sequence program does not re-range mid-sweep.
     yield from bps.mv(auto.mode, FX4AutorangeSettings.manual)
 
-    # Range 0 is the most sensitive, so it is where dark current matters most
-    # relative to signal and where one measurement buys the most.
-    ranges = range(NUM_AUTORANGE_RANGES) if sweep_all_ranges else (0,)
+    # The most sensitive range is where dark current matters most relative to
+    # signal, so that is the one worth measuring when only one is measured.
+    # It is index NUM_AUTORANGE_RANGES-1, *not* 0 -- the sequence program's
+    # enum runs least-to-most sensitive ([0] 1 mA .. [4] 100 nA).
+    ranges = (
+        range(NUM_AUTORANGE_RANGES) if sweep_all_ranges else (MOST_SENSITIVE_RANGE,)
+    )
 
     for range_index in ranges:
         yield from auto.setRange(range_index)

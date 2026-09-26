@@ -205,7 +205,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
                          means are biased toward the end of each interval.
                          ========================================================== -->
 
-                    <PV label="n_points" pvname="usxFX4:FX4:Current1:TSCurrentPoint" acquire_after_scan="true">
+                    <PV label="n_points" pvname="usxFX4:FX4:Current1:TS:TSCurrentPoint" acquire_after_scan="true">
                         <attribute name="meaning" value="PSO pulses actually captured; array length limit" />
                     </PV>
                     <PV label="sample_time" pvname="usxFX4:FX4:SampleTime_RBV">

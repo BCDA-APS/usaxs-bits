@@ -7,11 +7,17 @@ invalidate the thresholds.  That needs the full-scale value of whatever range
 is active, and the only place it is available is the ``Range`` record's enum
 label -- strings like ``"100 nA"`` or ``"10 mA"``.
 
-.. warning::
-   The exact label spelling has not been checked against the live IOC.  Get it
-   with ``caget -d 31 usxFX4:FX4:Range``.  :func:`full_scale_pA` returns
-   ``None`` rather than guessing when a label does not parse, and the caller
-   then falls back to the absolute backstops.
+Verified against the live IOC on 2026-09-26.  The ``Range`` enum carries a
+trailing speed qualifier on the two most sensitive ranges::
+
+    [0] 100 nA slow   [1] 100 nA fast   [2] 1 uA slow   [3] 1 uA fast
+    [4] 10 uA         [5] 100 uA        [6] 1 mA        [7] 10 mA
+
+so the parser must tolerate words after the unit.  The sequence program's own
+``seq01:lurange`` uses the bare five-entry form (``1 mA`` .. ``100 nA``).
+
+:func:`full_scale_pA` returns ``None`` rather than guessing when a label does
+not parse, and the caller then falls back to the absolute backstops.
 """
 
 import logging
@@ -29,7 +35,9 @@ _UNIT_TO_PICOAMPS = {
     "a": 1.0e12,
 }
 
-_LABEL = re.compile(r"^\s*([0-9]*\.?[0-9]+)\s*([a-zA-Zµμ]+)\s*$")
+# Trailing words (the "slow" / "fast" speed qualifier) are matched and
+# discarded: they describe the integration speed, not the full-scale current.
+_LABEL = re.compile(r"^\s*([0-9]*\.?[0-9]+)\s*([a-zA-Zµμ]+)(?:\s+[a-zA-Z]+)*\s*$")
 
 
 def full_scale_pA(label):
@@ -49,6 +57,10 @@ def full_scale_pA(label):
     --------
     >>> full_scale_pA("100 nA")
     100000.0
+    >>> full_scale_pA("100 nA fast")
+    100000.0
+    >>> full_scale_pA("1 uA slow")
+    1000000.0
     >>> full_scale_pA("10 mA")
     10000000000.0
     >>> full_scale_pA("0.02 nA")

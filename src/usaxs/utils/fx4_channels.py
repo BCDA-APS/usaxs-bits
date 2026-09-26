@@ -112,6 +112,25 @@ def setup_fx4_channels():
     for controls_device in controls:
         nickname = controls_device.nickname
         signal = controls_device.signal
+        stats = signal.parent  # this channel's StatsPluginQuadEM
+
+        # The named current has to be reachable through the *electrometer's*
+        # own read(), not only as a standalone signal.  bluesky's
+        # trigger_and_read calls separate_devices(), which drops any object
+        # whose ancestor is also in the detector list -- so a plan passing
+        # ``[I0, fx4, fx42]`` has I0 silently removed, and if the stats
+        # plugin stays kind="config" the event then carries no current at
+        # all.  (bluesky's own comment concedes the assumption: "here we
+        # assume that det is in the read_attrs of existing_det".)
+        #
+        # So promote this channel's plugin to "normal" but omit all ~40 of
+        # its housekeeping fields; the mean value is switched back on just
+        # below.  Net effect: exactly one extra field per named detector,
+        # carrying the nickname.
+        stats.kind = "normal"
+        for cpt_name in stats.component_names:
+            getattr(stats, cpt_name).kind = "omitted"
+
         signal.name = nickname
         signal.kind = "normal"
         oregistry.register(signal)

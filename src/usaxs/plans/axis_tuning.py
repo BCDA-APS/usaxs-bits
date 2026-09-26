@@ -40,7 +40,8 @@ from bluesky import plan_stubs as bps
 from .fx4_autorange_plan import autoscale_amplifiers
 from .fx4_setup import enable_fx4_autorange
 from .fx4_setup import prepare_fx4_counting
-from .fx4_setup import select_fx4_plot
+from .fx4_setup import resume_fx4_monitoring
+from ..utils.fx4_channels import select_fx4_plot
 from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
@@ -124,6 +125,7 @@ def tune_mr(md: Optional[dict] = None):
             "auto+background",
         )
         select_fx4_plot([])
+        yield from resume_fx4_monitoring()
         if stats.analysis.success:
             yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
             logger.debug(f"final position: {m_stage.r.position}")
@@ -192,6 +194,7 @@ def tune_ar(md: Optional[dict] = None):
             "auto+background",
         )
         select_fx4_plot([])
+        yield from resume_fx4_monitoring()
         success = stats.analysis.success
         print(f"Result: {success}")
         if success:
@@ -301,6 +304,7 @@ def find_ar(md: Optional[dict] = None):
             "auto+background",
         )
         select_fx4_plot([])
+        yield from resume_fx4_monitoring()
         success = stats.analysis.success
         print(f"Result: {success}")
         if success:
@@ -374,6 +378,7 @@ def tune_a2rp(md: Optional[dict] = None):
             "auto+background",
         )
         select_fx4_plot([])
+        yield from resume_fx4_monitoring()
         if stats.analysis.success:
             logger.debug(f"final position: {a_stage.r2p.position}")
         else:
@@ -479,6 +484,7 @@ def find_a2rp(md: Optional[dict] = None):
             "auto+background",
         )
         select_fx4_plot([])
+        yield from resume_fx4_monitoring()
         if stats.analysis.success:
             logger.debug(f"final position: {a_stage.r2p.position}")
         else:
@@ -544,6 +550,7 @@ def tune_dx(md: Optional[dict] = None):
             "auto+background",
         )
         select_fx4_plot([])
+        yield from resume_fx4_monitoring()
         if stats.analysis.success:
             yield from bps.mv(
                 terms.USAXS.DX0,
@@ -613,6 +620,7 @@ def tune_dy(md: Optional[dict] = None):
             "auto+background",
         )
         select_fx4_plot([])
+        yield from resume_fx4_monitoring()
         if stats.analysis.success:
             yield from bps.mv(terms.SAXS.dy_in, d_stage.y.position)
             logger.info(f"final position: {d_stage.y.position}")

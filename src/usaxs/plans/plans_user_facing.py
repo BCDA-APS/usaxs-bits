@@ -31,6 +31,7 @@ from .filter_plans import insertWaxsFilters
 from .fx4_autorange_plan import autoscale_amplifiers
 from .fx4_setup import finish_gated_I0
 from .fx4_setup import restore_upd_channel
+from .fx4_setup import resume_fx4_monitoring
 from .fx4_setup import start_gated_I0
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_WAXS
@@ -329,6 +330,8 @@ def saxsExp(
     logger.info(f"Collected SAXS with HDF5 file: {local_name}")
 
     logger.debug(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
+    # Leave the electrometers live for the screens between scans.
+    yield from resume_fx4_monitoring()
     yield from after_plan()
 
 
@@ -580,4 +583,6 @@ def waxsExp(
     logger.info(f"Collected WAXS with HDF5 file: {local_name}")
 
     logger.debug(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
+    # Leave the electrometers live for the screens between scans.
+    yield from resume_fx4_monitoring()
     yield from after_plan()

@@ -23,6 +23,7 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
 from ..devices.fx4_quadem import FX4RangeConflictError
+from ..utils.count_time import RING_SIZE_SAMPLES
 from ..utils.count_time import max_count_time
 from ..utils.count_time import quantize_count_time
 from ..utils.count_time import samples_per_reading
@@ -58,9 +59,9 @@ VPR_LADDER = (10, 20, 50, 100, 200, 500)
 def choose_values_per_read(count_time, minimum=DEFAULT_SCALER_VPR):
     """Return the smallest sensible ``ValuesPerRead`` for a count time.
 
-    The driver's ring buffer holds ``RING_SIZE`` (10000) samples per reading;
-    beyond that the oldest are discarded and the mean is biased toward the tail
-    of the count.  Since ``samples = count_time x 100000 / VPR``, a long count
+    The driver's ring buffer holds :data:`RING_SIZE_SAMPLES` samples per
+    reading; beyond that the oldest are discarded and the mean is biased
+    toward the tail of the count.  Since ``samples = count_time x 100000 / VPR``, a long count
     needs a large VPR.
 
     Parameters
@@ -86,7 +87,7 @@ def choose_values_per_read(count_time, minimum=DEFAULT_SCALER_VPR):
             return vpr
     raise ValueError(
         f"no ValuesPerRead in {VPR_LADDER} supports a {count_time} s count"
-        f" within the default 10000-sample ring buffer"
+        f" within the {RING_SIZE_SAMPLES}-sample ring buffer"
         f" (longest is {max_count_time(VPR_LADDER[-1])} s at VPR={VPR_LADDER[-1]});"
         " raise RING_SIZE in FX4.cmd"
     )
@@ -123,6 +124,13 @@ def fx4_scaler_mode(det, count_time, channels=(1, 2, 3, 4), values_per_read=None
     count_time = quantize_count_time(count_time)
     if values_per_read is None:
         values_per_read = choose_values_per_read(count_time)
+
+    # Stop first.  ``fx4_monitor_mode`` leaves the box free-running in
+    # Continuous, so ``Acquire`` is already 1 when a plan starts.  Since
+    # ``QuadFX4.trigger`` completes on the *falling* edge of ``Acquire``,
+    # writing 1 to an already-acquiring device produces no edge and the first
+    # trigger would never finish.
+    yield from bps.mv(det.acquire, 0)
 
     yield from bps.mv(
         det.trigger_mode,
@@ -187,6 +195,12 @@ def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=Non
     if values_per_read is None:
         values_per_read = DEFAULT_FLYSCAN_VPR
 
+    # Stop first, for the same reason as fx4_scaler_mode: the resting state
+    # is free-running, and this plan's contract is that the *caller* starts
+    # acquisition once the time series is armed.  Left running, that write
+    # would be a no-op and the series would fill from before the trajectory.
+    yield from bps.mv(det.acquire, 0)
+
     yield from bps.mv(
         det.trigger_mode,
         "Ext. bulb",  # 3
@@ -209,9 +223,11 @@ def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=Non
             stats.ts_acquire_mode,
             "Fixed length",
         )
-    # Arm last, so the series is empty when acquisition starts.
+    # Arm last, so the series is empty when acquisition starts.  In
+    # "Fixed length" mode this ADCore build erases and restarts the series on
+    # the transition to "Acquire" -- there is no separate Erase/Start action.
     for ch in channels:
-        yield from bps.mv(det.channel_stats(ch).ts_control, "Erase/Start")
+        yield from bps.mv(det.channel_stats(ch).ts_acquire, "Acquire")
 
     logger.debug(
         "%s: flyscan mode, %d points, VPR=%d, SampleTime=%.1f us",
@@ -471,6 +487,103 @@ def prepare_fx4_counting(count_time, dets=None):
     """
     for det in dets if dets is not None else usaxs_electrometers():
         yield from fx4_scaler_mode(det, count_time)
+
+
+@plan
+def fx4_monitor_mode(det):
+    """Plan: leave one FX4 free-running so its readings stay live.
+
+    ``fx4_scaler_mode`` puts the electrometer in ``Single`` acquire mode,
+    where one trigger produces one reading and the device then stops.  That
+    is right during a scan, but a plan that simply ends leaves the box idle:
+    ``MeanValue_RBV`` freezes at the last scan point and every MEDM screen,
+    the FX4's own web page and any ``caget`` show a stale number until
+    something triggers it again.  Staff read those between scans, so the
+    resting state has to be live.
+
+    Restores what the IOC boots into: free-run, continuous, acquiring.
+
+    Deliberately does **not** touch ``Range`` or the sequence program's
+    ``mode``.  Whether the range is left locked or autoranging is the
+    calling plan's decision, and some plans must hold a range until the next
+    scan starts.
+
+    Parameters
+    ----------
+    det : QuadFX4
+        The electrometer to set free-running.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    yield from bps.mv(
+        det.trigger_mode,
+        "Free run",  # 0
+        det.acquire_mode,
+        "Continuous",  # 0
+    )
+    yield from bps.mv(det.acquire, 1)
+    logger.debug("%s: monitor mode, free-running", det.name)
+
+
+@plan
+def restore_fx4_autoranging():
+    """Plan: put both sequence programs back to ``auto+background`` on UPD.
+
+    The other half of the resting state.  ``autoscale_amplifiers`` ends in
+    ``manual`` on purpose -- a scan must not re-range mid-acquisition -- but
+    that is a *scan* state, not a resting one.  Left there, the electrometers
+    sit on whatever range the last plan happened to need, and because one
+    sequence program serves all four channels of a box, a plan that
+    autoranged TRD also leaves ``usxFX4`` pointed at the transmitted beam.
+
+    ``usxFX4`` is left ranging on **UPD**: that is the detector staff read
+    between scans, and a hand-run measurement that inherits a TRD range gets
+    plausible numbers rather than an error.
+
+    Call only *after* an exposure, never during one.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    from apsbits.core.instrument_init import oregistry
+
+    # I0 first, UPD last, so usxFX4's shared channel ends on the scattered
+    # beam even if a future change makes these share a program.
+    yield from enable_fx4_autorange(oregistry["I0_controls"], "auto+background")
+    yield from enable_fx4_autorange(oregistry["upd_controls"], "auto+background")
+
+
+@plan
+def resume_fx4_monitoring(dets=None):
+    """Plan: return the electrometers to their resting state.
+
+    The counterpart to :func:`prepare_fx4_counting`, for the end of a plan.
+    Two halves, both of which staff rely on between scans:
+
+    * every electrometer free-running, so the readings stay live -- see
+      :func:`fx4_monitor_mode`;
+    * both sequence programs autoranging on UPD -- see
+      :func:`restore_fx4_autoranging`.
+
+    Call only *after* an exposure, never during one.
+
+    Parameters
+    ----------
+    dets : iterable of QuadFX4, optional
+        Electrometers to set free-running.  Defaults to
+        :func:`usaxs_electrometers`.  The autorange restore always covers
+        both sequence programs.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    for det in dets if dets is not None else usaxs_electrometers():
+        yield from fx4_monitor_mode(det)
+    yield from restore_fx4_autoranging()
 
 
 @plan

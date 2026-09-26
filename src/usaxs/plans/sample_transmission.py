@@ -22,6 +22,7 @@ from .fx4_autorange_plan import autoscale_amplifiers
 from .fx4_setup import any_near_full_scale
 from .fx4_setup import prepare_fx4_counting
 from .fx4_setup import restore_upd_channel
+from .fx4_setup import resume_fx4_monitoring
 from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_SAXS
 from .mode_changes import mode_USAXS
@@ -72,6 +73,22 @@ def _count_transmission(count_time):
 
 
 @plan
+def _transmission_cleanup():
+    """Plan (internal): the finaliser both transmission plans share.
+
+    Hands ``usxFX4``'s shared Range back to UPD, then leaves both
+    electrometers free-running so the readings stay live between scans.
+    Runs even when the measurement is aborted.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    yield from restore_upd_channel()
+    yield from resume_fx4_monitoring()
+
+
+@plan
 def measure_USAXS_Transmission():
     """Bluesky plan: measure sample transmission in USAXS mode.
 
@@ -84,7 +101,7 @@ def measure_USAXS_Transmission():
     Bluesky messages consumed by the RunEngine.
     """
     yield from bpp.finalize_wrapper(
-        _measure_USAXS_Transmission(), restore_upd_channel()
+        _measure_USAXS_Transmission(), _transmission_cleanup()
     )
 
 
@@ -208,7 +225,7 @@ def measure_SAXS_Transmission():
     Bluesky messages consumed by the RunEngine.
     """
     yield from bpp.finalize_wrapper(
-        _measure_SAXS_Transmission(), restore_upd_channel()
+        _measure_SAXS_Transmission(), _transmission_cleanup()
     )
 
 

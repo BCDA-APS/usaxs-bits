@@ -25,6 +25,7 @@ from usaxs.utils.utils import techniqueSubdirectory
 
 from ..utils.a2q_q2a import q2angle
 from .command_list import after_plan
+from .fx4_setup import resume_fx4_monitoring
 from .command_list import before_plan
 from .filter_plans import insertScanFilters
 from .fly_scan_plan import Flyscan_internal_plan
@@ -334,6 +335,8 @@ def USAXSscanStep(
         # fmt: on
     )
 
+    # Leave the electrometers live for the screens between scans.
+    yield from resume_fx4_monitoring()
     yield from after_plan(weight=3)
 
 
@@ -581,4 +584,6 @@ def Flyscan(
     )
     yield from user_data.set_state_plan("Flyscan finished")
 
+    # Leave the electrometers live for the screens between scans.
+    yield from resume_fx4_monitoring()
     yield from after_plan(weight=3)

@@ -19,6 +19,17 @@ logger = logging.getLogger(__name__)
 MAINS_FREQUENCY_HZ = 60.0
 """Mains frequency at APS.  One cycle is 16.667 ms."""
 
+RING_SIZE_SAMPLES = 100_000
+"""Driver ring-buffer size, samples per reading.
+
+Set by ``epicsEnvSet("RING_SIZE", ...)`` in the FX4 IOC's ``iocsh/FX4.cmd``
+and passed to ``drvFX4Configure``.  Read from the live IOC on 2026-09-26;
+changing it there needs an IOC restart, and this constant must follow.
+
+Past this cap the driver silently discards the oldest samples and the
+reported mean is biased toward the tail of the count.
+"""
+
 
 def quantize_count_time(
     count_time: float,
@@ -78,7 +89,7 @@ def samples_per_reading(count_time: float, values_per_read: int) -> int:
     The FX4 digitises at 100 kHz and pre-averages ``values_per_read``
     conversions into each streamed sample, so ``SampleTime = values_per_read x
     10 us``.  The driver accumulates those samples in a ring buffer whose size
-    (``RING_SIZE``, default 10000, set in ``FX4.cmd``) caps one reading.  Past
+    (``RING_SIZE``, 100000 at 12-ID-E, set in ``FX4.cmd``) caps one reading.  Past
     that cap the oldest samples are silently discarded and the reported mean is
     biased toward the tail of the count.
 
@@ -97,19 +108,20 @@ def samples_per_reading(count_time: float, values_per_read: int) -> int:
     return round(count_time * 100_000 / values_per_read)
 
 
-def max_count_time(values_per_read: int, ring_size: int = 10_000) -> float:
+def max_count_time(values_per_read: int, ring_size: int = RING_SIZE_SAMPLES) -> float:
     """Return the longest unbiased integration time for a ``ValuesPerRead``.
 
     Above this the driver's ring buffer overflows and the mean is biased.  At
-    the default ``RING_SIZE`` the relation is simply ``values_per_read / 10``
-    seconds -- 1 s at VPR=10, 10 s at VPR=100.
+    the 12-ID-E ``RING_SIZE`` of 100000 the relation is ``values_per_read``
+    seconds -- 10 s at VPR=10, 100 s at VPR=100.
 
     Parameters
     ----------
     values_per_read : int
         The FX4 ``ValuesPerRead`` setting.
     ring_size : int
-        Driver ring-buffer size from ``FX4.cmd``.  Default 10000.
+        Driver ring-buffer size from ``FX4.cmd``.  Defaults to
+        :data:`RING_SIZE_SAMPLES`.
 
     Returns
     -------

@@ -63,6 +63,22 @@ logger = logging.getLogger(__name__)
 NUM_AUTORANGE_RANGES = 5
 """Number of background records (``bkg0``..``bkg4``) in the sequence program."""
 
+MOST_SENSITIVE_RANGE = NUM_AUTORANGE_RANGES - 1
+"""Range index of the *most* sensitive range.
+
+The sequence program's ``reqrange``/``lurange`` enum runs from least to most
+sensitive, verified against the live IOC on 2026-09-26::
+
+    [0] 1 mA   [1] 100 uA   [2] 10 uA   [3] 1 uA   [4] 100 nA
+
+so index **0 is the least sensitive range**, which is the opposite of the
+natural assumption.  Use this constant rather than a literal ``0`` when you
+mean "the range where dark current matters most".
+
+Note this is a different ordering from the FX4's own ``Range`` record, whose
+8-entry enum runs the other way (``[0] 100 nA slow`` .. ``[7] 10 mA``).
+"""
+
 FX4_MINIMUM_SETTLING_TIME = 0.01
 """Shortest sensible pause after asking the sequence program to change range."""
 
@@ -216,28 +232,40 @@ class StatsPluginQuadEM(StatsPlugin):
     installed here — QuadEM users want the stats plugin to stay at
     ``config`` regardless of which compute_* signals are enabled.
 
-    Also adds the **time-series control** records used by fly scans.
-    ``StatsPlugin_V34`` supplies the TS *data* arrays (``ts_mean_value``,
-    ``ts_total``, ``ts_sigma``, ``ts_timestamp``) but not the records that arm
-    and size the series -- in newer ADCore those live on a separate
-    ``TimeSeriesPlugin``.  The FX4 IOC exposes them on the stats plugin itself
-    (``Current1:TSControl`` etc.), matching the older layout.
+    Also adds the **time-series control** records used by fly scans.  The
+    layout is *split*: ``StatsPlugin_V34`` supplies the TS *data* arrays
+    (``ts_mean_value``, ``ts_total``, ``ts_sigma``, ``ts_timestamp``) on the
+    stats plugin itself, while the records that arm and size the series live
+    on a child ``NDPluginTimeSeries`` under the ``TS:`` sub-prefix.
 
-    .. warning::
-       The suffixes below are taken from ``docs/FX4_config_cheatsheet.md`` and
-       have **not** been checked against the live IOC.  Depending on the ADCore
-       build they may be ``Current1:TS:TSControl`` instead.  Confirm with::
+    Verified against the live IOC on 2026-09-26::
 
-           dbl "usxFX4:FX4:Current1:*" | grep -i ts
+        usxFX4:FX4:Current1:TSMeanValue        data array   (NELM 4096)
+        usxFX4:FX4:Current1:TS:TSNumPoints     control
+        usxFX4:FX4:Current1:TS:TSAcquire       control      Done / Acquire
+
+    This ADCore build has no ``TSControl`` record under either prefix; the
+    ``Erase/Start`` action is expressed as ``TS:TSAcquire = "Acquire"`` with
+    ``TS:TSAcquireMode = "Fixed length"``.
+
+    .. note::
+       The TS waveforms are **4096 elements** on this IOC, while
+       ``TS:TSNumPoints`` accepts larger values without complaint.  A fly scan
+       longer than 4096 points silently truncates; raising it needs the TS
+       plugin's ``maxPoints`` changed in the FX4 IOC startup and a restart.
     """
 
-    ts_control = ADComponent(EpicsSignal, "TSControl", kind="config", string=True)
-    ts_num_points = ADComponent(EpicsSignal, "TSNumPoints", kind="config")
-    ts_current_point = ADComponent(EpicsSignalRO, "TSCurrentPoint", kind="config")
-    ts_acquire_mode = ADComponent(
-        EpicsSignal, "TSAcquireMode", kind="config", string=True
+    ts_acquire = ADComponent(
+        EpicsSignal, "TS:TSAcquire", kind="config", string=True
     )
-    ts_acquiring = ADComponent(EpicsSignalRO, "TSAcquiring", kind="omitted")
+    ts_num_points = ADComponent(EpicsSignal, "TS:TSNumPoints", kind="config")
+    ts_current_point = ADComponent(
+        EpicsSignalRO, "TS:TSCurrentPoint", kind="config"
+    )
+    ts_acquire_mode = ADComponent(
+        EpicsSignal, "TS:TSAcquireMode", kind="config", string=True
+    )
+    ts_acquiring = ADComponent(EpicsSignalRO, "TS:TSAcquiring", kind="omitted")
 
     def __init__(self, *args, **kwargs):
         """Initialize and force the plugin to ``config`` kind."""
@@ -316,6 +344,20 @@ class QuadFX4(QuadEM):
         self._acquisition_signal = self.acquire
         self._acquire_sub_cid = None
 
+        # ophyd's QuadEM declares CurrentName1..4 with string=True at
+        # kind="normal", so the four channel *labels* land in every event
+        # document as strings ("1", "2", "3", "4" on our IOC).  apstools'
+        # SignalStatsCallback accumulates every detector field numerically,
+        # so any tune passing a whole FX4 in its detector list died with
+        #   TypeError: unsupported operand type(s) for +=: 'int' and 'str'
+        # They are static IOC metadata, so configuration is where they
+        # belong: still recorded, once per run, instead of once per point.
+        # The children need setting too -- moving only the parent to config
+        # leaves them in neither read() nor read_configuration().
+        self.current_names.kind = Kind.config
+        for _ch in self.current_names.component_names:
+            getattr(self.current_names, _ch).kind = Kind.config
+
     def _post_connect_setup(self):
         """Apply hints that require EPICS connection."""
         for i in range(1, 5):
@@ -358,6 +400,28 @@ class QuadFX4(QuadEM):
             Completes when the acquisition finishes.
         """
         self._ensure_acquire_subscription()
+
+        # The resting state between plans is free-running: Continuous acquire
+        # mode with Acquire already 1 (see plans.fx4_setup.fx4_monitor_mode),
+        # so that the MEDM screens and the FX4 web page keep showing a live
+        # current.  Two things then break a naive trigger:
+        #
+        #   * in Continuous mode Acquire never falls, so the status would
+        #     never complete;
+        #   * writing 1 to an already-acquiring device produces no edge at
+        #     all.
+        #
+        # Correct both here rather than in the calling plans.  This is the
+        # single choke point every bare ``bps.trigger(det)`` goes through --
+        # the autoscale loop, uascan, no_run_trigger_and_wait and the sample
+        # rotator all reach it, and only some of them configure the mode
+        # first.  Fly scans do not use trigger(): they write Acquire
+        # directly while in Ext. bulb mode, so this does not disturb them.
+        if self.acquire_mode.get(as_string=True) != "Single":
+            self.acquire_mode.put("Single", wait=True)
+        if self._acquisition_signal.get() not in (0, "Done"):
+            self._acquisition_signal.put(0, wait=True)
+
         self._status = self._status_type(self)
         self._acquisition_signal.put(1, wait=False)
         return self._status

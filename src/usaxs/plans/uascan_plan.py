@@ -23,10 +23,12 @@ from ..utils.ustep import Ustep
 from .fx4_setup import check_ring_overflows
 from .fx4_setup import enable_fx4_autorange
 from .fx4_setup import prepare_fx4_counting
+from .fx4_setup import resume_fx4_monitoring
 from .fx4_setup import usaxs_electrometers
 from .mono_feedback import MONO_FEEDBACK_ON
 
 # Device instances
+upd = oregistry["UPD"]
 I0 = oregistry["I0"]
 I00 = oregistry["I00"]
 trd = oregistry["TRD"]
@@ -198,6 +200,12 @@ def uascan(
         a_stage.x.user_readback,
         d_stage.x.user_readback,
     ]
+    # UPD is the measurement.  It has to be "hinted" to reach the LiveTable
+    # and the plot -- "normal" records it in the file but shows it nowhere,
+    # which is how a step scan ended up displaying only I0.  Whatever a
+    # preceding tune left behind (select_fx4_plot demotes everything to
+    # "normal" on its way out) is overridden here and restored afterwards.
+    plotted_signals = [upd]
 
     # remember every kind we touch so it can be restored after the scan
     new_kinds = {}
@@ -209,6 +217,8 @@ def uascan(
         new_kinds[obj.user_readback] = "omitted"
     for obj in unplotted_signals:
         new_kinds[obj] = "normal"
+    for obj in plotted_signals:
+        new_kinds[obj] = "hinted"
 
     original_kinds = {obj: obj.kind for obj in new_kinds}
     for obj, kind in new_kinds.items():
@@ -341,6 +351,9 @@ def uascan(
         # A ring-buffer overflow biases every mean toward the end of its count
         # and shows up nowhere else in the data.
         yield from check_ring_overflows(FX4_DETECTORS, "uascan")
+        # Leave the electrometers live for the screens between scans.  After
+        # check_ring_overflows, which reads the counters this resets.
+        yield from resume_fx4_monitoring()
         yield from MONO_FEEDBACK_ON()
         yield from user_data.set_state_plan("returning AR, AX, SY, and DX")
 

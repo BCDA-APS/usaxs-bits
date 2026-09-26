@@ -13,7 +13,8 @@ from bluesky.utils import plan
 
 from usaxs.devices.fx4_quadem import FX4AutorangeSettings as AutorangeSettings
 from usaxs.plans.fx4_setup import enable_fx4_autorange
-from usaxs.plans.fx4_setup import select_fx4_plot
+from usaxs.plans.fx4_setup import resume_fx4_monitoring
+from usaxs.utils.fx4_channels import select_fx4_plot
 
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_ON
@@ -80,6 +81,7 @@ def reset_USAXS():
     # channels but would now put a trace on the plot for every detector --
     # select_fx4_plot is what a scan uses to choose one.
     select_fx4_plot([])
+    yield from resume_fx4_monitoring()
     for obj in (m_stage.r, a_stage.r, a_stage.x, s_stage.y, s_stage.x, d_stage.x):
         obj.kind = "normal"  #  correct value
         obj.user_setpoint.kind = "normal"  #  correct value
