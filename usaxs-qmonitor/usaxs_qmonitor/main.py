@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import warnings
 
 from bluesky_widgets.qt import gui_qt
 
@@ -11,6 +12,18 @@ from .viewer import UsaxsViewer
 
 def main(argv=None):
     """Parse ZMQ address args/env and launch the USAXS queue-monitor window."""
+    # bluesky-widgets' MatplotlibAxes._update_and_draw() calls axes.legend()
+    # unconditionally, and it is wired to the title/label/limits change events.
+    # Every new plot gets its title and labels before the first Line artist
+    # exists, so matplotlib warns about an empty legend once per plot at the
+    # start of each scan.  Cosmetic only -- the legend is correct as soon as
+    # the first point arrives.
+    warnings.filterwarnings(
+        "ignore",
+        message="No artists with labels found to put in legend",
+        category=UserWarning,
+    )
+
     parser = argparse.ArgumentParser(description="USAXS Queue Monitor")
     parser.add_argument(
         "--zmq-control-addr",
