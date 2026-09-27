@@ -258,6 +258,18 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="fx42_range" pvname="usxFX42:FX4:Range" acquire_after_scan="true" />
                     <PV label="upd_lurange" pvname="usxFX4:FX4:seq01:lurange" acquire_after_scan="true" />
                     <PV label="upd_autorange_channel" pvname="usxFX4:FX4:seq01:channel" />
+                    <PV label="I0_lurange" pvname="usxFX42:FX4:seq01:lurange" acquire_after_scan="true" />
+                    <PV label="I0_autorange_channel" pvname="usxFX42:FX4:seq01:channel" />
+
+                    <!-- Autorange thresholds, as percentages of full scale: the
+                         sequence program ranges down below gainU and up above
+                         gainD.  DIAGNOSTIC: they do not enter the reduction, but
+                         they are what explains a range change (or the absence of
+                         one) after the fact, so record the values in force. -->
+                    <PV label="upd_gainU" pvname="usxFX4:FX4:seq01:gainU" />
+                    <PV label="upd_gainD" pvname="usxFX4:FX4:seq01:gainD" />
+                    <PV label="I0_gainU" pvname="usxFX42:FX4:seq01:gainU" />
+                    <PV label="I0_gainD" pvname="usxFX42:FX4:seq01:gainD" />
 
                     <!-- UPD dark current per range, from the FX4 sequence program.
                          One table per program, and on usxFX4 that program serves
@@ -353,28 +365,36 @@ Additionally, you can check this file for validity and that all PVs exist with t
                         <PV label="FS_ArMaxSpeed" pvname="usxLAX:USAXS:FS_ArMaxSpeed" />
                      ]
                     <PV label="FS_ElapsedTime" pvname="usxLAX:3820:ElapsedReal" acquire_after_scan="true" />
+                    -->
+
+                    <PV label="FS_ElapsedTime" pvname="usxLAX:USAXS:FS_ElapsedTime" acquire_after_scan="true">
+                        <attribute name="units" value="s" />
+                        <attribute name="meaning" value="fly scan duration, written by the Bluesky plan; the Struck elapsed-time register is gone" />
+                    </PV>
 
                     <PV label="FS_NumberOfPoints" pvname="usxLAX:USAXS:FS_NumberOfPoints">
                         <attribute name="meaning" value="number of waypoints in trajectory scan" />
                     </PV>
                     <PV label="FS_ScanTime" pvname="usxLAX:USAXS:FS_ScanTime" />
 
+                    <!-- Superseded: gain-change bookkeeping from the Struck-era fly scan.
                     <PV label="changes_AR_PSOpulse"    pvname="usxLAX:USAXSfly:AR:mcsChan" acquire_after_scan="true" />
                     <PV label="changes_AR_angle"      pvname="usxLAX:USAXSfly:AR:pos" acquire_after_scan="true" >
                         <attribute name="meaning"      value="AR readback when PSO pulse fired with 10Hz jitter" />
                     </PV>
+                    -->
 
                     <PV label="is_2D_USAXS_scan"    pvname="usxLAX:USAXS:is2DUSAXSscan" >
                         <attribute name="meaning"     value="does this scan use 2D collimated geometry" />
                     </PV>
 
-                </group>    [  entry:NXentry/flyScan:NXdata  ]
+                </group>    <!-- entry:NXentry/flyScan:NXdata -->
 
 
-                [  metadata  ]
-                <group name="metadata" class="NXcollection">    [  metadata:NXcollection  ]
+                <!-- metadata -->
+                <group name="metadata" class="NXcollection">    <!-- metadata:NXcollection -->
 
-                    [  beam line conditions  ]
+                    <!-- beam line conditions -->
                     <PV label="SR_current" pvname="S:SRcurrentAI">
                         <attribute name="units" value="A" />
                     </PV>
@@ -391,7 +411,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
                         <attribute name="units" value="degrees" />
                     </PV>
 
-                    [  SPEC  ]
+                    <!-- SPEC -->
                     <PV label="SPEC_macro_file_string19" pvname="usxLAX:string19" string="true" />
                     <PV label="SPEC_macro_file" pvname="usxLAX:macroFile" string="true" />
                     <PV label="SPEC_data_file" pvname="usxLAX:specFile" string="true" />
@@ -400,7 +420,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="state" pvname="usxLAX:state" string="true" />
                     <PV label="timeStamp" pvname="usxLAX:timeStamp" string="true" />
 
-                    [  USAXS terms  ]
+                    <!-- USAXS terms -->
                     <PV label="analyzer_distance" pvname="usxLAX:USAXS:SAD" />
                     <PV label="detector_distance" pvname="usxLAX:USAXS:SDD" />
                     <PV label="UATerm" pvname="usxLAX:USAXS:UATerm" />
@@ -412,22 +432,25 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <PV label="feedback_ON" pvname="usxLAX:fbe:omega:on" />
                     <PV label="UPDsize" pvname="usxLAX:USAXS:UPDsize" />
 
-                    [  USAXS sample slit positions  ]
+                    <!-- USAXS sample slit positions -->
                     <PV label="uslit_v_center" pvname="usxLAX:m58:c1:m6" />
                     <PV label="uslit_h_center" pvname="usxLAX:m58:c1:m5" />
                     <PV label="uslit_v_gap" pvname="usxLAX:m58:c1:m7" />
                     <PV label="uslit_h_gap" pvname="usxLAX:m58:c1:m8" />
 
 
-                    [  USAXS sample pin transmission  ]
+                    <!-- USAXS sample pin transmission -->
                     <PV label="measure_trans_pin" pvname="usxLAX:USAXS:TR_MeasurePinTrans" />
                     <PV label="trans_pin_aypos" pvname="usxLAX:ay_in" />
                     <PV label="trans_pin_time" pvname="usxLAX:USAXS:TR_MeasurementTime" />
                     <PV label="trans_pin_counts" pvname="usxLAX:USAXS:TR_pinCounts" />
-                    <PV label="trans_pin_gain" pvname="usxLAX:USAXS:TR_pinGain" />
+                    <!--PV label="trans_pin_gain" pvname="usxLAX:USAXS:TR_pinGain" /-->
                     <PV label="trans_I0_counts" pvname="usxLAX:USAXS:TR_I0Counts" />
-                    <PV label="trans_I0_gain" pvname="usxLAX:USAXS:TR_I0Gain" />
+                    <!--PV label="trans_I0_gain" pvname="usxLAX:USAXS:TR_I0Gain" /-->
 
+                    <!-- Superseded: Femto amplifier gain and background tables.
+                         The FX4 reading is gain-independent, so nothing divides by
+                         these.  Kept commented so a rollback is an uncomment.
                     [  I0 amplifier gains at start of scan and gains and measured backgrounds  ]
                     <PV label="I0AmpGain"    pvname="usxRIO:fem02:seq01:gain" />
 		

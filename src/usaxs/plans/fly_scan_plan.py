@@ -58,6 +58,7 @@ from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 from .fx4_setup import check_ring_overflows
 from .fx4_setup import enable_fx4_autorange
 from .fx4_setup import fx4_flyscan_mode
+from .fx4_setup import fx4_stop_timeseries
 from .fx4_setup import usaxs_electrometers
 
 logger = logging.getLogger(__name__)
@@ -483,9 +484,13 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
 
     # Stop the electrometers before anything reads the arrays.  saveFlyData
     # harvests them from a background thread, and a series still acquiring
-    # could grow underneath it.
+    # could grow underneath it.  Stopping the quadEM is not sufficient: the
+    # time series stays armed, and the cleanup after this scan returns both
+    # boxes to free-running monitor mode, whose readings would then be appended
+    # to the very arrays being harvested.
     for det in FX4_DETECTORS:
         yield from bps.mv(det.acquire, 0)
+        yield from fx4_stop_timeseries(det)
 
     # Did every PSO pulse register?  Too few can mean the link dropped samples
     # (raise ValuesPerRead) or that neighbouring exposures merged because the

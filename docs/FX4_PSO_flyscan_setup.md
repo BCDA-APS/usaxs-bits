@@ -12,7 +12,9 @@ uncertainty.
 > into FX4 digital input **D1** (= `gpio_0/22`, **50 Ω-terminated**), set D1 to **GP Input**,
 > run in **Ext. bulb** trigger mode with **TriggerPolarity = Negative** (our signal idles
 > low, strobes high), and watch the per-exposure averages with `camonitor`.
-> Use **ValuesPerRead ≈ 10–50**, *not* 1 (see §10 — low VPR overloads the link and drops pulses).
+> Use **ValuesPerRead ≈ 10–50**, *not* 1 (see §10 — low VPR overloads the link and drops pulses),
+> and make the PSO strobe **≥ 1200 µs** (see §8 — measured; narrower strobes are
+> silently missed because the digital input samples at only ~1 kHz).
 
 ---
 
@@ -320,28 +322,52 @@ stays 0 afterward.
 
 ---
 
-## 8. Minimum strobe/gap width — resolving separate exposures
+## 8. Minimum strobe width — MEASURED 2026-09-27: use ≥ 1200 µs ⭐
 
 **Symptom:** looks like **missed PSO pulses** — consecutive exposures merging into one.
 
-The gate state is resolved at the **FX4 sample cadence** (`SampleTime = ValuesPerRead ×
-10 µs`). To register two separate bulb events the driver must *see* both edges of the
-delimiter in the streamed samples; if the delimiter is shorter than the sampling resolves,
-neighboring samples read the same level and two exposures fuse.
+> **This section was wrong before 2026-09-27 and has been rewritten from
+> measurement.** It used to claim the gate is resolved at the ADC sample cadence
+> (`SampleTime = ValuesPerRead × 10 µs`) and that 3–5 sample periods was safe,
+> giving "200–300 µs". That is **not** what the hardware does. The number is
+> ~1 ms and it does **not** scale with `ValuesPerRead`. Full analysis, and the
+> open questions for the manufacturer, are in **`FX4_PSO_trigger_issue.md`**.
 
 **With `TriggerPolarity = Negative` (our case) the delimiter is the HIGH strobe** (the low
-interval is the exposure). So the **PSO HIGH pulse width** must clear the cadence:
+interval is the exposure), so the **PSO HIGH pulse width** is what matters.
 
-- Absolute floor ≥ 1 sample period; **safe ≥ 3–5 sample periods**.
-- At VPR=5 (50 µs/sample): floor ≈ 50 µs, safe strobe ≈ **200–300 µs**.
-- (With Positive polarity the roles swap → the LOW gap must clear the cadence.)
+Measured with a fixed 4000-pulse train, varying only `usxAERO:pm1:PulseLength`
+(at VPR=10, i.e. a 100 µs ADC sample period throughout):
 
-> **Two competing effects — see §10.** Shorter SampleTime (low VPR) resolves *narrower*
-> delimiters, BUT low VPR also raises the data rate and can drop samples/edges. Pick VPR to
-> satisfy both: fine enough to resolve the delimiter, coarse enough not to overload the link.
+| PSO strobe width | pulses captured of 4000 | fraction |
+|---|---|---|
+| 400 µs  | 1600 | 0.40 |
+| 600 µs  | 2400 | 0.60 |
+| 800 µs  | 3200 | 0.80 |
+| 1000 µs | 3800 | 0.95 |
+| **1200 µs** | **4000** | **1.00** |
 
-Confirm merging vs. dropping: a merged exposure shows ~2× the normal `NumAveraged_RBV` and
-fewer events than pulses. Enable `asynSetTraceMask("FX4",0,0x9)` to log gate events.
+`captured ≈ 4000 × (width / 1000 µs)`, saturating at ~1 ms — i.e. the digital
+input behaves as if **sampled at ~1 kHz**, 10× slower than the streamed ADC rate
+and 100× slower than the ADC conversion rate. A strobe narrower than that is
+caught only with probability ≈ width/1 ms.
+
+**→ Set `usxAERO:pm1:PulseLength` to 1200 µs** (and `PulsePeriod` above it; the
+Aerotech driver forces `period = length + 1` otherwise). At a 22.5 ms mean
+interval that is ~5 % dead time, which costs angular coverage but **not**
+accuracy — the recorded quantity is a mean current, and `channel_time` records
+each interval's true duration.
+
+The two boxes miss *different* strobes and disagree on the total until the strobe
+is wide enough, which is how you can tell this apart from a problem in the PSO
+output: a genuine PSO fault would give both boxes the same count.
+
+**Do not try to fix this by lowering VPR.** The effect does not scale with
+`SampleTime`, so a lower VPR buys nothing here and costs throughput (§10).
+
+Confirm merging vs. dropping: a merged exposure shows a `NumAveraged_RBV` larger
+than the interval warrants, and fewer events than pulses. Enable
+`asynSetTraceMask("FX4",0,0x9)` to log gate events.
 
 ---
 
@@ -380,6 +406,17 @@ resolution.
 oversamples your signal. For 0.05 s minimum intervals, VPR=10 (100 µs → ~500 samples per
 shortest interval) or even VPR=50 (2 kHz → ~100 samples) is plenty and rock-solid.
 **Avoid VPR=1** unless you truly need 10 µs granularity and have verified the link sustains it.
+
+> **2026-09-27 — this section does NOT interact with §8 the way it used to claim.**
+> There is no trade-off to balance: gate detection is governed by the device's
+> ~1 kHz digital-input sampling and is **independent of `ValuesPerRead`**, so
+> VPR is now purely a throughput/resolution choice. Choose it on the rules above
+> and set the strobe width separately per §8.
+>
+> One consequence is untested: whether the ~1 ms figure is truly fixed, or is
+> tied to the streamed rate in some way that a VPR scan would reveal. Repeating
+> the §8 width scan at VPR = 10, 20, 50, 100 would settle it — see
+> `FX4_PSO_trigger_issue.md` §7.
 
 **Confirm the mechanism:** at VPR=1, enable `asynSetTraceMask("FX4",0,0x9)` → expect the
 driver's *"not synchronized / different number of samples per channel"* warnings (its symptom
@@ -541,6 +578,9 @@ harmonics + η(E) near edges ≫ detector calibration ≈ energy ≫ FX4 scale >
 - Driver gate signal (hard-coded): `/fx4/gpio_0/22/readback/value` = **D1** (DB9 pin 1, GND pin 9)
 - **Signal source: PRL-414B (50 Ω TTL line driver) → must 50 Ω-terminate at D1** (else ~5 V + ringing)
 - Polarity: **Negative** (idle low, strobe high; low interval = exposure)
+- **PSO strobe width ≥ 1200 µs** (`usxAERO:pm1:PulseLength`) — measured floor, the
+  digital input behaves as if sampled at ~1 kHz; independent of VPR (§8,
+  `FX4_PSO_trigger_issue.md`)
 - **ValuesPerRead ≈ 10–50** — low VPR (esp. 1) overloads the link and drops pulses (§10)
 - `RING_SIZE` (max samples averaged per exposure) set in `FX4.cmd` via `drvFX4Configure`
 - Device IP `10.54.122.170` — **Gateway `10.54.122.1`** required for split-subnet access

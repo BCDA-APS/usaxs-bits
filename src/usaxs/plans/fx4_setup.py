@@ -160,6 +160,36 @@ def fx4_scaler_mode(det, count_time, channels=(1, 2, 3, 4), values_per_read=None
 
 
 @plan
+def fx4_stop_timeseries(det, channels=(1, 2, 3, 4)):
+    """Plan: stop the time series on *det*'s channels.
+
+    Needed in two places, for the same reason: ``TSAcquire`` is a busy record
+    that only clears itself when a "Fixed length" series fills, which a fly
+    scan never does.
+
+    * Before arming, so the write to "Acquire" is a real 0 -> 1 transition and
+      the plugin erases the previous scan's points.
+    * After a fly scan, so the series is not left armed.  Stopping the quadEM
+      alone is not enough -- the cleanup that follows a scan puts the boxes
+      back into free-running monitor mode, and those readings would otherwise
+      be appended to the arrays that ``saveFlyData`` is about to harvest.
+
+    Parameters
+    ----------
+    det : FX4Electrometer
+        The electrometer whose time series should stop.
+    channels : sequence of int, optional
+        1-based channel numbers.  Defaults to all four.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    for ch in channels:
+        yield from bps.mv(det.channel_stats(ch).ts_acquire, "Done")
+
+
+@plan
 def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=None):
     """Plan: put an FX4 into PSO-gated (bulb) mode and arm its time series.
 
@@ -211,6 +241,22 @@ def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=Non
         det.values_per_read,
         values_per_read,
     )
+    # Stop the time series before touching its configuration.  TSAcquire is a
+    # *busy* record that only clears itself when a "Fixed length" series fills;
+    # the series is deliberately oversized (see TS_POINTS_FLOOR), so the
+    # previous fly scan always left it at 1.  Two things follow:
+    #
+    #   * TSNumPoints must not be rewritten underneath a live series -- it
+    #     resizes the plugin's buffers;
+    #   * the arming write below has to be a real 0 -> 1 *transition*, because
+    #     that edge is what erases the series.  There is no separate
+    #     Erase/Start action on this ADCore build (no TSErase, no TSControl --
+    #     TSAcquire is the only handle).  Writing 1 to a record already at 1 is
+    #     not a transition, so without this stop the first fly scan after an
+    #     IOC boot works and every later one silently appends to the previous
+    #     scan's points.
+    yield from fx4_stop_timeseries(det, channels)
+
     for ch in channels:
         stats = det.channel_stats(ch)
         yield from bps.mv(
@@ -223,9 +269,8 @@ def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=Non
             stats.ts_acquire_mode,
             "Fixed length",
         )
-    # Arm last, so the series is empty when acquisition starts.  In
-    # "Fixed length" mode this ADCore build erases and restarts the series on
-    # the transition to "Acquire" -- there is no separate Erase/Start action.
+
+    # Arm last, so the series is empty when acquisition starts.
     for ch in channels:
         yield from bps.mv(det.channel_stats(ch).ts_acquire, "Acquire")
 
