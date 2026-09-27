@@ -20,6 +20,7 @@ from ..utils.count_time import quantize_count_time
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
 from ..utils.ustep import Ustep
+from .fx4_setup import autorange_during_scan
 from .fx4_setup import check_ring_overflows
 from .fx4_setup import enable_fx4_autorange
 from .fx4_setup import prepare_fx4_counting
@@ -48,6 +49,37 @@ usaxs_shutter = oregistry["usaxs_shutter"]
 user_data = oregistry["user_data"]
 
 logger = logging.getLogger(__name__)
+
+
+def _set_bec_plots(enabled: bool) -> None:
+    """Turn BestEffortCallback's LivePlots on or off, leaving the table alone.
+
+    A uascan plots UPD against AR -- the same signal and the same axis as
+    ``tune_ar``, so BEC reuses that figure and overwrites a tune trace staff
+    actually use.  A USAXS scan on linear intensity vs angle is not a useful
+    plot anyway, so suppress it and keep the LiveTable, which is the part
+    with diagnostic value.
+
+    Imported lazily: ``usaxs.startup`` builds ``bec`` and nothing under
+    ``src/usaxs`` may import it at module scope (see CLAUDE.md).
+
+    Parameters
+    ----------
+    enabled : bool
+        True to re-enable plots, False to suppress them.
+    """
+    try:
+        from usaxs.startup import bec
+
+        if bec is None:
+            return
+        (bec.enable_plots if enabled else bec.disable_plots)()
+    except Exception as exc:  # noqa: BLE001 - plotting must never break a scan
+        logger.debug(
+            "could not %s BEC plots: %s",
+            "enable" if enabled else "disable",
+            exc,
+        )
 
 
 @plan
@@ -142,12 +174,18 @@ def uascan(
     count_time_base = count_time
 
     yield from prepare_fx4_counting(count_time)
-    # UPD ranges live through the scan: the signal falls many decades from the
-    # rocking-curve peak out to high q.  Through enable_fx4_autorange so
-    # seq01:channel is pointed at UPD first -- the transmission measurement
-    # that runs just before this leaves it on TRD, and one Range serves both.
-    yield from enable_fx4_autorange(upd_controls, "automatic")
-    # I0 and I00 stay on their fixed range; they have no sequence program.
+    # Both UPD and I0 range live through the scan.  UPD because the signal
+    # falls many decades from the rocking-curve peak out to high q; I0
+    # because a range that was wrong at the start otherwise stays wrong for
+    # the whole scan, and an I0 that rails normalises the data incorrectly
+    # with nothing in the log to say so (seen at 12-ID-E).
+    #
+    # Goes through enable_fx4_autorange so seq01:channel is pointed at UPD
+    # first -- the transmission measurement that runs just before this
+    # leaves it on TRD, and one Range serves both.
+    #
+    # I00 has no sequence program and stays on its fixed range.
+    yield from autorange_during_scan()
     yield from bps.mv(usaxs_shutter, "open")
 
     # original values before scan
@@ -373,9 +411,20 @@ def uascan(
         for obj, kind in original_kinds.items():
             obj.kind = kind
 
-    # run the scan
-    yield from _scan_()
-    yield from _after_scan_()
+    # run the scan.  Plots off for the duration so the uascan trace does not
+    # land in (and overwrite) the tune_ar figure; finalize_wrapper so an
+    # abort cannot leave the session with plotting switched off.
+    _set_bec_plots(False)
+
+    def _run_():
+        yield from _scan_()
+        yield from _after_scan_()
+
+    def _restore_plots_():
+        _set_bec_plots(True)
+        yield from bps.null()
+
+    yield from bpp.finalize_wrapper(_run_(), _restore_plots_())
 
     yield from user_data.set_state_plan("USAXS scan complete")
 

@@ -61,8 +61,8 @@ def choose_values_per_read(count_time, minimum=DEFAULT_SCALER_VPR):
 
     The driver's ring buffer holds :data:`RING_SIZE_SAMPLES` samples per
     reading; beyond that the oldest are discarded and the mean is biased
-    toward the tail of the count.  Since ``samples = count_time x 100000 / VPR``, a long count
-    needs a large VPR.
+    toward the tail of the count.  Since
+    ``samples = count_time x 100000 / VPR``, a long count needs a large VPR.
 
     Parameters
     ----------
@@ -525,6 +525,34 @@ def fx4_monitor_mode(det):
     )
     yield from bps.mv(det.acquire, 1)
     logger.debug("%s: monitor mode, free-running", det.name)
+
+
+@plan
+def autorange_during_scan():
+    """Plan: leave both sequence programs autoranging for the scan itself.
+
+    Call after ``autoscale_amplifiers`` and before the scan starts.
+
+    ``autoscale_amplifiers`` converges the range and then locks it in
+    ``manual``, which is the right thing for a counts-based chain where a
+    gain change is a step discontinuity in the data.  The FX4 reading is
+    **gain-independent picoamps**, so a range change mid-scan is transparent
+    in value -- and leaving the programs in ``automatic`` means a range that
+    was wrong at the start (converged on a stale seed, or on a signal that
+    has since moved) is corrected on the next reading instead of spoiling
+    the whole scan.  Observed at 12-ID-E on both I0 and UPD.
+
+    Both boxes are covered: I0 on ``usxFX42`` and UPD on ``usxFX4``.  UPD is
+    set last so ``usxFX4``'s shared channel ends on the scattered beam.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    from apsbits.core.instrument_init import oregistry
+
+    yield from enable_fx4_autorange(oregistry["I0_controls"], "automatic")
+    yield from enable_fx4_autorange(oregistry["upd_controls"], "automatic")
 
 
 @plan

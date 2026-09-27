@@ -39,6 +39,7 @@ from bluesky import plan_stubs as bps
 
 from .fx4_autorange_plan import autoscale_amplifiers
 from .fx4_setup import enable_fx4_autorange
+from .fx4_setup import autorange_during_scan
 from .fx4_setup import prepare_fx4_counting
 from .fx4_setup import resume_fx4_monitoring
 from ..utils.fx4_channels import select_fx4_plot
@@ -104,6 +105,9 @@ def tune_mr(md: Optional[dict] = None):
         logger.info(f"tuning axis: {m_stage.r.name}")
 
         yield from autoscale_amplifiers([upd_controls, I0_controls])
+        # Autorange through the scan: a range that converged on a stale
+        # seed then self-corrects instead of spoiling the tune.
+        yield from autorange_during_scan()
         select_fx4_plot(["I0"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -173,6 +177,9 @@ def tune_ar(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
+        # Autorange through the scan: a range that converged on a stale
+        # seed then self-corrects instead of spoiling the tune.
+        yield from autorange_during_scan()
         trim_plot_by_name(5)
         select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
@@ -283,6 +290,9 @@ def find_ar(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
+        # Autorange through the scan: a range that converged on a stale
+        # seed then self-corrects instead of spoiling the tune.
+        yield from autorange_during_scan()
         trim_plot_by_name(5)
         select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
@@ -357,6 +367,9 @@ def tune_a2rp(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
+        # Autorange through the scan: a range that converged on a stale
+        # seed then self-corrects instead of spoiling the tune.
+        yield from autorange_during_scan()
         select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -463,6 +476,9 @@ def find_a2rp(md: Optional[dict] = None):
         )
 
         yield from autoscale_amplifiers([upd_controls, I0_controls])
+        # Autorange through the scan: a range that converged on a stale
+        # seed then self-corrects instead of spoiling the tune.
+        yield from autorange_during_scan()
         select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -529,6 +545,9 @@ def tune_dx(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
+        # Autorange through the scan: a range that converged on a stale
+        # seed then self-corrects instead of spoiling the tune.
+        yield from autorange_during_scan()
         trim_plot_by_name(5)
         select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
@@ -599,6 +618,9 @@ def tune_dy(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
+        # Autorange through the scan: a range that converged on a stale
+        # seed then self-corrects instead of spoiling the tune.
+        yield from autorange_during_scan()
         select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()

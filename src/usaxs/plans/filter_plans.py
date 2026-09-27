@@ -143,23 +143,28 @@ def insertWaxsFilters():
 
 
 def insertTransmissionFilters():
-    """Bluesky plan: insert energy-dependent filters for transmission measurements.
+    """Bluesky plan: clear the filters for a transmission measurement.
 
-    Selects Al filter position based on monochromator energy to reduce diode
-    damage when measuring transmission on guard slits:
+    Historically this inserted energy-dependent Al attenuation (position 0,
+    3 or 7 below 12.1 keV / below 18.1 keV / above) to protect the diode.
+    That is no longer wanted, for two reasons:
 
-    * energy < 12.1 keV  → position 0
-    * 12.1 ≤ energy < 18.1 keV → position 3
-    * energy ≥ 18.1 keV → position 7
+    * the diodes carry their own metallic protective foils, so the Al was
+      guarding against a hazard that no longer exists;
+    * the filter box is a slow mechanical device.  Each change costs a move
+      plus a 1.2 s settle, and attenuating the beam drives I0 down into a
+      range change -- which is exactly what made I0 prone to bad ranges
+      during transmission measurements at 12-ID-E.
+
+    Removing the attenuation keeps I0 on one range across the measurement
+    and lets the transmission count time come down (``TR_MeasurementTime``).
+
+    The energy-dependent selection is kept in the history rather than the
+    code; restoring it means reinstating the three-way branch on
+    ``monochromator.dcm.energy.position``.
 
     Yields
     ------
     Bluesky messages consumed by the RunEngine.
     """
-    if monochromator.dcm.energy.position < 12.1:
-        al_filters = 0
-    elif monochromator.dcm.energy.position < 18.1:
-        al_filters = 3
-    else:
-        al_filters = 7
-    yield from _insertFilters_(al_filters)
+    yield from _insertFilters_(0)
