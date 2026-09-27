@@ -612,9 +612,22 @@ class FX4AutorangeDevice(Device):
     # The IOC does the actual ranging; these only answer "did it settle
     # somewhere sensible, and is it not railed?".  Expressed as a fraction of
     # the active range's full scale rather than an absolute current, so a
-    # change to the range table does not silently invalidate them.  The IOC
-    # currently switches down below 10 % and up above 90 %; matching those
-    # means the check passes exactly when the sequence program is content.
+    # change to the range table does not silently invalidate them.
+    #
+    # These should track the sequence program's own thresholds, seq01:gainU
+    # (range down below) and seq01:gainD (range up above), both in percent.
+    # Where they disagree, this check calls a reading bad while the IOC is
+    # perfectly content with it.
+    #
+    #   measured at 12-ID-E 2026-09-26:  gainU = 7, gainD = 90
+    #
+    # so max_fraction matches but min_fraction does not: a reading between
+    # 7 % and 10 % of full scale is logged "below the useful window" while
+    # the sequence program is happy and will not move. Harmless today --
+    # only the *high* side gates convergence, see
+    # plans.fx4_autorange_plan._reading_above_window -- but it makes the log
+    # misleading. Set ``min_fraction`` to 0.07 to match, or raise gainU back
+    # to 10 in the IOC; both are live values needing no code change.
     min_fraction = Component(Signal, value=0.10, kind="config")
     max_fraction = Component(Signal, value=0.90, kind="config")
 

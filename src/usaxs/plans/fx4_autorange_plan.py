@@ -25,14 +25,23 @@ Two things make that more important than it was, not less:
 
 Convergence
 -----------
-Simpler than the scaler version, because the FX4 has no counter to overflow:
-every range returns one current, which may just be over or under the useful
-window.  So the test is only *"has the range stopped changing?"*.  A stable
-range across two consecutive reads means the sequence program is content.
+The test is *"has the range stopped changing **and** is the reading not
+railed?"*.
 
-``max_iterations`` is the backstop.  Five reads is enough to walk the whole
-five-range table from any starting point, plus one more to confirm the last
-move, so the default is seven.  With seeding it normally converges in two.
+Stability alone is not sufficient, and assuming it was cost real data at
+12-ID-E.  The loop seeds the range from ``_last_range_`` and the sequence
+program cannot react until a read completes, so the first two reads return
+the seeded range whether or not it is the right one.  A seed seeded from a
+different beam condition -- ``saxsExp`` and ``waxsExp`` both insert filters
+*between* the measurement that set the seed and this autoscale -- therefore
+looked converged immediately and the exposure ran on a railed I0.
+
+Only the *high* side blocks convergence; see :func:`_reading_above_window`
+for why the low side must not.
+
+``max_iterations`` is the backstop, defaulting to twice the range count so a
+badly seeded range has room for the full walk plus a confirming read.  With
+a good seed it still converges on the second read.
 """
 
 import logging
@@ -50,6 +59,7 @@ from ..devices.fx4_quadem import FX4AutorangeSettings
 from ..devices.fx4_quadem import FX4AutoscaleError
 from ..utils.count_time import quantize_count_time
 from ..utils.fx4_ranges import full_scale_pA
+from .fx4_setup import fraction_of_full_scale
 from .fx4_setup import group_controls_by_box
 from .fx4_setup import select_fx4_channel
 
@@ -58,8 +68,18 @@ logger = logging.getLogger(__name__)
 DEFAULT_AUTOSCALE_COUNT_TIME = 0.05
 """Integration time per trial read, seconds.  Three mains cycles."""
 
-DEFAULT_MAX_ITERATIONS = NUM_AUTORANGE_RANGES + 2
-"""Enough reads to cross the whole range table, plus one to confirm."""
+DEFAULT_MAX_ITERATIONS = 2 * NUM_AUTORANGE_RANGES
+"""Reads before giving up on convergence.
+
+Enough to walk the whole five-range table from any starting point, confirm
+the last move, and still have margin -- the convergence test now also
+requires the reading not to be railed, so a badly seeded range needs the
+walk *plus* a confirming read rather than stopping at the first repeat.
+
+At the default 0.05 s trial count time the worst case costs well under a
+second, and only when the range was wrong to begin with; the normal case
+still converges on the second read.
+"""
 
 _last_range_ = {}
 """``{(electrometer, channel): range index}`` -- the last converged range.
@@ -68,6 +88,47 @@ Module-level so it survives between plan calls.  Keyed per *channel* because
 one sequence program serves several, and their correct ranges differ by orders
 of magnitude.
 """
+
+
+def _reading_above_window(control):
+    """Return True when the latest reading is railed and a coarser range exists.
+
+    Used as the second half of the convergence test.  The asymmetry is
+    deliberate: only the *high* side blocks convergence.
+
+    * **Above** the window means the reading is saturated, the value is
+      wrong, and moving to a less sensitive range fixes it.  Worth more
+      iterations.
+    * **Below** the window means there is little signal -- a disconnected
+      detector, a closed shutter, a genuinely weak scatterer.  No range
+      change can fix that, and blocking on it would turn "TRD sees nothing"
+      into a scan-aborting error.
+
+    Because the FX4 reading is gain-independent, a too-*coarse* range costs
+    resolution but not correctness; a railed one corrupts the data.  So this
+    is the case worth spending time on.
+
+    Parameters
+    ----------
+    control : FX4DetectorControls
+        The detector being autoscaled.
+
+    Returns
+    -------
+    bool
+        False when the range label cannot be parsed, so an unrecognised
+        range never causes the loop to spin.
+    """
+    fraction = fraction_of_full_scale(control)
+    if fraction is None:
+        return False
+    if abs(fraction) <= control.auto.max_fraction.get():
+        return False
+    # Index 0 is the *least* sensitive range; nothing coarser to move to.
+    try:
+        return int(control.auto.lurange.get()) > 0
+    except Exception:  # noqa: BLE001 - a bad readback must not spin the loop
+        return False
 
 
 def _memory_key(controls):
@@ -216,10 +277,17 @@ def _autoscale_one_(
         yield from bps.sleep(settling_time)
 
         current_range = auto.lurange.get()
-        if current_range == previous_range:
+        stable = current_range == previous_range
+        previous_range = current_range
+
+        # Stability alone is not enough.  The range we seeded is forced, and
+        # the program cannot react until a read completes, so the first two
+        # reads look identical whether or not the range is right -- which is
+        # how a stale seed gets locked in.  Require that the reading is also
+        # not railed before believing it.
+        if stable and not _reading_above_window(control):
             converged = True
             break
-        previous_range = current_range
 
     if converged:
         _last_range_[key] = previous_range
@@ -227,9 +295,11 @@ def _autoscale_one_(
     yield from bps.mv(det.averaging_time, original_count_time)
 
     if not converged:
+        railed = _reading_above_window(control)
         msg = (
-            f"{control.nickname}: range still changing after {max_iterations}"
-            f" reads (last range {previous_range})"
+            f"{control.nickname}: "
+            + ("still railed" if railed else "range still changing")
+            + f" after {max_iterations} reads (last range {previous_range})"
         )
         if _in_user_operations() and RE is not None and RE.state != "idle":
             raise FX4AutoscaleError(msg)
