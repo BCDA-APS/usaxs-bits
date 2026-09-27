@@ -621,14 +621,15 @@ class FX4AutorangeDevice(Device):
     #
     #   measured at 12-ID-E 2026-09-26:  gainU = 7, gainD = 90
     #
-    # so max_fraction matches but min_fraction does not: a reading between
-    # 7 % and 10 % of full scale is logged "below the useful window" while
-    # the sequence program is happy and will not move. Harmless today --
-    # only the *high* side gates convergence, see
-    # plans.fx4_autorange_plan._reading_above_window -- but it makes the log
-    # misleading. Set ``min_fraction`` to 0.07 to match, or raise gainU back
-    # to 10 in the IOC; both are live values needing no code change.
-    min_fraction = Component(Signal, value=0.10, kind="config")
+    # gainU = 7 is deliberate, not drift: ranging down only once the signal
+    # has fallen below 7 % leaves headroom above, so an intensity rise on
+    # the next point does not immediately rail the newly-chosen finer range.
+    # The defaults below match that, so the sanity check passes exactly when
+    # the sequence program is content.
+    #
+    # Both are plain ophyd Signals: retune them live from the console rather
+    # than editing here, e.g. ``upd_controls.auto.min_fraction.put(0.05)``.
+    min_fraction = Component(Signal, value=0.07, kind="config")
     max_fraction = Component(Signal, value=0.90, kind="config")
 
     # Absolute backstops, pA.  1 pA is well under any real dark current
