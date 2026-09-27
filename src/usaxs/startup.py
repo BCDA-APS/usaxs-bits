@@ -31,6 +31,7 @@ from apsbits.utils.logging_setup import configure_logging
 from epics import caget
 
 from usaxs.utils.fx4_channels import setup_fx4_channels
+from usaxs.utils.qserver_console import follow_live_stderr
 from usaxs.utils.scalers_setup import release_scaler_detector_names
 from usaxs.utils.scalers_setup import setup_scalers
 
@@ -43,6 +44,14 @@ iconfig = load_config(iconfig_path)
 
 
 logger = logging.getLogger(__name__)
+
+# Importing apsbits (above) configured the root logger.  Under the queueserver
+# that happens while the IPython kernel's echoing stdout is installed, which
+# would make every log record show up twice in the console view -- see
+# usaxs/utils/qserver_console.py.
+if running_in_queueserver():
+    follow_live_stderr()
+
 logger.info("Starting Instrument with iconfig: %s", iconfig_path)
 
 # initialize instrument
