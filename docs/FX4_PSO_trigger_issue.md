@@ -1,6 +1,9 @@
 # FX4 digital-input (gate) timing — narrow external trigger pulses are missed
 
-**Status:** open question for the FX4 manual / Pyramid Technical Consultants.
+**Status:** open — two separate issues, two owners:
+(1) **missed pulses** → device firmware → Pyramid Technical Consultants (§9A);
+(2) **per-interval sample-count corruption** → likely `drvFX4` driver → softIOC
+developer / quadEM maintainer (§9B). See the analysis in §5.2–5.3.
 **Site:** Advanced Photon Source, beamline 12-ID-E (USAXS instrument), Argonne National Laboratory.
 **Date of measurements:** 2026-09-27.
 **Workaround in place:** widen the external trigger pulse to 1200 µs (see §8).
@@ -159,7 +162,80 @@ samples to be discarded from intervals that *are* reported.
 This was visible in the data. In the 889/4000 run, the reported number of
 averaged samples per interval was ~180 where the measured interval spacing
 implied ~960. Both the interval count (22%) and the sample count (19%) were
-depressed by the same factor — one cause, two symptoms.
+depressed by the same factor.
+
+**Correction (see §5.3):** this is probably *not* one cause with two symptoms.
+Periodic sampling alone predicts the *opposite* sample-count symptom — it
+explains the lost intervals, but not the lost samples.
+
+### 5.2 Protocol behaviour confirmed from the IGX Programmer Manual (v6, §3.3.2)
+
+The FX4 runs Pyramid's IGX framework; the WebSocket protocol is documented there.
+
+- **Subscribe flag = buffered vs. unbuffered.** "Buffered data will include all
+  the data in an array since the last get event, while unbuffered data will only
+  contain the latest data point." `drvFX4` subscribes the gate with `true`
+  (buffered), so it is **not** losing pulses by reading only the latest value.
+- **Change-only reporting.** With the default `always_update = false`, "the
+  protocol only sends new data if the data has changed."
+- Consequence: the gate readback (`/fx4/gpio_0/22/readback/value`) is a generic
+  GPIO IO whose value is recorded by the IGX IO layer at its own internal rate.
+  If a pulse rises and falls **between two IO samples**, the recorded value never
+  changes and the pulse is **never present in the transmitted data at all**. This
+  reproduces the linear capture ≈ width/T law with T ≈ 1 ms, and explains why the
+  two units miss *different* pulses (independent sampling phase).
+- Neither the IGX manual nor the FX4 datasheet / user / programmer manuals state
+  the GPIO sampling rate, a way to configure it, or an edge-latch mode. The
+  ~1 µs de-bounce setting is a delay, not the sampling period.
+
+**Conclusion for issue (1):** the pulse loss is upstream of the WebSocket, in the
+device's GPIO sampling. It cannot be fixed by any documented device setting, and
+the softIOC cannot recover a transition the device never transmits → Pyramid.
+
+### 5.3 The sample-count depression points to a second, asymmetric loss (driver)
+
+If a pulse is missed entirely (both edges between IO samples), the driver never
+leaves the integrating (LOW) state, so consecutive intervals **merge** and each
+reported interval should contain **more** samples — roughly 1/0.22 ≈ 4.5 intervals'
+worth, i.e. close to the ~960 implied by the spacing. The observed ~180 is instead
+≈ **one** interval's worth (22.5 ms × 10 kHz ≈ 225, less strobe dead time).
+
+So during the missed stretches the driver believed the gate was **HIGH
+(inactive)** and discarded samples: it processed a rising transition but not the
+matching falling one. Symmetric periodic sampling cannot produce this (a sampled
+HIGH is always followed by a sampled LOW one period later), so a second,
+asymmetric loss mechanism is involved.
+
+**Candidate in `drvFX4.cpp` (`onMessageEvent`):** gate events are collected into a
+local event list, then
+
+```cpp
+if (adcCache_[0].empty()) goto done;
+```
+
+discards **all gate events** in any update message that carries no new ADC
+samples. If a HIGH is processed but its LOW arrives in such a message, the driver
+stays "HIGH", skipping samples until the next processed LOW. Related weaknesses:
+
+- `triggerCallbacks()` is called on every HIGH event without checking that the
+  level actually changed.
+- `GATE_PATH` is hard-coded in `drvFX4.h`, so an alternative (faster / latched)
+  input cannot be used without recompiling.
+
+Fixing these would not recover pulses the device never sends, but a missed pulse
+would then degrade gracefully (two intervals merge, samples kept) instead of
+silently discarding data from intervals that are reported. *(Caveat: this
+reasoning assumes the ~960 figure is the wall-clock span between reported
+intervals × 10 kHz; to be confirmed by the driver-bypass test in §7.)*
+
+### 5.4 Knock-on effect on timing precision
+
+If the digital-input timestamps are the times of periodic IO samples rather than
+true edge times (Q4, §9A), interval boundaries carry up to ~1 ms of error. The
+per-pulse exposure-time proxy used for stage-tuning diagnostics
+(`N × SampleTime`, with `N = TSTotal/TSMeanValue`) then has an effective
+resolution of ~1 ms, not 100 µs — still adequate to flag badly oscillating
+intervals on 22.5 ms spacing, but it should be stated.
 
 ---
 
@@ -173,15 +249,31 @@ depressed by the same factor — one cause, two symptoms.
 | WebSocket / link bandwidth | `RingOverflows` = 0 throughout; widening the pulse alone restored full capture with **no** change to `ValuesPerRead` or data rate |
 | Ring-buffer overflow | ring is 100000 samples = 10 s at this rate; longest interval is far below that; overflow counter stayed 0 |
 | EPICS record or array limits | array sizes and record limits verified to exceed the point count |
-| Driver-side edge resolution | `drvFX4` handles the gate as an independent timestamped subscription; every received gate value becomes an event. The loss is therefore upstream of the driver, in what the device transmits |
+| Driver-side edge resolution | `drvFX4` handles the gate as an independent, buffered, timestamped subscription and does not subsample it. The **interval-count loss** is therefore upstream of the driver, in what the device transmits. **Qualification:** the driver *can* discard gate events that arrive in an update with no ADC samples (§5.3) — a plausible cause of the sample-count depression, not yet excluded |
 | Polarity misconfiguration | `Negative` is correct for an idle-low/strobe-high signal; with `Positive` essentially nothing is captured, as expected |
 
 ---
 
-## 7. Test not yet performed
+## 7. Tests not yet performed
 
-The single most informative follow-up: **repeat the width scan at several
-`ValuesPerRead` values** (e.g. 10, 20, 50, 100).
+### 7.1 Driver-bypass test (do first — separates device from driver)
+
+Run Pyramid's own WebSocket example (`fx4_ws_mpack_collector.py`, FX4 product
+page downloads) with a **buffered** subscription to
+`/fx4/gpio_0/22/readback/value` (plus one ADC channel) during a 4000-pulse train
+at 400 µs width, and log every update message. Then:
+
+- **Count HIGH values received.** ≈1600 → device-side loss confirmed (§9A).
+  ≈4000 → the device sends them and the driver is losing them (§9B).
+- **Inspect gate timestamp spacing.** Values quantised to a ~1 ms grid →
+  periodic sampling; answers Q1 and Q4 of §9A empirically.
+- **Check HIGH/LOW pairing.** Every HIGH followed by a LOW? Tests §5.3.
+- **Count update messages that contain gate values but no ADC samples.** Non-zero
+  → the `adcCache_[0].empty()` discard in §5.3 is being exercised.
+
+### 7.2 Width scan vs. `ValuesPerRead`
+
+**Repeat the width scan at several `ValuesPerRead` values** (e.g. 10, 20, 50, 100).
 
 - If the width needed for full capture stays ~1 ms → the digital-input sampling
   is fixed and independent of the analogue streaming rate.
@@ -207,9 +299,15 @@ rather than assumed.
 The workaround is acceptable but not free, and it sets a floor on how finely the
 sweep can be divided.
 
+Margin note: capture requires width ≥ the device's GPIO sampling period. If that
+period jitters under CPU load (QNX scheduling), 1200 µs may be marginal; use
+**~1500 µs** if occasional misses reappear.
+
 ---
 
-## 9. Questions for the manufacturer
+## 9. Open questions
+
+### 9A. For Pyramid Technical Consultants (device firmware — missed pulses)
 
 1. **At what rate does the FX4 sample its digital inputs (D1–D4 /
    `gpio_0/22`), and at what rate does it publish changes over the WebSocket
@@ -231,6 +329,34 @@ sweep can be divided.
    routed to a fiber receiver instead of `gpio_0/22`?
 7. Is there a recommended **minimum external gate pulse width** for `Ext. bulb`
    mode that we should be designing to?
+8. The datasheet lists D1 as also usable as **Encoder A** (QEP; the user manual
+   says it can act as a general-purpose counter), and the programmer manual's
+   digital mode list includes **`capture`** and **`pru_input`**. On the AM335x
+   these are hardware edge-counting / edge-timestamping resources that cannot
+   miss a pulse. **Can D1 in capture, encoder/counter, or PRU mode be subscribed
+   as a buffered WebSocket IO with hardware timestamps?** If so, what are the IO
+   paths, and does the plain `gpio_0/22/readback` still reflect the pin in that
+   mode?
+9. What is the **internal update period of the `gpio_0` readback IO**, and does
+   it **jitter under CPU load**?
+10. Does the dose-controller **"Process Input"** path run at a faster cadence
+    than a GP Input, and can its state be streamed with timestamps?
+
+### 9B. For the softIOC developer / quadEM maintainer (`drvFX4` — sample-count corruption)
+
+1. In `drvFX4::onMessageEvent`, `if (adcCache_[0].empty()) goto done;` discards
+   gate events that arrive in an update without ADC samples. **Can gate events be
+   retained** (e.g. kept in a persistent queue and merged with the next ADC
+   batch by timestamp) instead of dropped? (§5.3)
+2. **Should `triggerCallbacks()` fire only on a genuine level change** (edge),
+   rather than on every received HIGH/LOW value?
+3. **Can `GATE_PATH` become a `drvFX4Configure` argument** (or a PV), so a faster
+   or hardware-latched input can be used if Pyramid provides one (§9A Q8)?
+4. Would it be feasible to **detect missed pulses** — e.g. by also subscribing a
+   hardware pulse counter on the gate input (if available) and flagging when
+   counter increments exceed processed gate edges?
+5. Is the gate timestamp base guaranteed to be the same as the ADC timestamp
+   base? Any offset would misassign samples at interval boundaries.
 
 ---
 
@@ -259,6 +385,10 @@ pulse width until ~1 ms.
 - quadEM driver source — [`quadEMApp/FX4Src/`](https://github.com/epics-modules/quadEM/tree/master/quadEMApp/FX4Src)
   (`drvFX4.cpp`, `drvFX4.h`; gate handling and `gateEvent` insertion)
 - quadEM [Acquisition Modes](https://epics-modules.github.io/quadEM/tetramm_modes.html)
+- IGX [Programmer Manual v6](https://assets.ctfassets.net/5vxgrhuzunkj/ZN4PsfvM1osKKWNGUQYdp/4b895f3e8421139b33b13d0c541c2d3e/IGX_-_Programmer_Manual%C3%82__v6_.pdf)
+  (§3.3.2 JSON message protocol: buffered vs. unbuffered subscribe, `always_update`)
+- FX4 product page (downloads incl. WebSocket example `fx4_ws_mpack_collector.py`) —
+  <https://ptcusa.com/products/fx4>
 - FX4 [Datasheet](https://assets.ctfassets.net/5vxgrhuzunkj/3XaO452MOazhFKPj7BvBCv/5d98bb8c411d783f2cce02f793d6eafd/FX4_DS_250331.pdf)
   · [Programmer Manual v3](https://assets.ctfassets.net/5vxgrhuzunkj/4apUnt4g5Y2yKq9b2zt2YE/08f56643a7f14970570e1195649b8da3/FX4_Programmer_Manual__v3_.pdf)
   · [User Manual v1](https://assets.ctfassets.net/5vxgrhuzunkj/2ubABwl3gdzxIIgVgQVgjT/2f06a817d70e59fd5275f8f51a71b804/FX4_User_Manual__v1_.pdf)
