@@ -1,9 +1,9 @@
 # FX4 digital-input (gate) timing — narrow external trigger pulses are missed
 
-**Status:** open — two separate issues, two owners:
-(1) **missed pulses** → device firmware → Pyramid Technical Consultants (§9A);
-(2) **per-interval sample-count corruption** → likely `drvFX4` driver → softIOC
-developer / quadEM maintainer (§9B). See the analysis in §5.2–5.3.
+**Status:** **likely root cause identified 2026-09-30 — see §0; confirmation test
+pending (§7.2).** If confirmed, most of the Pyramid questions in §9A become moot.
+Remaining open items: the §5.3 sample-count question (re-evaluate with the correct
+sample rate) and the softIOC/template items in §9B.
 **Site:** Advanced Photon Source, beamline 12-ID-E (USAXS instrument), Argonne National Laboratory.
 **Date of measurements:** 2026-09-27.
 **Workaround in place:** widen the external trigger pulse to 1200 µs (see §8).
@@ -13,6 +13,97 @@ with an FX4 quad electrometer in which short trigger pulses are detected only
 part of the time, quantifies the effect, states what has been excluded, and ends
 with the specific questions we would like answered (§9). Nothing here depends on
 knowledge of the beamline.
+
+---
+
+## 0. Update 2026-09-30 — likely root cause: the device sample rate was 1 kHz
+
+**Trigger:** local technical support, reading the FX4 manual, asked what
+`/fx4/adc/sample_frequency` was set to on the device. On 10.54.122.171 it read
+**1000 Hz**.
+
+### How the sample rate is set
+
+`sample_frequency` is the rate at which the FX4 averages its fixed 100 kHz ADC
+conversions into output samples, i.e. the streamed sample rate. The softIOC sets
+it from `ValuesPerRead` via a one-way CA link in `FX4.template`:
+
+```
+record(calcout, "$(P)$(R)SetValuesPerRead") {
+    field(INPA, "$(P)$(R)ValuesPerRead CP")
+    field(CALC, "100000/A")
+    field(OUT,  "$(FXP)/fx4/adc/sample_frequency/value")
+}
+```
+
+So `sample_frequency = 100000 / ValuesPerRead`.
+
+### What was checked (2026-09-30)
+
+| Check | Result |
+|---|---|
+| `usxFX4:FX4:SampleTime_RBV` | `0.001` s (= 1 kHz) |
+| `usxFX4:FX4:SetValuesPerRead.OUT` | `10.54.122.170:/fx4/adc/sample_frequency` ✅ correct unit |
+| `usxFX42:FX4:SetValuesPerRead.OUT` | `10.54.122.171:/fx4/adc/sample_frequency` ✅ correct unit |
+| `SetValuesPerRead` SEVR / STAT (both IOCs) | `NO_ALARM` / `NO_ALARM` — link healthy |
+| `ValuesPerRead` before the forced write (both IOCs) | **`100`** — *not* 10 |
+| After `caput ValuesPerRead 20` then `10` (both IOCs) | device `sample_frequency` = **10 kHz** ✅ follows |
+
+### Conclusion
+
+- The IOC→device link works, and IOC and device were **consistent**: both were at
+  `ValuesPerRead = 100` → `sample_frequency` = 1 kHz → `SampleTime` = 1 ms.
+- The value **`ValuesPerRead = 10` recorded in §2 for the measurements was wrong**:
+  at the time of checking both IOCs were at 100. Most likely a step-scan/counting
+  plan (or autosave) had left it at 100, and the flyscan did not set it explicitly.
+- The device reports the D1 gate state on the **output sample cadence**. At 1 kHz,
+  a strobe of width *w* < 1 ms falls between two samples with probability
+  1 − *w*/1 ms. That is exactly the measured law in §4 (capture ∝ width,
+  saturating at ~1 ms). **The "~1 kHz GPIO rate" of §5 is the configured sample
+  rate, not a fixed firmware limit.**
+- Not yet proven: the width scan at `ValuesPerRead = 10` (§7.2) is the decisive test
+  and could not be run at the time of writing.
+
+### Is a larger ring buffer / faster IOC readout a fix? — No
+
+- The loss happens **on the device**, before data are sent: a strobe shorter than
+  one sample period never appears in the transmitted gate data. No buffer size or
+  read rate in the IOC can recover a transition that was never transmitted.
+- The IOC side is already lossless for what *is* sent: the driver uses a
+  **buffered** subscription (full history since the last `get`), and
+  `RingOverflows` stayed 0.
+- The only levers are therefore:
+  1. **Shorter sample period** (lower `ValuesPerRead` → higher `sample_frequency`), or
+  2. **Wider strobe**: design for width ≥ 3–5 × `SampleTime`.
+
+| `ValuesPerRead` | `sample_frequency` | `SampleTime` | expected min. reliable strobe (3–5 × SampleTime) |
+|---|---|---|---|
+| 100 | 1 kHz | 1 ms | 3–5 ms (1.2 ms worked in practice, but no margin) |
+| 50 | 2 kHz | 500 µs | 1.5–2.5 ms |
+| 20 | 5 kHz | 200 µs | 0.6–1 ms |
+| **10** | **10 kHz** | **100 µs** | **300–500 µs** |
+| 5 | 20 kHz | 50 µs | 150–250 µs |
+
+Caveat for very low `ValuesPerRead` (≤ 5): data rate over the WebSocket rises
+proportionally; an earlier run at `ValuesPerRead = 1` (100 kHz) lost pulses
+(1156/2000). Its cause should be re-examined in light of this finding, but
+10 kHz is the safe default.
+
+- **Ring buffer still matters for integrity:** at 10 kHz, `RING_SIZE` must exceed the
+  longest interval × 10 000 samples/s. The current 100 000 samples covers 10 s, which
+  is ample.
+
+### Consequences for other modes (to check)
+
+- **Flyscan means are unaffected** by the rate (a mean is a mean). At 1 kHz there
+  were simply 10× fewer samples per interval.
+- **Exposure-time proxy** `N × SampleTime` must use the *actual* `SampleTime_RBV`,
+  not an assumed 100 µs.
+- **Plans must set `ValuesPerRead` explicitly** at stage time for every mode:
+  counting (e.g. 50–100 for long counts, to stay within `RING_SIZE`) and flyscan
+  (10). Otherwise one plan silently inherits the other's rate.
+- **Verify the device matches** after every configuration change:
+  `caget <FX4-IP>:/fx4/adc/sample_frequency/value` vs. `100000 / ValuesPerRead`.
 
 ---
 
@@ -74,7 +165,7 @@ hardware. That path is hard-coded in `drvFX4.h`.
 | `TriggerMode` | `Ext. bulb` (3) — level-gated; window defined by the gate, `AveragingTime` ignored |
 | `TriggerPolarity` | `Negative` (1) — integrate while LOW, emit on the rising edge |
 | `AcquireMode` | `Continuous` |
-| `ValuesPerRead` | **10** → `SampleTime` = 100 µs, streamed rate 10 kHz/channel |
+| `ValuesPerRead` | recorded as **10** (100 µs, 10 kHz) — **⚠️ found to be 100 (1 ms, 1 kHz) when checked on 2026-09-30; see §0** |
 | ring buffer (`drvFX4Configure`) | 100000 samples (= 10 s at the above rate) |
 
 ### Trigger source
@@ -189,8 +280,12 @@ The FX4 runs Pyramid's IGX framework; the WebSocket protocol is documented there
   ~1 µs de-bounce setting is a delay, not the sampling period.
 
 **Conclusion for issue (1):** the pulse loss is upstream of the WebSocket, in the
-device's GPIO sampling. It cannot be fixed by any documented device setting, and
-the softIOC cannot recover a transition the device never transmits → Pyramid.
+device's GPIO sampling, and the softIOC cannot recover a transition the device
+never transmits.
+
+> **Superseded in part by §0:** the ~1 kHz sampling period matches the configured
+> `sample_frequency` (1 kHz at `ValuesPerRead = 100`). It **is** fixable by a
+> setting: lower `ValuesPerRead`. Pending the §7.2 test.
 
 ### 5.3 The sample-count depression points to a second, asymmetric loss (driver)
 
@@ -227,6 +322,13 @@ would then degrade gracefully (two intervals merge, samples kept) instead of
 silently discarding data from intervals that are reported. *(Caveat: this
 reasoning assumes the ~960 figure is the wall-clock span between reported
 intervals × 10 kHz; to be confirmed by the driver-bypass test in §7.)*
+
+> **⚠️ Re-evaluate (2026-09-30):** the sample counts above (~960 expected,
+> ~225 per interval) were computed assuming 10 kHz. If the 889/4000 run was
+> actually at 1 kHz (§0), a single 22.5 ms interval holds only ~22 samples, and
+> ~4.5 merged intervals ~100 samples. The observed ~180 would then imply
+> *merging*, not loss, and the stuck-HIGH argument may not hold. Recompute with
+> the `ValuesPerRead` actually in effect for that run before pursuing §9B Q1–Q2.
 
 ### 5.4 Knock-on effect on timing precision
 
@@ -271,7 +373,14 @@ at 400 µs width, and log every update message. Then:
 - **Count update messages that contain gate values but no ADC samples.** Non-zero
   → the `adcCache_[0].empty()` discard in §5.3 is being exercised.
 
-### 7.2 Width scan vs. `ValuesPerRead`
+### 7.2 Width scan vs. `ValuesPerRead` — **now the decisive test (§0)**
+
+First **verify the device rate** before each run:
+`caget 10.54.122.170:/fx4/adc/sample_frequency/value 10.54.122.171:/fx4/adc/sample_frequency/value`.
+
+**Prediction if §0 is correct:** full capture (4000/4000) at widths ≥ ~1 × `SampleTime`,
+reliably at 3–5 × `SampleTime`, i.e. ~300–500 µs at `ValuesPerRead = 10`, and the
+400 µs run should reach ~4000 instead of 1600.
 
 **Repeat the width scan at several `ValuesPerRead` values** (e.g. 10, 20, 50, 100).
 
@@ -299,6 +408,10 @@ rather than assumed.
 The workaround is acceptable but not free, and it sets a floor on how finely the
 sweep can be divided.
 
+After §0: the 1200 µs workaround worked because it just exceeded the 1 ms sample
+period at `ValuesPerRead = 100`. With `ValuesPerRead = 10` (verified on the device),
+the strobe should be reducible to ~300–500 µs once §7.2 confirms it.
+
 Margin note: capture requires width ≥ the device's GPIO sampling period. If that
 period jitters under CPU load (QNX scheduling), 1200 µs may be marginal; use
 **~1500 µs** if occasional misses reappear.
@@ -308,6 +421,11 @@ period jitters under CPU load (QNX scheduling), 1200 µs may be marginal; use
 ## 9. Open questions
 
 ### 9A. For Pyramid Technical Consultants (device firmware — missed pulses)
+
+> **Hold until §7.2 is run.** If capture is complete at `ValuesPerRead = 10`, the
+> only questions still worth asking are Q1 (confirm the gate is reported at
+> `sample_frequency`), Q3/Q8 (edge-latch / capture mode, to remove the width
+> constraint entirely) and Q4 (timestamp meaning).
 
 1. **At what rate does the FX4 sample its digital inputs (D1–D4 /
    `gpio_0/22`), and at what rate does it publish changes over the WebSocket
@@ -358,6 +476,25 @@ period jitters under CPU load (QNX scheduling), 1200 µs may be marginal; use
 5. Is the gate timestamp base guaranteed to be the same as the ADC timestamp
    base? Any offset would misassign samples at interval boundaries.
 
+**Added 2026-09-30 — `FX4.template` / configuration integrity:**
+
+6. **Device-rate verification.** `ValuesPerRead` reaches the device only through a
+   one-way CA link fired on change (`CP`). Nothing flags a mismatch between the IOC
+   setting and the device. Could the IOC read back `/fx4/adc/sample_frequency` and
+   raise an alarm on mismatch, and force a re-write after the CA link to the device
+   connects (to avoid a boot-order race with autosave)?
+7. **Driver's assumed `SampleTime`.** `drvFX4::setAcquireParams` computes
+   `sampleTime = 10e-6 * ValuesPerRead` and `NumAverage` from it, rather than using
+   the device's actual `sample_period`. If the device rate ever differs, fixed-time
+   counts run for the wrong wall-clock time. Should it use the device readback?
+8. **`SetRange` record name typo.** `record(longout, "(P)$(R)SetRange")` is missing
+   the `$`, so the record is created with a literal name. **Check whether `Range`
+   changes from the IOC actually reach the device**
+   (`caget <IP>:/fx4/range/value` vs. `Range`).
+9. **`GetValuesPerRead` path.** It reads `$(FXP)/fx4/sample_accumulation_count/value`,
+   which does not match the documented `/fx4/adc/...` paths, so
+   `ValuesPerRead_RBV` may not reflect the device. Verify the path.
+
 ---
 
 ## 10. How to reproduce
@@ -365,7 +502,8 @@ period jitters under CPU load (QNX scheduling), 1200 µs may be marginal; use
 1. Configure D1 as GP Input, pull-down, de-bounce off. Terminate the source in
    50 Ω at D1.
 2. Set `TriggerMode = Ext. bulb`, `TriggerPolarity = Negative`,
-   `AcquireMode = Continuous`, `ValuesPerRead = 10`.
+   `AcquireMode = Continuous`, `ValuesPerRead = 10`, **and verify on the device**
+   that `/fx4/adc/sample_frequency` = 10000 (§0).
 3. Enable the per-channel statistics plugin and arm its time series for more
    points than the pulse train contains.
 4. Apply a train of *N* pulses (idle low, strobe high) at a spacing well above
