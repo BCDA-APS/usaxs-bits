@@ -360,7 +360,7 @@ def myRheometerPlan_template(
         WAXS is disabled by default for rheometer time series (kinetics
         favour USAXS+SAXS cadence over completeness) — uncomment the waxsExp
         block below to re-enable.
-
+VAL there? 
         Parameters
         ----------
         phase : str
