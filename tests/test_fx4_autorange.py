@@ -6,6 +6,7 @@ message interpreter without a RunEngine, an IOC, or ophyd signals.
 
 import pytest
 
+from usaxs.devices.fx4_quadem import FX4AutorangeDirection
 from usaxs.devices.fx4_quadem import FX4AutorangeSettings
 from usaxs.plans import fx4_autorange_plan as arp
 
@@ -59,7 +60,12 @@ class FakeAuto:
         self.lurange = FakeSignal(start_range)
         self.channel = FakeSignal(0)
         self.mode = FakeSignal(FX4AutorangeSettings.manual)
+        self.direction = FakeSignal(FX4AutorangeDirection.both)
         self.settling_time = FakeSignal(0.0)
+        # Convergence window, as on FX4AutorangeDevice.  _reading_above_window
+        # reads max_fraction on every iteration of the autoscale loop.
+        self.min_fraction = FakeSignal(0.07)
+        self.max_fraction = FakeSignal(0.90)
         self.ranges = FakeRanges()
         self.target_range = target_range
         self.reads = 0
@@ -80,11 +86,18 @@ class FakeAuto:
         return (0.0, float("inf"))
 
     def on_read(self):
-        """Move one range toward the target, the way the IOC does per read."""
+        """Move one range toward the target, the way the IOC does per read.
+
+        Mirrors ``FX4_autoRange.st``'s ``checkRange``: ``dir = Increase``
+        suppresses only the move toward a *more sensitive* range (``reqrange++``,
+        index up), leaving the move toward a coarser one always available.
+        """
         self.reads += 1
         if self.mode.value != FX4AutorangeSettings.automatic:
             return
         if self.lurange.value < self.target_range:
+            if self.direction.value == FX4AutorangeDirection.increase:
+                return
             self.lurange.value += 1
         elif self.lurange.value > self.target_range:
             self.lurange.value -= 1
@@ -265,3 +278,122 @@ def test_enable_autorange_is_a_noop_for_a_fixed_range_detector():
     control, auto = _make(nickname="I0", channel=1)
     control.auto = None
     assert list(enable_fx4_autorange(control, "automatic")) == []
+
+
+# --- seq01:dir, the range-movement direction -------------------------------
+
+
+def test_autoscale_clears_the_direction_before_converging():
+    """The convergence loop has to be free to walk the table both ways.
+
+    ``seq01:dir`` is autosaved in the IOC, so a tune or transmission
+    measurement that left it on "Increase" would otherwise stop the loop
+    reaching a finer range -- and this is one of the two paths that undoes
+    that.
+    """
+    control, auto = _make(target_range=4, start_range=0)
+    auto.direction.value = FX4AutorangeDirection.increase
+
+    run(arp._autoscale_one_(control, RE=None), auto)
+
+    assert auto.direction.get() == FX4AutorangeDirection.both
+    assert auto.lurange.get() == 4  # reached the finer range despite the seed
+
+
+def test_enable_autorange_writes_the_direction_before_the_mode():
+    """The IOC reads ``dir`` inside ``checkRange``, after a completed read.
+
+    Setting it before ``mode`` means no read can slip through under the
+    previous direction.
+    """
+    from usaxs.plans.fx4_setup import enable_fx4_autorange
+
+    control, auto = _make()
+    writes = []
+    for msg in enable_fx4_autorange(control, "automatic", "Increase"):
+        if getattr(msg, "command", None) == "set":
+            writes.append((msg.obj, msg.args[0]))
+            msg.obj.put(msg.args[0])
+
+    assert writes == [
+        (auto.direction, FX4AutorangeDirection.increase),
+        (auto.mode, "automatic"),
+    ]
+
+
+def test_enable_autorange_defaults_to_both_directions():
+    """Every call site that does not ask for a hold must clear one."""
+    from usaxs.plans.fx4_setup import enable_fx4_autorange
+
+    control, auto = _make()
+    auto.direction.value = FX4AutorangeDirection.increase
+
+    run(enable_fx4_autorange(control, "auto+background"), auto)
+
+    assert auto.direction.get() == FX4AutorangeDirection.both
+
+
+def _registry(monkeypatch, upd, i0):
+    """Point the oregistry lookups inside fx4_setup at fake controls."""
+    monkeypatch.setattr(
+        "apsbits.core.instrument_init.oregistry",
+        {"upd_controls": upd, "I0_controls": i0},
+    )
+
+
+def test_hold_for_peak_holds_only_the_fitted_detector(monkeypatch):
+    """tune_ar fits on UPD, so I0's program must stay free to range."""
+    from usaxs.plans.fx4_setup import autorange_hold_for_peak
+
+    upd, upd_auto = _make(nickname="UPD", channel=1)
+    i0, i0_auto = _make(nickname="I0", channel=1)
+    i0.quadem = FakeQuadEM("fx42", i0_auto)
+    _registry(monkeypatch, upd, i0)
+
+    run(autorange_hold_for_peak(upd), upd_auto)
+
+    assert upd_auto.direction.get() == FX4AutorangeDirection.increase
+    assert i0_auto.direction.get() == FX4AutorangeDirection.both
+    assert upd_auto.mode.get() == "automatic"
+    assert i0_auto.mode.get() == "automatic"
+
+
+def test_hold_for_peak_follows_the_fitted_detector_not_upd(monkeypatch):
+    """tune_mr fits the rocking curve on I0, on the other electrometer."""
+    from usaxs.plans.fx4_setup import autorange_hold_for_peak
+
+    upd, upd_auto = _make(nickname="UPD", channel=1)
+    i0, i0_auto = _make(nickname="I0", channel=1)
+    i0.quadem = FakeQuadEM("fx42", i0_auto)
+    _registry(monkeypatch, upd, i0)
+
+    run(autorange_hold_for_peak(i0), i0_auto)
+
+    assert i0_auto.direction.get() == FX4AutorangeDirection.increase
+    assert upd_auto.direction.get() == FX4AutorangeDirection.both
+    # usxFX4's shared channel is still left on the scattered beam.
+    assert upd_auto.channel.get() == 1
+
+
+def test_held_program_will_not_climb_but_still_drops(monkeypatch):
+    """The whole point: hold the gain, but keep the escape from a railed range.
+
+    Mirrors ``checkRange`` -- ``Increase`` blocks ``reqrange++`` only.
+    """
+    from usaxs.plans.fx4_setup import autorange_hold_for_peak
+
+    upd, upd_auto = _make(nickname="UPD", channel=1)
+    i0, i0_auto = _make(nickname="I0", channel=1)
+    i0.quadem = FakeQuadEM("fx42", i0_auto)
+    _registry(monkeypatch, upd, i0)
+    run(autorange_hold_for_peak(upd), upd_auto)
+
+    # Signal falls: the program would like a finer range but may not take it.
+    upd_auto.lurange.value, upd_auto.target_range = 2, 4
+    upd_auto.on_read()
+    assert upd_auto.lurange.get() == 2
+
+    # Signal rails: dropping to a coarser range is never blocked.
+    upd_auto.target_range = 0
+    upd_auto.on_read()
+    assert upd_auto.lurange.get() == 1

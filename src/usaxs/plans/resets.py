@@ -11,6 +11,7 @@ from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
+from usaxs.devices.fx4_quadem import FX4AutorangeDirection as AutorangeDirection
 from usaxs.devices.fx4_quadem import FX4AutorangeSettings as AutorangeSettings
 from usaxs.plans.fx4_setup import enable_fx4_autorange
 from usaxs.plans.fx4_setup import resume_fx4_monitoring
@@ -71,9 +72,16 @@ def reset_USAXS():
     )
 
     # Hand usxFX4's shared Range back to UPD and let the sequence program range
-    # it again.  I0 has its own program on usxFX42; I00 has none.
-    yield from enable_fx4_autorange(upd_controls, AutorangeSettings.auto_background)
-    yield from enable_fx4_autorange(I0_controls, AutorangeSettings.auto_background)
+    # it again, in both directions.  I0 has its own program on usxFX42; I00 has
+    # none.  "Both" is passed explicitly because this plan is the escape hatch
+    # for a tune aborted mid-scan, which leaves seq01:dir on "Increase" -- and
+    # that record is autosaved, so it would otherwise persist.
+    yield from enable_fx4_autorange(
+        upd_controls, AutorangeSettings.auto_background, AutorangeDirection.both
+    )
+    yield from enable_fx4_autorange(
+        I0_controls, AutorangeSettings.auto_background, AutorangeDirection.both
+    )
 
     # fix omitted stuff from uascan see #584, #583
     # The FX4 detector signals go back to "normal": read and tabulated but not

@@ -225,3 +225,36 @@ instead.
 
 Common to both: `Current[1-4]:EnableCallbacks Enable`; VPR ≠ 1; window = integer × 16.667 ms;
 samples/reading ≤ RING_SIZE.
+
+---
+
+## Autorange policy — `seq01:mode` and `seq01:dir`
+
+The sequence program's `dir` record restricts which way it may move the range.
+Only the gain-**raising** move is gated (`FX4_autoRange.st`, `state checkRange`):
+
+| `dir` | label | `reqrange--` (coarser, larger max current) | `reqrange++` (finer, more gain) |
+|---|---|---|---|
+| 0 | `Both` | allowed | allowed |
+| 1 | `Increase` | allowed | **blocked** |
+
+So `Increase` holds the gain but never traps a railed reading. It does **not**
+gate explicit `reqrange` writes, so `autoscale_amplifiers`' seeding and
+`measure_background`'s sweep still work. Note the record's state names describe
+the *max current*, the opposite sense from the SNL's own debug strings.
+
+| Situation | `mode` | `dir` | Plan to call |
+|---|---|---|---|
+| Resting / between scans | `auto+background` | `Both` | `restore_fx4_autoranging` (via `resume_fx4_monitoring`) |
+| Step scan (`uascan`) | `automatic` | `Both` | `autorange_during_scan()` |
+| Fly scan | `auto+background` | `Both` | `enable_fx4_autorange(upd_controls, …, Both)` |
+| Tune (`tune_ar`, `tune_a2rp`, `tune_dx`, `tune_dy`, guard slits) | `automatic` | `Increase` on **UPD** | `autorange_hold_for_peak(upd_controls)` |
+| `tune_mr` — fitted on I0 | `automatic` | `Increase` on **I0** | `autorange_hold_for_peak(I0_controls)` |
+| Wide search (`find_ar`, `find_a2rp`, first half) | `automatic` | `Both` | `enable_fx4_autorange(upd_controls, …, Both)` |
+| Transmission, after the autoscale | `automatic` | `Increase` | `_hold_transmission_ranges()` |
+| Dark-current sweep | `manual` | *(not consulted)* | `measure_background` |
+
+`dir` is **autosaved** in the IOC, so a value of `1` survives an IOC restart.
+Every call to `fx4_setup.enable_fx4_autorange` writes it, which is what clears
+it after a tune aborts mid-scan. To force it by hand:
+`caput usxFX4:FX4:seq01:dir 0`.

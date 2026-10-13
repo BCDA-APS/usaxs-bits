@@ -1114,6 +1114,7 @@ defensive fallback, not a code edit**. Specifically:
 | Enable `fx42_autorange` for I0 | ✅ done (2026-09-24) |
 | Delete `gainU`/`gainD` writes + `setpoint_up/down` signals (Q18) | ✅ done |
 | Drop scaler0 `I000`, `I000_femto_amplifier`, `I000_photocurrent_calc` | todo |
+| `seq01:dir` range-direction policy (`FX4AutorangeDirection`, `autorange_hold_for_peak`) | ⚠️ code done, **unverified on hardware** |
 | `SKILL.md`, `CLAUDE.md`, `ADconfigs/README.md` | ✅ done |
 
 ### Needs the instrument: keep this list short
@@ -1128,6 +1129,25 @@ defensive fallback, not a code edit**. Specifically:
 4. **Validation** against the standard reference material (section 6).
 5. **Regenerate** `src/usaxs/qserver/existing_plans_and_devices.yaml` -- needs a
    live session.
+6. **`seq01:dir` (range-direction policy)** -- the Bluesky side is written and
+   unit-tested against a fake that mirrors `checkRange`, but nothing has been
+   exercised on hardware. Three things to confirm, in order:
+   - `usxFX4:FX4:seq01:dir` exists once that IOC is back (only `usxFX42` was
+     reachable when this was written; the `.st`/`.db` are identical and both
+     are built, so this is a formality);
+   - **semantics**: with `mode=automatic, dir=Increase`, attenuating the beam
+     must *not* raise `lurange`, and over-filling the range must still lower
+     it;
+   - **railed recovery**: drive UPD hard into saturation with `dir=Increase`
+     and confirm `lurange` steps coarser rather than sticking. The IOC's
+     recovery branch is `lucurrent > gainDownCurrent`, which assumes an
+     overranged channel still reports above 90 % of full scale. If the FX4
+     clamps or reports something odd when saturated, `Increase` could hold a
+     coarse-but-topped range -- this is the one assumption the source read
+     could not settle.
+
+   Then compare a `tune_ar` peak profile against a `dir=Both` run: the plateau
+   at the top of the peak should be gone.
 
 ### If Sunday goes badly
 

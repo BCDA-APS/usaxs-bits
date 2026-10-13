@@ -144,6 +144,8 @@ touches this directly, but three facts change what plan code may say:
 from usaxs.plans.fx4_setup import prepare_fx4_counting   # set the count time
 from usaxs.plans.fx4_setup import select_fx4_plot        # choose what BEC plots
 from usaxs.plans.fx4_autorange_plan import autoscale_amplifiers
+from usaxs.plans.fx4_setup import autorange_during_scan  # step/fly: range freely
+from usaxs.plans.fx4_setup import autorange_hold_for_peak  # tune: hold the gain
 ```
 
 **Do not write `scaler0` / `scaler1` / `struck` in new plan code.** Those devices
@@ -152,14 +154,24 @@ are still declared so the old chain can be restored, but nothing feeds them.
 `scaler0.select_channels([...])` becomes `select_fx4_plot([...])`; there is no
 `AutoCount` equivalent and none is needed.
 
-Two traps worth knowing if you ever write lower-level code:
+Three traps worth knowing if you ever write lower-level code:
 
 - **One `Range` serves all four channels of an electrometer.**  UPD and TRD
   share `fx4`, so autoranging one leaves the other on the wrong range.  Always
   go through `autoscale_amplifiers` or `enable_fx4_autorange`, which point the
-  sequence program at the right channel first.  Writing `auto.mode` directly is
-  how a scan ends up ranged for the transmitted beam -- and because the reading
-  is gain-independent, that produces plausible numbers rather than an error.
+  sequence program at the right channel first.  Writing `auto.mode` or
+  `auto.direction` directly is how a scan ends up ranged for the transmitted
+  beam -- and because the reading is gain-independent, that produces plausible
+  numbers rather than an error.
+- **A tune must hold its gain.**  Full autoranging cannot follow the intensity
+  climbing into a peak, so the peak tops out and the fitted profile is
+  distorted.  After `autoscale_amplifiers`, a peak scan calls
+  `fx4_setup.autorange_hold_for_peak(<the detector being fitted>)`, which sets
+  `seq01:dir = Increase` on that one program: the gain is held, but the range
+  can still drop if the peak rails.  A step or fly scan calls
+  `autorange_during_scan()` instead and ranges freely.  Note `seq01:dir` is
+  **autosaved in the IOC**, so it must always be written, never assumed --
+  `enable_fx4_autorange` does that on every call.
 - **Count times are quantised to whole mains cycles** by
   `utils.count_time.quantize_count_time`, so 60 Hz pickup averages out.  Let
   `prepare_fx4_counting` do it rather than writing `averaging_time` yourself.

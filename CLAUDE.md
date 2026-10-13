@@ -77,8 +77,18 @@ the code:
   program's `channel` record selects which one it optimises for, so plans must
   point it at the detector in use — always via
   `fx4_setup.enable_fx4_autorange` or `fx4_autorange_plan.autoscale_amplifiers`,
-  never by writing `auto.mode` directly.  Getting this wrong yields
-  plausible-looking wrong numbers, not an error.
+  never by writing `auto.mode` or `auto.direction` directly.  Getting this wrong
+  yields plausible-looking wrong numbers, not an error.
+- **`seq01:dir` sets which way the range may move**, and every plan states its
+  policy.  `Both` (0) is the normal condition.  `Increase` (1) lets the range's
+  max current only increase, i.e. the gain only falls — the program holds its
+  range but can still escape a railed one.  Tunes use it, via
+  `fx4_setup.autorange_hold_for_peak(<detector being fitted>)`: full
+  autoranging cannot follow the climb into a peak, so the peak tops out and the
+  fitted profile is distorted.  Step and fly scans, and the wide `find_ar` /
+  `find_a2rp` searches, use `Both`.  The record is **autosaved in the IOC**, so
+  it is written unconditionally on every `enable_fx4_autorange` call rather than
+  assumed; that is also what clears it after a tune aborts mid-scan.
 - **Count times are quantised to whole mains cycles** so 60 Hz pickup averages
   out (`utils.count_time.quantize_count_time`).
 

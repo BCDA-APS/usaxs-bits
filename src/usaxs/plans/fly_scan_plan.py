@@ -53,6 +53,7 @@ from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
+from ..devices.fx4_quadem import FX4AutorangeDirection as AutorangeDirection
 from ..devices.fx4_quadem import FX4AutorangeSettings as AutorangeSettings
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 from .fx4_setup import check_ring_overflows
@@ -405,8 +406,12 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     # Hand usxFX4's shared Range to UPD and let the sequence program keep
     # ranging through the sweep -- the signal falls many decades from the
     # rocking-curve peak to high q.  Through enable_fx4_autorange because the
-    # transmission measurement just before this leaves the channel on TRD.
-    yield from enable_fx4_autorange(upd_controls, AutorangeSettings.auto_background)
+    # transmission measurement just before this leaves the channel on TRD, and
+    # leaves seq01:dir on "Increase"; a fly scan needs it free in both
+    # directions, so that is passed explicitly rather than left to the default.
+    yield from enable_fx4_autorange(
+        upd_controls, AutorangeSettings.auto_background, AutorangeDirection.both
+    )
 
     # Put both electrometers in PSO-gated mode and arm their time series.  Both
     # take the same PSO train, so index i means the same interval on each.
@@ -548,7 +553,9 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
         "close",
         # fmt: on
     )
-    yield from enable_fx4_autorange(upd_controls, AutorangeSettings.auto_background)
+    yield from enable_fx4_autorange(
+        upd_controls, AutorangeSettings.auto_background, AutorangeDirection.both
+    )
 
     logger.debug(f"after return: {time.time() - usaxs_flyscan.t0}s")
 

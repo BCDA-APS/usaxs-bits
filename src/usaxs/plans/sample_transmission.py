@@ -15,11 +15,13 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
+from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..utils.constants import constants
 from .filter_plans import insertScanFilters
 from .filter_plans import insertTransmissionFilters
 from .fx4_autorange_plan import autoscale_amplifiers
 from .fx4_setup import any_near_full_scale
+from .fx4_setup import enable_fx4_autorange
 from .fx4_setup import prepare_fx4_counting
 from .fx4_setup import restore_upd_channel
 from .fx4_setup import resume_fx4_monitoring
@@ -70,6 +72,34 @@ def _count_transmission(count_time):
     # differ by a channel-access round trip rather than a whole exposure.
     yield from no_run_trigger_and_wait(FX4_DETECTORS)
     return trd_controls.signal.get(), I0_controls.signal.get()
+
+
+@plan
+def _hold_transmission_ranges():
+    """Plan (internal): hold the ranges the autoscale just chose.
+
+    ``autoscale_amplifiers`` ends in ``manual``, which pins the range
+    absolutely: if the transmitted beam turns out to be stronger than the trial
+    read suggested, the measurement is taken on a railed channel and nothing
+    says so.  ``automatic`` with ``dir = Increase`` keeps the chosen range in
+    the normal case -- it cannot climb to a finer one -- while still letting
+    the sequence program drop to a coarser range if the channel tops out.
+
+    TRD is enabled last so ``usxFX4``'s shared ``seq01:channel`` ends on the
+    transmitted beam, which is the channel this measurement reads.
+    :func:`_transmission_cleanup` hands it back to UPD and clears ``dir``
+    afterwards, including on an abort.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    yield from enable_fx4_autorange(
+        I0_controls, "automatic", FX4AutorangeDirection.increase
+    )
+    yield from enable_fx4_autorange(
+        trd_controls, "automatic", FX4AutorangeDirection.increase
+    )
 
 
 @plan
@@ -143,6 +173,7 @@ def _measure_USAXS_Transmission():
             yield from insertTransmissionFilters()
 
             yield from autoscale_amplifiers([I0_controls, trd_controls])
+            yield from _hold_transmission_ranges()
 
             _tr_diode, _I0 = yield from _count_transmission(
                 trmssn.count_time.get()
@@ -155,6 +186,7 @@ def _measure_USAXS_Transmission():
                 [trd_controls, I0_controls], constants["TR_MAX_FRACTION_OF_RANGE"]
             ):
                 yield from autoscale_amplifiers([I0_controls, trd_controls])
+                yield from _hold_transmission_ranges()
                 _tr_diode, _I0 = yield from _count_transmission(
                     trmssn.count_time.get()
                 )
@@ -261,12 +293,18 @@ def _measure_SAXS_Transmission():
             # fmt: on
         )
 
+        # Note there is no autoscale before this first count: it runs on
+        # whatever the previous plan left, which at rest is auto+background
+        # ranging freely.  That is deliberate -- no range has been chosen for
+        # the transmitted beam yet, so there is nothing to hold.  The hold only
+        # applies to the re-measure below, which does set a range first.
         _tr_diode, _I0 = yield from _count_transmission(constants["SAXS_TR_TIME"])
 
         if any_near_full_scale(
             [trd_controls, I0_controls], constants["TR_MAX_FRACTION_OF_RANGE"]
         ):
             yield from autoscale_amplifiers([I0_controls, trd_controls])
+            yield from _hold_transmission_ranges()
             _tr_diode, _I0 = yield from _count_transmission(
                 constants["SAXS_TR_TIME"]
             )

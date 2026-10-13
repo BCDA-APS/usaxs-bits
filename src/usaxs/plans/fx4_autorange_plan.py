@@ -55,6 +55,7 @@ from bluesky.utils import plan
 
 from ..devices.fx4_quadem import MOST_SENSITIVE_RANGE
 from ..devices.fx4_quadem import NUM_AUTORANGE_RANGES
+from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..devices.fx4_quadem import FX4AutorangeSettings
 from ..devices.fx4_quadem import FX4AutoscaleError
 from ..utils.count_time import quantize_count_time
@@ -218,12 +219,16 @@ def _autoscale_one_(
     Sequence:
 
     1. point the sequence program at this detector's channel;
-    2. put it in ``automatic`` and seed the range from this channel's last
+    2. clear ``seq01:dir`` to ``Both``, so the loop may walk the range table
+       either way whatever the previous plan left behind;
+    3. put it in ``automatic`` and seed the range from this channel's last
        converged value, so the usual case needs one or two reads rather than a
        walk across the table;
-    3. read repeatedly -- the sequence program can only act on a *completed*
+    4. read repeatedly -- the sequence program can only act on a *completed*
        read -- until the range repeats;
-    4. return it to ``manual`` and restore the count time.
+    5. return it to ``manual`` and restore the count time.  ``dir`` is left at
+       ``Both``; a caller that wants the gain held for a peak scan applies
+       :func:`usaxs.plans.fx4_setup.autorange_hold_for_peak` afterwards.
 
     Parameters
     ----------
@@ -259,6 +264,13 @@ def _autoscale_one_(
     yield from select_fx4_channel(control)
 
     yield from bps.mv(det.averaging_time, trial_count_time)
+    # The convergence loop has to be free to walk the range table in both
+    # directions, so a caller that left the program in "Increase only" (a tune,
+    # a transmission measurement) must not constrain it here.  Written
+    # unconditionally because seq01:dir is autosaved: this, together with
+    # fx4_setup.enable_fx4_autorange, is what stops an aborted tune leaving the
+    # instrument increase-only indefinitely.
+    yield from bps.mv(auto.direction, FX4AutorangeDirection.both)
     yield from bps.mv(auto.mode, FX4AutorangeSettings.automatic)
 
     seed = _last_range_.get(key)

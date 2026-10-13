@@ -19,11 +19,12 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
 from ..utils.derivative import numerical_derivative
+from ..utils.fx4_channels import select_fx4_plot
 from ..utils.peak_centers import peak_center
 from .filter_plans import insertTransmissionFilters
 from .fx4_autorange_plan import autoscale_amplifiers
+from .fx4_setup import autorange_hold_for_peak
 from .fx4_setup import prepare_fx4_counting
-from ..utils.fx4_channels import select_fx4_plot
 from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
@@ -87,6 +88,10 @@ def tune_GslitsCenter():
     yield from bps.sleep(0.1)
     yield from user_data.set_state_plan("autoranging the PD")
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    # A blade-edge scan sweeps the intensity from ~0 to full, which is the
+    # profile full autoranging distorts worst -- the range cannot keep up with
+    # the climb and the top of the edge flattens.  Hold UPD's gain instead.
+    yield from autorange_hold_for_peak(upd_controls)
     yield from user_data.set_state_plan(title)
 
     old_preset_time = FX4_DETECTORS[0].averaging_time.get()
@@ -211,6 +216,9 @@ def _USAXS_tune_guardSlits():
 
     yield from user_data.set_state_plan("autoranging the PD")
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    # Hold UPD's gain for the blade sweeps that follow; see the note in
+    # tune_GslitsCenter.
+    yield from autorange_hold_for_peak(upd_controls)
 
     def cleanup(msg):
         """if scan is aborted, return motors to original positions"""
@@ -435,6 +443,9 @@ def tune_GslitsSize():
     )
     yield from insertTransmissionFilters()
     yield from autoscale_amplifiers([upd_controls, I0_controls, I00_controls])
+    # Hold UPD's gain for the blade sweeps that follow; see the note in
+    # tune_GslitsCenter.
+    yield from autorange_hold_for_peak(upd_controls)
     yield from _USAXS_tune_guardSlits()
     yield from bps.mv(
         usaxs_shutter,

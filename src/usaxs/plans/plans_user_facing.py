@@ -18,6 +18,7 @@ from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
+from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..suspenders.beam_guard import beam_guarded
 from ..utils.constants import constants
 from ..utils.override import user_override
@@ -29,6 +30,7 @@ from .command_list import before_plan
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertWaxsFilters
 from .fx4_autorange_plan import autoscale_amplifiers
+from .fx4_setup import enable_fx4_autorange
 from .fx4_setup import finish_gated_I0
 from .fx4_setup import restore_upd_channel
 from .fx4_setup import resume_fx4_monitoring
@@ -263,6 +265,14 @@ def saxsExp(
 
         yield from bps.sleep(0.2)
         yield from autoscale_amplifiers([I0_controls])
+        # Hold the range the autoscale just chose for the gated I0 integration
+        # that normalises the frame, rather than pinning it in "manual": if I0
+        # is stronger than the trial read suggested, "Increase" still lets the
+        # sequence program drop to a coarser range instead of integrating a
+        # railed channel.
+        yield from enable_fx4_autorange(
+            I0_controls, "automatic", FX4AutorangeDirection.increase
+        )
 
         yield from bps.mv(
             # fmt: off

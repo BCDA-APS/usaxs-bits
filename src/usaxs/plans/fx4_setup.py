@@ -15,6 +15,21 @@ Also here: :func:`select_fx4_channel`, which points a sequence program at the
 detector in use, and :func:`group_controls_by_box`, which enforces the rule
 that makes that necessary -- one range per electrometer, shared by all four
 channels.
+
+Range-movement policy
+---------------------
+:func:`enable_fx4_autorange` is the single place ``seq01:mode`` and
+``seq01:dir`` are written.  Three plans wrap it for the three situations:
+
+``autorange_during_scan``
+    Both programs range freely.  Step and fly scans, where the curve spans
+    decades and every range change is transparent in value.
+``autorange_hold_for_peak``
+    The fitted detector's gain is held (``dir = Increase``).  Tunes, where
+    full autoranging cannot follow the climb into the peak and flattens it.
+``restore_fx4_autoranging``
+    ``auto+background``, both directions.  The resting state, and the
+    recovery path for a ``dir`` left set by an aborted tune.
 """
 
 import logging
@@ -22,6 +37,7 @@ import logging
 from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
+from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..devices.fx4_quadem import FX4RangeConflictError
 from ..utils.count_time import RING_SIZE_SAMPLES
 from ..utils.count_time import max_count_time
@@ -413,16 +429,32 @@ def any_near_full_scale(controls_list, limit):
 
 
 @plan
-def enable_fx4_autorange(controls, mode="automatic"):
+def enable_fx4_autorange(
+    controls, mode="automatic", direction=FX4AutorangeDirection.both
+):
     """Plan: let the sequence program range *this* detector, live.
 
-    Always prefer this over writing ``controls.auto.mode`` directly.  One
-    ``Range`` serves all four channels of an electrometer, so enabling
-    automatic ranging without first pointing ``seq01:channel`` at the detector
-    in use silently optimises for whichever channel was selected last.  After a
-    transmission measurement that is TRD, and a UPD scan would then run on a
-    range chosen for the transmitted beam -- orders of magnitude out, and with
-    a gain-independent readout the numbers still look like plausible currents.
+    Always prefer this over writing ``controls.auto.mode`` or
+    ``controls.auto.direction`` directly.  One ``Range`` serves all four
+    channels of an electrometer, so enabling automatic ranging without first
+    pointing ``seq01:channel`` at the detector in use silently optimises for
+    whichever channel was selected last.  After a transmission measurement that
+    is TRD, and a UPD scan would then run on a range chosen for the transmitted
+    beam -- orders of magnitude out, and with a gain-independent readout the
+    numbers still look like plausible currents.
+
+    ``direction`` is written **unconditionally and before** ``mode``, which is
+    deliberate on both counts:
+
+    * ``seq01:dir`` is autosaved in the IOC, so a plan that left it at
+      ``Increase`` leaves it there across an IOC restart.  Writing it on every
+      call means this plan is also the thing that *clears* a stuck
+      ``Increase`` -- and since the fly scan, ``uascan``, ``reset_USAXS`` and
+      :func:`resume_fx4_monitoring` all come through here, an aborted tune
+      self-heals at the next plan instead of persisting.
+    * the sequence program reads ``dir`` inside ``checkRange``, which it only
+      reaches after a completed read, so setting it before ``mode`` means no
+      read can slip through under the previous direction.
 
     A no-op for detectors on a fixed range.
 
@@ -433,6 +465,9 @@ def enable_fx4_autorange(controls, mode="automatic"):
     mode : str
         ``"automatic"`` or ``"auto+background"``; see
         :class:`~usaxs.devices.fx4_quadem.FX4AutorangeSettings`.
+    direction : str
+        ``"Both"`` (default, the normal condition) or ``"Increase"``; see
+        :class:`~usaxs.devices.fx4_quadem.FX4AutorangeDirection`.
 
     Yields
     ------
@@ -442,6 +477,7 @@ def enable_fx4_autorange(controls, mode="automatic"):
         logger.debug("%s: fixed range, autoranging not enabled", controls.nickname)
         return
     yield from select_fx4_channel(controls)
+    yield from bps.mv(controls.auto.direction, direction)
     yield from bps.mv(controls.auto.mode, mode)
 
 
@@ -573,10 +609,16 @@ def fx4_monitor_mode(det):
 
 
 @plan
-def autorange_during_scan():
+def autorange_during_scan(
+    upd_direction=FX4AutorangeDirection.both,
+    I0_direction=FX4AutorangeDirection.both,
+):
     """Plan: leave both sequence programs autoranging for the scan itself.
 
-    Call after ``autoscale_amplifiers`` and before the scan starts.
+    Call after ``autoscale_amplifiers`` and before the scan starts.  This is
+    the plan for a **step or fly scan**, where the range is free to move either
+    way; for a tune, where the peak profile must not be distorted, use
+    :func:`autorange_hold_for_peak`.
 
     ``autoscale_amplifiers`` converges the range and then locks it in
     ``manual``, which is the right thing for a counts-based chain where a
@@ -590,14 +632,91 @@ def autorange_during_scan():
     Both boxes are covered: I0 on ``usxFX42`` and UPD on ``usxFX4``.  UPD is
     set last so ``usxFX4``'s shared channel ends on the scattered beam.
 
+    Parameters
+    ----------
+    upd_direction, I0_direction : str
+        Per-box range-movement policy; see
+        :class:`~usaxs.devices.fx4_quadem.FX4AutorangeDirection`.  Both default
+        to ``"Both"``, which is what a step or fly scan wants.  They are
+        separate arguments because the two detectors are on separate
+        electrometers with separate sequence programs.
+
     Yields
     ------
     Bluesky messages consumed by the RunEngine.
     """
     from apsbits.core.instrument_init import oregistry
 
-    yield from enable_fx4_autorange(oregistry["I0_controls"], "automatic")
-    yield from enable_fx4_autorange(oregistry["upd_controls"], "automatic")
+    yield from enable_fx4_autorange(
+        oregistry["I0_controls"], "automatic", I0_direction
+    )
+    yield from enable_fx4_autorange(
+        oregistry["upd_controls"], "automatic", upd_direction
+    )
+
+
+@plan
+def autorange_hold_for_peak(peak_controls):
+    """Plan: range both programs, then hold the fitted detector's gain.
+
+    The tune counterpart of :func:`autorange_during_scan`.  Call after
+    ``autoscale_amplifiers`` and before a ``lineup2`` (or ``TuneAxis``) scan.
+
+    Full automatic ranging distorts a peak profile.  The intensity climbing
+    into the peak rises faster than the sequence program can follow -- it can
+    only re-range after a *completed* read -- so the top of the peak tops out
+    and plateaus, and the fit sees a flattened, widened peak.  ``Increase``
+    is the middle ground: the program holds the gain the autoscale just chose,
+    so the profile is measured on one range throughout, but it can still step
+    to a coarser range if the peak turns out to be taller than the autoscale
+    position suggested, rather than railing for the rest of the scan.
+
+    The hold is applied only to the program carrying **the detector being
+    fitted**, which is not always UPD: ``tune_mr`` fits the MR rocking curve on
+    I0.  The other program stays on ``"Both"``, so a range that converged on a
+    stale seed still self-corrects where it costs nothing.
+
+    Wide searches (``find_ar``, ``find_a2rp``) deliberately do **not** use this
+    -- they sweep over several decades looking for a peak in a large space, and
+    there full autoranging is the correct behaviour.
+
+    .. note::
+       ``seq01:dir`` is autosaved in the IOC and no finaliser resets it, so a
+       tune aborted mid-scan leaves one program on ``Increase``.  It is
+       restored by the next call to :func:`enable_fx4_autorange` or
+       ``autoscale_amplifiers``, which every following plan makes; to force it
+       by hand, run ``reset_USAXS()`` or
+       ``caput usxFX4:FX4:seq01:dir 0``.
+
+    Parameters
+    ----------
+    peak_controls : FX4DetectorControls
+        The detector whose peak is being fitted -- ``I0_controls`` for
+        ``tune_mr``, ``upd_controls`` for the rest.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    from apsbits.core.instrument_init import oregistry
+
+    # I0 then UPD, as in autorange_during_scan, so usxFX4's shared channel ends
+    # on the scattered beam; the final call then re-selects the fitted
+    # detector's channel, which is a no-op when that detector is UPD.
+    yield from enable_fx4_autorange(
+        oregistry["I0_controls"], "automatic", FX4AutorangeDirection.both
+    )
+    yield from enable_fx4_autorange(
+        oregistry["upd_controls"], "automatic", FX4AutorangeDirection.both
+    )
+    yield from enable_fx4_autorange(
+        peak_controls, "automatic", FX4AutorangeDirection.increase
+    )
+    logger.debug(
+        "%s: gain held for the peak scan (dir=%s)",
+        peak_controls.nickname,
+        FX4AutorangeDirection.increase,
+    )
 
 
 @plan
@@ -615,6 +734,11 @@ def restore_fx4_autoranging():
     between scans, and a hand-run measurement that inherits a TRD range gets
     plausible numbers rather than an error.
 
+    Also the recovery path for ``seq01:dir``.  ``Both`` is passed explicitly
+    rather than relied on as a default: a tune aborted mid-scan leaves one
+    program on ``Increase``, and because that record is autosaved it would
+    otherwise stay there across an IOC restart.
+
     Call only *after* an exposure, never during one.
 
     Yields
@@ -625,8 +749,12 @@ def restore_fx4_autoranging():
 
     # I0 first, UPD last, so usxFX4's shared channel ends on the scattered
     # beam even if a future change makes these share a program.
-    yield from enable_fx4_autorange(oregistry["I0_controls"], "auto+background")
-    yield from enable_fx4_autorange(oregistry["upd_controls"], "auto+background")
+    yield from enable_fx4_autorange(
+        oregistry["I0_controls"], "auto+background", FX4AutorangeDirection.both
+    )
+    yield from enable_fx4_autorange(
+        oregistry["upd_controls"], "auto+background", FX4AutorangeDirection.both
+    )
 
 
 @plan

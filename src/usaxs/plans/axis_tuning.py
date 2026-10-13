@@ -37,12 +37,13 @@ from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
 
+from ..devices.fx4_quadem import FX4AutorangeDirection
+from ..utils.fx4_channels import select_fx4_plot
 from .fx4_autorange_plan import autoscale_amplifiers
+from .fx4_setup import autorange_hold_for_peak
 from .fx4_setup import enable_fx4_autorange
-from .fx4_setup import autorange_during_scan
 from .fx4_setup import prepare_fx4_counting
 from .fx4_setup import resume_fx4_monitoring
-from ..utils.fx4_channels import select_fx4_plot
 from .fx4_setup import usaxs_electrometers
 from .mode_changes import mode_USAXS
 from .requested_stop import IfRequestedStopBeforeNextScan
@@ -100,14 +101,15 @@ def tune_mr(md: Optional[dict] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from prepare_fx4_counting(0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_mr"
         logger.info(f"tuning axis: {m_stage.r.name}")
 
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        # Autorange through the scan: a range that converged on a stale
-        # seed then self-corrects instead of spoiling the tune.
-        yield from autorange_during_scan()
+        # The MR rocking curve is fitted on *I0*, not UPD, so I0's program is
+        # the one whose gain must be held: full autoranging cannot follow the
+        # climb into the peak and flattens its top.  UPD's program stays on
+        # "Both" so a stale seed there still self-corrects.
+        yield from autorange_hold_for_peak(I0_controls)
         select_fx4_plot(["I0"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -122,12 +124,11 @@ def tune_mr(md: Optional[dict] = None):
             md=md,
         )
         print(stats.report())
-        yield from bps.mv(
-            usaxs_shutter,
-            "close",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
+        # resume_fx4_monitoring() below restores auto+background *and* clears
+        # seq01:dir back to "Both" through enable_fx4_autorange, so there is no
+        # separate auto.mode write here -- one that bypassed the chokepoint
+        # would leave the direction set.
+        yield from bps.mv(usaxs_shutter, "close")
         select_fx4_plot([])
         yield from resume_fx4_monitoring()
         if stats.analysis.success:
@@ -166,7 +167,6 @@ def tune_ar(md: Optional[dict] = None):
     try:
         yield from bps.mv(usaxs_shutter, "open")
         yield from prepare_fx4_counting(0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_ar"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r.name}")
@@ -177,9 +177,9 @@ def tune_ar(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        # Autorange through the scan: a range that converged on a stale
-        # seed then self-corrects instead of spoiling the tune.
-        yield from autorange_during_scan()
+        # Hold UPD's gain through the scan: full autoranging cannot follow the
+        # climb into the rocking-curve peak and flattens its top.
+        yield from autorange_hold_for_peak(upd_controls)
         trim_plot_by_name(5)
         select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
@@ -194,12 +194,9 @@ def tune_ar(md: Optional[dict] = None):
             md=md,
         )
         print(stats.report())
-        yield from bps.mv(
-            usaxs_shutter,
-            "close",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
+        # resume_fx4_monitoring() restores auto+background and clears
+        # seq01:dir; see the note in tune_mr.
+        yield from bps.mv(usaxs_shutter, "close")
         select_fx4_plot([])
         yield from resume_fx4_monitoring()
         success = stats.analysis.success
@@ -263,7 +260,14 @@ def find_ar(md: Optional[dict] = None):
         # several decades.  Via enable_fx4_autorange, so seq01:channel is
         # pointed at UPD first -- after a transmission measurement it is on
         # TRD, and ranging for the transmitted beam would wreck this scan.
-        yield from enable_fx4_autorange(upd_controls, "automatic")
+        #
+        # "Both" is deliberate and is the one tune that does *not* hold its
+        # gain: this scan is looking for a peak somewhere in a large space, not
+        # measuring a profile, so a range that follows the signal over several
+        # decades is exactly what finds it.
+        yield from enable_fx4_autorange(
+            upd_controls, "automatic", FX4AutorangeDirection.both
+        )
         # NOTE: do NOT call autoscale_amplifiers here -- it ends in manual
         # mode, and the wide scan needs the sequence program to keep
         # re-ranging as the signal sweeps over several decades.
@@ -290,9 +294,8 @@ def find_ar(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        # Autorange through the scan: a range that converged on a stale
-        # seed then self-corrects instead of spoiling the tune.
-        yield from autorange_during_scan()
+        # This half is a tune_ar, so its peak profile matters: hold UPD's gain.
+        yield from autorange_hold_for_peak(upd_controls)
         trim_plot_by_name(5)
         select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
@@ -307,12 +310,9 @@ def find_ar(md: Optional[dict] = None):
             md=md,
         )
         print(stats.report())
-        yield from bps.mv(
-            usaxs_shutter,
-            "close",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
+        # resume_fx4_monitoring() restores auto+background and clears
+        # seq01:dir; see the note in tune_mr.
+        yield from bps.mv(usaxs_shutter, "close")
         select_fx4_plot([])
         yield from resume_fx4_monitoring()
         success = stats.analysis.success
@@ -356,7 +356,6 @@ def tune_a2rp(md: Optional[dict] = None):
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from prepare_fx4_counting(0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_a2rp"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r2p.name}")
@@ -367,9 +366,8 @@ def tune_a2rp(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        # Autorange through the scan: a range that converged on a stale
-        # seed then self-corrects instead of spoiling the tune.
-        yield from autorange_during_scan()
+        # Hold UPD's gain through the scan; see the note in tune_ar.
+        yield from autorange_hold_for_peak(upd_controls)
         select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -384,12 +382,9 @@ def tune_a2rp(md: Optional[dict] = None):
             md=md,
         )
         print(stats.report())
-        yield from bps.mv(
-            usaxs_shutter,
-            "close",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
+        # resume_fx4_monitoring() restores auto+background and clears
+        # seq01:dir; see the note in tune_mr.
+        yield from bps.mv(usaxs_shutter, "close")
         select_fx4_plot([])
         yield from resume_fx4_monitoring()
         if stats.analysis.success:
@@ -443,7 +438,13 @@ def find_a2rp(md: Optional[dict] = None):
         # several decades.  Via enable_fx4_autorange, so seq01:channel is
         # pointed at UPD first -- after a transmission measurement it is on
         # TRD, and ranging for the transmitted beam would wreck this scan.
-        yield from enable_fx4_autorange(upd_controls, "automatic")
+        #
+        # "Both" is deliberate: like find_ar, this half searches a large space
+        # for a peak rather than measuring a profile, so following the signal
+        # across decades is what finds it.
+        yield from enable_fx4_autorange(
+            upd_controls, "automatic", FX4AutorangeDirection.both
+        )
         # NOTE: do NOT call autoscale_amplifiers here -- it ends in manual
         # mode, and the wide scan needs the sequence program to keep
         # re-ranging as the signal sweeps over several decades.
@@ -476,9 +477,9 @@ def find_a2rp(md: Optional[dict] = None):
         )
 
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        # Autorange through the scan: a range that converged on a stale
-        # seed then self-corrects instead of spoiling the tune.
-        yield from autorange_during_scan()
+        # This half is a tune_a2rp, so its peak profile matters: hold UPD's
+        # gain.
+        yield from autorange_hold_for_peak(upd_controls)
         select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -493,12 +494,9 @@ def find_a2rp(md: Optional[dict] = None):
             md=md,
         )
         print(stats.report())
-        yield from bps.mv(
-            usaxs_shutter,
-            "close",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
+        # resume_fx4_monitoring() restores auto+background and clears
+        # seq01:dir; see the note in tune_mr.
+        yield from bps.mv(usaxs_shutter, "close")
         select_fx4_plot([])
         yield from resume_fx4_monitoring()
         if stats.analysis.success:
@@ -534,7 +532,6 @@ def tune_dx(md: Optional[dict] = None):
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from prepare_fx4_counting(0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_dx"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {d_stage.x.name}")
@@ -545,9 +542,8 @@ def tune_dx(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        # Autorange through the scan: a range that converged on a stale
-        # seed then self-corrects instead of spoiling the tune.
-        yield from autorange_during_scan()
+        # Hold UPD's gain through the scan; see the note in tune_ar.
+        yield from autorange_hold_for_peak(upd_controls)
         trim_plot_by_name(5)
         select_fx4_plot(["UPD"])
         stats = SignalStatsCallback()
@@ -562,12 +558,9 @@ def tune_dx(md: Optional[dict] = None):
             md=md,
         )
         print(stats.report())
-        yield from bps.mv(
-            usaxs_shutter,
-            "close",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
+        # resume_fx4_monitoring() restores auto+background and clears
+        # seq01:dir; see the note in tune_mr.
+        yield from bps.mv(usaxs_shutter, "close")
         select_fx4_plot([])
         yield from resume_fx4_monitoring()
         if stats.analysis.success:
@@ -607,7 +600,6 @@ def tune_dy(md: Optional[dict] = None):
         yield from bps.mv(usaxs_shutter, "open")
         yield from bps.sleep(0.1)  # piezo is fast, give the system time to react
         yield from prepare_fx4_counting(0.1)
-        yield from bps.mv(upd_controls.auto.mode, "manual")
         md["plan_name"] = "tune_dy"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {d_stage.y.name}")
@@ -618,9 +610,8 @@ def tune_dy(md: Optional[dict] = None):
             "open",
         )
         yield from autoscale_amplifiers([upd_controls, I0_controls])
-        # Autorange through the scan: a range that converged on a stale
-        # seed then self-corrects instead of spoiling the tune.
-        yield from autorange_during_scan()
+        # Hold UPD's gain through the scan; see the note in tune_ar.
+        yield from autorange_hold_for_peak(upd_controls)
         select_fx4_plot(["UPD"])
         trim_plot_by_name(5)
         stats = SignalStatsCallback()
@@ -635,12 +626,9 @@ def tune_dy(md: Optional[dict] = None):
             md=md,
         )
         print(stats.report())
-        yield from bps.mv(
-            usaxs_shutter,
-            "close",
-            upd_controls.auto.mode,
-            "auto+background",
-        )
+        # resume_fx4_monitoring() restores auto+background and clears
+        # seq01:dir; see the note in tune_mr.
+        yield from bps.mv(usaxs_shutter, "close")
         select_fx4_plot([])
         yield from resume_fx4_monitoring()
         if stats.analysis.success:

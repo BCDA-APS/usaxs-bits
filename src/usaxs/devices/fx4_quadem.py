@@ -487,6 +487,43 @@ class FX4AutorangeSettings:
     manual = "manual"
 
 
+class FX4AutorangeDirection:
+    """Values allowed for the sequence program's ``dir`` record.
+
+    ``dir`` restricts *which way* the sequence program may move the range.  In
+    ``FX4_autoRange.st``'s ``checkRange`` state only the gain-raising branch is
+    gated::
+
+        (lucurrent > gainDownCurrent) && (range > 0)            -> reqrange--
+        (lucurrent < gainUpCurrent) && (range < 4) && (dir == 0) -> reqrange++
+
+    ``reqrange--`` walks toward index 0 (1 mA), i.e. a **larger** maximum
+    current and therefore *less* gain, and is never blocked -- a railed range
+    always recovers.  ``reqrange++`` walks toward index 4 (100 nA), i.e. more
+    gain, and is what ``increase`` suppresses.
+
+    .. warning::
+       The record's state names describe the **maximum current**, which is the
+       opposite sense from the sequence program's own debug strings: the SNL
+       prints "increasing the range" for ``reqrange++``, the branch that
+       ``increase`` blocks.  Read a ``seq01:debug`` log with that in mind.
+
+    Two further properties shape how the plans use this:
+
+    * ``dir`` does **not** gate the ``changeRange`` state, so an explicit write
+      to ``reqrange`` still moves the range either way.  It is a policy, not a
+      lock -- which is why ``autoscale_amplifiers`` seeding and
+      ``measure_background``'s sweep keep working.
+    * ``dir`` is **autosaved** in the IOC, so a value left at ``increase``
+      survives an IOC restart.  Never assume it; always write it.  That is why
+      :func:`usaxs.plans.fx4_setup.enable_fx4_autorange` writes it
+      unconditionally on every call.
+    """
+
+    both = "Both"  # 0 -- range moves either way; the normal condition
+    increase = "Increase"  # 1 -- max current may only increase (gain only falls)
+
+
 class FX4BackgroundDevice(Device):
     """Dark-current records for one range index of the sequence program.
 
@@ -569,6 +606,9 @@ class FX4AutorangeDevice(Device):
                      range serves all four channels, so this must be pointed
                      at whichever detector is in use.
     ``current``      the current the program is ranging on, pA
+    ``direction``    **which way the program may move the range** -- ``Both``
+                     or ``Increase`` (max current only increases, so gain only
+                     falls).  See :class:`FX4AutorangeDirection`.
     ``mode_rdbk``    readback of ``mode``
     ``speed``        sequence-program loop speed
     ``debug``        sequence-program debug level
@@ -583,6 +623,11 @@ class FX4AutorangeDevice(Device):
     # --- mode ---
     mode = Component(EpicsSignal, "mode", kind="config")
     mode_rdbk = Component(EpicsSignalRO, "modeRdbk", kind="config")
+    # Which way the program may move the range; see FX4AutorangeDirection.
+    # Named ``direction`` rather than ``dir`` so call sites do not read as the
+    # Python builtin.  Autosaved in the IOC, so it must always be written, never
+    # assumed -- enable_fx4_autorange does that.
+    direction = Component(EpicsSignal, "dir", kind="config", string=True)
     selected = Component(EpicsSignal, "selected", kind="omitted")
     updating = Component(EpicsSignalRO, "updating", kind="omitted")
 

@@ -16,6 +16,7 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 from bluesky.utils import plan
 
+from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..utils.count_time import quantize_count_time
 from ..utils.emails import NOTIFY_ON_SCAN_DONE
 from ..utils.emails import send_notification
@@ -185,6 +186,11 @@ def uascan(
     # leaves it on TRD, and one Range serves both.
     #
     # I00 has no sequence program and stays on its fixed range.
+    #
+    # Both programs range freely (seq01:dir = "Both", the default): a step scan
+    # measures a decade-spanning curve, not a peak profile, so there is nothing
+    # to hold the gain for -- unlike a tune, which uses
+    # fx4_setup.autorange_hold_for_peak.
     yield from autorange_during_scan()
     yield from bps.mv(usaxs_shutter, "open")
 
@@ -385,7 +391,9 @@ def uascan(
             usaxs_shutter,
             "close",
         )
-        yield from enable_fx4_autorange(upd_controls, "auto+background")
+        yield from enable_fx4_autorange(
+            upd_controls, "auto+background", FX4AutorangeDirection.both
+        )
         # A ring-buffer overflow biases every mean toward the end of its count
         # and shows up nowhere else in the data.
         yield from check_ring_overflows(FX4_DETECTORS, "uascan")
