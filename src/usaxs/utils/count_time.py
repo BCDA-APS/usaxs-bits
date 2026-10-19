@@ -19,15 +19,32 @@ logger = logging.getLogger(__name__)
 MAINS_FREQUENCY_HZ = 60.0
 """Mains frequency at APS.  One cycle is 16.667 ms."""
 
-RING_SIZE_SAMPLES = 100_000
+RING_SIZE_SAMPLES = 200_000
 """Driver ring-buffer size, samples per reading.
 
 Set by ``epicsEnvSet("RING_SIZE", ...)`` in the FX4 IOC's ``iocsh/FX4.cmd``
-and passed to ``drvFX4Configure``.  Read from the live IOC on 2026-09-26;
+and passed to ``drvFX4Configure``.  Raised from 100000 to 200000 in the IOC
+and re-read from ``iocBoot/iocusxFX4{,2}/iocsh/FX4.cmd`` on 2026-10-13;
 changing it there needs an IOC restart, and this constant must follow.
 
 Past this cap the driver silently discards the oldest samples and the
 reported mean is biased toward the tail of the count.
+"""
+
+MIN_STROBE_SAMPLE_PERIODS = 5
+"""How many sample periods wide a PSO strobe must be to register reliably.
+
+The FX4 reports the state of its D1 gate input once per output sample, at
+``100 kHz / ValuesPerRead``.  A strobe narrower than one sample period falls
+between two samples and is **never transmitted** -- the loss happens on the
+device, so no ring-buffer size or IOC read rate can recover it, and the
+captured fraction goes as ``width / SampleTime``.  See
+``docs/FX4_PSO_trigger_issue.md`` section 0, which identified this after the
+2026-09-27 width scan was found to have run at an effective ``ValuesPerRead``
+of 100 (1 ms sample period) rather than the 10 recorded at the time.
+
+The documented safe window is 3-5 sample periods; this is the conservative
+end of it.
 """
 
 
@@ -83,13 +100,75 @@ def quantize_count_time(
     return quantized
 
 
+def sample_time(values_per_read: int) -> float:
+    """Return the FX4's streamed sample period for a ``ValuesPerRead``.
+
+    The FX4 digitises at a fixed 100 kHz and pre-averages ``values_per_read``
+    conversions into each streamed sample, so the sample period is
+    ``values_per_read x 10 us`` and the streamed rate is
+    ``100 kHz / values_per_read``.  The IOC pushes the rate to the device
+    itself (``SetValuesPerRead`` -> ``/fx4/adc/sample_frequency``), so this
+    period governs gate detection as well as time resolution.
+
+    Parameters
+    ----------
+    values_per_read : int
+        The FX4 ``ValuesPerRead`` setting.
+
+    Returns
+    -------
+    float
+        Sample period, seconds.  Matches ``SampleTime_RBV``.
+    """
+    return values_per_read * 10e-6
+
+
+def min_strobe_width_us(
+    values_per_read: int,
+    periods: int = MIN_STROBE_SAMPLE_PERIODS,
+) -> float:
+    """Return the narrowest PSO strobe that *values_per_read* can resolve.
+
+    A fly scan in "Ext. bulb" mode delimits its exposures with the HIGH strobe
+    of the Aerotech PSO output (``usxAERO:pm1:PulseLength``, microseconds).
+    The FX4 only sees that strobe if it is still HIGH when the device takes a
+    sample, so the strobe has to be several sample periods wide -- see
+    :data:`MIN_STROBE_SAMPLE_PERIODS`.  Too narrow and neighbouring exposures
+    merge, which looks exactly like missed PSO pulses in ``TSCurrentPoint``.
+
+    Parameters
+    ----------
+    values_per_read : int
+        The FX4 ``ValuesPerRead`` setting.
+    periods : int
+        Sample periods of margin required.  Defaults to
+        :data:`MIN_STROBE_SAMPLE_PERIODS`.
+
+    Returns
+    -------
+    float
+        Minimum strobe width, microseconds, to compare directly against
+        ``usxAERO:pm1:PulseLength``.
+
+    Examples
+    --------
+    >>> min_strobe_width_us(100)   # 1 ms sample period
+    5000.0
+    >>> min_strobe_width_us(10)
+    500.0
+    >>> min_strobe_width_us(5)
+    250.0
+    """
+    return sample_time(values_per_read) * periods * 1e6
+
+
 def samples_per_reading(count_time: float, values_per_read: int) -> int:
     """Return how many streamed samples one reading of *count_time* contains.
 
     The FX4 digitises at 100 kHz and pre-averages ``values_per_read``
     conversions into each streamed sample, so ``SampleTime = values_per_read x
     10 us``.  The driver accumulates those samples in a ring buffer whose size
-    (``RING_SIZE``, 100000 at 12-ID-E, set in ``FX4.cmd``) caps one reading.  Past
+    (``RING_SIZE``, 200000 at 12-ID-E, set in ``FX4.cmd``) caps one reading.  Past
     that cap the oldest samples are silently discarded and the reported mean is
     biased toward the tail of the count.
 
@@ -112,8 +191,8 @@ def max_count_time(values_per_read: int, ring_size: int = RING_SIZE_SAMPLES) -> 
     """Return the longest unbiased integration time for a ``ValuesPerRead``.
 
     Above this the driver's ring buffer overflows and the mean is biased.  At
-    the 12-ID-E ``RING_SIZE`` of 100000 the relation is ``values_per_read``
-    seconds -- 10 s at VPR=10, 100 s at VPR=100.
+    the 12-ID-E ``RING_SIZE`` of 200000 the relation is ``2 x values_per_read``
+    seconds -- 10 s at VPR=5, 20 s at VPR=10, 200 s at VPR=100.
 
     Parameters
     ----------

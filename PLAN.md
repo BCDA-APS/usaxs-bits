@@ -36,9 +36,16 @@ What remains needs the instrument.
 2. **PSO/VPR commissioning (§5.2).** The one genuinely empirical task.
 3. **Threshold tuning.** `min_fraction` / `max_fraction` are live ophyd
    `Signal`s, so this is console typing, not editing.
-4. **Regenerate** `src/usaxs/qserver/existing_plans_and_devices.yaml`.
+4. **Regenerate** `src/usaxs/qserver/existing_plans_and_devices.yaml` — it
+   enumerates device components, and is now also missing
+   `flyscan_trajectories.pulse_length` / `.pulse_period` and
+   `usaxs_flyscan.values_per_read` (added 2026-10-13).
 5. **Validate** against the standard reference material (§6) — check the
    absolute level, not only the curve shape.
+6. **⭐ VPR=5 / 600 µs PSO strobe test — scheduled for the week of
+   2026-10-19.** The code is ready for it (2026-10-13); the procedure is in
+   §5.2 below, "Next hardware test". Do not change `DEFAULT_FLYSCAN_VPR` or the
+   Aerotech `PulseLength` default until it has run.
 
 ### Deliberately not done
 
@@ -817,6 +824,79 @@ Worth scoping the PSO strobe at D1 while doing this: the minimum safe strobe is
 3-5 × SampleTime, so the measured width directly predicts the VPR ceiling.
 Widening the strobe in the Aerotech PSO config is the other lever if the
 window between "drops" and "merges" turns out to be uncomfortably narrow.
+
+#### ⭐ Next hardware test — VPR = 5 and a 600 µs strobe (week of 2026-10-19)
+
+**Why now.** The QE IOCs were rebuilt with `RING_SIZE = 200000` (was 100000;
+re-read 2026-10-13 from `iocBoot/iocusxFX4{,2}/iocsh/FX4.cmd`, and
+`utils/count_time.RING_SIZE_SAMPLES` follows it). `NumAverage` can now reach
+200 000 on both boxes, so **ValuesPerRead = 5** — 50 µs sample period, 20 kHz
+streamed — still covers a 10 s reading instead of 5 s.
+
+That matters because `docs/FX4_PSO_trigger_issue.md` §0 established that the
+FX4 samples its D1 gate input at the *streamed* rate, so the narrowest strobe
+it can resolve scales with `ValuesPerRead`. The present 1200 µs
+`usxAERO:pm1:PulseLength` came from a width scan taken at an effective VPR of
+**100** (1 ms periods), not the 10 recorded at the time. At VPR = 5 the floor
+is ~250 µs, so **600 µs** should be ample — and halves the fly scan's dead
+time, ~5 % → ~2.7 % at a 22.5 ms mean interval.
+
+**What the code already does for this** (landed 2026-10-13, all offline):
+
+* `usaxs_flyscan.values_per_read` — soft signal, 0 = use `DEFAULT_FLYSCAN_VPR`.
+  The fly-scan VPR is now console-settable; `DEFAULT_FLYSCAN_VPR` stays **10**
+  until this test passes.
+* `Flyscan_internal_plan` logs `(VPR, SampleTime, PulseLength)` before every
+  scan and **warns** when the strobe is under 5 × SampleTime
+  (`utils.count_time.min_strobe_width_us`). This check would have caught the
+  2026-09-27 pairing.
+* `Trajectories.pulse_length` / `.pulse_period` (µs) exist; `AR_PulseLength`
+  and `AR_PulsePeriod` are recorded in the fly-scan HDF5, so the width scan is
+  self-documenting after the fact.
+* `fx4_monitor_mode` now resets `ValuesPerRead` to 100 between scans, so a fly
+  scan at VPR = 5 does not leave both boxes streaming 20 kHz each on the shared
+  link indefinitely.
+
+**Procedure.** One fly scan per step; after each, record
+`Current1:TS:TSCurrentPoint` against `usxAERO:pm1:NumPulses` (4000),
+`RingOverflows` on **both** boxes, and the spread of `NumAveraged_RBV` from the
+progress log.
+
+1. **Baseline** — defaults untouched (`PulseLength 1200`, VPR 10). Establishes
+   that 100 % capture is the starting point, so a later shortfall means the
+   change and not the day.
+2. **VPR only** — `usaxs_flyscan.values_per_read.put(5)`, strobe still 1200 µs.
+   Capture must stay 100 %. This separates the sample-rate change (a
+   *throughput* risk: 20 kHz × 2 boxes on one host) from the width change.
+3. **Width** — `caput usxAERO:pm1:PulsePeriod 610` **then**
+   `caput usxAERO:pm1:PulseLength 600`. Period first: the Aerotech driver
+   forces `period = length + 1` if it is not already larger.
+4. **Find the real edge** — if step 3 is clean, walk down 400, 300, 200 µs at
+   VPR = 5 and see where capture breaks. That measures the 3-5 × SampleTime law
+   rather than assuming it, and it is the §7.2 width-vs-VPR scan the trigger
+   issue is waiting on.
+
+**Reading the result** (unchanged from the table above): short count with
+normal `NumAveraged` = dropped in transit, *raise* VPR; short count with
+`NumAveraged` ≈ 2× on the short intervals = merged exposures, *widen* the
+strobe. The two boxes disagreeing on the total points at merging; both short by
+the same amount points at the PSO itself.
+
+**Revert** to `PulseLength 1200` / `PulsePeriod 1210` and
+`usaxs_flyscan.values_per_read.put(0)` if anything is short. Only once steps
+2-4 pass should `DEFAULT_FLYSCAN_VPR` become 5 and 600 µs be written down as
+the Aerotech default.
+
+> **The 4096-point cap is gone.** `TSPOINTS` was raised **4096 → 8192** in
+> `FX4.cmd` on 2026-10-13 and `usxFX42` restarted; all its TS arrays now report
+> `NELM = 8192` (`TSMeanValue`, `TSSigma`, `TSTotal`, all four channels).
+> `TS_POINTS_FLOOR` is 8192 and the full `NumPulses = 4000` train now fits with
+> room to spare, so a shortfall in this test is a real strobe/VPR result rather
+> than the old truncation. **`usxFX4` has the new `FX4.cmd` but was not
+> running** when this was checked — it picks the value up on its next boot;
+> confirm `usxFX4:FX4:Current1:TSMeanValue.NELM` reads 8192 before trusting a
+> UPD point count. 8192 is still a silent ceiling: `TS:TSNumPoints` accepts
+> more and truncates, so `fly_scan_plan.TS_POINTS_MAX` clamps and warns.
 
 **No parallel-running safety net.** An earlier draft proposed leaving the Struck
 armed alongside the FX4 for cross-calibration. The rewiring (Q10) makes that

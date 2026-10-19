@@ -89,9 +89,10 @@ proportionally; an earlier run at `ValuesPerRead = 1` (100 kHz) lost pulses
 (1156/2000). Its cause should be re-examined in light of this finding, but
 10 kHz is the safe default.
 
-- **Ring buffer still matters for integrity:** at 10 kHz, `RING_SIZE` must exceed the
-  longest interval × 10 000 samples/s. The current 100 000 samples covers 10 s, which
-  is ample.
+- **Ring buffer still matters for integrity:** `RING_SIZE` must exceed the longest
+  interval × (100 000 / `ValuesPerRead`) samples/s. Raised to **200 000** on both IOCs
+  (2026-10-13), which covers 10 s even at `ValuesPerRead = 5` — and that headroom is
+  what makes VPR = 5 usable for counting as well as fly scanning.
 
 ### Consequences for other modes (to check)
 
@@ -374,6 +375,18 @@ at 400 µs width, and log every update message. Then:
   → the `adcCache_[0].empty()` discard in §5.3 is being exercised.
 
 ### 7.2 Width scan vs. `ValuesPerRead` — **now the decisive test (§0)**
+
+> **Scheduled: week of 2026-10-19.** Run as part of the move to
+> `ValuesPerRead = 5` / 600 µs — the IOCs now have `RING_SIZE = 200000`, which
+> keeps a 10 s reading unbiased at VPR = 5. Full procedure and the order of
+> steps are in **PLAN.md §5.2, "Next hardware test"**. The fly-scan VPR is
+> settable from the console (`usaxs_flyscan.values_per_read`), and
+> `Flyscan_internal_plan` logs `(VPR, SampleTime, PulseLength)` and warns when
+> the strobe is under 5 × `SampleTime`, so each run of the scan is
+> self-recording. Planned points: VPR = 5 at 1200, 600, 400, 300, 200 µs.
+> The old 4096-point cap is lifted: `TSPOINTS` is **8192** since 2026-10-13
+> (`usxFX42` restarted and confirmed; `usxFX4` picks it up on its next boot),
+> so the full 4000-pulse train fits.
 
 First **verify the device rate** before each run:
 `caget 10.54.122.170:/fx4/adc/sample_frequency/value 10.54.122.171:/fx4/adc/sample_frequency/value`.

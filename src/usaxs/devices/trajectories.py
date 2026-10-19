@@ -21,6 +21,23 @@ class Trajectories(Device):
     ``num_pulses``         — number of PSO strobes the sweep will emit, i.e.
                              the number of data points
                              (``usxAERO:pm1:NumPulses``).
+    ``pulse_length``       — width of each PSO strobe, **microseconds**
+                             (``usxAERO:pm1:PulseLength``).
+    ``pulse_period``       — minimum spacing between strobes, **microseconds**
+                             (``usxAERO:pm1:PulsePeriod``).  The Aerotech
+                             driver forces ``period = length + 1`` if it is
+                             not already larger, so raise it first when
+                             widening the strobe.
+
+    .. note::
+       ``pulse_length`` and ``pulse_period`` carry no ``.EGU``; the unit is
+       microseconds, from the records' ``.DESC`` ("pulse length in
+       microseconds").  The strobe width matters to the counting chain, not
+       just to the motion controller: in "Ext. bulb" mode the FX4 delimits
+       its exposures on that strobe and can only see one that is several of
+       its sample periods wide -- see
+       ``utils.count_time.min_strobe_width_us`` and
+       ``docs/FX4_PSO_trigger_issue.md``.
 
     .. note::
        Despite its name, ``num_pulse_positions`` is ``NumPoints`` -- the
@@ -37,3 +54,5 @@ class Trajectories(Device):
     dx = Component(EpicsSignal, "usxAERO:pm1:M1Positions")
     num_pulse_positions = Component(EpicsSignal, "usxAERO:pm1:NumPoints")
     num_pulses = Component(EpicsSignal, "usxAERO:pm1:NumPulses")
+    pulse_length = Component(EpicsSignal, "usxAERO:pm1:PulseLength")
+    pulse_period = Component(EpicsSignal, "usxAERO:pm1:PulsePeriod")

@@ -294,26 +294,32 @@ camonitor QE1:FX4:Current1:MeanValue_RBV QE1:FX4:Current2:MeanValue_RBV \
 
 ## 7. Maximum averaged samples per exposure — the ring buffer (`RING_SIZE`)
 
-**Symptom:** `NumAveraged_RBV` pegs at **10000** on longer exposures.
+**Symptom:** `NumAveraged_RBV` pegs at `RING_SIZE` on longer exposures.
 
-That 10000 is the **ring buffer size**, not an averaging setting — hitting it means samples
+That ceiling is the **ring buffer size**, not an averaging setting — hitting it means samples
 are **dropped**, so those long-exposure averages are **biased** (only the tail counted).
 
 **What controls it:** the `ringBufferSize` argument to `drvFX4Configure` in `FX4.cmd`:
 
 ```
-epicsEnvSet("RING_SIZE", "10000")
+epicsEnvSet("RING_SIZE", "200000")
 drvFX4Configure("$(PORT)", "$(IP)", $(RING_SIZE))
 ```
+
+**At 12-ID-E this is 200000** on both `usxFX4` and `usxFX42` (raised from 100000; re-read
+2026-10-13). `utils/count_time.RING_SIZE_SAMPLES` mirrors it and must be edited whenever
+the IOC value changes — `max_count_time(vpr)` is derived from it.
 
 In bulb mode the driver averages everything in the ring buffer at the closing edge, so
 `NumAveraged_RBV ≤ RING_SIZE`. Overflow discards the **oldest** samples and increments
 `QE1:FX4:RingOverflows`.
 
 > **Check `QE1:FX4:RingOverflows`** — non-zero ⇒ samples dropped, mean biased.
+> `plans.fx4_setup.check_ring_overflows` does this after every scan.
 
 **Samples per exposure** = `exposure_time / SampleTime`, `SampleTime = ValuesPerRead × 10 µs`.
-At VPR=5 → 20 kHz → 10000 samples = **0.5 s**; longer exposures peg.
+At VPR=5 → 20 kHz → 200000 samples = **10 s**; longer exposures peg. At VPR=100 → 1 kHz →
+**200 s**.
 
 **Fixes (combine):** (1) increase `RING_SIZE` above worst-case
 (`longest_exposure × 100000 / ValuesPerRead`) + margin, restart IOC (memory is not a
@@ -332,6 +338,19 @@ stays 0 afterward.
 > giving "200–300 µs". That is **not** what the hardware does. The number is
 > ~1 ms and it does **not** scale with `ValuesPerRead`. Full analysis, and the
 > open questions for the manufacturer, are in **`FX4_PSO_trigger_issue.md`**.
+>
+> **⚠️ 2026-09-30 — and that rewrite was wrong too. The original rule was
+> right.** `FX4_PSO_trigger_issue.md` §0 found the device's
+> `/fx4/adc/sample_frequency` at **1 kHz**, because `ValuesPerRead` was
+> actually **100** during the scan below, not the 10 recorded here. The gate
+> *is* sampled at the streamed rate, the 3–5 × `SampleTime` floor *does* hold,
+> and "~1 ms" is simply 1 × the sample period that happened to be in force.
+> Read the table below as **measured at VPR = 100**. The scan at a known VPR is
+> §7.2 there, scheduled for the week of 2026-10-19 together with the move to
+> VPR = 5 / 600 µs (PLAN.md §5.2).
+>
+> In code: `utils.count_time.min_strobe_width_us(vpr)` is the floor, and
+> `Flyscan_internal_plan` warns when `usxAERO:pm1:PulseLength` falls under it.
 
 **With `TriggerPolarity = Negative` (our case) the delimiter is the HIGH strobe** (the low
 interval is the exposure), so the **PSO HIGH pulse width** is what matters.
@@ -358,12 +377,23 @@ interval that is ~5 % dead time, which costs angular coverage but **not**
 accuracy — the recorded quantity is a mean current, and `channel_time` records
 each interval's true duration.
 
+> 1200 µs is the right setting **at VPR = 100**, where the scan above was
+> actually taken (§0 of the trigger-issue doc) — and `min_strobe_width_us(100)`
+> is 5000 µs, so even 1200 µs had no margin there. At VPR = 10 the floor is
+> 500 µs and at VPR = 5 it is 250 µs, which is what makes the planned move to
+> **600 µs at VPR = 5** reasonable: ~12 sample periods, and ~2.7 % dead time.
+> Scheduled for the week of 2026-10-19 — PLAN.md §5.2.
+
 The two boxes miss *different* strobes and disagree on the total until the strobe
 is wide enough, which is how you can tell this apart from a problem in the PSO
 output: a genuine PSO fault would give both boxes the same count.
 
-**Do not try to fix this by lowering VPR.** The effect does not scale with
-`SampleTime`, so a lower VPR buys nothing here and costs throughput (§10).
+~~**Do not try to fix this by lowering VPR.** The effect does not scale with
+`SampleTime`, so a lower VPR buys nothing here and costs throughput (§10).~~
+**Superseded 2026-09-30.** Lowering VPR is exactly the fix — it raises the
+device's gate-sampling rate. The cost is throughput (§10), which is why the
+move is to VPR = 5 (20 kHz) and not lower; VPR = 1 (100 kHz) is known to drop
+pulses.
 
 Confirm merging vs. dropping: a merged exposure shows a `NumAveraged_RBV` larger
 than the interval warrants, and fewer events than pulses. Enable

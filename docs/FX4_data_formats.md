@@ -93,6 +93,7 @@ Written by `usaxs_flyscan_support/saveFlyData.py` from the PV map in
 | `changes_*_ampGain`, `changes_*_mcsChan` | — **gone** | no gain-change bookkeeping |
 | — | `ring_overflows`, `ring_overflows_I0` | **check these are 0** |
 | — | `fx4_range`, `fx42_range` | FX4 `Range` labels, diagnostic |
+| — | `AR_PulseLength`, `AR_PulsePeriod` | µs; strobe must exceed ~5 × `sample_time` |
 | — | `upd_lurange`, `upd_autorange_channel` | sequence-program state |
 | `n_points` | `n_points` | now from the FX4 time series |
 

@@ -65,6 +65,7 @@ class UsaxsFlyScanDevice(Device):
     ``num_points`` — number of trajectory points.
     ``flying``     — soft signal; ``True`` while a fly scan is executing.
     ``timeout_s``  — extra padding beyond ``scan_time`` before declaring a timeout.
+    ``values_per_read`` — soft override for the FX4 sample rate; see below.
     """
 
     busy = Component(
@@ -75,6 +76,19 @@ class UsaxsFlyScanDevice(Device):
     flying = Component(Signal, value=False)
     # Written once per fly-scan attempt to (re)start progress reporting.
     progress_kick = Component(ThreadKickSignal, value=0)
+
+    # ``ValuesPerRead`` for the fly scan, or 0/None to use the proven default
+    # (``plans.fx4_setup.DEFAULT_FLYSCAN_VPR``).  A soft signal rather than a
+    # module constant so commissioning is console typing, not an edit-and-
+    # restart -- the same reasoning as the autorange thresholds
+    # ``FX4DetectorControls.min_fraction`` / ``max_fraction``.
+    #
+    # The value under test is 5 (50 us sample period, 20 kHz streamed), which
+    # is what would let ``usxAERO:pm1:PulseLength`` come down from 1200 us to
+    # 600 us: the FX4 samples its gate input at the streamed rate, so the
+    # narrowest strobe it can resolve scales with ``ValuesPerRead``.  See
+    # PLAN.md section 5.2 and ``utils.count_time.min_strobe_width_us``.
+    values_per_read = Component(Signal, value=0, kind="config")
 
     # Padding added to scan_time for BOTH the progress-thread deadline and the
     # busy-record Status timeout (fly_scan_plan.py).  That Status is wall-clock

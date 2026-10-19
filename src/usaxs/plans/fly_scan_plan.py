@@ -56,6 +56,9 @@ from bluesky.utils import plan
 from ..devices.fx4_quadem import FX4AutorangeDirection as AutorangeDirection
 from ..devices.fx4_quadem import FX4AutorangeSettings as AutorangeSettings
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
+from ..utils.count_time import min_strobe_width_us
+from ..utils.count_time import sample_time
+from .fx4_setup import DEFAULT_FLYSCAN_VPR
 from .fx4_setup import check_ring_overflows
 from .fx4_setup import enable_fx4_autorange
 from .fx4_setup import fx4_flyscan_mode
@@ -84,8 +87,17 @@ TS_POINTS_MARGIN = 16
 # pulses actually arrived.  Under-sizing silently truncates the scan.  Given
 # that asymmetry -- and that `num_pulse_positions` is really NumPoints, the
 # waypoint count, not the pulse count (see devices/trajectories.py) -- the size
-# is floored well above the documented maximum of ~8000 pulses.
+# is floored at the documented maximum of ~8000 pulses.
 TS_POINTS_FLOOR = 8192
+
+# Hard ceiling: the TS waveforms really are this long.  `TSPOINTS` in the FX4
+# IOC's `iocsh/FX4.cmd` becomes NCHANS for every NDTimeSeriesConfigure, so it
+# fixes `Current<n>:TSMeanValue.NELM` -- 8192 since 2026-10-13 (was 4096).
+# TS:TSNumPoints accepts anything larger without complaint and the data then
+# truncates with no error anywhere, which is why this is checked rather than
+# trusted.  Raising it means editing TSPOINTS and restarting both IOCs; this
+# constant must follow.
+TS_POINTS_MAX = 8192
 upd_controls = oregistry["upd_controls"]  # UPD (PIN diode) amplifier controls
 usaxs_shutter = oregistry["usaxs_shutter"]  # USAXS in-vacuum shutter
 user_data = oregistry["user_data"]  # run-state string PV visible in the GUI
@@ -140,6 +152,70 @@ def _expected_pulse_count():
         )
         return int(points)
     return 0
+
+
+def _flyscan_values_per_read():
+    """Return the ``ValuesPerRead`` this fly scan should use.
+
+    ``usaxs_flyscan.values_per_read`` is a soft override, 0 meaning "use the
+    proven default".  It exists so the sample rate can be changed from the
+    console during commissioning instead of by editing
+    :data:`~usaxs.plans.fx4_setup.DEFAULT_FLYSCAN_VPR` and restarting.
+
+    Returns
+    -------
+    int
+        The ``ValuesPerRead`` to configure.
+    """
+    override = _read_or_none(usaxs_flyscan.values_per_read)
+    if override:
+        return int(override)
+    return DEFAULT_FLYSCAN_VPR
+
+
+def _check_strobe_width(values_per_read):
+    """Log the PSO strobe width against the FX4 sample period, and warn if thin.
+
+    In "Ext. bulb" mode the FX4 closes one exposure per PSO strobe, but it
+    only learns the gate state once per streamed sample.  A strobe narrower
+    than a few sample periods is missed **on the device**, before anything is
+    transmitted, and two exposures fuse into one -- which shows up as missing
+    pulses in ``TSCurrentPoint`` and roughly doubled ``NumAveraged`` on the
+    affected intervals.  Nothing on the IOC side can recover it.
+
+    This is the pairing that went wrong before: ``usxAERO:pm1:PulseLength`` was
+    set to 1200 us from a width scan believed to be at ``ValuesPerRead = 10``,
+    while the boxes were actually at 100 (a 1 ms sample period, needing ~5 ms).
+    See ``docs/FX4_PSO_trigger_issue.md`` section 0.
+
+    Silent about an unreadable PV, like the other reads in this module: a
+    missing diagnostic must not stop a scan.
+
+    Parameters
+    ----------
+    values_per_read : int
+        The ``ValuesPerRead`` this scan will configure.
+    """
+    strobe_us = _read_or_none(flyscan_trajectories.pulse_length)
+    needed_us = min_strobe_width_us(values_per_read)
+    logger.info(
+        "Flyscan gate: ValuesPerRead=%d (SampleTime %.0f us), PSO strobe %s"
+        " (needs >= %.0f us)",
+        values_per_read,
+        sample_time(values_per_read) * 1e6,
+        "unknown" if strobe_us is None else f"{float(strobe_us):.0f} us",
+        needed_us,
+    )
+    if strobe_us is not None and float(strobe_us) < needed_us:
+        logger.warning(
+            "PSO strobe %.0f us is narrower than the %.0f us the FX4 needs at"
+            " ValuesPerRead=%d -- exposures will merge and pulses will appear"
+            " to be missing. Widen usxAERO:pm1:PulseLength (raise PulsePeriod"
+            " first) or lower ValuesPerRead.",
+            float(strobe_us),
+            needed_us,
+            values_per_read,
+        )
 
 
 def _ts_current_point():
@@ -417,8 +493,29 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     # take the same PSO train, so index i means the same interval on each.
     expected_pulses = _expected_pulse_count()
     ts_points = max(expected_pulses + TS_POINTS_MARGIN, TS_POINTS_FLOOR)
+    if ts_points > TS_POINTS_MAX:
+        # Writing a larger TSNumPoints is accepted and then ignored, so say so
+        # here rather than let the operator read the short arrays as missed
+        # PSO pulses.
+        logger.warning(
+            "Fly scan wants %d time-series points but the IOC's arrays hold"
+            " %d (TSPOINTS in FX4.cmd); the last %d points would be lost."
+            " Reduce usxAERO:pm1:NumPulses (%d) or raise TSPOINTS and restart"
+            " both FX4 IOCs.",
+            ts_points,
+            TS_POINTS_MAX,
+            ts_points - TS_POINTS_MAX,
+            expected_pulses,
+        )
+        ts_points = TS_POINTS_MAX
+    # The sample rate and the PSO strobe width are one setting in two places:
+    # the FX4 can only resolve a strobe several sample periods wide.  Report
+    # the pair before configuring, so a mismatch is in the log of the scan it
+    # spoiled rather than inferred afterwards from a short point count.
+    values_per_read = _flyscan_values_per_read()
+    _check_strobe_width(values_per_read)
     for det in FX4_DETECTORS:
-        yield from fx4_flyscan_mode(det, ts_points)
+        yield from fx4_flyscan_mode(det, ts_points, values_per_read=values_per_read)
 
     # Record the wall-clock start time and calculate the next progress log time.
     usaxs_flyscan.t0 = time.time()

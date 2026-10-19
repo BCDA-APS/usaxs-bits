@@ -238,9 +238,10 @@ class StatsPluginQuadEM(StatsPlugin):
     stats plugin itself, while the records that arm and size the series live
     on a child ``NDPluginTimeSeries`` under the ``TS:`` sub-prefix.
 
-    Verified against the live IOC on 2026-09-26::
+    Verified against the live IOC on 2026-09-26, array size re-read
+    2026-10-13::
 
-        usxFX4:FX4:Current1:TSMeanValue        data array   (NELM 4096)
+        usxFX4:FX4:Current1:TSMeanValue        data array   (NELM 8192)
         usxFX4:FX4:Current1:TS:TSNumPoints     control
         usxFX4:FX4:Current1:TS:TSAcquire       control      Done / Acquire
 
@@ -249,10 +250,12 @@ class StatsPluginQuadEM(StatsPlugin):
     ``TS:TSAcquireMode = "Fixed length"``.
 
     .. note::
-       The TS waveforms are **4096 elements** on this IOC, while
+       The TS waveforms are **8192 elements** (``TSPOINTS`` in the IOC's
+       ``iocsh/FX4.cmd``, raised from 4096 on 2026-10-13), while
        ``TS:TSNumPoints`` accepts larger values without complaint.  A fly scan
-       longer than 4096 points silently truncates; raising it needs the TS
-       plugin's ``maxPoints`` changed in the FX4 IOC startup and a restart.
+       longer than 8192 points therefore still truncates *silently* -- see
+       ``plans.fly_scan_plan.TS_POINTS_MAX``.  Raising it again means editing
+       ``TSPOINTS`` and restarting the IOC.
     """
 
     ts_acquire = ADComponent(

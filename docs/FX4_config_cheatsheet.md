@@ -6,12 +6,16 @@ Prefix here is **`usxFX4:FX4:`** (substitute if different). Companion reference:
 
 > **Golden rules that apply to BOTH configs**
 > - `ValuesPerRead` sets everything: `SampleTime = ValuesPerRead × 10 µs`, streamed rate = 100 kHz / VPR.
-> - **Don't use VPR = 1** (overloads the link, drops samples/pulses — §10). Use **10–50**.
+> - **Don't use VPR = 1** (overloads the link, drops samples/pulses — §10). Use **5–100**.
+> - In bulb mode VPR also sets how narrow a PSO strobe the device can see: the floor is
+>   3–5 × `SampleTime` (`utils/count_time.min_strobe_width_us`). VPR = 100 needs ~5 ms,
+>   VPR = 10 needs ~500 µs, VPR = 5 needs ~250 µs. Set the two together — §8.
 > - Enable the 4 current stats plugins or the Mean/TS PVs never update:
 >   `caput usxFX4:FX4:Current{1,2,3,4}:EnableCallbacks Enable`
 > - Keep the integration window an **integer number of mains cycles** (× 16.667 ms @ 60 Hz)
 >   so 60 Hz pickup averages out (§12). 0.1/1/2/3 s are all integer cycles — good.
-> - Samples per reading must stay **≤ RING_SIZE** (default 10000) or the average is biased (§7).
+> - Samples per reading must stay **≤ RING_SIZE** (200000 at 12-ID-E) or the average is
+>   biased (§7).
 
 ---
 
@@ -54,18 +58,22 @@ caget usxFX4:FX4:Current1:MeanValue_RBV      # e.g. I0
 caget usxFX4:FX4:Current2:MeanValue_RBV      # e.g. I  (transmission = I/I0)
 ```
 
-### Count-time → samples (must stay ≤ RING_SIZE = 10000)
+### Count-time → samples (must stay ≤ RING_SIZE = 200000)
 
 `samples = count_time × 100000 / ValuesPerRead`
 
-| Count time | VPR = 10 | **VPR = 50** | VPR = 100 |
-|-----------|----------|--------------|-----------|
-| 0.1 s | 1 000 | **200** | 100 |
-| 1 s | 10 000 (at limit) | **2 000** | 1 000 |
-| 3 s | 30 000 ❌ overflow | **6 000** ✅ | 3 000 |
+| Count time | VPR = 5 | VPR = 10 | **VPR = 50** | VPR = 100 |
+|-----------|---------|----------|--------------|-----------|
+| 0.1 s | 2 000 | 1 000 | **200** | 100 |
+| 1 s | 20 000 | 10 000 | **2 000** | 1 000 |
+| 3 s | 60 000 | 30 000 | **6 000** | 3 000 |
+| 10 s | 200 000 (at limit) | 100 000 | **20 000** | 10 000 |
 
-→ **VPR = 50 covers 0.1–5 s** within the default 10000 ring. If you must use VPR = 10 for
-long counts, raise `RING_SIZE` in `FX4.cmd` instead (§7).
+**`RING_SIZE` is 200000 at 12-ID-E** (raised from 100000; re-read 2026-10-13 from
+`FX4.cmd`). The unbiased ceiling is therefore `2 × VPR` seconds — 10 s at VPR = 5, 200 s at
+VPR = 100 — so no count time USAXS uses comes near it at the VPR = 100 the counting plans
+pick. `utils/count_time.max_count_time()` is the authority in code, and
+`RING_SIZE_SAMPLES` there must be edited whenever the IOC's value changes.
 
 **Readback choice:** `MeanValue_RBV` = average current over the count (what you normally
 want; transmission = ratio of two Means). If you want a true scaler-like **integral**
@@ -217,7 +225,8 @@ instead.
 | `TriggerPolarity` | n/a | `Negative` (1) |
 | `AcquireMode` | `Single` (2) | `Continuous` (0) |
 | `AveragingTime` | count time (0.1 / 1–3 s) | *ignored* |
-| `ValuesPerRead` | 50 | 10 |
+| `ValuesPerRead` | 100 (`DEFAULT_SCALER_VPR`) | 10 (`DEFAULT_FLYSCAN_VPR`); 5 under test |
+| `usxAERO:pm1:PulseLength` | n/a | ≥ 3–5 × `SampleTime`: 1200 µs today, 600 µs under test |
 | `Current*:CallbacksBlock` | `Yes` | `No` (default) |
 | Per-cycle action | trigger `Acquire`, read `…:MeanValue_RBV` | arm `…:TSControl`, `Acquire 1`, read `…:TSMeanValue`/`TSSigma` |
 | Data PV(s) | `Current[1-4]:MeanValue_RBV` (scalar) | `Current[1-4]:TSMeanValue` (+`TSSigma`,`TSTotal`) arrays |

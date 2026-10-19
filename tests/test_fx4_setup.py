@@ -48,9 +48,14 @@ def test_chosen_vpr_respects_the_minimum():
 
 
 def test_chosen_vpr_rises_for_long_counts():
-    """A count longer than the default VPR allows moves up the ladder."""
-    assert max_count_time(DEFAULT_SCALER_VPR) == pytest.approx(10.0)
-    assert choose_values_per_read(20.0) > DEFAULT_SCALER_VPR
+    """A count longer than the default VPR allows moves up the ladder.
+
+    Phrased against ``max_count_time`` rather than a literal number of
+    seconds, because that ceiling moves whenever the IOC's RING_SIZE does.
+    """
+    ceiling = max_count_time(DEFAULT_SCALER_VPR)
+    assert choose_values_per_read(ceiling) == DEFAULT_SCALER_VPR
+    assert choose_values_per_read(ceiling * 2) > DEFAULT_SCALER_VPR
 
 
 def test_chosen_vpr_refuses_the_impossible():

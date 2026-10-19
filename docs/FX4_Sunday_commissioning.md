@@ -8,8 +8,15 @@
 
 > **Status 2026-09-26:** Stages 0-6 are **done and passing** on real
 > hardware — see the results table at the bottom, which is the handover.
-> Stages 7-10 remain. Stage 7/8 are capped at 4096 fly-scan points until the
-> IOC's `TSPOINTS` is raised on Monday 2026-09-28.
+> Stages 7-10 remain.
+>
+> **Update 2026-10-13 — the two IOC limits that blocked Stage 7/8 are fixed.**
+> `RING_SIZE` 100000 → **200000** and `TSPOINTS` 4096 → **8192** in
+> `iocsh/FX4.cmd` on both boxes; `usxFX42` restarted and verified
+> (`Current1:TSMeanValue.NELM` = 8192). `usxFX4` has the file but was not
+> running — check its `NELM` before trusting a UPD point count. Stage 7/8 are
+> no longer capped, and the next run of Stage 7 is the VPR = 5 / 600 µs strobe
+> test in **PLAN.md §5.2**.
 >
 > The text below was written before anything ran. Several of its Stage 0
 > commands name PVs that do not exist; the corrections are tabulated under
@@ -347,9 +354,9 @@ Session of **2026-09-26** (Saturday, not Sunday — hardware arrived early).
 | 4 tune axes | **PASS** — all five | `tune_mr`, `tune_ar`, `tune_a2rp`, `tune_dx`, `tune_dy` all plot one trace and find the peak. Needed two fixes first: `current_names` strings crashed the stats callback, and `separate_devices` was dropping the detector signals |
 | 5 transmission | **PASS** | diode 1.75e7 pA, I0 6.70e4 pA, ratio 261. `TR_pinGain`/`TR_I0Gain` both exactly 1.0. Channel restored to UPD on normal exit **and** after a hard `RE.abort()` |
 | 6 step USAXS | **PASS** | HDF5 written, intensities ~5e8 down to ~8, `counting_chain = "FX4"`. LiveTable initially showed only I0 — UPD was never hinted in `uascan_plan`; fixed |
-| 7 PSO / VPR | chosen VPR = | **capped at 4096 pulses** until `TSPOINTS` is raised |
+| 7 PSO / VPR | chosen VPR = | cap lifted 2026-10-13 (`TSPOINTS` 8192); next run is the VPR=5 / 600 µs test, PLAN.md §5.2 |
 | 8 fly scan | | `ADconfigs/` now deployed and verified byte-identical |
-| 9 SAXS / WAXS | | `ADconfigs/` deployed; not limited by the 4096 cap |
+| 9 SAXS / WAXS | | `ADconfigs/` deployed; was never limited by the TS cap |
 | 10 SRM validation | | needs the new reduction procedure |
 
 ### Stage 0 findings — the runbook's own commands were partly wrong
@@ -361,7 +368,7 @@ commands above:
 | runbook said | actually |
 |---|---|
 | `usxFX4:FX4:Current1:TSControl` etc. | controls are under `Current1:TS:`; **no `TSControl` exists** — arm with `TS:TSAcquire = "Acquire"`, mode `TS:TSAcquireMode = "Fixed length"`. Data arrays stay on `Current1:` |
-| `TSMeanValue.NELM` want >= 8000 | it is **4096**, set by `TSPOINTS` in the IOC's `iocsh/FX4.cmd`. `TS:TSNumPoints` accepts 8000 and truncates silently |
+| `TSMeanValue.NELM` want >= 8000 | it was **4096**, set by `TSPOINTS` in the IOC's `iocsh/FX4.cmd`; **raised to 8192 on 2026-10-13**. `TS:TSNumPoints` accepts anything larger and truncates silently either way, so `fly_scan_plan.TS_POINTS_MAX` clamps and warns |
 | `usxFX4:FX4:ch1_CurrentScale` | `usxFX4:FX4:CurrentScale1` (per-channel, `@asyn(FX4 0..3)QE_CURRENT_SCALE`) |
 | `Current1:CallbacksBlock` | `Current1:BlockingCallbacks` — the *code* was right, only this doc was wrong |
 | `usxAERO:pm1:PulseWidth` | does not exist; `NumPulses` = 8000, `NumPoints` = 200 |
@@ -370,7 +377,8 @@ commands above:
 
 Other facts established: currents are **pA** (`.EGU` is blank); `RING_SIZE` is
 **100000**, not the 10000 the code assumed, so unbiased count times are 10x
-longer than the ladder allowed; `CurrentScale` *is* applied in the driver
+longer than the ladder allowed (**since 2026-10-13 it is 200000**, another 2x,
+which is what makes `ValuesPerRead = 5` usable); `CurrentScale` *is* applied in the driver
 (`drvQuadEM.cpp:193`, called from `drvFX4.cpp:564`) and so reaches the
 autoranger and the fly-scan arrays, whereas the FX4 box's own web-GUI
 expression is bypassed entirely. Dark currents are legitimately **negative**
@@ -378,10 +386,11 @@ on these diodes and ion chambers.
 
 ### Open at end of session
 
-1. **`TSPOINTS = 4096`** in
-   `/net/s12dserv/.../iocBoot/iocusxFX4/iocsh/FX4.cmd` must become 8192 and
-   the IOC restarted, or fly scans truncate. The USAXS account has no write
-   permission there; scheduled for **Monday 2026-09-28**.
+1. ~~**`TSPOINTS = 4096`** must become 8192~~ — **done 2026-10-13.** Both
+   `iocsh/FX4.cmd` files now read `TSPOINTS 8192` (and `RING_SIZE 200000`).
+   `usxFX42` was restarted and all its TS arrays report `NELM = 8192`.
+   **`usxFX4` still needs its restart** — it was not running when this was
+   checked, so confirm `usxFX4:FX4:Current1:TSMeanValue.NELM` before Stage 7.
 2. ~~`ADconfigs/` is not deployed~~ — **done 2026-09-26**, all six files
    verified identical to the repo (old versions kept as `*_old.xml`).
 3. ~~TRD is not wired~~ — **done**, on `usxFX4` channel 4 (D) with the

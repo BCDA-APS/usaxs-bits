@@ -41,7 +41,9 @@ from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..devices.fx4_quadem import FX4RangeConflictError
 from ..utils.count_time import RING_SIZE_SAMPLES
 from ..utils.count_time import max_count_time
+from ..utils.count_time import min_strobe_width_us
 from ..utils.count_time import quantize_count_time
+from ..utils.count_time import sample_time
 from ..utils.count_time import samples_per_reading
 from ..utils.fx4_ranges import full_scale_pA
 
@@ -61,11 +63,19 @@ link load is the real constraint.
 DEFAULT_FLYSCAN_VPR = 10
 """``ValuesPerRead`` for PSO-gated counting.
 
-Cannot follow the same "higher is better" logic: in bulb mode the driver has to
-*see* both edges of the HIGH strobe in the streamed samples, or two exposures
-fuse into one.  The safe floor is 3-5 sample periods, so the PSO strobe width
-sets the ceiling on this value.  10 is the value proven on a 2000-pulse train;
-raising it needs the measured strobe width (PLAN.md section 5.2).
+Cannot follow the same "higher is better" logic: in bulb mode the device has to
+*see* the HIGH strobe in its own samples, or two exposures fuse into one.  The
+safe floor is 3-5 sample periods (:func:`~usaxs.utils.count_time.
+min_strobe_width_us`), so this value and ``usxAERO:pm1:PulseLength`` constrain
+each other in both directions -- raising it needs a wider strobe, and a
+narrower strobe needs it lowered.  10 is the value proven on a 2000-pulse
+train, and 500 us of the present 1200 us strobe.
+
+Override per scan with ``usaxs_flyscan.values_per_read`` rather than editing
+this; **5** (50 us periods, 250 us strobe floor) is the value under test, as
+the one that would let the strobe come down to 600 us and halve the fly scan's
+dead time.  Change this constant only once that test passes -- PLAN.md
+section 5.2.
 """
 
 VPR_LADDER = (10, 20, 50, 100, 200, 500)
@@ -291,11 +301,13 @@ def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=Non
         yield from bps.mv(det.channel_stats(ch).ts_acquire, "Acquire")
 
     logger.debug(
-        "%s: flyscan mode, %d points, VPR=%d, SampleTime=%.1f us",
+        "%s: flyscan mode, %d points, VPR=%d, SampleTime=%.1f us,"
+        " narrowest resolvable PSO strobe %.0f us",
         det.name,
         num_points,
         values_per_read,
-        values_per_read * 10,
+        sample_time(values_per_read) * 1e6,
+        min_strobe_width_us(values_per_read),
     )
 
 
@@ -582,7 +594,17 @@ def fx4_monitor_mode(det):
     something triggers it again.  Staff read those between scans, so the
     resting state has to be live.
 
-    Restores what the IOC boots into: free-run, continuous, acquiring.
+    Restores what the IOC boots into: free-run, continuous, acquiring, and
+    ``ValuesPerRead = DEFAULT_SCALER_VPR``.
+
+    Resetting ``ValuesPerRead`` is a **link-load** decision, not a correctness
+    one -- every mode plan sets its own rate, so nothing reads a stale value.
+    But a fly scan leaves the boxes at its own (low) setting, and the resting
+    state is continuous streaming: at ``ValuesPerRead = 5`` that is 20 kHz per
+    box, 40 kHz across the two, indefinitely, over the one WebSocket link whose
+    throughput limit is what drops PSO edges in the first place
+    (``docs/FX4_PSO_flyscan_setup.md`` section 10).  100 puts the idle load back
+    to 1 kHz per box.
 
     Deliberately does **not** touch ``Range`` or the sequence program's
     ``mode``.  Whether the range is left locked or autoranging is the
@@ -603,9 +625,13 @@ def fx4_monitor_mode(det):
         "Free run",  # 0
         det.acquire_mode,
         "Continuous",  # 0
+        det.values_per_read,
+        DEFAULT_SCALER_VPR,
     )
     yield from bps.mv(det.acquire, 1)
-    logger.debug("%s: monitor mode, free-running", det.name)
+    logger.debug(
+        "%s: monitor mode, free-running at VPR=%d", det.name, DEFAULT_SCALER_VPR
+    )
 
 
 @plan

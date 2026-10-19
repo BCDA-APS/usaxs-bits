@@ -133,6 +133,22 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     </PV>
                     <PV label="AR_pulses" pvname="usxAERO:pm1:NumPulses" />
                     <PV label="AR_PulseMode" pvname="usxAERO:pm1:PulseMode" />
+                    <!--
+                       The PSO HIGH strobe delimits the FX4 exposures, and the
+                       FX4 only sees a strobe several of its sample periods
+                       wide.  Recorded next to sample_time / values_per_read
+                       below so a file carries both halves of that pairing:
+                       AR_PulseLength must exceed ~5 x sample_time, or
+                       neighbouring exposures merged and n_points is short.
+                    -->
+                    <PV label="AR_PulseLength" pvname="usxAERO:pm1:PulseLength">
+                        <attribute name="units" value="us" />
+                        <attribute name="meaning" value="PSO HIGH strobe width; must exceed 3-5 x sample_time" />
+                    </PV>
+                    <PV label="AR_PulsePeriod" pvname="usxAERO:pm1:PulsePeriod">
+                        <attribute name="units" value="us" />
+                        <attribute name="meaning" value="minimum strobe spacing; driver forces period = length + 1" />
+                    </PV>
                     <PV label="AR_count" pvname="usxAERO:pm1:NumPulses" />
                     <!--
                        PulseMode is a string describing the type of scan:
