@@ -217,6 +217,10 @@ def tune_ar(md: Optional[dict] = None):
     except Exception as e:
         logger.error(f"Error in tune_ar: {str(e)}")
         raise
+    finally:
+        # The Uniblitz protects the diode and the sample, so it ends closed
+        # whatever happened -- a failed lineup2, a RequestAbort, Ctrl-C.
+        yield from bps.mv(usaxs_shutter, "close")
 
 
 def find_ar(md: Optional[dict] = None):
@@ -333,6 +337,9 @@ def find_ar(md: Optional[dict] = None):
     except Exception as e:
         logger.error(f"Error in find_ar: {str(e)}")
         raise
+    finally:
+        # See tune_ar: the shutter ends closed on every exit path.
+        yield from bps.mv(usaxs_shutter, "close")
 
 
 def tune_a2rp(md: Optional[dict] = None):
@@ -395,6 +402,9 @@ def tune_a2rp(md: Optional[dict] = None):
     except Exception as e:
         logger.error(f"Error in tune_a2rp: {str(e)}")
         raise
+    finally:
+        # See tune_ar: the shutter ends closed on every exit path.
+        yield from bps.mv(usaxs_shutter, "close")
 
 
 def find_a2rp(md: Optional[dict] = None):
@@ -505,8 +515,11 @@ def find_a2rp(md: Optional[dict] = None):
             print(f"tune_a2rp failed for {stats.analysis.reasons}")
 
     except Exception as e:
-        logger.error(f"Error in find_ar: {str(e)}")
+        logger.error(f"Error in find_a2rp: {str(e)}")
         raise
+    finally:
+        # See tune_ar: the shutter ends closed on every exit path.
+        yield from bps.mv(usaxs_shutter, "close")
 
 
 def tune_dx(md: Optional[dict] = None):
@@ -575,6 +588,9 @@ def tune_dx(md: Optional[dict] = None):
     except Exception as e:
         logger.error(f"Error in tune_dx: {str(e)}")
         raise
+    finally:
+        # See tune_ar: the shutter ends closed on every exit path.
+        yield from bps.mv(usaxs_shutter, "close")
 
 
 def tune_dy(md: Optional[dict] = None):
@@ -640,6 +656,9 @@ def tune_dy(md: Optional[dict] = None):
     except Exception as e:
         logger.error(f"Error in tune_dy: {str(e)}")
         raise
+    finally:
+        # See tune_ar: the shutter ends closed on every exit path.
+        yield from bps.mv(usaxs_shutter, "close")
 
 
 def tune_diode(md: Optional[dict] = None):

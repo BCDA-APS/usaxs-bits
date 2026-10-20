@@ -54,6 +54,8 @@ pytest path/to/test_file.py::test_name
 
 **Operation vs sim is a runtime decision based on a live PV.** When editing startup or shutter logic, both branches must stay valid.
 
+The decision is made by `utils/operation_mode.determine_in_operation()`, which **raises `OperationModeUnknown` rather than guessing**. It used to be `caget(...) == 1`, and because `caget` returns `None` on a connection timeout and `None == 1` is `False`, an unreachable `iocusxlax` silently selected simulation — `usaxs_shutter` became a `SimulatedApsPssShutterWithStatus` that opens nothing and the suspenders became inert, so tunes ran to completion against a dead beam and reported only a failed fit. Never reintroduce a fallback path: *unknown* must not mean *simulated*. `USAXS_SIMULATE=1` (or `=0`) forces the mode explicitly, and `startup.py` prints a banner naming the mode as the last thing on screen.
+
 ### No back-edges into `usaxs.startup`
 
 **No module under `src/usaxs/` may `from usaxs.startup import …` at module top level.** `startup.py` is the only place where `RE`, `bec`, suspenders, and the public plan callables are constructed. This rule prevents the circular import that occurs when `start-re-manager` loads `usaxs.startup` and a plan module tries to read `RE`/`bec`/suspenders from a half-initialised `usaxs.startup`.

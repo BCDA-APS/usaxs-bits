@@ -28,9 +28,10 @@ from apsbits.utils.config_loaders import load_config
 from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
-from epics import caget
 
 from usaxs.utils.fx4_channels import setup_fx4_channels
+from usaxs.utils.operation_mode import determine_in_operation
+from usaxs.utils.operation_mode import operation_mode_banner
 from usaxs.utils.qserver_console import follow_live_stderr
 from usaxs.utils.scalers_setup import release_scaler_detector_names
 from usaxs.utils.scalers_setup import setup_scalers
@@ -120,9 +121,12 @@ setup_fx4_channels()
 release_scaler_detector_names()
 
 ##operation variables
-in_operation = caget("usxLAX:blCalc:userCalc2.VAL") == 1
-# in_operation = True
-logger.info("in operation = " + str(in_operation))
+# Raises OperationModeUnknown rather than guessing: the old
+# `caget(...) == 1` turned an unreadable PV into `None == 1` -> False ->
+# simulated shutters and inert suspenders, with no error anywhere.  See
+# usaxs.utils.operation_mode.  Set USAXS_SIMULATE to choose deliberately.
+in_operation, operation_mode_reason = determine_in_operation()
+logger.info("in operation = %s (%s)", in_operation, operation_mode_reason)
 
 if in_operation:
     make_devices(file="shutters_op.yml", clear=False, device_manager=instrument)
@@ -301,3 +305,8 @@ from .utils.setup_new_user import set_runtime_context
 set_runtime_context(RE=RE, nxwriter=nxwriter)
 
 newUser(RE=RE, nxwriter=nxwriter)
+
+# Last thing on screen, deliberately.  Whether the shutters and suspenders are
+# real is the one startup fact that changes what every later plan does, and a
+# logger.info() line a thousand lines up is not how staff find that out.
+print(operation_mode_banner(in_operation, operation_mode_reason))

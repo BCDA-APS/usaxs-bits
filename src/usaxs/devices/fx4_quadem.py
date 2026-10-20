@@ -38,6 +38,7 @@ References
 """
 
 import logging
+import time
 from collections import OrderedDict
 
 from apsbits.core.instrument_init import oregistry
@@ -346,6 +347,10 @@ class QuadFX4(QuadEM):
         self.stage_sigs.update([("acquire", 0), ("acquire_mode", 2)])
         self._acquisition_signal = self.acquire
         self._acquire_sub_cid = None
+        # Last Acquire value *as delivered to our subscription*, which lags
+        # the IOC by however long the control layer takes to dispatch the
+        # monitor event.  ``trigger()`` waits on this, not on a ``get()``.
+        self._acquire_seen = None
 
         # ophyd's QuadEM declares CurrentName1..4 with string=True at
         # kind="normal", so the four channel *labels* land in every event
@@ -386,6 +391,52 @@ class QuadFX4(QuadEM):
                 self._acquire_changed
             )
 
+    @staticmethod
+    def _acquire_is_idle(value) -> bool:
+        """Is this ``Acquire`` value the "not acquiring" one?"""
+        return value in (0, "Done")
+
+    def _acquire_changed(self, value=None, old_value=None, **kwargs):
+        """Record what the subscription saw, then complete the status as usual.
+
+        ``_acquire_seen`` is how :meth:`trigger` tells "the IOC has stopped"
+        from "we have been *told* the IOC stopped".  Only the second one makes
+        it safe to arm a new status.
+        """
+        self._acquire_seen = value
+        super()._acquire_changed(value=value, old_value=old_value, **kwargs)
+
+    def _drain_stale_acquire_edge(self, timeout: float = 2.0) -> bool:
+        """Block until the subscription has seen ``Acquire`` go idle.
+
+        Normally returns within a dispatch, a few ms at most.  The timeout is
+        there so that a lost monitor cannot wedge the RunEngine's event loop,
+        which is the thread this runs on.
+
+        Parameters
+        ----------
+        timeout : float
+            Seconds to wait before giving up.
+
+        Returns
+        -------
+        bool
+            True if the idle value arrived, False if the wait timed out.
+        """
+        deadline = time.monotonic() + timeout
+        while not self._acquire_is_idle(self._acquire_seen):
+            if time.monotonic() > deadline:
+                logger.warning(
+                    "%s: Acquire still reads %r on our subscription %.1f s after"
+                    " being stopped; triggering anyway.",
+                    self.name,
+                    self._acquire_seen,
+                    timeout,
+                )
+                return False
+            time.sleep(0.005)
+        return True
+
     def trigger(self):
         """Trigger one acquisition.  Does not require the device to be staged.
 
@@ -420,14 +471,37 @@ class QuadFX4(QuadEM):
         # rotator all reach it, and only some of them configure the mode
         # first.  Fly scans do not use trigger(): they write Acquire
         # directly while in Ext. bulb mode, so this does not disturb them.
+
+        # Nothing may be armed while we stop the device: see below.
+        self._status = None
+
         if self.acquire_mode.get(as_string=True) != "Single":
             self.acquire_mode.put("Single", wait=True)
-        if self._acquisition_signal.get() not in (0, "Done"):
+        if not self._acquire_is_idle(self._acquisition_signal.get()):
             self._acquisition_signal.put(0, wait=True)
 
-        self._status = self._status_type(self)
+        # Stopping a free-running acquisition makes Acquire fall 1 -> 0, and
+        # that monitor event reaches ``_acquire_changed`` on the control
+        # layer's callback thread -- typically a few ms *after* the put
+        # returns, i.e. after the next two lines would have run.  ophyd reads
+        # any falling edge as "the acquisition this status was waiting for has
+        # finished", so the stale edge lands on the status we are about to
+        # arm: ``set_finished()`` then ``self._status = None``.  Depending on
+        # which side of the ``return`` it fell, that gave either
+        #     AttributeError: 'NoneType' object has no attribute 'add_callback'
+        # out of the RunEngine, or a status that was already complete, so the
+        # plan read the *previous* acquisition's mean.  Waiting for the edge
+        # to be delivered before arming closes both.  ``wait=True`` on the put
+        # above is not enough -- it waits on the IOC, not on our dispatcher.
+        self._drain_stale_acquire_edge()
+
+        status = self._status_type(self)
+        self._status = status
         self._acquisition_signal.put(1, wait=False)
-        return self._status
+        # Return the local reference: ``self._status`` is set to None by
+        # ``_acquire_changed`` as soon as this acquisition completes, which
+        # for a short count time can happen before this line.
+        return status
 
     def stage(self):
         """Stage the device, keeping our permanent acquire subscription.

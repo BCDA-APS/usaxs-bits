@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(caget -t usxFX4:FX4:Range usxFX4:FX4:seq01:channel usxFX4:FX4:seq01:mode usxFX4:FX4:Current1:MeanValue_RBV usxFX4:FX4:Current4:MeanValue_RBV)",
+      "Bash(caget -w 3 usaxs_eiger1:cam1:ArraySizeX_RBV usaxs_eiger1:cam1:ArraySizeY_RBV usaxs_eiger1:cam1:ArraySizeZ_RBV usaxs_eiger1:cam1:ColorMode_RBV usaxs_eiger1:HDF1:ArraySize0_RBV usaxs_eiger1:HDF1:ArraySize1_RBV usaxs_eiger1:HDF1:ArraySize2_RBV usaxs_eiger1:HDF1:ColorMode_RBV usaxs_eiger1:HDF1:EnableCallbacks_RBV usaxs_eiger1:HDF1:NDArrayPort_RBV usaxs_eiger1:HDF1:ArrayCounter_RBV usaxs_eiger1:HDF1:DroppedArrays_RBV usaxs_eiger1:cam1:ArrayCallbacks_RBV usaxs_eiger1:cam1:PortName_RBV)",
+      "Bash(caget -w 3 usaxs_eiger1:BadPix1:EnableCallbacks_RBV usaxs_eiger1:BadPix1:NDArrayPort_RBV usaxs_eiger1:BadPix1:PortName_RBV usaxs_eiger1:BadPix1:ArrayCounter_RBV usaxs_eiger1:BadPix1:DroppedArrays_RBV usaxs_eiger1:BadPix1:ArraySize0_RBV usaxs_eiger1:BadPix1:ArraySize1_RBV usaxs_eiger1:BadPix1:BlockingCallbacks_RBV usaxs_eiger1:BadPix1:QueueUse usaxs_eiger1:BadPix1:QueueSize usaxs_eiger1:image1:ArrayCounter_RBV usaxs_eiger1:image1:NDArrayPort_RBV usaxs_eiger1:image1:EnableCallbacks_RBV usaxs_eiger1:cam1:ArrayCounter_RBV usaxs_eiger1:cam1:NumImagesCounter_RBV usaxs_eiger1:cam1:Acquire)",
+      "Bash(caget -d DBR_CTRL_ENUM -w 3 usaxs_eiger1:cam1:DataSource)",
+      "Bash(cainfo usaxs_eiger1:cam1:DataSource)",
+      "Bash(caget -w 3 usaxs_eiger1:cam1:Manufacturer_RBV usaxs_eiger1:cam1:Model_RBV usaxs_eiger1:cam1:ADCoreVersion_RBV usaxs_eiger1:cam1:DriverVersion_RBV)",
+      "Bash(caget -w 3 -t usaxs_pilatus3:cam1:ArrayCounter_RBV usaxs_pilatus3:HDF1:ArrayCounter_RBV usaxs_pilatus3:HDF1:ArraySize0_RBV usaxs_pilatus3:HDF1:ArraySize1_RBV usaxs_pilatus3:cam1:ArraySizeX_RBV usaxs_pilatus3:cam1:ArraySizeY_RBV)",
+      "Bash(caget -w 3 -t usaxs_eiger1:UPTIME usaxs_eiger1:STARTTOD usaxs_eiger1:ENGINEER usaxs_eiger1:HOSTNAME usaxs_eiger1:APP_DIR1 usaxs_eiger1:APP_DIR2 usaxs_eiger1:APP_DIR3)",
+      "Bash(caget -w 3 -S usaxs_eiger1:HDF1:FilePath_RBV usaxs_eiger1:HDF1:FileName_RBV usaxs_eiger1:HDF1:FileTemplate_RBV usaxs_eiger1:HDF1:FullFileName_RBV usaxs_eiger1:HDF1:WriteMessage usaxs_eiger1:cam1:FWNamePattern usaxs_eiger1:cam1:FilePath usaxs_eiger1:cam1:NDAttributesFile usaxs_eiger1:HDF1:NDAttributesFile usaxs_eiger1:cam1:StatusMessage_RBV)",
+      "Bash(caget -w 3 -t usaxs_eiger1:HDF1:FilePathExists_RBV usaxs_eiger1:HDF1:CreateDirectory)",
+      "WebFetch(domain:areadetector.github.io)",
+      "Read(//net/**)",
+      "Bash(timeout 15 ssh -o BatchMode=yes -o StrictHostKeyChecking=no usaxsserver \"hostname; ls -d /home/*/*eiger* /opt/*eiger* 2>/dev/null | head\")",
+      "Bash(caget -w 3 -t usaxs_eiger1:cam1:DataSource_RBV usaxs_eiger1:cam1:StreamEnable_RBV usaxs_eiger1:cam1:ArrayCounter_RBV usaxs_eiger1:BadPix1:ArrayCounter_RBV usaxs_eiger1:HDF1:ArrayCounter_RBV usaxs_eiger1:HDF1:ArraySize0_RBV usaxs_eiger1:HDF1:ArraySize1_RBV)",
+      "Bash(python -c \"import ast;ast.parse\\(open\\('src/usaxs/devices/fx4_quadem.py'\\).read\\(\\)\\)\")",
+      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python -m pytest tests/test_fx4_trigger.py -q)",
+      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python /tmp/drive_fx4_trigger.py)",
+      "Bash(/home/beams/USAXS/.conda/envs/aievaluator/bin/ruff check *)",
+      "Bash(/home/beams/USAXS/.conda/envs/aievaluator/bin/ruff format *)",
+      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python -c \"import usaxs.devices.fx4_quadem as m; print\\('import ok', m.QuadFX4._acquire_is_idle\\(0\\)\\)\")"
+    ]
+  }
+}

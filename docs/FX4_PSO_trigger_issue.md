@@ -1,9 +1,29 @@
 # FX4 digital-input (gate) timing — narrow external trigger pulses are missed
 
-**Status:** **likely root cause identified 2026-09-30 — see §0; confirmation test
-pending (§7.2).** If confirmed, most of the Pyramid questions in §9A become moot.
-Remaining open items: the §5.3 sample-count question (re-evaluate with the correct
-sample rate) and the softIOC/template items in §9B.
+> ## ⛔ SUPERSEDED 2026-10-20 — read `FX4_PSO_trigger_issue_2.md` instead
+>
+> The §0 root cause below ("the device reports the gate on the ADC output
+> sample cadence, so lowering `ValuesPerRead` fixes it") was **tested and
+> disproved**. The §7.2 confirmation scan was run on 2026-10-20 with the two
+> units at `ValuesPerRead = 50` and `5` simultaneously: **both still needed a
+> 1200 µs strobe.** The gate limit is independent of every ADC rate.
+>
+> The actual cause is that `drvFX4` reads the gate from
+> `/fx4/gpio_0/22/readback/value` — a GPIO register in a different device
+> subsystem from `/fx4/adc/`, published from a ~1 kHz poll that does not follow
+> `sample_frequency`. See **`FX4_PSO_trigger_issue_2.md`**, which is
+> self-contained and carries the current questions for Pyramid and for the
+> `quadEM` maintainer.
+>
+> **This document is retained as the record of the 2026-09-27 measurement**
+> (§2–§5), which remains valid and is quoted by its successor. Treat §0 and
+> §7.2 as history, and §9A as partly overtaken.
+
+**Status:** **superseded — see the banner above and
+`FX4_PSO_trigger_issue_2.md`.** Historical status line follows: likely root
+cause identified 2026-09-30 (§0), confirmation test pending (§7.2); remaining
+open items the §5.3 sample-count question and the softIOC/template items in
+§9B.
 **Site:** Advanced Photon Source, beamline 12-ID-E (USAXS instrument), Argonne National Laboratory.
 **Date of measurements:** 2026-09-27.
 **Workaround in place:** widen the external trigger pulse to 1200 µs (see §8).
