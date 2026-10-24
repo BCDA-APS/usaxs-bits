@@ -12,6 +12,15 @@ The RE Manager/model always index history oldest-first
 *display row* a given model index is drawn into is flipped, via
 ``row = n - 1 - index``. Everything else (selection bookkeeping, "Copy to
 Queue", double-click-to-rerun) keeps operating on model indices unchanged.
+
+Only the newest ``MAX_DISPLAYED_ITEMS`` runs are drawn. The table is cleared
+and fully repopulated on every history change (upstream behaviour, and upstream
+carries a standing TODO about it freezing the GUI), with
+``ResizeToContents`` measuring every cell — so the cost is linear in the number
+of rows and is paid every time a plan finishes. The queue server keeps the full
+history regardless; this only bounds what is rendered. Because the newest run
+is at row 0, the cap simply drops the *oldest* rows, and the index mapping is
+unchanged for every row that is still drawn.
 """
 
 from bluesky_widgets.qt.run_engine_client import QtRePlanHistory
@@ -21,9 +30,21 @@ from qtpy.QtWidgets import QAbstractItemView
 from qtpy.QtWidgets import QHeaderView
 from qtpy.QtWidgets import QTableWidgetItem
 
+# Newest N history entries to draw. At minutes per scan this is days of work;
+# the full history is still on the server and in "Save Plan History".
+MAX_DISPLAYED_ITEMS = 200
+
 
 class QtRePlanHistoryReversed(QtRePlanHistory):
-    """QtRePlanHistory with display order reversed (newest run at the top)."""
+    """QtRePlanHistory, newest run on top, showing the newest N runs only."""
+
+    def __init__(self, model, parent=None, max_displayed_items=MAX_DISPLAYED_ITEMS):
+        """Build the history table, capped at ``max_displayed_items`` rows."""
+        self._max_displayed_items = max_displayed_items
+        # Number of rows actually drawn; <= self._n_table_items, which stays
+        # the full history length because the index mapping depends on it.
+        self._n_rows_shown = 0
+        super().__init__(model, parent=parent)
 
     @staticmethod
     def _row_for_index(index, n):
@@ -39,15 +60,19 @@ class QtRePlanHistoryReversed(QtRePlanHistory):
 
         self._table.clearContents()
         n = len(plan_history_items)
-        self._table.setRowCount(n)
+        n_shown = min(n, self._max_displayed_items)
+        self._table.setRowCount(n_shown)
 
-        if n:
+        if n_shown:
             resize_mode = QHeaderView.ResizeToContents
         else:
             resize_mode = QHeaderView.Stretch
         self._table.horizontalHeader().setSectionResizeMode(resize_mode)
 
-        for index, item in enumerate(plan_history_items):
+        # Rows 0..n_shown-1 are the newest items, i.e. model indices
+        # n-n_shown..n-1. Older items are not drawn.
+        for index in range(n - n_shown, n):
+            item = plan_history_items[index]
             row = self._row_for_index(index, n)
             for nc, col_name in enumerate(self._table_column_labels):
                 try:
@@ -60,7 +85,11 @@ class QtRePlanHistoryReversed(QtRePlanHistory):
                 table_item.setFlags(table_item.flags() & ~Qt.ItemIsEditable)
                 self._table.setItem(row, nc, table_item)
 
+        # _n_table_items stays the full history length: it is what the row
+        # <-> model-index mapping is computed from. _n_rows_shown bounds the
+        # rows that actually exist in the table.
         self._n_table_items = n
+        self._n_rows_shown = n_shown
 
         if self._table_scrolled_to_bottom:
             scroll_maximum_new = self._table.verticalScrollBar().maximum()
@@ -94,8 +123,15 @@ class QtRePlanHistoryReversed(QtRePlanHistory):
     def slot_change_selection(self, selected_item_pos):
         """Apply a model-index selection (`selected_item_pos`) to the table rows."""
         n = self._n_table_items
+        # A selected item may have scrolled out of the displayed window (it is
+        # older than the newest _n_rows_shown); such rows do not exist in the
+        # table and must not be selected.
         rows = (
-            sorted(self._row_for_index(pos, n) for pos in selected_item_pos)
+            sorted(
+                row
+                for row in (self._row_for_index(pos, n) for pos in selected_item_pos)
+                if 0 <= row < self._n_rows_shown
+            )
             if selected_item_pos
             else []
         )

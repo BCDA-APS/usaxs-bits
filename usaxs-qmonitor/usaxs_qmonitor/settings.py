@@ -35,9 +35,28 @@ class Settings:
         "QSERVER_ZMQ_PROXY_INFO_ADDRESS", "localhost:5568"
     )
 
-    # Auto-connect the live document stream when the window opens. If the proxy
-    # is not running the SUB socket simply receives nothing (harmless).
-    plots_autostart = True
+    # Auto-connect the live document stream when the window opens.
+    #
+    # Off by default: the RE Worker publishes *every* document of *every* plan,
+    # so a connected stream costs the GUI work for scans it never plots. With
+    # ``plots_follow_tab`` the stream connects when Live View is opened, which
+    # is the only time the plots can be seen anyway.
+    plots_autostart = False
+
+    # Connect the document stream when the Live View tab becomes visible and
+    # drop it when it is hidden. A stream connected by hand with the "Connect
+    # stream" button stays connected across tab changes.
+    plots_follow_tab = True
+
+    # --- GUI buffer sizes (main-thread cost scales with these) ---
+    # Console scrollback. The whole buffer is re-rendered several times a
+    # second while output arrives.
+    console_max_lines = 200
+
+    # Newest history entries drawn in the Plan History table. The table is
+    # rebuilt from scratch every time a plan finishes; the queue server keeps
+    # the full history either way.
+    history_max_rows = 200
 
     # One line-plot per tune type. Each run is routed to the first config whose
     # ``plan_names`` contains the run's start-doc ``plan_name``; ``max_runs``

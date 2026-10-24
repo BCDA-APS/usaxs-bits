@@ -10,9 +10,14 @@ Tab 2 "Live View" — live tune/alignment plots (Phase 3) over the console
 
 Composes reusable Qt widgets from bluesky_widgets; USAXS customization lives in
 the arrangement here plus our own action-bar / plots widgets.
+
+The document stream that feeds the plots is connected when the Live View tab is
+shown and dropped when it is hidden (``SETTINGS.plots_follow_tab``), so the
+queue-control workflow does not pay for document handling nobody is looking at.
+A connection the *user* made with the "Connect stream" button is never taken
+down automatically.
 """
 
-from bluesky_widgets.qt.run_engine_client import QtReConsoleMonitor
 from bluesky_widgets.qt.run_engine_client import QtReEnvironmentControls
 from bluesky_widgets.qt.run_engine_client import QtReExecutionControls
 from bluesky_widgets.qt.run_engine_client import QtReManagerConnection
@@ -28,6 +33,7 @@ from qtpy.QtWidgets import QTabWidget
 from qtpy.QtWidgets import QVBoxLayout
 from qtpy.QtWidgets import QWidget
 
+from .console_monitor import UsaxsConsoleMonitor
 from .functions import QtUsaxsActionBar
 from .plan_history import QtRePlanHistoryReversed
 from .plots import UsaxsPlots
@@ -83,7 +89,12 @@ class QtRunEngineManager_Control(QWidget):
         right.addWidget(QtReRunningPlan(model), stretch=1)
         # Reversed so the newest run is at the top and rolls down, matching the
         # top-to-bottom direction the queue itself runs in.
-        right.addWidget(QtRePlanHistoryReversed(model), stretch=2)
+        right.addWidget(
+            QtRePlanHistoryReversed(
+                model, max_displayed_items=SETTINGS.history_max_rows
+            ),
+            stretch=2,
+        )
         hbox.addLayout(right)
 
         vbox.addLayout(hbox)
@@ -100,12 +111,14 @@ class QtRunEngineManager_LiveView(QWidget):
 
         splitter = QSplitter(Qt.Vertical)
 
-        # Live tune/alignment plots (RemoteDispatcher -> Lines -> QtFigures).
+        # Live tune/alignment plots (BatchedRemoteDispatcher -> Lines -> QtFigures).
         self._plots = UsaxsPlots(SETTINGS.plot_config, SETTINGS.zmq_proxy_info_addr)
         splitter.addWidget(self._plots)
 
         # Console / terminal view of the running Bluesky session.
-        self._console_monitor = QtReConsoleMonitor(model)
+        self._console_monitor = UsaxsConsoleMonitor(
+            model, max_lines=SETTINGS.console_max_lines
+        )
         splitter.addWidget(self._console_monitor)
 
         splitter.setSizes([65, 35])
@@ -130,4 +143,15 @@ class QtViewer(QTabWidget):
         self.addTab(self._tab_control, "Queue Control")
 
         self._tab_liveview = QtRunEngineManager_LiveView(model.run_engine)
-        self.addTab(self._tab_liveview, "Live View")
+        self._liveview_index = self.addTab(self._tab_liveview, "Live View")
+
+        if SETTINGS.plots_follow_tab:
+            self.currentChanged.connect(self._on_tab_changed)
+
+    def _on_tab_changed(self, index):
+        """Connect the document stream only while the Live View tab is shown."""
+        plots = self._tab_liveview._plots
+        if index == self._liveview_index:
+            plots.connect_stream(auto=True)
+        else:
+            plots.auto_disconnect_stream()

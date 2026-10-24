@@ -5,30 +5,48 @@ Documents flow from the headless RE Worker to this GUI over the network:
 
     RE Worker: RE.subscribe(Publisher("localhost:5567"))
         -> bluesky-0MQ-proxy 5567 5568
-        -> RemoteDispatcher("localhost:5568")   (here)
-        -> stream_documents_into_runs(...)       (flat docs -> BlueskyRuns)
-        -> Lines(x, ys, max_runs=N)              (one model per tune type)
+        -> BatchedRemoteDispatcher("localhost:5568")   (here)
+        -> one RunRouter, filtering on the 'start' document
+        -> Lines(x, ys, max_runs=N)                    (one model per tune type)
         -> QtFigure, grouped into tabs below
 
-Each incoming run is routed to the ``Lines`` model whose ``plan_names`` contains
-the run's start-doc ``plan_name`` (see ``settings.plot_config``). ``max_runs``
-keeps the last N scans overlaid; "Clear plots" drops them all.
+Each incoming run is routed to the ``Lines`` models whose ``plan_names``
+contains the run's start-doc ``plan_name`` (see ``settings.plot_config``).
+``max_runs`` keeps the last N scans overlaid; "Clear plots" drops them all.
 
 Plots are grouped into tabs by beamline sub-system (``PLOT_GROUPS``) with every
 plot in a tab shown side by side, so users can compare related tunes at a
 glance instead of clicking through one tab per plot (``QtFigures``' default).
+
+Performance note
+----------------
+``RE.subscribe(Publisher(...))`` publishes **every** document of **every** plan
+— step scans, fly scans, SAXS/WAXS exposures, and the baseline stream with its
+several hundred signals — not just the five tune plans drawn here.  The GUI
+therefore has to be cheap about everything it does not plot:
+
+- There is **one** subscription and one ``RunRouter``.  The previous code
+  subscribed ``stream_documents_into_runs`` once per plot model, so five
+  independent ``DocumentCache``/``BlueskyRun`` objects were built, in the Qt
+  main thread, for every run on the beamline.
+- The ``plan_name`` filter is applied in the **factory**, i.e. on the 'start'
+  document.  A run nobody plots gets no cache and no further per-document work
+  at all.  (It used to be filtered only after the run object had been built.)
 """
 
+import event_model
+from bluesky_live.bluesky_run import BlueskyRun
+from bluesky_live.bluesky_run import DocumentCache
 from bluesky_widgets.models.plot_builders import Lines
 from bluesky_widgets.qt.figures import QtFigure
-from bluesky_widgets.qt.zmq_dispatcher import RemoteDispatcher
-from bluesky_widgets.utils.streaming import stream_documents_into_runs
 from qtpy.QtWidgets import QHBoxLayout
 from qtpy.QtWidgets import QLabel
 from qtpy.QtWidgets import QPushButton
 from qtpy.QtWidgets import QTabWidget
 from qtpy.QtWidgets import QVBoxLayout
 from qtpy.QtWidgets import QWidget
+
+from .zmq_stream import BatchedRemoteDispatcher
 
 # Tab title -> plot_config titles shown side by side in that tab, in this order.
 PLOT_GROUPS = [
@@ -39,6 +57,11 @@ PLOT_GROUPS = [
 # QtFigure hardcodes a 640px minimum canvas width; too wide to show three
 # plots side by side on a normal screen, so shrink it here.
 _CANVAS_MIN_WIDTH = 380
+
+# Cap on the remembered run uids used to reject duplicate 'start' deliveries.
+# Only needs to cover runs that are open at the same time; bounded so a GUI
+# left running for weeks does not accumulate uids.
+_SEEN_UIDS_MAX = 512
 
 
 class UsaxsPlots(QWidget):
@@ -58,14 +81,18 @@ class UsaxsPlots(QWidget):
         super().__init__(*args, **kwargs)
 
         self._addr = zmq_proxy_info_addr
-        self._models = []  # list of (Lines, plan_names set)
 
+        # plan_name -> [Lines, ...]. A plan name absent from this map is
+        # dropped on its 'start' document and costs nothing thereafter.
+        self._models_by_plan_name = {}
         lines_by_title = {}
         for cfg in plot_config:
             lines = Lines(cfg["x"], list(cfg["ys"]), max_runs=cfg.get("max_runs", 5))
             lines.figure.title = cfg["title"]
-            self._models.append((lines, set(cfg.get("plan_names") or ())))
             lines_by_title[cfg["title"]] = lines
+            for plan_name in cfg.get("plan_names") or ():
+                self._models_by_plan_name.setdefault(plan_name, []).append(lines)
+        self._models = list(lines_by_title.values())
 
         self._qt_figures = QTabWidget()
         for tab_title, plot_titles in PLOT_GROUPS:
@@ -106,45 +133,60 @@ class UsaxsPlots(QWidget):
         vbox.addWidget(self._qt_figures, stretch=1)
         self.setLayout(vbox)
 
-        # RemoteDispatcher is created lazily on first connect so that a bad
+        # The dispatcher is created lazily on first connect so that a bad
         # address does not break window construction.
         self._dispatcher = None
         self._connected = False
+        # True when the stream was connected by tab visibility rather than by
+        # the user pressing the button. Only an automatic connection is taken
+        # down automatically again -- an explicit Connect is left alone.
+        self._auto_connected = False
+        self._seen_uids = []
 
     # --- Document routing ---
-    @staticmethod
-    def _make_adder(model, plan_names):
-        seen_uids = set()
+    def _factory(self, name, doc):
+        """RunRouter factory: build a cache only for runs we actually plot."""
+        models = self._models_by_plan_name.get(doc.get("plan_name"))
+        if not models:
+            return [], []
 
-        def add_run(run):
-            start = run.metadata.get("start") or {}
-            plan_name = start.get("plan_name")
-            if plan_names and plan_name not in plan_names:
-                return
-            uid = start.get("uid")
-            # bluesky-widgets' stream_documents_into_runs can deliver the same
-            # run twice (event_model.RunRouter >= 1.14 passes the 'start' doc to
-            # the factory callback a second time). Adding a run twice later
-            # crashes RunManager._cull_runs/_on_run_removed with a KeyError on
-            # the duplicate uid. Guard so each run is added at most once.
-            if uid is not None and uid in seen_uids:
-                return
-            seen_uids.add(uid)
-            model.add_run(run)
+        uid = doc.get("uid")
+        # bluesky-widgets' stream_documents_into_runs could deliver the same
+        # run twice (event_model.RunRouter >= 1.14 passes the 'start' doc to
+        # the factory callback a second time). Adding a run twice later
+        # crashes RunManager._cull_runs/_on_run_removed with a KeyError on the
+        # duplicate uid. Guard so each run is added at most once.
+        if uid is not None:
+            if uid in self._seen_uids:
+                return [], []
+            self._seen_uids.append(uid)
+            del self._seen_uids[:-_SEEN_UIDS_MAX]
 
-        return add_run
+        dc = DocumentCache()
+
+        def build_and_add_run(event):
+            run = BlueskyRun(dc)
+            for model in models:
+                model.add_run(run)
+
+        dc.events.started.connect(build_and_add_run)
+        return [dc], []
 
     # --- Stream connect / disconnect ---
-    def connect_stream(self):
-        """Start receiving documents from the 0MQ proxy."""
+    def connect_stream(self, *, auto=False):
+        """Start receiving documents from the 0MQ proxy.
+
+        ``auto=True`` marks the connection as made on the GUI's behalf (tab
+        became visible), so ``auto_disconnect_stream`` may undo it later.
+        """
         if self._connected:
+            # An explicit connect over an automatic one makes it explicit.
+            if not auto:
+                self._auto_connected = False
             return
         try:
-            self._dispatcher = RemoteDispatcher(self._addr)
-            for model, plan_names in self._models:
-                self._dispatcher.subscribe(
-                    stream_documents_into_runs(self._make_adder(model, plan_names))
-                )
+            self._dispatcher = BatchedRemoteDispatcher(self._addr)
+            self._dispatcher.subscribe(event_model.RunRouter([self._factory]))
             self._dispatcher.start()
         except Exception as ex:
             self._status_lbl.setText(f"stream error: {ex}")
@@ -152,6 +194,7 @@ class UsaxsPlots(QWidget):
             self._pb_connect.setChecked(False)
             return
         self._connected = True
+        self._auto_connected = auto
         self._pb_connect.setChecked(True)
         self._pb_connect.setText("Disconnect stream")
         self._status_lbl.setText(f"stream: connected ({self._addr})")
@@ -165,6 +208,7 @@ class UsaxsPlots(QWidget):
                 pass
             self._dispatcher = None
         self._connected = False
+        self._auto_connected = False
 
     def disconnect_stream(self):
         """Stop receiving documents. A fresh dispatcher is made on reconnect."""
@@ -172,6 +216,11 @@ class UsaxsPlots(QWidget):
         self._pb_connect.setChecked(False)
         self._pb_connect.setText("Connect stream")
         self._status_lbl.setText("stream: disconnected")
+
+    def auto_disconnect_stream(self):
+        """Disconnect only if the stream was connected automatically."""
+        if self._connected and self._auto_connected:
+            self.disconnect_stream()
 
     def _toggle_connect(self):
         if self._connected:
@@ -182,7 +231,7 @@ class UsaxsPlots(QWidget):
     # --- Clear ---
     def clear(self):
         """Discard all overlaid runs from every plot."""
-        for model, _ in self._models:
+        for model in self._models:
             for run in list(model._run_manager.runs):
                 model.discard_run(run)
 
