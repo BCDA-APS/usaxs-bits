@@ -76,6 +76,14 @@ DEFAULT_SESSION_NAME="bluesky_queueserver-${DATABROKER_CATALOG}"
 HTTP_SESSION_NAME="bluesky-httpserver-${DATABROKER_CATALOG}"
 PROXY_SESSION_NAME="bluesky-0MQ-proxy-${DATABROKER_CATALOG}"
 
+# Console logs.  Without these the services' output exists only in the screen
+# scrollback (5000 lines, gone when the session ends), so there is nothing to
+# read after the fact.  On 2026-10-25 the RE worker exited and left the manager
+# advertising an environment that no longer existed; what killed the worker
+# could not be determined, because nothing had been written down.
+# Set QSERVER_LOG_DIR to relocate, or to "none" to disable logging entirely.
+QS_LOG_DIR="${QSERVER_LOG_DIR:-/share1/log/qserver}"
+
 # Startup commands, all by absolute path (see the $PATH note above).
 STARTUP_COMMAND="${QS_PROCESS_PATH} --config=${QS_CONFIG_YML} --user-group-permissions=${QSERVER_DIR}/user_group_permissions.yaml --existing-plans-devices=${QSERVER_DIR}/existing_plans_and_devices.yaml"
 HTTP_STARTUP_COMMAND="${QS_PYTHON} -m uvicorn bluesky_httpserver.server:app --host ${HTTP_HOST} --port ${HTTP_PORT}"
@@ -226,6 +234,32 @@ function screenpid() {
     fi
 }
 
+# Emit the "screen" logging arguments for one service, rotating the previous
+# log aside first (screen itself never rotates).  Emits nothing -- so the
+# session simply starts unlogged -- if the log directory cannot be used: a
+# logging problem must never stop the beamline.  Warnings go to stderr so they
+# do not end up in the captured arguments.
+function screen_log_args() {
+    local name="$1"
+    if [ "$(echo "${QS_LOG_DIR}" | tr '[:upper:]' '[:lower:]')" == "none" ]; then
+        return 0
+    fi
+    if ! mkdir -p "${QS_LOG_DIR}" 2>/dev/null || [ ! -w "${QS_LOG_DIR}" ]; then
+        echo "WARNING: ${QS_LOG_DIR} unusable; ${name} will not be logged" >&2
+        return 0
+    fi
+    local f="${QS_LOG_DIR}/${name}.log"
+    [ -f "${f}.1" ] && mv -f "${f}.1" "${f}.2" 2>/dev/null
+    [ -f "${f}" ] && mv -f "${f}" "${f}.1" 2>/dev/null
+    echo "-L -Logfile ${f}"
+}
+
+# screen buffers its log for 10 s by default, which is exactly the window you
+# lose when a process dies.  Flush every second instead.
+function screen_log_flush() {
+    screen -S "$1" -X logfile flush 1 2>/dev/null || true
+}
+
 function start() {
     if checkpid; then
         echo -n "${SCREEN_SESSION} is already running (pid=${MY_PID})"
@@ -241,7 +275,8 @@ function start() {
         # "screen -dm" forks a real daemon, so the session survives this script
         # exiting.  The previous "screen -Dm ... &" left screen as a child of
         # this shell and tied its lifetime to the calling terminal.
-        screen -dmS "${SESSION_NAME}" -h 5000 ${STARTUP_COMMAND}
+        screen -dmS "${SESSION_NAME}" -h 5000 $(screen_log_args qserver) ${STARTUP_COMMAND}
+        screen_log_flush "${SESSION_NAME}"
 
         echo "Starting ${HTTP_SESSION_NAME} on ${HTTP_HOST}:${HTTP_PORT}"
         if [ "${HTTP_API_KEY}" == "test" ]; then
@@ -252,11 +287,13 @@ function start() {
         fi
         QSERVER_HTTP_SERVER_SINGLE_USER_API_KEY="${HTTP_API_KEY}" \
         QSERVER_ZMQ_CONTROL_ADDRESS="tcp://localhost:${ZMQ_CONTROL_PORT}" \
-        screen -dmS "${HTTP_SESSION_NAME}" -h 5000 ${HTTP_STARTUP_COMMAND}
+        screen -dmS "${HTTP_SESSION_NAME}" -h 5000 $(screen_log_args httpserver) ${HTTP_STARTUP_COMMAND}
+        screen_log_flush "${HTTP_SESSION_NAME}"
 
         if [ -x "${QS_ENV_BIN}/bluesky-0MQ-proxy" ]; then
             echo "Starting ${PROXY_SESSION_NAME} (${PROXY_IN_PORT} -> ${PROXY_OUT_PORT})"
-            screen -dmS "${PROXY_SESSION_NAME}" -h 5000 ${PROXY_STARTUP_COMMAND}
+            screen -dmS "${PROXY_SESSION_NAME}" -h 5000 $(screen_log_args zmq-proxy) ${PROXY_STARTUP_COMMAND}
+            screen_log_flush "${PROXY_SESSION_NAME}"
         else
             echo "bluesky-0MQ-proxy not found in ${QS_ENV_BIN}; GUI live plots will be unavailable"
         fi
