@@ -63,6 +63,15 @@ PLOT_COLORS = [
 # finished scans it is overlaid on (same convention as bluesky-widgets).
 LIVE_COLOR = "black"
 
+# Base text size, in points, for everything on a figure.  matplotlib's own
+# defaults (10 pt body, 12 pt title) are sized for a full-window figure; three
+# of these sit side by side in one tab, so the text crowded the axes and the
+# legend ran out of room.  Sizes are applied per figure rather than through
+# rcParams, which would leak into any other matplotlib use in the process.
+DEFAULT_FONT_SIZE = 8
+TITLE_FONT_OFFSET = 2  # title sits above the body size, as matplotlib does
+LEGEND_FONT_OFFSET = -1  # legend sits below it; it is the densest text here
+
 
 class _Trace:
     """One scan's points and the Line2D drawing them."""
@@ -91,26 +100,37 @@ class LivePlot(QWidget):
         Scans kept overlaid, oldest dropped first.
     """
 
-    def __init__(self, title, x_field, y_field, max_runs=5, parent=None):
+    def __init__(
+        self,
+        title,
+        x_field,
+        y_field,
+        max_runs=5,
+        font_size=DEFAULT_FONT_SIZE,
+        parent=None,
+    ):
         """Build the figure and its canvas."""
         super().__init__(parent)
         self.title = title
         self.x_field = x_field
         self.y_field = y_field
         self.max_runs = max_runs
+        self._font_size = font_size
 
         # Margins are set once rather than with tight_layout/constrained_layout,
         # which re-solve the layout on *every* draw: measured 66.8 ms per
         # repaint with tight_layout against 35.3 ms with fixed margins, for the
         # same five-curve figure. The axis labels here are short and known, so
-        # there is nothing for an auto-layout to earn.
+        # there is nothing for an auto-layout to earn. They are tuned for
+        # DEFAULT_FONT_SIZE; a much larger font_size may need more room.
         self._figure = Figure(figsize=(4, 3.2))
-        self._figure.subplots_adjust(left=0.18, right=0.97, top=0.92, bottom=0.15)
+        self._figure.subplots_adjust(left=0.16, right=0.97, top=0.91, bottom=0.14)
         self._canvas = FigureCanvasQTAgg(self._figure)
         self._axes = self._figure.add_subplot(111)
-        self._axes.set_title(title)
-        self._axes.set_xlabel(x_field)
-        self._axes.set_ylabel(y_field)
+        self._axes.set_title(title, fontsize=font_size + TITLE_FONT_OFFSET)
+        self._axes.set_xlabel(x_field, fontsize=font_size)
+        self._axes.set_ylabel(y_field, fontsize=font_size)
+        self._axes.tick_params(labelsize=font_size)
         self._axes.grid(True)
 
         layout = QVBoxLayout()
@@ -200,7 +220,17 @@ class LivePlot(QWidget):
             # legend() is relatively expensive and only changes when a trace is
             # added, removed or completed -- not when a point arrives.
             if self._traces:
-                self._axes.legend(loc=1, fontsize="small")
+                # Compact spacing as well as a smaller size: five overlaid
+                # scans put five "#1522 09:37:26" rows in the corner of a
+                # quarter-width figure.
+                self._axes.legend(
+                    loc=1,
+                    fontsize=self._font_size + LEGEND_FONT_OFFSET,
+                    labelspacing=0.3,
+                    handlelength=1.2,
+                    borderpad=0.3,
+                    framealpha=0.8,
+                )
             elif self._axes.get_legend() is not None:
                 self._axes.get_legend().remove()
             self._legend_dirty = False

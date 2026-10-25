@@ -48,6 +48,7 @@ from qtpy.QtWidgets import QTabWidget
 from qtpy.QtWidgets import QVBoxLayout
 from qtpy.QtWidgets import QWidget
 
+from .live_lines import DEFAULT_FONT_SIZE
 from .live_lines import REDRAW_INTERVAL_MS
 from .live_lines import LivePlot
 from .live_lines import RunCollector
@@ -72,7 +73,14 @@ _SEEN_UIDS_MAX = 512
 class UsaxsPlots(QWidget):
     """Live-plot panel: tabbed figure groups fed by a 0MQ document stream."""
 
-    def __init__(self, plot_config, zmq_proxy_info_addr, *args, **kwargs):
+    def __init__(
+        self,
+        plot_config,
+        zmq_proxy_info_addr,
+        font_size=DEFAULT_FONT_SIZE,
+        *args,
+        **kwargs,
+    ):
         """Build the LivePlots from ``plot_config`` and wire the dispatcher.
 
         Parameters
@@ -82,6 +90,8 @@ class UsaxsPlots(QWidget):
             ``plan_names`` (set/iterable), and optional ``max_runs``.
         zmq_proxy_info_addr : str
             Address of the 0MQ proxy PUB socket, e.g. ``"localhost:5568"``.
+        font_size : int
+            Base text size on the figures (see ``live_lines``).
         """
         super().__init__(*args, **kwargs)
 
@@ -106,6 +116,7 @@ class UsaxsPlots(QWidget):
                 x_field=cfg["x"],
                 y_field=ys[0],
                 max_runs=cfg.get("max_runs", 5),
+                font_size=font_size,
             )
             plot.setMinimumWidth(_CANVAS_MIN_WIDTH)
             plots_by_title[cfg["title"]] = plot

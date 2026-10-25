@@ -58,6 +58,12 @@ class Settings:
     # the full history either way.
     history_max_rows = 200
 
+    # Base text size (points) on the tune plots: axis labels and tick labels
+    # at this size, the title 2 pt above it, the legend 1 pt below. Three plots
+    # share a tab, so matplotlib's own defaults (10 pt body, 12 pt title) are
+    # too big to fit.
+    plot_font_size = 8
+
     # One line-plot per tune type. Each run is routed to the first config whose
     # ``plan_names`` contains the run's start-doc ``plan_name``; ``max_runs``
     # keeps the last N scans overlaid (FIFO).

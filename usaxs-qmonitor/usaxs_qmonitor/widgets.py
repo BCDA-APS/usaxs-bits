@@ -112,7 +112,11 @@ class QtRunEngineManager_LiveView(QWidget):
         splitter = QSplitter(Qt.Vertical)
 
         # Live tune/alignment plots (BatchedRemoteDispatcher -> Lines -> QtFigures).
-        self._plots = UsaxsPlots(SETTINGS.plot_config, SETTINGS.zmq_proxy_info_addr)
+        self._plots = UsaxsPlots(
+            SETTINGS.plot_config,
+            SETTINGS.zmq_proxy_info_addr,
+            font_size=SETTINGS.plot_font_size,
+        )
         splitter.addWidget(self._plots)
 
         # Console / terminal view of the running Bluesky session.
