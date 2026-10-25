@@ -99,9 +99,26 @@ OPHYD:
     CONTROL_LAYER: PyEpics
 
     ### default timeouts (seconds)
+    ###
+    ### PV_WRITE is deliberately NOT the same as the other two.  It becomes
+    ### ophyd's `write_timeout`, the budget for `obj.set(value)` to see the
+    ### readback reach the value -- i.e. for a whole hardware action, not for
+    ### a CA round trip.  (ophyd's own default is None, "wait forever"; the
+    ### apsbits demo config shares one 5 s anchor across all three, which is
+    ### where this file got it.)  Note `bps.mv(..., timeout=MASTER_TIMEOUT)`
+    ### does NOT raise it: bluesky's `mv` spends its `timeout` on the group
+    ### `wait` message and never passes it to `obj.set()`, so this value is
+    ### the one that actually decides when a write fails.
+    ###
+    ### At 5 s, one transient stall on one PV becomes a FailedStatus that
+    ### aborts the running command list.  That happened on 2026-10-25: after
+    ### a beam-loss rewind, `Acquire = 0` on usxFX4 reached the IOC -- which
+    ### stopped in 11 ms, by its own record timestamps -- but ophyd's
+    ### readback poll did not confirm it within 5 s, and a 13-hour command
+    ### list stopped on the first message it replayed.
     TIMEOUTS:
         PV_READ: &TIMEOUT 5
-        PV_WRITE: *TIMEOUT
+        PV_WRITE: 60
         PV_CONNECTION: *TIMEOUT
 
 # Control detail of exception traces in IPython (console and notebook).

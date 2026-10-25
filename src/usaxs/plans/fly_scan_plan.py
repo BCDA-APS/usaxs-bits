@@ -658,3 +658,12 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
 
     yield from user_data.set_state_plan("fly scan finished")
     yield from bps.close_run()
+
+    # Close the rewind boundary opened above.  The RunEngine's message cache
+    # survives close_run, so without this a suspension in whatever runs next
+    # would rewind into this finished scan: the replay re-arms the busy record
+    # (restarting the AR sweep against a reconfigured instrument) and then
+    # replays the closing baseline `create` with no run open, which raises
+    # IllegalMessageSequence.  Observed 2026-10-24, during the mode_SAXS at
+    # the start of the following saxsExp.
+    yield from bps.checkpoint()

@@ -8,6 +8,7 @@ used at 12-ID-E.
 
 import logging
 import math
+import sys
 from collections import OrderedDict
 
 from apsbits.core.instrument_init import oregistry
@@ -61,8 +62,18 @@ def _set_bec_plots(enabled: bool) -> None:
     plot anyway, so suppress it and keep the LiveTable, which is the part
     with diagnostic value.
 
-    Imported lazily: ``usaxs.startup`` builds ``bec`` and nothing under
-    ``src/usaxs`` may import it at module scope (see CLAUDE.md).
+    ``bec`` is looked up in the ``__main__`` namespace, **not** imported from
+    ``usaxs.startup``.  A lazy ``from usaxs.startup import bec`` inside a
+    function looks safe and is not: the queueserver worker runs the startup
+    code as ``'__main__'`` and then drops its modules from ``sys.modules``,
+    so that import re-executes the whole of ``startup.py`` -- inside the
+    running RunEngine loop.  On 2026-10-25 that fired on the first step scan
+    of a session: ``oregistry.clear()`` ran, every ``make_devices`` then died
+    with "asyncio.run() cannot be called from a running event loop", and the
+    worker was left with an empty device registry mid-scan.
+    ``sys.modules['__main__']`` holds the live objects in both the worker and
+    the IPython console -- the same approach as ``utils.fx4_channels`` and
+    ``utils.scalers_setup``.
 
     Parameters
     ----------
@@ -70,7 +81,7 @@ def _set_bec_plots(enabled: bool) -> None:
         True to re-enable plots, False to suppress them.
     """
     try:
-        from usaxs.startup import bec
+        bec = getattr(sys.modules["__main__"], "bec", None)
 
         if bec is None:
             return

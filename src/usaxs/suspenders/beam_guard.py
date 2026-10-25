@@ -49,11 +49,17 @@ operations whenever there is no beam.
 Do not nest guarded plans.  Installing the same suspender twice and then
 removing it once leaves the outer scope unguarded, because the inner
 ``remove_suspender`` discards it from ``RE._suspenders``.
+
+Rewind boundary
+---------------
+The wrapper also opens each guarded plan with a ``checkpoint``; see
+:func:`beam_guarded` for why.
 """
 
 import functools
 import logging
 
+from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 
 logger = logging.getLogger(__name__)
@@ -90,6 +96,23 @@ def beam_guarded(plan_func):
     decorated, so this works at module-import time before the suspenders
     exist.  If none are registered the plan runs unguarded.
 
+    The plan is preceded by a ``checkpoint``, which bounds how far back a
+    beam-loss resume can replay.  On suspension the RunEngine rewinds to the
+    last checkpoint and replays every message cached since then
+    (``run_engine.py: _rewind``).  That cache is *not* cleared when a run
+    closes, so without a boundary here the cache can span a run boundary: on
+    2026-10-24 a suspension during ``mode_SAXS`` at the start of ``saxsExp``
+    rewound to the checkpoint inside the *previous*, already-closed fly scan.
+    The replay re-armed the busy record -- restarting the AR sweep with the
+    USAXS stages already retracted -- and then hit the closing baseline
+    ``create`` with no run open (``open_run``/``close_run`` are in
+    ``_UNCACHEABLE_COMMANDS``, so they are never replayed), aborting a
+    13-hour series with ``IllegalMessageSequence``.
+
+    Every guarded plan therefore starts its own rewind boundary.  A
+    ``checkpoint`` is only illegal between ``create`` and ``save``; guarded
+    plans are always entered outside a bundle.
+
     Parameters
     ----------
     plan_func : callable
@@ -106,6 +129,9 @@ def beam_guarded(plan_func):
     @functools.wraps(plan_func)
     def wrapper(*args, **kwargs):
         inner = plan_func(*args, **kwargs)
+        # Discard any message cache left over from the previous plan, so a
+        # rewind can never replay across a closed run.
+        yield from bps.checkpoint()
         if not _beam_suspenders:
             logger.debug(
                 "Beam guard not armed; %s runs unguarded.", plan_func.__name__

@@ -94,12 +94,20 @@ class UsaxsFlyScanDevice(Device):
     # busy-record Status timeout (fly_scan_plan.py).  That Status is wall-clock
     # and keeps ticking while the RunEngine is suspended, so this value used to
     # have to exceed the longest tolerable beam outage -- hence the old 120 s.
-    # The suspenders now abort the trajectory on beam loss
+    # The suspenders abort the trajectory on beam loss
     # (suspenders.abort_flyscan_if_flying), which closes the Status immediately
-    # instead of letting it age out, so outage length no longer matters and this
-    # only has to cover trajectory jitter.  Do NOT raise this back without also
-    # keeping that abort in place.
-    timeout_s = 15
+    # instead of letting it age out, so outage length no longer matters.
+    #
+    # It does NOT only have to cover trajectory jitter, though -- that was the
+    # reasoning when this was cut to 15, and it is wrong for the *replayed*
+    # sweep after a suspension.  The budget starts when the busy record is
+    # armed, and the IOC's scanSseq then rebuilds the trajectory and taxis AR,
+    # AX and DX to its first point before any of the sweep happens.  On
+    # 2026-10-25 a replayed sweep sat 65 s before moving and then ran its full
+    # 90 s, so the Status died at 105 s with the scan three-quarters done and
+    # took the command list with it.  The padding has to cover rebuild + taxi,
+    # not just jitter.  Keep the beam-loss abort in place regardless.
+    timeout_s = 90
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

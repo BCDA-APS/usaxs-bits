@@ -14,7 +14,8 @@ suspenders and decide how to install them.
     - ``suspend_BeamInHutch`` : suspends when the beam-in-hutch check signal
       goes low.
     - ``suspend_white_beam_ready`` : suspends on an APS ring dump and waits
-      100 s after beam returns so mono feedback can recover.
+      100 s after beam returns, in its ``post_plan``, so mono feedback can
+      recover.
 
 ``suspender_in_sim()``
     Dummy suspenders backed by a software ``Signal`` that is never triggered.
@@ -50,10 +51,10 @@ def suspender_in_operations():
         low — FE shutter open AND ring current above threshold (with hysteresis)
         AND energy sane, so it is a better ring-dump signal than the raw
         A-shutter bit.  Runs ``mono_beam_lost_plan`` before pausing and
-        ``mono_beam_just_came_back_but_after_sleep_plan`` after a 100-second
-        sleep once beam returns, giving mono feedback time to recover.  This is
-        the *only* suspender with a settle delay; the other two resume
-        immediately (``sleep=0``).
+        ``mono_beam_just_came_back_but_after_sleep_plan`` once beam returns;
+        that plan opens with a 100-second sleep, giving mono feedback time to
+        recover.  This is the *only* suspender with a settle delay; the other
+        two resume immediately.
 
     ``suspend_FE_shutter``
         Suspends when ``FE_shutter.pss_state`` drops below 1 (A-shutter
@@ -72,10 +73,16 @@ def suspender_in_operations():
         ``(suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready)``
     """
     fb = FeedbackHandlingDuringSuspension()
+    # sleep=0 on purpose: the 100 s mono settle is the first thing
+    # ``mono_beam_just_came_back_but_after_sleep_plan`` does.  A ``sleep=``
+    # delay here gates the suspender's future, and the RunEngine stops
+    # awaiting that future as soon as a second suspender trips -- so the
+    # settle was silently skipped whenever a ring dump also closed the FE
+    # shutter.  See that method's docstring.
     suspend_white_beam_ready = bluesky.suspenders.SuspendBoolLow(
         white_beam_ready.available,
         pre_plan=fb.mono_beam_lost_plan,
-        sleep=100,  # RE sleeps _before_ calling post_plan
+        sleep=0,
         post_plan=fb.mono_beam_just_came_back_but_after_sleep_plan,
     )
 
