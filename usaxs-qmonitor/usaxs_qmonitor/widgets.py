@@ -18,8 +18,6 @@ A connection the *user* made with the "Connect stream" button is never taken
 down automatically.
 """
 
-from bluesky_widgets.qt.run_engine_client import QtReEnvironmentControls
-from bluesky_widgets.qt.run_engine_client import QtReExecutionControls
 from bluesky_widgets.qt.run_engine_client import QtReManagerConnection
 from bluesky_widgets.qt.run_engine_client import QtRePlanEditor
 from bluesky_widgets.qt.run_engine_client import QtRePlanQueue
@@ -34,6 +32,8 @@ from qtpy.QtWidgets import QVBoxLayout
 from qtpy.QtWidgets import QWidget
 
 from .console_monitor import UsaxsConsoleMonitor
+from .environment_controls import QtUsaxsEnvironmentControls
+from .execution_controls import QtUsaxsExecutionControls
 from .functions import QtUsaxsActionBar
 from .plan_history import QtRePlanHistoryReversed
 from .plots import UsaxsPlots
@@ -53,9 +53,9 @@ class QtRunEngineManager_Control(QWidget):
         # --- Top control row ---
         hbox = QHBoxLayout()
         hbox.addWidget(QtReManagerConnection(model))
-        hbox.addWidget(QtReEnvironmentControls(model))
+        hbox.addWidget(QtUsaxsEnvironmentControls(model))
         hbox.addWidget(QtReQueueControls(model))
-        hbox.addWidget(QtReExecutionControls(model))
+        hbox.addWidget(QtUsaxsExecutionControls(model))
         hbox.addWidget(QtReStatusMonitor(model))
         hbox.addStretch()
         vbox.addLayout(hbox)
