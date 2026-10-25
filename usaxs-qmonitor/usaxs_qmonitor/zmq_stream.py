@@ -31,8 +31,9 @@ lag at the beamline:
 - the loop exits on ``stop()`` and closes the socket and context on its way out.
 """
 
+import logging
 import pickle
-import time
+from threading import Event as ThreadEvent
 from threading import Lock
 
 import zmq
@@ -41,6 +42,8 @@ from bluesky.run_engine import DocumentNames
 from bluesky_widgets.qt.threading import create_worker
 from qtpy.QtCore import QObject
 from qtpy.QtCore import QTimer
+
+logger = logging.getLogger(__name__)
 
 # How long the worker sleeps when the socket has nothing for it.  Larger than
 # upstream's 10 ms because an empty poll no longer wakes the main thread, so
@@ -56,6 +59,10 @@ MAX_IN_FLIGHT = 4
 
 # How long the worker waits before re-checking the in-flight count.
 BACKPRESSURE_SLEEP = 0.02  # sec
+
+# Upper bound on how long stop() waits for the worker to unwind. Normally the
+# wait is sub-millisecond; this only bounds a pathological case.
+STOP_TIMEOUT = 1.0  # sec
 
 
 class BatchedRemoteDispatcher(QObject):
@@ -107,6 +114,15 @@ class BatchedRemoteDispatcher(QObject):
         self._waiting_for_start = True
         self._worker = None
 
+        # Shutdown handshake. The worker waits on _stop_event instead of
+        # sleeping, so stop() interrupts it immediately rather than after a
+        # full IDLE_SLEEP, and sets _finished on its way out so stop() can
+        # confirm the thread is really gone before returning. Without this the
+        # worker can outlive the QApplication and emit on Qt signal objects
+        # that have already been deleted.
+        self._stop_event = ThreadEvent()
+        self._finished = ThreadEvent()
+
         # Back-pressure bookkeeping, written from both threads.
         self._lock = Lock()
         self._in_flight = 0
@@ -148,14 +164,14 @@ class BatchedRemoteDispatcher(QObject):
                 if saturated:
                     # Main thread is behind. Stop reading so the backlog stays
                     # in the 0MQ buffer rather than in Qt's event queue.
-                    time.sleep(BACKPRESSURE_SLEEP)
+                    self._stop_event.wait(BACKPRESSURE_SLEEP)
                     continue
 
                 batch = self._recv_batch()
                 if not batch:
-                    # Nothing to do: sleep *without* yielding, so an idle
+                    # Nothing to do: wait *without* yielding, so an idle
                     # beamline does not wake the main thread at all.
-                    time.sleep(IDLE_SLEEP)
+                    self._stop_event.wait(IDLE_SLEEP)
                     continue
 
                 with self._lock:
@@ -163,6 +179,7 @@ class BatchedRemoteDispatcher(QObject):
                 yield batch
         finally:
             self._close_socket()
+            self._finished.set()
 
     def _close_socket(self):
         """Release the socket and context (called from the worker thread)."""
@@ -216,13 +233,30 @@ class BatchedRemoteDispatcher(QObject):
                 self._in_flight = max(0, self._in_flight - 1)
 
     def stop(self):
-        """Stop the worker; its socket and context are closed as it unwinds.
+        """Stop the worker and wait for it to release its socket.
 
-        The generator exits on its own within ``IDLE_SLEEP`` once ``closed`` is
-        set, which runs its ``finally`` and releases the socket.  ``worker.quit()``
-        is deliberately *not* used: ``GeneratorWorker.work()`` breaks out of its
-        loop on abort without closing the generator, so the cleanup would be
-        deferred to garbage collection.
+        The generator exits as soon as ``_stop_event`` is set, which runs its
+        ``finally`` and closes the socket.  ``worker.quit()`` is deliberately
+        *not* used: ``GeneratorWorker.work()`` breaks out of its loop on abort
+        without closing the generator, so the cleanup would be deferred to
+        garbage collection.
+
+        The short wait makes shutdown deterministic -- it normally returns in
+        well under a millisecond, because the worker is waiting on the same
+        event rather than sleeping.
         """
         self.closed = True
+        self._stop_event.set()
+        worker = self._worker
         self._worker = None
+        if worker is not None:
+            if not self._finished.wait(STOP_TIMEOUT):
+                logger.warning(
+                    "0MQ receive worker for %s did not stop within %.1f s",
+                    self.address,
+                    STOP_TIMEOUT,
+                )
+            try:
+                worker.yielded.disconnect()
+            except (TypeError, RuntimeError):
+                pass

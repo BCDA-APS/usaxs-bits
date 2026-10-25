@@ -7,38 +7,40 @@ Documents flow from the headless RE Worker to this GUI over the network:
         -> bluesky-0MQ-proxy 5567 5568
         -> BatchedRemoteDispatcher("localhost:5568")   (here)
         -> one RunRouter, filtering on the 'start' document
-        -> Lines(x, ys, max_runs=N)                    (one model per tune type)
-        -> QtFigure, grouped into tabs below
+        -> RunCollector                                (one per plotted run)
+        -> LivePlot                                    (one per tune type)
 
-Each incoming run is routed to the ``Lines`` models whose ``plan_names``
-contains the run's start-doc ``plan_name`` (see ``settings.plot_config``).
-``max_runs`` keeps the last N scans overlaid; "Clear plots" drops them all.
+Each incoming run is routed to the ``LivePlot``s whose ``plan_names`` contains
+the run's start-doc ``plan_name`` (see ``settings.plot_config``).  ``max_runs``
+keeps the last N scans overlaid; "Clear plots" drops them all.
 
 Plots are grouped into tabs by beamline sub-system (``PLOT_GROUPS``) with every
 plot in a tab shown side by side, so users can compare related tunes at a
-glance instead of clicking through one tab per plot (``QtFigures``' default).
+glance instead of clicking through one tab per plot.
 
 Performance note
 ----------------
 ``RE.subscribe(Publisher(...))`` publishes **every** document of **every** plan
 — step scans, fly scans, SAXS/WAXS exposures, and the baseline stream with its
-several hundred signals — not just the five tune plans drawn here.  The GUI
-therefore has to be cheap about everything it does not plot:
+several hundred signals — not just the five tune plans drawn here.  Everything
+below happens on the Qt main thread, so the panel is built around spending as
+little of it as possible:
 
-- There is **one** subscription and one ``RunRouter``.  The previous code
-  subscribed ``stream_documents_into_runs`` once per plot model, so five
-  independent ``DocumentCache``/``BlueskyRun`` objects were built, in the Qt
-  main thread, for every run on the beamline.
+- There is **one** subscription and one ``RunRouter``.  Earlier code subscribed
+  ``stream_documents_into_runs`` once per plot model, so five independent
+  ``DocumentCache``/``BlueskyRun`` objects were built for every run on the
+  beamline.
 - The ``plan_name`` filter is applied in the **factory**, i.e. on the 'start'
-  document.  A run nobody plots gets no cache and no further per-document work
-  at all.  (It used to be filtered only after the run object had been built.)
+  document.  A run nobody plots costs one dict lookup and nothing else.
+- Plotted runs accumulate their points directly from the event documents (see
+  ``live_lines``), instead of re-deriving them from an xarray Dataset of all 84
+  columns on every point.
+- Repainting is driven by a timer here, not by document arrival, so a burst of
+  documents costs one repaint rather than one per point.
 """
 
 import event_model
-from bluesky_live.bluesky_run import BlueskyRun
-from bluesky_live.bluesky_run import DocumentCache
-from bluesky_widgets.models.plot_builders import Lines
-from bluesky_widgets.qt.figures import QtFigure
+from qtpy.QtCore import QTimer
 from qtpy.QtWidgets import QHBoxLayout
 from qtpy.QtWidgets import QLabel
 from qtpy.QtWidgets import QPushButton
@@ -46,6 +48,10 @@ from qtpy.QtWidgets import QTabWidget
 from qtpy.QtWidgets import QVBoxLayout
 from qtpy.QtWidgets import QWidget
 
+from .live_lines import REDRAW_INTERVAL_MS
+from .live_lines import LivePlot
+from .live_lines import RunCollector
+from .live_lines import run_label
 from .zmq_stream import BatchedRemoteDispatcher
 
 # Tab title -> plot_config titles shown side by side in that tab, in this order.
@@ -54,8 +60,7 @@ PLOT_GROUPS = [
     ("Diode", ["tune_dx", "tune_dy"]),
 ]
 
-# QtFigure hardcodes a 640px minimum canvas width; too wide to show three
-# plots side by side on a normal screen, so shrink it here.
+# Enough width for three plots side by side on a normal screen.
 _CANVAS_MIN_WIDTH = 380
 
 # Cap on the remembered run uids used to reject duplicate 'start' deliveries.
@@ -65,10 +70,10 @@ _SEEN_UIDS_MAX = 512
 
 
 class UsaxsPlots(QWidget):
-    """Live-plot panel: tabbed QtFigure groups fed by a 0MQ document stream."""
+    """Live-plot panel: tabbed figure groups fed by a 0MQ document stream."""
 
     def __init__(self, plot_config, zmq_proxy_info_addr, *args, **kwargs):
-        """Build Lines models from ``plot_config`` and wire the dispatcher.
+        """Build the LivePlots from ``plot_config`` and wire the dispatcher.
 
         Parameters
         ----------
@@ -82,17 +87,31 @@ class UsaxsPlots(QWidget):
 
         self._addr = zmq_proxy_info_addr
 
-        # plan_name -> [Lines, ...]. A plan name absent from this map is
+        # plan_name -> [LivePlot, ...]. A plan name absent from this map is
         # dropped on its 'start' document and costs nothing thereafter.
-        self._models_by_plan_name = {}
-        lines_by_title = {}
+        self._plots_by_plan_name = {}
+        plots_by_title = {}
         for cfg in plot_config:
-            lines = Lines(cfg["x"], list(cfg["ys"]), max_runs=cfg.get("max_runs", 5))
-            lines.figure.title = cfg["title"]
-            lines_by_title[cfg["title"]] = lines
+            ys = list(cfg["ys"])
+            if len(ys) != 1:
+                # One y per plot is all the tune configs use, and all a single
+                # Line2D per run can draw. Extra entries would be dropped
+                # silently, so say so instead.
+                raise ValueError(
+                    f"plot_config {cfg['title']!r}: expected exactly one y "
+                    f"field, got {ys!r}"
+                )
+            plot = LivePlot(
+                title=cfg["title"],
+                x_field=cfg["x"],
+                y_field=ys[0],
+                max_runs=cfg.get("max_runs", 5),
+            )
+            plot.setMinimumWidth(_CANVAS_MIN_WIDTH)
+            plots_by_title[cfg["title"]] = plot
             for plan_name in cfg.get("plan_names") or ():
-                self._models_by_plan_name.setdefault(plan_name, []).append(lines)
-        self._models = list(lines_by_title.values())
+                self._plots_by_plan_name.setdefault(plan_name, []).append(plot)
+        self._plots = list(plots_by_title.values())
 
         self._qt_figures = QTabWidget()
         for tab_title, plot_titles in PLOT_GROUPS:
@@ -100,9 +119,7 @@ class UsaxsPlots(QWidget):
             page_hbox = QHBoxLayout()
             page_hbox.setContentsMargins(0, 0, 0, 0)
             for plot_title in plot_titles:
-                qt_figure = QtFigure(lines_by_title[plot_title].figure)
-                qt_figure.figure.canvas.setMinimumWidth(_CANVAS_MIN_WIDTH)
-                page_hbox.addWidget(qt_figure)
+                page_hbox.addWidget(plots_by_title[plot_title])
             page.setLayout(page_hbox)
             self._qt_figures.addTab(page, tab_title)
 
@@ -143,34 +160,41 @@ class UsaxsPlots(QWidget):
         self._auto_connected = False
         self._seen_uids = []
 
+        # Repainting is driven from here rather than from document arrival, so
+        # a burst of documents costs one repaint instead of one per point. The
+        # timer only runs while the stream is connected: nothing can become
+        # dirty otherwise, and a disconnected panel should cost nothing.
+        self._redraw_timer = QTimer(self)
+        self._redraw_timer.setInterval(REDRAW_INTERVAL_MS)
+        self._redraw_timer.timeout.connect(self._redraw_tick)
+
     # --- Document routing ---
     def _factory(self, name, doc):
-        """RunRouter factory: build a cache only for runs we actually plot."""
-        models = self._models_by_plan_name.get(doc.get("plan_name"))
-        if not models:
+        """RunRouter factory: collect points only for runs we actually plot."""
+        plots = self._plots_by_plan_name.get(doc.get("plan_name"))
+        if not plots:
             return [], []
 
         uid = doc.get("uid")
-        # bluesky-widgets' stream_documents_into_runs could deliver the same
-        # run twice (event_model.RunRouter >= 1.14 passes the 'start' doc to
-        # the factory callback a second time). Adding a run twice later
-        # crashes RunManager._cull_runs/_on_run_removed with a KeyError on the
-        # duplicate uid. Guard so each run is added at most once.
+        # event_model.RunRouter >= 1.14 can deliver the same run's 'start' to a
+        # factory twice; starting a run twice would orphan the first trace.
         if uid is not None:
             if uid in self._seen_uids:
                 return [], []
             self._seen_uids.append(uid)
             del self._seen_uids[:-_SEEN_UIDS_MAX]
 
-        dc = DocumentCache()
+        return [RunCollector(uid, run_label(doc), plots)], []
 
-        def build_and_add_run(event):
-            run = BlueskyRun(dc)
-            for model in models:
-                model.add_run(run)
-
-        dc.events.started.connect(build_and_add_run)
-        return [dc], []
+    # --- Drawing ---
+    def _redraw_tick(self):
+        """Repaint any plot with new data that is currently on screen."""
+        warning = ""
+        for plot in self._plots:
+            plot.redraw_if_needed()
+            warning = warning or plot.last_warning
+        if warning and self._connected:
+            self._status_lbl.setText(warning)
 
     # --- Stream connect / disconnect ---
     def connect_stream(self, *, auto=False):
@@ -195,6 +219,7 @@ class UsaxsPlots(QWidget):
             return
         self._connected = True
         self._auto_connected = auto
+        self._redraw_timer.start()
         self._pb_connect.setChecked(True)
         self._pb_connect.setText("Disconnect stream")
         self._status_lbl.setText(f"stream: connected ({self._addr})")
@@ -207,12 +232,17 @@ class UsaxsPlots(QWidget):
             except Exception:
                 pass
             self._dispatcher = None
+        self._redraw_timer.stop()
         self._connected = False
         self._auto_connected = False
 
     def disconnect_stream(self):
         """Stop receiving documents. A fresh dispatcher is made on reconnect."""
         self._stop_dispatcher()
+        # Flush whatever arrived since the last tick so the plots are not left
+        # one repaint behind.
+        for plot in self._plots:
+            plot.redraw_if_needed()
         self._pb_connect.setChecked(False)
         self._pb_connect.setText("Connect stream")
         self._status_lbl.setText("stream: disconnected")
@@ -231,14 +261,16 @@ class UsaxsPlots(QWidget):
     # --- Clear ---
     def clear(self):
         """Discard all overlaid runs from every plot."""
-        for model in self._models:
-            for run in list(model._run_manager.runs):
-                model.discard_run(run)
+        for plot in self._plots:
+            plot.clear()
+        if self._connected:
+            self._status_lbl.setText(f"stream: connected ({self._addr})")
 
     def stop(self):
         """Release background workers (call on application shutdown).
 
-        Only stops the dispatcher; does not touch Qt widgets, which may already
-        be deleted during application teardown.
+        Only stops the dispatcher and the repaint timer; does not touch Qt
+        widgets, which may already be deleted during application teardown.
         """
+        self._redraw_timer.stop()
         self._stop_dispatcher()

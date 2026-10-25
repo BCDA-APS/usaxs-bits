@@ -56,7 +56,7 @@ Pressing "Connect stream" by hand pins the connection: tab changes will not
 drop a stream the user asked for. The server keeps the full plan history
 regardless of `history_max_rows`; use "Save Plan History" for the whole record.
 
-Two modules exist only to keep this cost down, and each explains the upstream
+Three modules exist only to keep this cost down, and each explains the upstream
 behaviour it replaces in its docstring:
 
 - `zmq_stream.py` — `BatchedRemoteDispatcher`. Upstream's `RemoteDispatcher`
@@ -64,8 +64,28 @@ behaviour it replaces in its docstring:
   back-pressure, wakes the main thread every 10 ms even when idle, and never
   stops its receive thread. This one batches, idles silently, applies
   back-pressure, and shuts down cleanly.
+- `live_lines.py` — `LivePlot` / `RunCollector`, replacing bluesky-widgets'
+  `Lines` + `QtFigure`. The upstream models re-derive a line's data from an
+  xarray Dataset of *every* column of the stream, twice, on every new point.
+  These accumulate x/y straight from the event documents and repaint on a
+  timer instead.
 - `console_monitor.py` — smaller console scrollback, including the cap that
   upstream raises to 10100 lines as soon as autoscroll is switched off.
 
 `plots.py` uses a single subscription with one `RunRouter`, and filters on the
 `start` document, so a run nobody plots costs nothing beyond its 'start'.
+
+Measured on one real `tune_ar` (84 columns × 31 points, the whole FX4 is read
+at every point), main-thread time for the whole scan:
+
+| | per point | per scan |
+| --- | --- | --- |
+| bluesky-widgets `Lines` + `QtFigure` | 393 ms | 12.18 s |
+| `LivePlot`, document handling | 0.3 ms | 0.01 s |
+| `LivePlot`, matplotlib repaint | 40 ms | 1.23 s |
+
+Against a point budget of roughly 800 ms that is a drop from ~50 % of the main
+thread to ~5 %. matplotlib is now the whole remaining cost; if it ever needs to
+go lower, the renderer is the thing to replace (pyqtgraph measured 0.2 ms per
+repaint against matplotlib's 29–40 ms), but that is a new dependency and buys
+nothing until the data path is fixed first — which is what this is.
