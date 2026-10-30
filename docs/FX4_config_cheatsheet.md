@@ -260,6 +260,7 @@ the *max current*, the opposite sense from the SNL's own debug strings.
 | Tune (`tune_ar`, `tune_a2rp`, `tune_dx`, `tune_dy`, guard slits) | `automatic` | `Increase` on **UPD** | `autorange_hold_for_peak(upd_controls)` |
 | `tune_mr` — fitted on I0 | `automatic` | `Increase` on **I0** | `autorange_hold_for_peak(I0_controls)` |
 | Wide search (`find_ar`, `find_a2rp`, first half) | `automatic` | `Both` | `enable_fx4_autorange(upd_controls, …, Both)` |
+| Wide search (`find_mr`, first half — fitted on I0) | `automatic` | `Both` | `enable_fx4_autorange(I0_controls, …, Both)` |
 | Transmission, after the autoscale | `automatic` | `Increase` | `_hold_transmission_ranges()` |
 | Dark-current sweep | `manual` | *(not consulted)* | `measure_background` |
 

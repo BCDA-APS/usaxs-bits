@@ -23,5 +23,11 @@ Every template carries the same mandatory structure:
 5. `before_command_list()` / `after_command_list()`, both gated on `isDebugMode`
 6. `appendToMdFile()` at start and end — never inside the collection loop
 
+`USAXSscan`, `saxsExp` and `waxsExp` carry `@obsidian_logged` and write their
+own Obsidian start/completion entries, whatever launched them. Item 4 still
+applies — `recordFunctionRun()` records *your* plan's arguments, which the
+per-scan entries do not — but item 6 should record the loop structure
+(temperature steps, positions, holds), not repeat what each scan already logs.
+
 Older, thinner variants of the Linkam and PTC10 templates remain in
 `src/usaxs/user/` (`linkam_template.py`, `ptc10_planG.py`) for reference only.

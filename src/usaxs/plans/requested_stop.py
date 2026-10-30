@@ -88,7 +88,10 @@ def IfRequestedStopBeforeNextScan():
         # record for Obsidian
         recordUserAbort()
 
-        raise RequestAbort(msg)  # long exception trace?
+        # The RunEngine logs this with a full traceback at ERROR; a filter
+        # installed by usaxs.utils.quiet_abort reduces it to one INFO line,
+        # because a user-requested stop is not a failure.
+        raise RequestAbort(msg)
 
     if open_the_shutter:
         yield from bps.mv(mono_shutter, "open")  # waits until complete

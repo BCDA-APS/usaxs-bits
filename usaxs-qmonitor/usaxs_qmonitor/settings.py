@@ -85,7 +85,7 @@ class Settings:
             "title": "tune_mr",
             "x": "m_stage_r",
             "ys": ["I0"],
-            "plan_names": {"tune_mr"},
+            "plan_names": {"tune_mr", "find_mr"},
             "max_runs": 5,
         },
         {

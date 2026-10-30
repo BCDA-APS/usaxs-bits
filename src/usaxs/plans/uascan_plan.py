@@ -53,6 +53,27 @@ user_data = oregistry["user_data"]
 logger = logging.getLogger(__name__)
 
 
+def _bec_plots_enabled() -> bool:
+    """Report whether BestEffortCallback is currently drawing LivePlots.
+
+    Read before suppressing the plots so they can be put back the way they
+    were instead of switched on.  Under the queueserver they start *off* --
+    ``apsbits.core.best_effort_init`` calls ``bec.disable_plots()`` whenever
+    ``running_in_queueserver()`` -- and the GUI draws the tunes itself from
+    the 0MQ document stream.  An unconditional re-enable here would switch
+    matplotlib on inside the worker for the rest of the session, so every
+    tune after the session's first step scan would pop its own BEC figure.
+
+    Returns
+    -------
+    bool
+        False when there is no ``bec`` in the namespace at all.
+    """
+    bec = getattr(sys.modules["__main__"], "bec", None)
+
+    return bool(getattr(bec, "_plots_enabled", False))
+
+
 def _set_bec_plots(enabled: bool) -> None:
     """Turn BestEffortCallback's LivePlots on or off, leaving the table alone.
 
@@ -432,7 +453,10 @@ def uascan(
 
     # run the scan.  Plots off for the duration so the uascan trace does not
     # land in (and overwrite) the tune_ar figure; finalize_wrapper so an
-    # abort cannot leave the session with plotting switched off.
+    # abort cannot leave the session with plotting switched off.  Restore the
+    # state we found, which under the queueserver is "off" -- see
+    # _bec_plots_enabled.
+    plots_were_enabled = _bec_plots_enabled()
     _set_bec_plots(False)
 
     def _run_():
@@ -440,7 +464,8 @@ def uascan(
         yield from _after_scan_()
 
     def _restore_plots_():
-        _set_bec_plots(True)
+        if plots_were_enabled:
+            _set_bec_plots(True)
         yield from bps.null()
 
     yield from bpp.finalize_wrapper(_run_(), _restore_plots_())

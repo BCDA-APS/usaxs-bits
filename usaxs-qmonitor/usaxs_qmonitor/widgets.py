@@ -40,6 +40,41 @@ from .plots import UsaxsPlots
 from .settings import SETTINGS
 
 
+def _stay_on_editor_tab_after_add(plan_editor):
+    """Keep "Add to Queue" from pulling the view over to the Plan Viewer tab.
+
+    ``_QtReEditor`` emits ``signal_switch_tab("view")`` from both "Add to Queue"
+    and "Save"; ``QtRePlanEditor._switch_tab`` acts on it.  Queueing several
+    plans in a row is the normal way this GUI is used, and the queue itself is
+    already visible in the widget below the editor, so the jump just costs a
+    click back.  Suppress the switch for Add only — "Save" ends an edit of an
+    existing queue item, where returning to the viewer still makes sense.
+    """
+    editor = plan_editor._plan_editor
+    adding = []
+
+    def switch_tab(tab):
+        if adding and tab == "view":
+            return
+        plan_editor._switch_tab(tab)
+
+    def add_to_queue_clicked():
+        adding.append(True)
+        try:
+            editor._pb_add_to_queue_clicked()
+        finally:
+            adding.clear()
+
+    editor.signal_switch_tab.disconnect(plan_editor._switch_tab)
+    editor.signal_switch_tab.connect(switch_tab)
+    editor._pb_add_to_queue.clicked.disconnect(editor._pb_add_to_queue_clicked)
+    editor._pb_add_to_queue.clicked.connect(add_to_queue_clicked)
+
+    # Qt holds the connection, but keep our own reference so the closures can
+    # never be collected out from under the signals.
+    plan_editor._usaxs_tab_overrides = (switch_tab, add_to_queue_clicked)
+
+
 class QtRunEngineManager_Control(QWidget):
     """Tab 1: everything for driving the queue."""
 
@@ -74,6 +109,7 @@ class QtRunEngineManager_Control(QWidget):
         # look for; put it first so it's what they see on start.
         pe._tab_widget.tabBar().moveTab(1, 0)
         pe._tab_widget.setCurrentIndex(0)
+        _stay_on_editor_tab_after_add(pe)
         pq = QtRePlanQueue(model)
         # bluesky_widgets hardcodes USER/GROUP columns (index 3, 4); every item is
         # submitted under the same single-user API key, so these are never useful here.

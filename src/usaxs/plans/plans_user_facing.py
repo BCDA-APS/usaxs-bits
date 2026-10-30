@@ -21,6 +21,7 @@ from bluesky.utils import plan
 from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..suspenders.beam_guard import beam_guarded
 from ..utils.constants import constants
+from ..utils.obsidian_plan_log import obsidian_logged
 from ..utils.override import user_override
 from ..utils.user_sample_title import getSampleTitle
 from ..utils.utils import techniqueSubdirectory
@@ -80,6 +81,7 @@ DO_NOT_STAGE_THESE_KEYS___THEY_ARE_SET_IN_EPICS = """
 
 @plan
 @beam_guarded
+@obsidian_logged
 def saxsExp(
     pos_X: float,
     pos_Y: float,
@@ -347,6 +349,7 @@ def saxsExp(
 
 @plan
 @beam_guarded
+@obsidian_logged
 def waxsExp(
     pos_X: float,
     pos_Y: float,

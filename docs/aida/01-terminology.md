@@ -38,8 +38,8 @@ and thickness are always in **mm**; temperature is in **°C**.
 "Tuning" a stage (see `tune_ar`, `tune_mr`, `tune_dx`, `tune_dy`,
 `tune_a2rp`) means running a small scan across that axis to find and set the
 peak-intensity position — it's an alignment step, not data collection.
-`find_ar`/`find_a2rp` do a wide search first for when the peak has drifted
-out of the range a plain `tune_*` would catch.
+`find_ar`/`find_a2rp`/`find_mr` do a wide search first for when the peak has
+drifted out of the range a plain `tune_*` would catch.
 
 ## Modes
 

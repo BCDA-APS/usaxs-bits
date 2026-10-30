@@ -87,6 +87,10 @@ ophyd.EpicsSignalRO:
 - name: usaxs_CheckBeamStandard
   read_pv: usxLAX:blCalc:userCalc1
   auto_monitor: false
+- name: adam_tc2
+  read_pv: usxLAX:adam2:tc2.VAL
+  labels:
+    - baseline
 - name: scaler2_I000_counts
   read_pv: usxLAX:vsc:c2.S2
 - name: scaler2_I000_cps

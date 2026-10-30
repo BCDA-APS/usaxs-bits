@@ -102,7 +102,9 @@ the code:
   `fx4_setup.autorange_hold_for_peak(<detector being fitted>)`: full
   autoranging cannot follow the climb into a peak, so the peak tops out and the
   fitted profile is distorted.  Step and fly scans, and the wide `find_ar` /
-  `find_a2rp` searches, use `Both`.  The record is **autosaved in the IOC**, so
+  `find_a2rp` / `find_mr` searches, use `Both` (on the electrometer carrying
+  the fitted signal: UPD for the first two, I0 for `find_mr`).  The record is
+  **autosaved in the IOC**, so
   it is written unconditionally on every `enable_fx4_autorange` call rather than
   assumed; that is also what clears it after a tune aborts mid-scan.
 - **Count times are quantised to whole mains cycles** so 60 Hz pickup averages
@@ -140,6 +142,14 @@ Devices are declared in `src/usaxs/configs/*.yml` in Guarneri format (`module.pa
 ### Obsidian logging
 
 `src/usaxs/utils/obsidian.py` writes machine-generated Markdown entries into a shared Obsidian vault at `/share1/Obsidian/Experiments/YYYY-P/Instrument_Records/`. The `recordUserStart`, `recordNewSample`, `recordRunCommandFile`, `recordBeamDump`, etc. helpers are wired into plans and `newUser()`. Entries are append-only; staff notes coexist in the same files.
+
+Those helpers are attached to the *launcher*, so they only fire for a command file or a hand-written user plan. The five data-collection plans — `USAXSscan`, `Flyscan`, `USAXSscanStep`, `saxsExp`, `waxsExp` — additionally carry **`@obsidian_logged`** (`src/usaxs/utils/obsidian_plan_log.py`) at their definition sites, so a scan appended straight onto the queueserver queue or typed at the IPython prompt still gets an entry. Three things to know:
+
+- Like `@beam_guarded`, it must be applied at the definition site (innermost, under `@beam_guarded`, with `@plan` outermost) — decorating in `startup.py` would only rebind the `usaxs.startup` namespace. `functools.wraps` preserves the signature, which is what queueserver parameter validation reads.
+- **Only the outermost decorated plan logs.** `USAXSscan` → `Flyscan` yields one entry, not two. `run_command_file` is deliberately *not* decorated, so each scan inside a command file is at depth 0 and logs: the command table remains the "what was requested" record, the per-scan entries are the "what actually ran" record.
+- Every write goes through `_safe_append`, which swallows and logs exceptions. A `/share1` outage must never abort a scan. For the same reason `appendToMdFile` is imported lazily, which also makes the module importable without a populated `oregistry` (`tests/test_obsidian_plan_log.py` runs with no EPICS and no `apsbits`).
+
+When adding a new data-collection plan, give it `@obsidian_logged`. Do not add it to tune/mode/reset plans — the notebook is meant to stay readable.
 
 ## Style
 

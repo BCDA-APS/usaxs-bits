@@ -29,10 +29,12 @@ from apsbits.utils.helper_functions import register_bluesky_magics
 from apsbits.utils.helper_functions import running_in_queueserver
 from apsbits.utils.logging_setup import configure_logging
 
+from usaxs.utils.connection_sweep import sweep_unconnected_devices
 from usaxs.utils.fx4_channels import setup_fx4_channels
 from usaxs.utils.operation_mode import determine_in_operation
 from usaxs.utils.operation_mode import operation_mode_banner
 from usaxs.utils.qserver_console import follow_live_stderr
+from usaxs.utils.quiet_abort import quiet_user_abort
 from usaxs.utils.scalers_setup import release_scaler_detector_names
 from usaxs.utils.scalers_setup import setup_scalers
 
@@ -73,6 +75,10 @@ bec, peaks = init_bec_peaks(iconfig)
 cat = init_catalog(iconfig)
 RE, sd = init_RE(iconfig, subscribers=[bec, cat])
 
+# An operator pressing "stop" is not a crash: log it as one INFO line instead
+# of the RunEngine's sixty-line traceback.  See usaxs/utils/quiet_abort.py.
+quiet_user_abort()
+
 # Publish the RunEngine document stream over 0MQ so the queue-monitor GUI can
 # draw live tune/alignment plots. Harmless when no proxy is listening. Run the
 # proxy next to the RE Manager:  bluesky-0MQ-proxy 5567 5568
@@ -99,18 +105,38 @@ else:
     from bluesky import plan_stubs as bps  # noqa: F401
     from bluesky import plans as bp  # noqa: F401
 
+
+def _make_devices(file: str) -> None:
+    """``make_devices`` for one YAML file, then sweep up anything it dropped.
+
+    guarneri gives up on a device whose signals have not reported ``connected``
+    by its deadline and leaves it in ``instrument.unconnected_devices``
+    *permanently* — so every later ``make_devices`` call re-polls it for the
+    full timeout and logs the same NotConnectedError traceback, even for YAML
+    files that do not mention the device.  Worse, the usual cause is not dead
+    hardware but a dropped ophyd metadata callback during the startup
+    connection storm, which guarneri's own retry cannot clear.
+
+    Sweeping after each file repairs those signals while the channels are warm
+    and keeps the retry list empty, so one slow PV in devices.yml no longer
+    taxes the three files that follow.  See usaxs.utils.connection_sweep.
+    """
+    make_devices(file=file, clear=False, device_manager=instrument)
+    sweep_unconnected_devices(instrument)
+
+
 # Experiment specific logic, device and plan loading. # Create the devices.
-make_devices(clear=False, file="scalers_and_amplifiers.yml", device_manager=instrument)
+_make_devices("scalers_and_amplifiers.yml")
 # The FX4 owns the UPD / I0 / I00 / TRD names now, so the scaler must not claim
 # them.  Pass claim_detector_names=True to revert to the Femto/scaler chain --
 # see usaxs/utils/scalers_setup.py and configs/autorange_devices.yml.
 setup_scalers(claim_detector_names=False)
 
-make_devices(file="devices.yml", clear=False, device_manager=instrument)
-make_devices(file="devices_aps_only.yml", clear=False, device_manager=instrument)
-make_devices(file="ad_devices.yml", clear=False, device_manager=instrument)
+_make_devices("devices.yml")
+_make_devices("devices_aps_only.yml")
+_make_devices("ad_devices.yml")
 # Binds UPD/TRD -> fx4 and I0/I00 -> fx42; needs devices.yml to have run.
-make_devices(file="autorange_devices.yml", clear=False, device_manager=instrument)
+_make_devices("autorange_devices.yml")
 # ... and this names those channels UPD / I0 / I00 / TRD, so BEC hints, the
 # uascan dimension hints, the NeXus stream keys and the queue-monitor plot
 # configuration keep working. Must follow autorange_devices.yml.
@@ -129,7 +155,7 @@ in_operation, operation_mode_reason = determine_in_operation()
 logger.info("in operation = %s (%s)", in_operation, operation_mode_reason)
 
 if in_operation:
-    make_devices(file="shutters_op.yml", clear=False, device_manager=instrument)
+    _make_devices("shutters_op.yml")
     from usaxs.suspenders.suspender_functions import suspender_in_operations
 
     suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready = (
@@ -137,7 +163,7 @@ if in_operation:
     )
 
 else:  # if not in_operation:
-    make_devices(file="shutters_sim.yml", clear=False, device_manager=instrument)
+    _make_devices("shutters_sim.yml")
     from usaxs.suspenders.suspender_functions import suspender_in_sim
 
     suspend_FE_shutter, suspend_BeamInHutch, suspend_white_beam_ready = (
@@ -179,6 +205,7 @@ from bluesky import preprocessors as bpp
 if running_in_queueserver():
     from .plans.axis_tuning import find_a2rp
     from .plans.axis_tuning import find_ar
+    from .plans.axis_tuning import find_mr
 
     # these are all tuning plans facing users and staff
     from .plans.axis_tuning import tune_a2rp
@@ -222,6 +249,7 @@ else:
     from .plans.autocollect_plan import remote_ops
     from .plans.axis_tuning import find_a2rp
     from .plans.axis_tuning import find_ar
+    from .plans.axis_tuning import find_mr
 
     # these are all tuning plans facing users and staff
     from .plans.axis_tuning import tune_a2rp

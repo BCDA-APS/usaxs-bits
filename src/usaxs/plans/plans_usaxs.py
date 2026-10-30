@@ -19,6 +19,7 @@ from bluesky import plan_stubs as bps
 from bluesky.utils import plan
 
 from usaxs.suspenders.beam_guard import beam_guarded
+from usaxs.utils.obsidian_plan_log import obsidian_logged
 from usaxs.utils.override import user_override
 from usaxs.utils.user_sample_title import getSampleTitle
 from usaxs.utils.utils import techniqueSubdirectory
@@ -63,6 +64,7 @@ user_data = oregistry["user_data"]
 
 
 @plan
+@obsidian_logged
 def USAXSscan(
     pos_X: float,
     pos_Y: float,
@@ -118,6 +120,7 @@ def USAXSscan(
 
 @plan
 @beam_guarded
+@obsidian_logged
 def USAXSscanStep(
     pos_X: float,
     pos_Y: float,
@@ -342,6 +345,7 @@ def USAXSscanStep(
 
 @plan
 @beam_guarded
+@obsidian_logged
 def Flyscan(
     pos_X: float,
     pos_Y: float,

@@ -8,6 +8,7 @@ related group) and updates the corresponding EPICS parameter PV on success.
 Public entry points
 -------------------
 * ``tune_mr``           — monochromator rotation (MR)
+* ``find_mr``           — wide-range MR search followed by a fine tune_mr
 * ``tune_ar``           — analyzer rotation (AR)
 * ``find_ar``           — wide-range AR search followed by a fine tune_ar
 * ``tune_a2rp``         — analyzer second roll-pitch piezo (A2RP)
@@ -141,6 +142,131 @@ def tune_mr(md: Optional[dict] = None):
         logger.error(f"Error in tune_mr: {e}")
         raise
     finally:
+        yield from bps.mv(usaxs_shutter, "close")
+
+
+def find_mr(
+    md: Optional[dict] = None,
+    range_multiplier: float = 10,
+    npoints: int = 81,
+):
+    """Bluesky plan: wide-range MR search followed by a fine tune_mr.
+
+    Searches for the Bragg peak of the monochromator over a range
+    ``range_multiplier`` times wider than the normal MR tune range
+    (``usxLAX:USAXS:tune_mr_range``, 0.0035 deg), running up to 3 ``lineup2``
+    scans to narrow in.  Then replicates the standard ``tune_mr`` sequence at
+    normal range and gain settings, so on success ``terms.USAXS.mr_val_center``
+    holds the fine-tuned centre.
+
+    Like ``tune_mr`` -- and unlike ``find_ar`` -- the signal fitted is **I0**,
+    the first electrometer downstream of the monochromator, so the I0 sequence
+    program is the one configured here.
+
+    Use this when ``tune_mr`` fails because the Bragg peak is outside the
+    normal search window: after an energy change, or after MR has been left
+    stranded.
+
+    Parameters
+    ----------
+    md : dict or None
+        Extra metadata merged into the run's start document.
+    range_multiplier : float
+        How much wider than the normal MR tune range the first scan sweeps.
+        Widen it when the peak is still not found.
+    npoints : int
+        Points in the wide scan.  Keep the step well under the rocking-curve
+        width when widening the range.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    if md is None:
+        md = {}
+    try:
+        yield from bps.mv(usaxs_shutter, "open")
+        yield from prepare_fx4_counting(0.2)
+        md["plan_name"] = "find_mr"
+        yield from IfRequestedStopBeforeNextScan()
+        logger.info(f"tuning axis: {m_stage.r.name}")
+        yield from bps.mv(
+            mono_shutter,
+            "open",
+            usaxs_shutter,
+            "open",
+        )
+        # Let the sequence program keep ranging as the wide scan sweeps off the
+        # Bragg peak and back.  Via enable_fx4_autorange, so seq01:channel on
+        # fx42 is pointed at I0 -- the signal this scan is fitting.
+        #
+        # "Both" is deliberate, as in find_ar: this half is looking for a peak
+        # somewhere in a large space, not measuring a profile, so a range that
+        # follows the signal over several decades is what finds it.
+        yield from enable_fx4_autorange(
+            I0_controls, "automatic", FX4AutorangeDirection.both
+        )
+        # NOTE: do NOT call autoscale_amplifiers here -- it ends in manual
+        # mode, and the wide scan needs the sequence program to keep
+        # re-ranging as the signal sweeps over several decades.
+        trim_plot_by_name(5)
+        select_fx4_plot(["I0"])
+        stats = SignalStatsCallback()
+        yield from lineup2(
+            [I0, *FX4_DETECTORS],
+            m_stage.r,
+            -1 * range_multiplier * m_stage.r.tune_range.get(),
+            range_multiplier * m_stage.r.tune_range.get(),
+            npoints,
+            nscans=3,
+            signal_stats=stats,
+            md=md,
+        )
+        print(stats.report())
+        # Now run a standard tune_mr at normal range and gain settings.
+        yield from prepare_fx4_counting(0.1)
+        yield from bps.mv(
+            mono_shutter,
+            "open",
+            usaxs_shutter,
+            "open",
+        )
+        yield from autoscale_amplifiers([upd_controls, I0_controls])
+        # This half is a tune_mr, so its peak profile matters: hold I0's gain,
+        # since I0 is the signal being fitted.
+        yield from autorange_hold_for_peak(I0_controls)
+        trim_plot_by_name(5)
+        select_fx4_plot(["I0"])
+        stats = SignalStatsCallback()
+        yield from lineup2(
+            [I0, *FX4_DETECTORS],
+            m_stage.r,
+            -m_stage.r.tune_range.get(),
+            m_stage.r.tune_range.get(),
+            31,
+            nscans=1,
+            signal_stats=stats,
+            md=md,
+        )
+        print(stats.report())
+        # resume_fx4_monitoring() restores auto+background and clears
+        # seq01:dir; see the note in tune_mr.
+        yield from bps.mv(usaxs_shutter, "close")
+        select_fx4_plot([])
+        yield from resume_fx4_monitoring()
+        success = stats.analysis.success
+        print(f"Result: {success}")
+        if success:
+            yield from bps.mv(terms.USAXS.mr_val_center, m_stage.r.position)
+            logger.debug(f"final position: {m_stage.r.position}")
+        else:
+            logger.info(f"find_mr failed for {stats.analysis.reasons}")
+
+    except Exception as e:
+        logger.error(f"Error in find_mr: {str(e)}")
+        raise
+    finally:
+        # See tune_ar: the shutter ends closed on every exit path.
         yield from bps.mv(usaxs_shutter, "close")
 
 

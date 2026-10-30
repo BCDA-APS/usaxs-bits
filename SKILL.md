@@ -80,6 +80,12 @@ def myPlan(pos_X, pos_Y, thickness, scan_title, md={}):
         yield from after_command_list()
 ```
 
+`USAXSscan`, `saxsExp` and `waxsExp` log themselves to Obsidian (one start
+block and one completion line each, no matter how they were launched). So the
+`appendToMdFile()` calls in your plan should record the **loop structure** —
+temperature steps, positions, holds, sample changes — not re-announce each
+scan.
+
 ## API cheat sheet
 
 Data collection (all are plans — always `yield from`):

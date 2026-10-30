@@ -20,7 +20,25 @@
       "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python /tmp/drive_fx4_trigger.py)",
       "Bash(/home/beams/USAXS/.conda/envs/aievaluator/bin/ruff check *)",
       "Bash(/home/beams/USAXS/.conda/envs/aievaluator/bin/ruff format *)",
-      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python -c \"import usaxs.devices.fx4_quadem as m; print\\('import ok', m.QuadFX4._acquire_is_idle\\(0\\)\\)\")"
+      "Bash(/home/beams/USAXS/.conda/envs/bits_usaxs/bin/python -c \"import usaxs.devices.fx4_quadem as m; print\\('import ok', m.QuadFX4._acquire_is_idle\\(0\\)\\)\")",
+      "Bash(ip -4 addr show)",
+      "Bash(systemctl is-active *)",
+      "Bash(firewall-cmd --state)",
+      "Bash(screen -ls)",
+      "Bash(ps -o pid,ppid,user,tty,args -p 1779251,1779267)",
+      "Bash(/home/beams11/USAXS/.conda/envs/bits_usaxs/bin/python -c \"import bluesky_httpserver, sys; print\\('OK', bluesky_httpserver.__version__ if hasattr\\(bluesky_httpserver,'__version__'\\) else '', sys.executable\\)\")",
+      "Bash(timeout 20 /home/beams11/USAXS/.conda/envs/bits_usaxs/bin/qserver -a tcp://10.54.122.24:60615 status)",
+      "Bash(awk '{print $NF}')",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://10.54.122.24:60610/api/status)",
+      "Bash(curl -s -H \"Authorization: ApiKey test\" http://10.54.122.24:60610/api/status)",
+      "Bash(PYTHONPATH=src /APSshare/miniconda/x86_64/bin/python -m pytest tests/test_obsidian_plan_log.py -v -p no:cacheprovider)",
+      "Bash(PYTHONPATH=src /APSshare/miniconda/x86_64/bin/python -m pytest tests/test_obsidian_plan_log.py -q -p no:cacheprovider)",
+      "Bash(redis-cli --version)",
+      "Bash(PYTHONPATH=src /home/beams/USAXS/.conda/envs/bits_usaxs/bin/python -m pytest tests/test_quiet_abort.py -v)",
+      "Bash(timeout 10 caget usxLAX:USAXS:scanning)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(python -c \"import bluesky_widgets.qt.run_engine_client as m; print\\(m.__file__\\)\")",
+      "Bash(python -c \"import apsbits.core.best_effort_init as m; print\\(m.__file__\\)\")"
     ]
   }
 }

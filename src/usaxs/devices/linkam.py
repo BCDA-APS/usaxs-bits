@@ -83,7 +83,9 @@ class Linkam_T96_Device(Device):
         "",
         readback_pv="LNP_MODE",
         setpoint_pv="LNP_MODE:SET",
-        # tolerance=1.0,
+        # Enum PVs have no PREC, so the default (tolerance from precision)
+        # raises TypeError in the readback callback.  Must be non-zero.
+        tolerance=0.5,
         kind="omitted",
     )
     lnp_speed = Component(

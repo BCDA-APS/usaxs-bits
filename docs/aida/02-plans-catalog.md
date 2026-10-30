@@ -62,6 +62,7 @@ its own, vs. asking a human? -->).
 | `find_ar(md=None)` | metadata only | Wide-range AR search, then a fine `tune_ar`. Use when AR has drifted far enough that a plain tune won't find the peak. |
 | `find_a2rp(md=None)` | metadata only | Wide-range A2RP search, then a fine `tune_a2rp`. |
 | `tune_mr(md=None)` | metadata only | Tune the monochromator/collimator rotation (MR) stage. |
+| `find_mr(md=None, range_multiplier=10, npoints=81)` | `range_multiplier`: how much wider than the normal MR tune range to sweep; `npoints`: points in that wide scan | Wide-range MR Bragg-peak search on I0, then a fine `tune_mr`. Use after an energy change, or when MR has been left far enough off that a plain tune won't find the peak. |
 | `tune_dx(md=None)` | metadata only | Tune the detector X (DX) stage. |
 | `tune_dy(md=None)` | metadata only | Tune the detector Y (DY) stage. |
 | `tune_diode(md=None)` | metadata only | Tune both DX and DY together. |

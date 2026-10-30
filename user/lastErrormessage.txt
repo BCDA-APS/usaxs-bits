@@ -1,0 +1,17 @@
+generator WAXS ['980647dd'] (scan num: 1554)
+I Thu-15:06:44.958: Segment 9: ('ramp', 25, 5, False)
+[I 2026-10-29 15:06:45,531 bluesky_queueserver.manager.manager] Returning the list of runs for the running plan ...
+E Thu-15:09:57.268: Subscription value callback exception (EpicsSignalRO(read_pv='usxLINKAM:tc1:LNP_MODE', name='linkam_tc1_lnp_mode', parent='linkam_tc1_lnp_mode', value=0, timestamp=1793304597.268174, auto_monitor=True, string=False))
+Traceback (most recent call last):
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/ophyd/ophydobj.py", line 492, in inner
+    cb(*args, **kwargs)
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/devices/positioner_soft_done.py", line 182, in cb_readback
+    if self.inposition:
+       ^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/devices/positioner_soft_done.py", line 217, in inposition
+    tol = self.actual_tolerance
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/beams/USAXS/.conda/envs/bits_usaxs/lib/python3.11/site-packages/apstools/devices/positioner_soft_done.py", line 164, in actual_tolerance
+    tolerance = 10 ** (-1 * self.precision)
+                      ~~~^~~~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for *: 'int' and 'NoneType'

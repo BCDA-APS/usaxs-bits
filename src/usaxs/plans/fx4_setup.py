@@ -702,9 +702,9 @@ def autorange_hold_for_peak(peak_controls):
     I0.  The other program stays on ``"Both"``, so a range that converged on a
     stale seed still self-corrects where it costs nothing.
 
-    Wide searches (``find_ar``, ``find_a2rp``) deliberately do **not** use this
-    -- they sweep over several decades looking for a peak in a large space, and
-    there full autoranging is the correct behaviour.
+    Wide searches (``find_ar``, ``find_a2rp``, ``find_mr``) deliberately do
+    **not** use this -- they sweep over several decades looking for a peak in a
+    large space, and there full autoranging is the correct behaviour.
 
     .. note::
        ``seq01:dir`` is autosaved in the IOC and no finaliser resets it, so a
