@@ -32,14 +32,21 @@ import logging
 import time
 from typing import Optional
 
+import numpy as np
 from apsbits.core.instrument_init import oregistry
 from apstools.callbacks.scan_signal_statistics import SignalStatsCallback
 from apstools.plans import lineup2
 from apstools.utils import trim_plot_by_name
 from bluesky import plan_stubs as bps
+from bluesky import plans as bp
+from bluesky import preprocessors as bpp
 
 from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..utils.fx4_channels import select_fx4_plot
+from ..utils.peak_search import FLAT
+from ..utils.peak_search import HIGH_EDGE
+from ..utils.peak_search import INSIDE
+from ..utils.peak_search import locate_peak
 from .fx4_autorange_plan import autoscale_amplifiers
 from .fx4_setup import autorange_hold_for_peak
 from .fx4_setup import enable_fx4_autorange
@@ -77,6 +84,115 @@ user_data = oregistry["user_data"]
 monochromator = oregistry["monochromator"]
 
 logger = logging.getLogger(__name__)
+
+
+def _travel_window(axis, margin):
+    """Absolute (lo, hi) the walk may scan within: soft limits less ``margin``.
+
+    ``margin`` is the axis' tune range, so the fine tune run about the peak
+    afterwards cannot reach the end of travel either.  ``None`` when the motor
+    has no soft limits set (EPICS uses LLM == HLM for "unlimited").
+    """
+    lo, hi = axis.limits
+    if lo >= hi:
+        return None
+    return lo + margin, hi - margin
+
+
+def _walk_to_peak(
+    plan_name,
+    axis,
+    signal,
+    detectors,
+    half_width,
+    npoints,
+    max_steps,
+    md,
+    limits=None,
+):
+    """Plan: wide-scan ``axis``, stepping uphill until the peak is inside.
+
+    The replacement for a wide ``lineup2``, which accepts a slope as a peak
+    and can never look past its first scan (see ``usaxs.utils.peak_search``).
+    Each scan spans ±``half_width`` about the current centre.  If the maximum
+    of ``signal`` is at an edge, the centre steps 0.9 scan widths that way and
+    the scan repeats, at most ``max_steps`` times.
+
+    ``limits`` is an absolute (lo, hi) window (see :func:`_travel_window`).
+    Scans are cut off at it, and a peak still climbing at a cut-off edge ends
+    the walk: the peak lies beyond the axis' travel.
+
+    Returns (via ``yield from``) the position of the peak, with ``axis``
+    already moved there, or ``None`` with ``axis`` back where it started.
+    """
+    lo, hi = limits if limits is not None else (-np.inf, np.inf)
+    start = axis.position
+    center = start
+    direction = 0
+    for step in range(max_steps + 1):
+        center = min(max(center, lo), hi)
+        rel_lo = max(-half_width, lo - center)
+        rel_hi = min(half_width, hi - center)
+        yield from IfRequestedStopBeforeNextScan()
+        xs, ys, primary = [], [], set()
+
+        def collect(name, doc, xs=xs, ys=ys, primary=primary):
+            # Only the scan's own points: the session's supplemental streams
+            # (baseline, monitors) emit events too, without these keys.  An
+            # exception here would abort the run, so stay defensive.
+            if name == "descriptor" and doc.get("name") == "primary":
+                primary.add(doc["uid"])
+            elif name == "event" and doc["descriptor"] in primary:
+                data = doc["data"]
+                if axis.name in data and signal.name in data:
+                    xs.append(data[axis.name])
+                    ys.append(data[signal.name])
+
+        _md = dict(md, plan_name=plan_name, purpose="alignment", find_step=step)
+        yield from bps.mv(axis, center)
+        yield from bpp.subs_wrapper(
+            bp.rel_scan(detectors, axis, rel_lo, rel_hi, npoints, md=_md),
+            collect,
+        )
+        where, x_at_max = locate_peak(xs, ys)
+        print(
+            f"{plan_name} step {step}: centre {center:.6f},"
+            f" max {signal.name} at {x_at_max:.6f} -> {where}"
+        )
+        if where == FLAT:
+            print(f"{plan_name}: no signal to follow; giving up.")
+            break
+        if where == INSIDE:
+            yield from bps.mv(axis, x_at_max)
+            return x_at_max
+        new_direction = 1 if where == HIGH_EDGE else -1
+        if direction and new_direction != direction:
+            # The previous scan pointed here and this one points back: the
+            # peak sits in the overlap, at this scan's edge.
+            yield from bps.mv(axis, x_at_max)
+            return x_at_max
+        at_limit = rel_hi < half_width if new_direction > 0 else rel_lo > -half_width
+        if at_limit:
+            end = hi if new_direction > 0 else lo
+            print(
+                f"{plan_name}: signal still rising at the"
+                f" {'upper' if new_direction > 0 else 'lower'} end of"
+                f" {axis.name} travel ({end:.6f}, soft limit less one tune"
+                f" range).  The peak is beyond what {axis.name} can reach;"
+                " realign coarsely before running this again."
+            )
+            break
+        direction = new_direction
+        center += direction * 1.8 * half_width
+    else:
+        print(
+            f"{plan_name}: still climbing after {max_steps} steps"
+            f" ({'up' if direction > 0 else 'down'}, last centre"
+            f" {center - direction * 1.8 * half_width:.6f})."
+        )
+    print(f"{plan_name}: peak not found; {axis.name} returned to {start:.6f}.")
+    yield from bps.mv(axis, start)
+    return None
 
 
 def tune_mr(md: Optional[dict] = None):
@@ -154,10 +270,12 @@ def find_mr(
 
     Searches for the Bragg peak of the monochromator over a range
     ``range_multiplier`` times wider than the normal MR tune range
-    (``usxLAX:USAXS:tune_mr_range``, 0.0035 deg), running up to 3 ``lineup2``
-    scans to narrow in.  Then replicates the standard ``tune_mr`` sequence at
-    normal range and gain settings, so on success ``terms.USAXS.mr_val_center``
-    holds the fine-tuned centre.
+    (``usxLAX:USAXS:tune_mr_range``, 0.0035 deg).  If the maximum is at an
+    edge of that scan, MR steps that way and scans again, up to 4 times
+    (``_walk_to_peak``), never past its soft limits less one tune range.  Once
+    the peak is inside a scan, MR moves to its maximum and the standard
+    ``tune_mr`` sequence runs at normal range and gain settings, so on success
+    ``terms.USAXS.mr_val_center`` holds the fine-tuned centre.
 
     Like ``tune_mr`` -- and unlike ``find_ar`` -- the signal fitted is **I0**,
     the first electrometer downstream of the monochromator, so the I0 sequence
@@ -166,6 +284,9 @@ def find_mr(
     Use this when ``tune_mr`` fails because the Bragg peak is outside the
     normal search window: after an energy change, or after MR has been left
     stranded.
+
+    If the walk finds no peak, MR is returned to its starting position and
+    the fine tune is skipped.
 
     Parameters
     ----------
@@ -182,6 +303,7 @@ def find_mr(
     ------
     Bluesky messages consumed by the RunEngine.
     """
+    maxWalkSteps = 4
     if md is None:
         md = {}
     try:
@@ -211,18 +333,22 @@ def find_mr(
         # re-ranging as the signal sweeps over several decades.
         trim_plot_by_name(5)
         select_fx4_plot(["I0"])
-        stats = SignalStatsCallback()
-        yield from lineup2(
-            [I0, *FX4_DETECTORS],
+        peak = yield from _walk_to_peak(
+            "find_mr",
             m_stage.r,
-            -1 * range_multiplier * m_stage.r.tune_range.get(),
+            I0,
+            [I0, *FX4_DETECTORS],
             range_multiplier * m_stage.r.tune_range.get(),
             npoints,
-            nscans=3,
-            signal_stats=stats,
-            md=md,
+            maxWalkSteps,
+            md,
+            limits=_travel_window(m_stage.r, m_stage.r.tune_range.get()),
         )
-        print(stats.report())
+        if peak is None:
+            yield from bps.mv(usaxs_shutter, "close")
+            select_fx4_plot([])
+            yield from resume_fx4_monitoring()
+            return
         # Now run a standard tune_mr at normal range and gain settings.
         yield from prepare_fx4_counting(0.1)
         yield from bps.mv(
@@ -352,10 +478,16 @@ def tune_ar(md: Optional[dict] = None):
 def find_ar(md: Optional[dict] = None):
     """Bluesky plan: wide-range AR search followed by a fine tune_ar.
 
-    Uses ``upd_photocurrent_calc`` (UPD amplifier in automatic gain mode) to
-    search over a range 5× wider than the normal AR tune range, running up to
-    3 ``lineup2`` scans to narrow in.  Then replicates the standard ``tune_ar``
-    sequence at normal range and gain settings.
+    Searches on UPD, with its FX4 sequence program autoranging in both
+    directions, over a range 5× wider than the normal AR tune range.  If the
+    maximum is at an edge of that scan -- the scan saw only the flank of the
+    rocking curve -- AR steps that way and scans again, up to 4 times
+    (``_walk_to_peak``), never past its soft limits less one tune range.  Once the peak is inside a scan, AR moves to its
+    maximum and the standard ``tune_ar`` sequence runs at normal range and
+    gain settings.
+
+    If the walk finds no peak, AR is returned to its starting position, the
+    fine tune is skipped and ``ARcenter`` is not written.
 
     Use this when ``tune_ar`` fails because the peak is outside the normal
     search window.
@@ -371,6 +503,7 @@ def find_ar(md: Optional[dict] = None):
     """
     howWiderRangeToScan = 5
     howManyPoints = 61
+    maxWalkSteps = 4
     if md is None:
         md = {}
     success = False
@@ -403,18 +536,22 @@ def find_ar(md: Optional[dict] = None):
         # re-ranging as the signal sweeps over several decades.
         trim_plot_by_name(5)
         select_fx4_plot(["UPD"])
-        stats = SignalStatsCallback()
-        yield from lineup2(
-            [UPD, *FX4_DETECTORS],
+        peak = yield from _walk_to_peak(
+            "find_ar",
             a_stage.r,
-            -1 * howWiderRangeToScan * a_stage.r.tune_range.get(),
+            UPD,
+            [UPD, *FX4_DETECTORS],
             howWiderRangeToScan * a_stage.r.tune_range.get(),
             howManyPoints,
-            nscans=3,
-            signal_stats=stats,
-            md=md,
+            maxWalkSteps,
+            md,
+            limits=_travel_window(a_stage.r, a_stage.r.tune_range.get()),
         )
-        print(stats.report())
+        if peak is None:
+            yield from bps.mv(usaxs_shutter, "close")
+            select_fx4_plot([])
+            yield from resume_fx4_monitoring()
+            return
         # Now run a standard tune_ar at normal range and gain settings.
         yield from prepare_fx4_counting(0.1)
         yield from bps.mv(
@@ -536,13 +673,18 @@ def tune_a2rp(md: Optional[dict] = None):
 def find_a2rp(md: Optional[dict] = None):
     """Bluesky plan: wide-range A2RP search followed by a fine tune_a2rp.
 
-    Uses ``upd_photocurrent_calc`` (UPD amplifier in automatic gain mode) to
-    search over a range 2.5× wider than the normal A2RP tune range, running
-    up to 3 ``lineup2`` scans to narrow in.  Then replicates the standard
-    ``tune_a2rp`` sequence at normal range and gain settings.
+    Searches on UPD, with its FX4 sequence program autoranging in both
+    directions, over a range 2.5× wider than the normal A2RP tune range.  If
+    the maximum is at an edge of that scan, A2RP steps that way and scans
+    again, up to 4 times (``_walk_to_peak``).  Once the peak is inside a scan,
+    A2RP moves to its maximum and the standard ``tune_a2rp`` sequence runs at
+    normal range and gain settings.
 
-    The wide-scan start is clamped so it cannot drive the axis into a negative
-    absolute position; the wide-scan end is clamped at 88 (hardware limit).
+    The walk stays inside the piezo's soft limits (-20..90 um, i.e. -2..9 V)
+    less one tune range at each end.  If the signal is still rising at that
+    boundary, the peak is out of the piezo's reach: the plan says so, returns
+    A2RP to its starting position and skips the fine tune.  Likewise if the
+    walk finds no peak at all.
 
     Parameters
     ----------
@@ -555,6 +697,7 @@ def find_a2rp(md: Optional[dict] = None):
     """
     howWiderRangeToScan = 2.5
     howManyPoints = 61
+    maxWalkSteps = 4
     if md is None:
         md = {}
     try:
@@ -563,7 +706,6 @@ def find_a2rp(md: Optional[dict] = None):
         md["plan_name"] = "find_a2rp"
         yield from IfRequestedStopBeforeNextScan()
         logger.info(f"tuning axis: {a_stage.r2p.name}")
-        axis_start = a_stage.r2p.position
         yield from bps.mv(
             mono_shutter,
             "open",
@@ -586,23 +728,25 @@ def find_a2rp(md: Optional[dict] = None):
         # re-ranging as the signal sweeps over several decades.
         trim_plot_by_name(5)
         select_fx4_plot(["UPD"])
-        stats = SignalStatsCallback()
-        tune_start = -1 * howWiderRangeToScan * a_stage.r2p.tune_range.get()
-        tune_end = howWiderRangeToScan * a_stage.r2p.tune_range.get()
-        # tune_start must be larger than -1*axis_start (avoid driving axis negative)
-        tune_start = max(tune_start, -1 * axis_start)
-        tune_end = min(tune_end, 88)
-        yield from lineup2(
-            [UPD, *FX4_DETECTORS],
+        # The piezo's travel, -2..9 V = -20..90 um, is its motor's soft
+        # limits; a peak beyond it ends the walk with a report rather than
+        # running the piezo into an end.
+        peak = yield from _walk_to_peak(
+            "find_a2rp",
             a_stage.r2p,
-            tune_start,
-            tune_end,
+            UPD,
+            [UPD, *FX4_DETECTORS],
+            howWiderRangeToScan * a_stage.r2p.tune_range.get(),
             howManyPoints,
-            nscans=3,
-            signal_stats=stats,
-            md=md,
+            maxWalkSteps,
+            md,
+            limits=_travel_window(a_stage.r2p, a_stage.r2p.tune_range.get()),
         )
-        print(stats.report())
+        if peak is None:
+            yield from bps.mv(usaxs_shutter, "close")
+            select_fx4_plot([])
+            yield from resume_fx4_monitoring()
+            return
         # Now run a standard tune_a2rp at normal range and gain settings.
         yield from prepare_fx4_counting(0.1)
         yield from bps.mv(
