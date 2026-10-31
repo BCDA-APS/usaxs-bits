@@ -2806,6 +2806,12 @@ existing_devices:
         is_movable: true
         is_readable: true
         module: ophyd.signal
+      dark_count_time:
+        classname: Signal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
       debug:
         classname: EpicsSignal
         is_flyable: false
@@ -2843,6 +2849,12 @@ existing_devices:
         is_readable: true
         module: ophyd.signal
       max_current:
+        classname: Signal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      max_dark_error:
         classname: Signal
         is_flyable: false
         is_movable: true
@@ -3029,6 +3041,12 @@ existing_devices:
         is_movable: true
         is_readable: true
         module: ophyd.signal
+      dark_count_time:
+        classname: Signal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
       debug:
         classname: EpicsSignal
         is_flyable: false
@@ -3066,6 +3084,12 @@ existing_devices:
         is_readable: true
         module: ophyd.signal
       max_current:
+        classname: Signal
+        is_flyable: false
+        is_movable: true
+        is_readable: true
+        module: ophyd.signal
+      max_dark_error:
         classname: Signal
         is_flyable: false
         is_movable: true
@@ -4310,12 +4334,6 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: usaxs.devices.autosave
-  linkam_debug:
-    classname: Signal
-    is_flyable: false
-    is_movable: true
-    is_readable: true
-    module: ophyd.signal
   linkam_tc1:
     classname: My_Linkam_T96_Device
     components:
@@ -24572,13 +24590,6 @@ existing_plans:
       name: md
     properties:
       is_generator: false
-  IfRequestedStopBeforeNextScan:
-    description: 'Bluesky plan: honour user pause/stop requests between scans.'
-    module: usaxs.plans.requested_stop
-    name: IfRequestedStopBeforeNextScan
-    parameters: []
-    properties:
-      is_generator: true
   USAXSscan:
     description: 'Bluesky plan: collect a USAXS scan (fly or step) at the given position.'
     module: usaxs.plans.plans_usaxs
@@ -24660,40 +24671,6 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: md
-    properties:
-      is_generator: false
-  after_command_list:
-    description: Actions after a command list is run.
-    module: usaxs.plans.command_list
-    name: after_command_list
-    parameters:
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: md
-    - default: 'False'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: aborted
-    properties:
-      is_generator: false
-  before_command_list:
-    description: Actions before a command list is run.
-    module: usaxs.plans.command_list
-    name: before_command_list
-    parameters:
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: md
-    - default: None
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: commands
     properties:
       is_generator: false
   find_a2rp:
@@ -24823,76 +24800,6 @@ existing_plans:
       name: md
     properties:
       is_generator: false
-  linkam_berman:
-    description: Run one Linkam program for Berman.
-    module: __main__
-    name: linkam_berman
-    parameters:
-    - default: '''A'''
-      description: Key of PROGRAMS ("A", "B1", "C", ...).
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: program
-    - default: None
-      description: 'Base sample name.  _{min}min_{T}C is appended to every scan.
-
-        Default: DEFAULT_SAMPLE[program] (A=5OV, B1=5PAO, C=GC32); programs W
-
-        and NS have no default and need a name.  Letters, digits and "_" only, at
-
-        most 25 characters (ideally under 15), otherwise the plan refuses to
-
-        start (before any hardware is touched).'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: sample_name
-    - default: '0'
-      description: Sample stage position in mm.
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: pos_X
-    - default: '0'
-      description: Sample stage position in mm.
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: pos_Y
-    - default: '2'
-      description: Sample thickness in mm.
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: thickness
-    - default: None
-      description: 'Maximum number of sets in an ("every", minutes) segment.  Default
-        None =
-
-        run until the user requests a stop.  Use a small number for dry runs.'
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: every_limit
-    - default: None
-      description: "True  = switch the LN2 pump to Auto at the start (plan stops with\
-        \ an\n        error, before any data, if the controller does not confirm Auto)\n\
-        \        and back to Manual at the normal end of the program.\nFalse = leave\
-        \ the pump alone.\nDefault: LNP_AUTO[program] (A = False, B1, C, W and NS\
-        \ = True)."
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: lnp_auto
-    - default: None
-      description: Extra metadata.
-      kind:
-        name: POSITIONAL_OR_KEYWORD
-        value: 1
-      name: md
-    properties:
-      is_generator: true
   mode_DirectBeam:
     description: 'Bluesky plan: set the instrument to direct-beam Blackfly imaging
       mode.'
@@ -25081,13 +24988,6 @@ existing_plans:
         name: POSITIONAL_OR_KEYWORD
         value: 1
       name: md
-    properties:
-      is_generator: false
-  sync_order_numbers:
-    description: Synchronize the order numbers between the various detectors.
-    module: usaxs.plans.command_list
-    name: sync_order_numbers
-    parameters: []
     properties:
       is_generator: false
   tune_a2rp:
