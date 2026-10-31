@@ -28,6 +28,7 @@ from ..utils.utils import techniqueSubdirectory
 from .area_detector_plans import areaDetectorAcquire
 from .command_list import after_plan
 from .command_list import before_plan
+from .command_list import refresh_dark_currents
 from .filter_plans import insertSaxsFilters
 from .filter_plans import insertWaxsFilters
 from .fx4_autorange_plan import autoscale_amplifiers
@@ -342,6 +343,10 @@ def saxsExp(
     logger.info(f"Collected SAXS with HDF5 file: {local_name}")
 
     logger.debug(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
+    # Dark current, if due: in SAXS geometry UPD is shielded, so a closed
+    # shutter really means dark.  Here as well as after WAXS because some
+    # users run SAXS only.
+    yield from refresh_dark_currents()
     # Leave the electrometers live for the screens between scans.
     yield from resume_fx4_monitoring()
     yield from after_plan()
@@ -596,6 +601,9 @@ def waxsExp(
     logger.info(f"Collected WAXS with HDF5 file: {local_name}")
 
     logger.debug(f"I0 value: {terms.SAXS_WAXS.I0_gated.get()}")
+    # Dark current, if due: the WAXS detector now shields UPD, the one
+    # geometry where a closed shutter really means dark.
+    yield from refresh_dark_currents()
     # Leave the electrometers live for the screens between scans.
     yield from resume_fx4_monitoring()
     yield from after_plan()

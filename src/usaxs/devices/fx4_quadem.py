@@ -763,6 +763,41 @@ class FX4AutorangeDevice(Device):
 
     settling_time = Component(Signal, value=0.08, kind="config")
 
+    # --- dark-current measurement, per box; see measure_background ---------
+    # Defaults suit UPD: a normal dark on the 100 nA range is ~2 pA +/- 0.05,
+    # so 0.5 pA is ten times the usual noise.  Boxes that need otherwise set
+    # them in devices.yml (constructor keywords); retune live with e.g.
+    # ``I0_controls.auto.max_dark_error.put(6.0)``.
+    #
+    # dark_count_time: integration per dark reading, s.  Must be long against
+    # any slow pickup on the channel, or each attempt samples a fraction of a
+    # cycle and its mean lands anywhere on the wave while its spread still
+    # looks small.
+    # max_dark_error: largest acceptable spread, pA.  Worse is retried, and if
+    # it never passes the previously stored dark is kept.
+    dark_count_time = Component(Signal, value=0.2, kind="config")
+    max_dark_error = Component(Signal, value=0.5, kind="config")
+
+    def __init__(self, prefix, *, dark_count_time=None, max_dark_error=None, **kwargs):
+        """Initialize, optionally overriding the dark-measurement settings.
+
+        Parameters
+        ----------
+        prefix : str
+            Sequence-program prefix, e.g. ``usxFX4:FX4:seq01:``.
+        dark_count_time : float, optional
+            Integration time per dark reading, seconds.
+        max_dark_error : float, optional
+            Largest acceptable dark-current spread, pA.
+        **kwargs
+            Passed to ``Device``.
+        """
+        super().__init__(prefix, **kwargs)
+        if dark_count_time is not None:
+            self.dark_count_time.put(float(dark_count_time))
+        if max_dark_error is not None:
+            self.max_dark_error.put(float(max_dark_error))
+
     @plan
     def setRange(self, target):
         """Plan: request a range index from the sequence program.

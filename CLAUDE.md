@@ -107,6 +107,35 @@ the code:
   **autosaved in the IOC**, so
   it is written unconditionally on every `enable_fx4_autorange` call rather than
   assumed; that is also what clears it after a tune aborts mid-scan.
+- **The dark current is subtracted from a signal smaller than itself** at high
+  q, so `measure_background` never stores a doubtful value: it configures
+  `fx4_scaler_mode` first (a post-fly-scan box has `CallbacksBlock = No` and
+  returns stale means), waits for the FX4's `Range_RBV` to confirm the range,
+  discards the first readings, rejects outliers against median/MAD, and retries; if no
+  attempt meets `auto.max_dark_error` it **keeps the previous `bkg`** and
+  warns (log + Obsidian).  Count time and limit are per box
+  (`dark_count_time`, `max_dark_error`, set in `devices.yml`): I0 carries a
+  ~6 pA, 8.6 s-period pickup that a short count samples only part of, so it
+  counts 1 s with a 6 pA limit while UPD counts 0.2 s with 0.5 pA.
+  **Where: only in SAXS or WAXS geometry.**  In USAXS geometry a closed shutter does
+  not make UPD dark: with AR on the rocking-curve peak (where tunes and the
+  end of every USAXS scan leave it) enough beam reaches UPD to read ~4.5 pA,
+  against 1.8 pA with the WAXS detector in front of it (2026-10-31; the fly
+  scan itself read ~2.2 pA at high q *with* the beam on).  What looked like a
+  slow "afterglow" after tunes was this leak.  So `refresh_dark_currents`
+  (`command_list.py`) is called at the end of `saxsExp` and `waxsExp` (some
+  users run only one) and refuses to measure in any mode but "SAXS in beam"
+  or "WAXS in beam".  It measures when the `bkg4` Channel
+  Access timestamp is older than `DARK_CURRENT_MAX_AGE_H` (3 h), when a
+  command file asked (files no longer measure at their start), or always while
+  `DARK_CURRENT_AFTER_EVERY_WAXS` is on (a testing switch, WAXS only; both in
+  `utils/constants.py`).  A USAXS-only queue therefore never refreshes the
+  dark.  Every attempt is appended to `/share1/log/usaxs_dark_currents.csv`.
+  After a rejected dark a box is not retried for 30 min.  The range is
+  confirmed on the FX4's `Range_RBV`, never on `seq01:lurange`, which the IOC
+  does not update in manual mode.  The IOC never subtracts the dark — Matilda
+  does, from the `bkg` table recorded in the fly-scan file and the step-scan
+  baseline.
 - **Count times are quantised to whole mains cycles** so 60 Hz pickup averages
   out (`utils.count_time.quantize_count_time`).
 

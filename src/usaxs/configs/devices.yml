@@ -44,6 +44,13 @@ usaxs.devices.fx4_quadem.FX4AutorangeDevice:
   prefix: "usxFX42:FX4:seq01:"
   labels:
     - baseline
+  # I0's dark carries a ~6 pA sine at ~0.117 Hz (8.6 s period), measured with
+  # no beam 2026-10-30; UPD on usxFX4 does not.  A 0.2 s x 10 dark sees a
+  # quarter cycle and lands up to +/-6 pA off; 1 s x 10 is within ~1 pA and
+  # its ~4 pA spread is honest.  I0 sits nA-uA above its dark, so this is
+  # ample.  See measure_background.
+  dark_count_time: 1.0
+  max_dark_error: 6.0
 
 usaxs.devices.general_terms.GeneralParameters:
 - name: terms

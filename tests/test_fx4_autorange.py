@@ -66,6 +66,8 @@ class FakeAuto:
         # reads max_fraction on every iteration of the autoscale loop.
         self.min_fraction = FakeSignal(0.07)
         self.max_fraction = FakeSignal(0.90)
+        self.max_dark_error = FakeSignal(0.5)
+        self.dark_count_time = FakeSignal(0.2)
         self.ranges = FakeRanges()
         self.target_range = target_range
         self.reads = 0
@@ -74,6 +76,8 @@ class FakeAuto:
         """Plan: seed the range, as the real device does."""
         self.reqrange.value = int(target)
         self.lurange.value = int(target)
+        if getattr(self, "quadem", None) is not None:
+            self.quadem.em_range.value = RANGE_LABELS[int(target)]
         yield ("set_range", int(target))
 
     def setChannel(self, channel):
@@ -110,6 +114,7 @@ class FakeQuadEM:
         """Bind the electrometer to its sequence program."""
         self.name = name
         self.auto = auto
+        auto.quadem = self
         self.averaging_time = FakeSignal(1.0)
         self.em_range = FakeSignal("100 nA")
 
@@ -397,3 +402,260 @@ def test_held_program_will_not_climb_but_still_drops(monkeypatch):
     upd_auto.target_range = 0
     upd_auto.on_read()
     assert upd_auto.lurange.get() == 1
+
+
+# --- measure_background ----------------------------------------------------
+
+
+class SequenceSignal(FakeSignal):
+    """Reading that advances through *values* on every trigger."""
+
+    def __init__(self, values):
+        """Store the readings to hand out, one per trigger."""
+        super().__init__(values[0])
+        self.values = list(values)
+        self.index = -1
+
+    def advance(self):
+        """Move to the next reading (repeating the last one at the end)."""
+        self.index = min(self.index + 1, len(self.values) - 1)
+        self.value = self.values[self.index]
+
+
+def _dark_setup(monkeypatch, readings):
+    """Return (control, auto, notes) with mode plans and Obsidian stubbed."""
+    calls = []
+    notes = []
+
+    def fake_scaler_mode(det, count_time):
+        calls.append("scaler_mode")
+        calls.append(count_time)
+        yield ("scaler_mode", det.name)
+
+    def fake_monitor_mode(det):
+        calls.append("monitor_mode")
+        yield ("monitor_mode", det.name)
+
+    monkeypatch.setattr(arp, "fx4_scaler_mode", fake_scaler_mode)
+    monkeypatch.setattr(arp, "fx4_monitor_mode", fake_monitor_mode)
+    monkeypatch.setattr(arp, "_safe_append", notes.append)
+    # Keep tests from appending to the real /share1 dark-current record.
+    monkeypatch.setattr(arp, "_record_dark", lambda *args: None)
+
+    control, auto = _make(start_range=2)
+    auto.mode.value = FX4AutorangeSettings.auto_background
+    control.signal = SequenceSignal(readings)
+    auto.ranges.range4.background.value = 1.9
+    auto.ranges.range4.background_error.value = 0.05
+    original_on_read = auto.on_read
+
+    def on_read():
+        original_on_read()
+        control.signal.advance()
+
+    auto.on_read = on_read
+    return control, auto, notes, calls
+
+
+def _good(n):
+    return [2.0 + 0.01 * ((i % 5) - 2) for i in range(n)]
+
+
+def test_dark_discards_the_first_readings(monkeypatch):
+    """Two wild readings up front never reach the statistics."""
+    n = arp.DARK_DISCARD_READINGS
+    readings = [-50.0, 80.0][:n] + _good(arp.DARK_NUM_READINGS)
+    control, auto, notes, _ = _dark_setup(monkeypatch, readings)
+    run(arp._measure_background_one_(control), auto)
+    assert auto.ranges.range4.background.value == pytest.approx(2.0, abs=0.01)
+    assert auto.ranges.range4.background_error.value < 0.05
+    assert notes == []
+
+
+def test_dark_rejects_a_transient_and_stores_the_clean_mean(monkeypatch):
+    """One glitched reading among the counted ones is rejected, not averaged."""
+    good = _good(arp.DARK_NUM_READINGS)
+    good[4] = -15.0
+    readings = _good(arp.DARK_DISCARD_READINGS) + good
+    control, auto, notes, _ = _dark_setup(monkeypatch, readings)
+    run(arp._measure_background_one_(control), auto)
+    assert auto.ranges.range4.background.value == pytest.approx(2.0, abs=0.01)
+    assert notes == []
+
+
+def test_dark_retries_after_a_noisy_attempt(monkeypatch):
+    """A noisy first attempt is retried and the clean second one stored."""
+    per_attempt = arp.DARK_DISCARD_READINGS + arp.DARK_NUM_READINGS
+    noisy = [(-1) ** i * 6.0 + 0.3 * i for i in range(per_attempt)]
+    readings = noisy + _good(per_attempt)
+    control, auto, notes, _ = _dark_setup(monkeypatch, readings)
+    run(arp._measure_background_one_(control), auto)
+    assert auto.ranges.range4.background.value == pytest.approx(2.0, abs=0.01)
+    assert auto.reads == 2 * per_attempt
+    assert notes == []
+
+
+def test_dark_keeps_the_previous_value_when_every_attempt_fails(monkeypatch):
+    """Never overwrite a good dark with a bad one; say so in the notebook."""
+    per_attempt = arp.DARK_DISCARD_READINGS + arp.DARK_NUM_READINGS
+    total = per_attempt * arp.DARK_MAX_ATTEMPTS
+    noisy = [(-1) ** i * 6.0 + 0.3 * i for i in range(total)]
+    control, auto, notes, _ = _dark_setup(monkeypatch, noisy)
+    run(arp._measure_background_one_(control), auto)
+    assert auto.ranges.range4.background.value == 1.9
+    assert auto.ranges.range4.background_error.value == 0.05
+    assert auto.reads == total
+    assert len(notes) == 1 and "Dark Current Rejected" in notes[0]
+
+
+def test_dark_configures_scaler_mode_first_and_restores_after(monkeypatch):
+    """CallbacksBlock comes from scaler mode; mode and count time come back."""
+    readings = _good(arp.DARK_DISCARD_READINGS + arp.DARK_NUM_READINGS)
+    control, auto, _notes, calls = _dark_setup(monkeypatch, readings)
+    seen = run(arp._measure_background_one_(control), auto)
+    assert calls == ["scaler_mode", 0.2, "monitor_mode"]
+    assert seen.index(("scaler_mode", "fx4")) < seen.index("trigger")
+    assert auto.mode.value == FX4AutorangeSettings.auto_background
+    assert control.quadem.averaging_time.value == 1.0
+    assert auto.lurange.value == arp.MOST_SENSITIVE_RANGE
+
+
+RANGE_LABELS = ["1 mA", "100 uA", "10 uA", "1 uA slow", "100 nA fast"]
+"""FX4 ``Range`` labels for sequence-program indices 0..4."""
+
+
+def test_dark_waits_for_the_range_before_reading(monkeypatch):
+    """No trigger until the FX4's own Range_RBV shows the requested range."""
+    readings = _good(arp.DARK_DISCARD_READINGS + arp.DARK_NUM_READINGS)
+    control, auto, _notes, _ = _dark_setup(monkeypatch, readings)
+    control.quadem.em_range.value = RANGE_LABELS[0]
+
+    def slow_set_range(target):
+        # lurange is NOT updated in manual mode (the IOC clears the event).
+        auto.reqrange.value = int(target)
+        yield ("set_range", int(target))
+
+    polls = {"n": 0}
+
+    def em_range_get(**kwargs):
+        polls["n"] += 1
+        if polls["n"] >= 3:
+            control.quadem.em_range.value = RANGE_LABELS[auto.reqrange.value]
+        return control.quadem.em_range.value
+
+    auto.setRange = slow_set_range
+    control.quadem.em_range.get = em_range_get
+    seen = run(arp._measure_background_one_(control), auto)
+    first_trigger = seen.index("trigger")
+    assert seen[:first_trigger].count("sleep") >= 2
+    assert auto.ranges.range4.background.value == pytest.approx(2.0, abs=0.01)
+
+
+def test_dark_on_the_wrong_range_is_never_stored(monkeypatch):
+    """If the FX4 never reaches the range, nothing is measured or written."""
+    readings = _good(arp.DARK_DISCARD_READINGS + arp.DARK_NUM_READINGS)
+    control, auto, _notes, _ = _dark_setup(monkeypatch, readings)
+
+    def stuck_set_range(target):
+        auto.reqrange.value = int(target)
+        yield ("set_range", int(target))
+
+    auto.setRange = stuck_set_range
+    control.quadem.em_range.value = RANGE_LABELS[0]
+    seen = run(arp._measure_background_one_(control), auto)
+    assert "trigger" not in seen
+    assert auto.ranges.range4.background.value == 1.9
+    assert auto.ranges.range4.background_error.value == 0.05
+
+
+def test_seq_range_full_scale_matches_the_fx4_labels():
+    """Index 0 is 1 mA, index 4 is 100 nA; 'fast'/'slow' do not matter."""
+    from usaxs.utils.fx4_ranges import full_scale_pA
+
+    for index, label in enumerate(RANGE_LABELS):
+        assert arp.seq_range_full_scale_pA(index) == full_scale_pA(label)
+
+
+# --- measure_background_if_stale -------------------------------------------
+
+
+class StampedSignal(FakeSignal):
+    """FakeSignal with a Channel Access-style ``timestamp``."""
+
+    def __init__(self, value=0, timestamp=0.0):
+        """Store value and timestamp."""
+        super().__init__(value)
+        self.timestamp = timestamp
+
+
+def _stale_setup(monkeypatch, upd_age_s, i0_age_s, now=1.0e6):
+    """Two boxes with darks of the given ages; measure_background recorded."""
+    measured = []
+
+    def fake_measure(controls, shutter=None, note=""):
+        measured.append(([c.nickname for c in controls], shutter))
+        yield ("measure", tuple(c.nickname for c in controls))
+
+    monkeypatch.setattr(arp, "measure_background", fake_measure)
+    upd, upd_auto = _make(nickname="UPD")
+    i0_auto = FakeAuto()
+    i0 = FakeControls("I0", FakeQuadEM("fx42", i0_auto), 1, i0_auto)
+    upd_auto.ranges.range4.background = StampedSignal(2.0, now - upd_age_s)
+    i0_auto.ranges.range4.background = StampedSignal(2.0, now - i0_age_s)
+    return [upd, i0], measured, now
+
+
+def test_fresh_darks_are_left_alone(monkeypatch):
+    """Nothing stale: no messages at all, not even a checkpoint."""
+    arp._last_dark_attempt_.clear()
+    controls, measured, now = _stale_setup(monkeypatch, 3600, 7200)
+    msgs = list(arp.measure_background_if_stale(controls, 3 * 3600, now=now))
+    assert msgs == [] and measured == []
+
+
+def test_only_the_stale_box_is_measured(monkeypatch):
+    """UPD 4 h old is re-measured; I0 1 h old is not."""
+    arp._last_dark_attempt_.clear()
+    controls, measured, now = _stale_setup(monkeypatch, 4 * 3600, 3600)
+    msgs = list(
+        arp.measure_background_if_stale(controls, 3 * 3600, shutter="sh", now=now)
+    )
+    assert measured == [(["UPD"], "sh")]
+    assert msgs[-1].command == "checkpoint"
+
+
+def test_a_failed_dark_is_not_retried_on_every_scan(monkeypatch):
+    """The timestamp stays old after a rejection; the back-off holds retries."""
+    arp._last_dark_attempt_.clear()
+    controls, measured, now = _stale_setup(monkeypatch, 4 * 3600, 4 * 3600)
+    list(arp.measure_background_if_stale(controls, 3 * 3600, now=now))
+    list(arp.measure_background_if_stale(controls, 3 * 3600, now=now + 600))
+    assert len(measured) == 1
+    later = now + arp.DARK_RETRY_BACKOFF_S + 1
+    list(arp.measure_background_if_stale(controls, 3 * 3600, now=later))
+    assert len(measured) == 2
+
+
+def test_unreadable_timestamp_counts_as_stale(monkeypatch):
+    """No timestamp means unknown age, which must not mean fresh."""
+    arp._last_dark_attempt_.clear()
+    controls, measured, now = _stale_setup(monkeypatch, 3600, 3600)
+    controls[0].auto.ranges.range4.background.timestamp = 0.0
+    list(arp.measure_background_if_stale(controls, 3 * 3600, now=now))
+    assert measured == [(["UPD"], None)]
+
+
+def test_zero_age_limit_disables_the_check(monkeypatch):
+    """DARK_CURRENT_MAX_AGE_H = 0 turns it off."""
+    arp._last_dark_attempt_.clear()
+    controls, measured, now = _stale_setup(monkeypatch, 1e9, 1e9)
+    assert list(arp.measure_background_if_stale(controls, 0, now=now)) == []
+    assert measured == []
+
+
+def test_a_deferred_dark_is_measured_even_when_fresh(monkeypatch):
+    """force=True: the command file skipped it after a tune, so do it now."""
+    arp._last_dark_attempt_.clear()
+    controls, measured, now = _stale_setup(monkeypatch, 600, 600)
+    list(arp.measure_background_if_stale(controls, 3 * 3600, now=now, force=True))
+    assert measured == [(["UPD", "I0"], None)]

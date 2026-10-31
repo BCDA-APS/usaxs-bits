@@ -45,6 +45,7 @@ a good seed it still converges on the second read.
 """
 
 import logging
+import time
 from typing import Optional
 
 import numpy as np
@@ -59,8 +60,13 @@ from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..devices.fx4_quadem import FX4AutorangeSettings
 from ..devices.fx4_quadem import FX4AutoscaleError
 from ..utils.count_time import quantize_count_time
+from ..utils.dark_current import dark_is_acceptable
+from ..utils.dark_current import robust_dark_statistics
 from ..utils.fx4_ranges import full_scale_pA
+from ..utils.obsidian_plan_log import _safe_append
 from .fx4_setup import fraction_of_full_scale
+from .fx4_setup import fx4_monitor_mode
+from .fx4_setup import fx4_scaler_mode
 from .fx4_setup import group_controls_by_box
 from .fx4_setup import select_fx4_channel
 
@@ -382,24 +388,56 @@ def _report_signal_level(control, range_index):
     )
 
 
+DARK_SETTLE_S = 1.0
+"""Pause after the range is confirmed and before the first dark reading, s.
+
+The range switch itself, and the diode and cable relaxing after the shutter
+closed on a beam that a moment ago put orders of magnitude more current
+through them, both need time to die away.  The old 0.08 s did not cover even
+the switch.  Dark currents are measured once per command file, so a second
+here costs nothing.
+"""
+
+DARK_DISCARD_READINGS = 2
+"""Readings taken and thrown away before the ones that count."""
+
+DARK_NUM_READINGS = 10
+"""Readings per attempt that enter the statistics."""
+
+DARK_MAX_ATTEMPTS = 3
+"""Attempts per range before giving up and keeping the stored dark."""
+
+DARK_RANGE_TIMEOUT_S = 5.0
+"""How long to wait for the FX4's ``Range_RBV`` to show a requested range, s."""
+
+DARK_RANGE_POLL_S = 0.05
+"""Polling interval while waiting for the range, s."""
+
+
 @plan
 def measure_background(
     controls,
     shutter=None,
-    count_time: float = 0.2,
-    num_readings: int = 5,
+    count_time: Optional[float] = None,
+    num_readings: int = DARK_NUM_READINGS,
     sweep_all_ranges: bool = False,
+    note: str = "",
 ):
     """Plan: measure detector dark currents and store them in the IOC.
 
     Writes the mean and standard deviation of the dark reading into the
     sequence program's ``bkg<n>`` / ``bkgErr<n>`` records, the same place the
-    Femto-era plan wrote them.
+    Femto-era plan wrote them.  Both the fly scan (``saveFlyData.xml``) and the
+    step scan (the ``fx4_autorange`` baseline stream) record that table, and
+    the data reduction subtracts it -- at high q from a signal *smaller* than
+    the dark itself.  So a bad measurement is never stored: see
+    :func:`_measure_background_one_` for how readings are taken, cleaned and
+    accepted.
 
-    Two differences from that plan, both from the shared range:
+    Two differences from the Femto-era plan, both from the shared range:
 
     * Detectors without a sequence program have nowhere to store a dark
-      reading and are skipped.  Today that is I0 and I00.
+      reading and are skipped.  Today that is I00.
     * There is one ``bkg`` table per sequence program, and on ``usxFX4`` that
       program serves both UPD and TRD, so they cannot both be recorded.
       ``group_controls_by_box`` enforces one per electrometer; pass UPD.
@@ -416,12 +454,19 @@ def measure_background(
         Detectors whose dark current to measure.
     shutter : optional
         Closed before measuring if given.
-    count_time : float
-        Integration time per reading, seconds.
+    count_time : float, optional
+        Integration time per reading, seconds, for every detector.  By default
+        each box uses its own ``auto.dark_count_time`` (set in
+        ``devices.yml``): I0 needs a far longer count than UPD to average out
+        its slow pickup.
     num_readings : int
-        Readings per range, for the mean and its spread.
+        Readings per attempt that enter the statistics, after
+        ``DARK_DISCARD_READINGS`` have been thrown away.
     sweep_all_ranges : bool
         Measure every range instead of only the most sensitive one.
+    note : str
+        Measurement conditions (e.g. AR position), recorded with every attempt
+        in the log and in ``DARK_RECORD_FILE``.
 
     Yields
     ------
@@ -445,26 +490,239 @@ def measure_background(
             count_time=count_time,
             num_readings=num_readings,
             sweep_all_ranges=sweep_all_ranges,
+            note=note,
         )
 
 
-@plan
-def _measure_background_one_(
-    control,
-    count_time: float = 0.2,
-    num_readings: int = 5,
-    sweep_all_ranges: bool = False,
-):
-    """Plan (internal): measure and store dark current for one detector.
+DARK_RETRY_BACKOFF_S = 30 * 60
+"""After a dark measurement that kept no result, wait this long before retrying.
+
+A rejected measurement leaves ``bkg`` -- and so its timestamp -- untouched,
+which is right (a failed dark must not look fresh) but means every following
+scan would see it as stale and spend up to ~50 s retrying.
+"""
+
+_last_dark_attempt_ = {}
+"""``{electrometer name: time.time()}`` of the last dark measurement started.
+
+Only consulted while the stored dark is stale, i.e. after a failure.
+"""
+
+
+def dark_age_s(control, range_index=MOST_SENSITIVE_RANGE, now=None):
+    """Return the age of a detector's stored dark current, seconds.
+
+    The age is taken from the Channel Access timestamp of ``bkg<range_index>``
+    -- the IOC stamps every write -- so a dark measured by any path counts, the
+    age survives a Bluesky or queueserver restart, and a rejected measurement
+    (which writes nothing) does not make a stale dark look fresh.  One known
+    flaw: an IOC reboot restores ``bkg`` from autosave with a new timestamp,
+    so the restored (last measured) value looks fresh for one interval.
 
     Parameters
     ----------
     control : FX4DetectorControls
         A detector with an autorange sequence program.
-    count_time : float
-        Integration time per reading, seconds.
+    range_index : int
+        The range whose dark to check.
+    now : float, optional
+        Current time, for tests.  Defaults to ``time.time()``.
+
+    Returns
+    -------
+    float
+        Age in seconds; ``inf`` when the timestamp cannot be read.
+    """
+    now = time.time() if now is None else now
+    record = getattr(control.auto.ranges, f"range{range_index}")
+    try:
+        stamp = float(record.background.timestamp)
+    except Exception as exc:  # noqa: BLE001 - unreadable means "measure it"
+        logger.debug("%s: no dark timestamp (%s)", control.nickname, exc)
+        return float("inf")
+    if not stamp > 0:
+        return float("inf")
+    return now - stamp
+
+
+@plan
+def measure_background_if_stale(
+    controls, max_age_s, shutter=None, now=None, force=False, note=""
+):
+    """Plan: re-measure dark currents that are older than *max_age_s*.
+
+    The command file used to measure darks once, at its start; a scan queued
+    by hand or from Igor never did, so an overnight queue ran on one dark for
+    13 h.  This is called at the end of each USAXS scan (``Flyscan``,
+    ``USAXSscanStep``) to keep it fresh.  Only the stale boxes are measured,
+    each with its own settings (see :func:`measure_background`).  If nothing is
+    stale it yields no messages at all.
+
+    After a failed measurement a box is not retried for
+    ``DARK_RETRY_BACKOFF_S``.
+
+    Parameters
+    ----------
+    controls : list or tuple of FX4DetectorControls
+        Detectors to check.
+    max_age_s : float
+        Darks older than this are re-measured.  ``<= 0`` disables the check.
+    shutter : optional
+        Closed before measuring, if anything is measured.
+    now : float, optional
+        Current time, for tests.  Defaults to ``time.time()``.
+    force : bool
+        Measure every box whatever its age (still subject to the back-off).
+        Used when the caller wants a dark now regardless of age.
+    note : str
+        Measurement conditions, recorded with every attempt.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    if max_age_s <= 0 and not force:
+        return
+    now = time.time() if now is None else now
+    stale = []
+    for control in group_controls_by_box(controls).values():
+        age = dark_age_s(control, now=now)
+        if not force and age <= max_age_s:
+            continue
+        box = control.quadem.name
+        since_attempt = now - _last_dark_attempt_.get(box, float("-inf"))
+        if since_attempt < DARK_RETRY_BACKOFF_S:
+            logger.debug(
+                "%s dark is %.1f h old, but the last attempt failed %.0f min ago",
+                control.nickname,
+                age / 3600,
+                since_attempt / 60,
+            )
+            continue
+        logger.info(
+            "%s dark current is %.1f h old (limit %.1f h%s): re-measuring",
+            control.nickname,
+            age / 3600,
+            max_age_s / 3600,
+            ", requested" if force else "",
+        )
+        _last_dark_attempt_[box] = now
+        stale.append(control)
+
+    if not stale:
+        return
+    yield from measure_background(stale, shutter=shutter, note=note)
+    # Rewind boundary: a suspension later in the scan must not replay the
+    # dark measurement (CLAUDE.md, "Every plan must bound its rewind cache").
+    yield from bps.checkpoint()
+
+
+def seq_range_full_scale_pA(range_index):
+    """Return the full scale of a sequence-program range index, in pA.
+
+    The program's enum runs ``[0] 1 mA .. [4] 100 nA``, a decade apart.
+
+    Parameters
+    ----------
+    range_index : int
+        Sequence-program range index, 0 to ``NUM_AUTORANGE_RANGES - 1``.
+
+    Returns
+    -------
+    float
+        Full-scale current, pA.
+    """
+    return 1.0e9 / 10 ** int(range_index)
+
+
+@plan
+def _wait_for_range(control, target):
+    """Plan (internal): wait until the electrometer itself is on *target*.
+
+    Checks the FX4's ``Range_RBV`` (``quadem.em_range``), **not** the sequence
+    program's ``lurange``.  In ``manual`` mode the program writes ``Range`` in
+    ``changeRange`` and then clears the ``Range`` monitor event, so ``update``
+    -- the only state that sets ``lurange`` -- never runs.  Tested on
+    2026-10-31: ``Range_RBV`` followed a ``reqrange`` write within 0.2 s while
+    ``lurange`` stayed on the old range indefinitely.  Waiting on ``lurange``
+    therefore timed out after every tune.
+
+    Parameters
+    ----------
+    control : FX4DetectorControls
+        The detector whose electrometer to watch.
+    target : int
+        Sequence-program range index requested.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+
+    Returns
+    -------
+    bool
+        True once the range is confirmed, False on timeout.
+    """
+    wanted = seq_range_full_scale_pA(target)
+    polls = int(np.ceil(DARK_RANGE_TIMEOUT_S / DARK_RANGE_POLL_S))
+    for _ in range(polls):
+        try:
+            label = control.quadem.em_range.get(as_string=True)
+            if full_scale_pA(label) == wanted:
+                return True
+        except Exception as exc:  # noqa: BLE001 - keep polling until timeout
+            logger.debug("Range_RBV unreadable while waiting: %s", exc)
+        yield from bps.sleep(DARK_RANGE_POLL_S)
+    return False
+
+
+@plan
+def _measure_background_one_(
+    control,
+    count_time: Optional[float] = None,
+    num_readings: int = DARK_NUM_READINGS,
+    sweep_all_ranges: bool = False,
+    note: str = "",
+):
+    """Plan (internal): measure and store dark current for one detector.
+
+    Hardened after a measurement at 12-ID-E stored -1.6 +/- 6 pA for UPD,
+    against a normal 2 pA +/- 0.05.  In order:
+
+    1. **Configure the box with** ``fx4_scaler_mode``.  The resting state that
+       follows a fly scan leaves the stats plugins at ``CallbacksBlock = No``,
+       and then a trigger can return before the mean is recomputed -- the
+       reading is the *previous* one.
+    2. **Wait for the range** to be confirmed by the FX4's ``Range_RBV``
+       (:func:`_wait_for_range`), then settle ``DARK_SETTLE_S``.  If it never
+       arrives nothing is measured and the stored dark is kept.
+    3. **Discard** ``DARK_DISCARD_READINGS`` readings, then take
+       ``num_readings`` of ``auto.dark_count_time`` each.  The spread check
+       below cannot see pickup slower than one attempt -- the readings agree
+       with each other while all sitting on the same part of the wave -- so
+       the count time has to span it.  That is why I0 counts 1 s, not 0.2.
+    4. **Reject outliers** against the median and MAD
+       (:func:`~usaxs.utils.dark_current.robust_dark_statistics`).
+    5. **Accept** only if the spread is within ``auto.max_dark_error`` and most
+       readings survived; otherwise settle and try again, up to
+       ``DARK_MAX_ATTEMPTS``.
+    6. **Never overwrite a stored dark with a bad one.**  If no attempt is
+       accepted, the previous ``bkg``/``bkgErr`` are left alone and a warning
+       goes to the log and to the Obsidian notebook.  The command file is not
+       aborted.
+
+    Afterwards the sequence program's mode and the count time are restored
+    and the box is left free-running, as every plan leaves it.
+
+    Parameters
+    ----------
+    control : FX4DetectorControls
+        A detector with an autorange sequence program.
+    count_time : float, optional
+        Integration time per reading, seconds.  Defaults to the box's
+        ``auto.dark_count_time``.
     num_readings : int
-        Readings per range.
+        Readings per attempt that enter the statistics.
     sweep_all_ranges : bool
         Measure every range instead of only the most sensitive one.
 
@@ -476,10 +734,13 @@ def _measure_background_one_(
     auto = control.auto
 
     original_count_time = det.averaging_time.get()
-    trial_count_time = quantize_count_time(count_time)
+    original_mode = auto.mode.get()
+    if count_time is None:
+        count_time = auto.dark_count_time.get()
 
     yield from select_fx4_channel(control)
-    yield from bps.mv(det.averaging_time, trial_count_time)
+    # Also sets CallbacksBlock = Yes, Single acquire and the count time.
+    yield from fx4_scaler_mode(det, count_time)
     # Manual, so the sequence program does not re-range mid-sweep.
     yield from bps.mv(auto.mode, FX4AutorangeSettings.manual)
 
@@ -492,31 +753,189 @@ def _measure_background_one_(
     )
 
     for range_index in ranges:
-        yield from auto.setRange(range_index)
-        yield from bps.sleep(auto.settling_time.get())
+        yield from _measure_one_range_(control, range_index, num_readings, note)
 
-        readings = []
-        for _ in range(num_readings):
-            yield from bps.trigger(det, wait=True)
-            readings.append(control.signal.get())
+    yield from bps.mv(auto.mode, original_mode)
+    yield from bps.mv(det.averaging_time, original_count_time)
+    yield from fx4_monitor_mode(det)
 
+
+@plan
+def _measure_one_range_(control, range_index, num_readings, note=""):
+    """Plan (internal): measure, check and store the dark for one range.
+
+    See :func:`_measure_background_one_` for the procedure.  Every attempt,
+    accepted or not, is appended to ``DARK_RECORD_FILE``.
+
+    Parameters
+    ----------
+    control : FX4DetectorControls
+        A detector with an autorange sequence program, already configured.
+    range_index : int
+        Range index to measure.
+    num_readings : int
+        Readings per attempt that enter the statistics.
+    note : str
+        Measurement conditions, recorded with every attempt.
+
+    Yields
+    ------
+    Bluesky messages consumed by the RunEngine.
+    """
+    det = control.quadem
+    auto = control.auto
+    max_error = auto.max_dark_error.get()
+
+    yield from auto.setRange(range_index)
+    confirmed = yield from _wait_for_range(control, range_index)
+    if not confirmed:
+        # A dark taken on the wrong range is a plausible-looking wrong number.
         record = getattr(auto.ranges, f"range{range_index}")
-        yield from bps.mv(
-            record.background,
-            float(np.mean(readings)),
-            record.background_error,
-            float(np.std(readings)),
-        )
-        logger.info(
-            "%s dark: range %d, %.4g +/- %.2g pA (%d readings)",
+        logger.warning(
+            "%s dark: FX4 never reached range %d (Range_RBV %r after %.1f s)."
+            "  Nothing measured; KEEPING the previous value %.4g +/- %.2g pA.",
             control.nickname,
             range_index,
-            np.mean(readings),
-            np.std(readings),
-            num_readings,
+            control.quadem.em_range.get(as_string=True),
+            DARK_RANGE_TIMEOUT_S,
+            record.background.get(),
+            record.background_error.get(),
+        )
+        return
+
+    attempts = []
+    for attempt in range(1, DARK_MAX_ATTEMPTS + 1):
+        yield from bps.sleep(DARK_SETTLE_S)
+
+        readings = []
+        for i in range(DARK_DISCARD_READINGS + num_readings):
+            yield from bps.trigger(det, wait=True)
+            if i >= DARK_DISCARD_READINGS:
+                readings.append(control.signal.get())
+
+        mean, std, n_kept = robust_dark_statistics(readings)
+        attempts.append((mean, std, n_kept))
+        accepted = dark_is_acceptable(std, n_kept, len(readings), max_error)
+        _record_dark(
+            control.nickname,
+            range_index,
+            attempt,
+            mean,
+            std,
+            n_kept,
+            readings,
+            accepted,
+            note,
+        )
+        if accepted:
+            record = getattr(auto.ranges, f"range{range_index}")
+            yield from bps.mv(
+                record.background,
+                mean,
+                record.background_error,
+                std,
+            )
+            logger.info(
+                "%s dark: range %d, %.4g +/- %.2g pA (%d of %d readings kept,"
+                " attempt %d)%s",
+                control.nickname,
+                range_index,
+                mean,
+                std,
+                n_kept,
+                len(readings),
+                attempt,
+                f" [{note}]" if note else "",
+            )
+            return
+
+        logger.warning(
+            "%s dark: range %d attempt %d rejected: %.4g +/- %.2g pA"
+            " (%d of %d readings kept, limit %.2g pA); raw readings %s",
+            control.nickname,
+            range_index,
+            attempt,
+            mean,
+            std,
+            n_kept,
+            len(readings),
+            max_error,
+            np.array2string(np.asarray(readings), precision=3),
         )
 
-    yield from bps.mv(det.averaging_time, original_count_time)
+    record = getattr(auto.ranges, f"range{range_index}")
+    previous = (record.background.get(), record.background_error.get())
+    tried = ", ".join(f"{m:.4g} +/- {s:.2g}" for m, s, _n in attempts)
+    logger.warning(
+        "%s dark current, range %d: no good measurement in %d attempts"
+        " (%s pA; limit %.2g pA).  KEEPING the previous value %.4g +/- %.2g pA.",
+        control.nickname,
+        range_index,
+        DARK_MAX_ATTEMPTS,
+        tried,
+        max_error,
+        *previous,
+    )
+    _safe_append(
+        f"## Dark Current Rejected — {control.nickname}, range {range_index}\n"
+        f"- **Attempts (pA):** {tried}\n"
+        f"- **Limit (pA):** {max_error:.2g}\n"
+        f"- **Kept previous value (pA):** {previous[0]:.4g} +/- {previous[1]:.2g}\n"
+    )
+
+
+DARK_RECORD_FILE = "/share1/log/usaxs_dark_currents.csv"
+"""Every dark-current attempt is appended here, for trending and diagnosis."""
+
+_DARK_RECORD_FIELDS = (
+    "time",
+    "detector",
+    "range",
+    "attempt",
+    "mean_pA",
+    "std_pA",
+    "n_kept",
+    "n_readings",
+    "accepted",
+    "note",
+    "readings_pA",
+)
+
+
+def _record_dark(
+    nickname, range_index, attempt, mean, std, n_kept, readings, accepted, note
+):
+    """Append one dark-current attempt to ``DARK_RECORD_FILE``, never raising.
+
+    A ``/share1`` problem must not stop a measurement, so failures are logged
+    and swallowed.
+    """
+    import csv
+    import datetime
+    import os
+
+    row = {
+        "time": datetime.datetime.now().isoformat(timespec="seconds"),
+        "detector": nickname,
+        "range": range_index,
+        "attempt": attempt,
+        "mean_pA": f"{mean:.4f}",
+        "std_pA": f"{std:.4f}",
+        "n_kept": n_kept,
+        "n_readings": len(readings),
+        "accepted": int(bool(accepted)),
+        "note": note,
+        "readings_pA": " ".join(f"{r:.3f}" for r in readings),
+    }
+    try:
+        new_file = not os.path.exists(DARK_RECORD_FILE)
+        with open(DARK_RECORD_FILE, "a", newline="") as fp:
+            writer = csv.DictWriter(fp, fieldnames=_DARK_RECORD_FIELDS)
+            if new_file:
+                writer.writeheader()
+            writer.writerow(row)
+    except Exception as exc:  # noqa: BLE001 - recording must never break a scan
+        logger.warning("Could not record dark current to %s: %s", DARK_RECORD_FILE, exc)
 
 
 def UPDRange() -> int:

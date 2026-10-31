@@ -26,11 +26,11 @@ from usaxs.utils.utils import techniqueSubdirectory
 
 from ..utils.a2q_q2a import q2angle
 from .command_list import after_plan
-from .fx4_setup import resume_fx4_monitoring
 from .command_list import before_plan
 from .filter_plans import insertScanFilters
 from .fly_scan_plan import Flyscan_internal_plan
 from .fx4_autorange_plan import autoscale_amplifiers
+from .fx4_setup import resume_fx4_monitoring
 from .mode_changes import mode_USAXS
 from .mono_feedback import MONO_FEEDBACK_OFF
 from .mono_feedback import MONO_FEEDBACK_ON

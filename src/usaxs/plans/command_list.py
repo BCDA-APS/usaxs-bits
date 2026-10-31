@@ -32,7 +32,7 @@ from ..utils.quoted_line import split_quoted_line
 from .axis_tuning import instrument_default_tune_ranges
 from .axis_tuning import update_EPICS_tuning_widths
 from .axis_tuning import user_defined_settings
-from .fx4_autorange_plan import measure_background
+from .fx4_autorange_plan import measure_background_if_stale
 from .mode_changes import mode_DirectBeam
 from .mode_changes import mode_Radiography
 from .mode_changes import mode_SAXS
@@ -176,7 +176,16 @@ def before_command_list(md=None, commands=None):
         # dark matters -- transmission is a ratio of two strong signals
         # (PLAN.md Q19).  I0 has usxFX42's table to itself.  I00 has no
         # autoranger yet and so nowhere to store a reading.
-        yield from measure_background([upd_controls, I0_controls])
+        #
+        # Not measured here: in USAXS geometry a closed shutter still lets
+        # enough beam through to UPD to read ~4.5 pA against a true 1.8.
+        # Requested instead, and taken after the file's first SAXS or WAXS
+        # exposure, when UPD is shielded -- see refresh_dark_currents.
+        global _dark_requested
+        _dark_requested = True
+        logger.info(
+            "Dark currents will be measured after the first SAXS or WAXS exposure"
+        )
 
     # reset the ranges to be used when tuning optical axes (issue #129)
     # These routines are defined in file: 29-axis-tuning.py
@@ -307,6 +316,53 @@ def before_plan(md=None):
             yield from preUSAXStune(md=md)
         else:
             yield from preSWAXStune(md=md)
+
+
+_dark_requested = False
+"""True when a command file has asked for a dark at its first opportunity."""
+
+DARK_MODES = ("SAXS in beam", "WAXS in beam")
+"""The only instrument modes in which a dark is measured: UPD is shielded."""
+
+
+@plan
+def refresh_dark_currents():
+    """Measure UPD and I0 dark currents if due -- only in SAXS/WAXS geometry.
+
+    Called at the end of ``saxsExp`` and ``waxsExp``, after the shutter has
+    closed; both, because some users run only one of them.  Due means older
+    than ``DARK_CURRENT_MAX_AGE_H``, requested by a command file, or -- after
+    WAXS only -- always when ``DARK_CURRENT_AFTER_EVERY_WAXS`` is set (both in
+    ``utils/constants.py``).
+
+    Why WAXS, measured 2026-10-31: in **USAXS geometry a closed shutter does
+    not make UPD dark**.  With AR on the rocking-curve peak enough beam still
+    reaches UPD to read ~4.5 pA, against 1.8 pA with the WAXS detector in
+    front of it -- and at high q, where AR is far off the peak, the fly scan
+    itself read ~2.2 pA *with* the beam on.  So a "dark" taken at the end of
+    a USAXS scan, or after a tune (both leave AR on the peak), was mostly
+    leaked beam.  In SAXS and WAXS mode UPD is shielded, whatever AR is doing.
+
+    Refuses to measure in any other mode, so a stray call cannot store a
+    leaked value.
+    """
+    global _dark_requested
+    if not constants["MEASURE_DARK_CURRENTS"]:
+        return
+    mode_now = terms.SAXS.UsaxsSaxsMode.get(as_string=True)
+    if mode_now not in DARK_MODES:
+        logger.debug("No dark in mode %r; only in %r", mode_now, DARK_MODES)
+        return
+    every_waxs = constants["DARK_CURRENT_AFTER_EVERY_WAXS"]
+    force = _dark_requested or (every_waxs and mode_now == "WAXS in beam")
+    yield from measure_background_if_stale(
+        [upd_controls, I0_controls],
+        max_age_s=constants["DARK_CURRENT_MAX_AGE_H"] * 3600,
+        shutter=usaxs_shutter,
+        force=force,
+        note=f"mode={mode_now}",
+    )
+    _dark_requested = False
 
 
 @plan
