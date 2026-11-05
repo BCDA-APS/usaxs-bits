@@ -16,6 +16,7 @@ from collections import OrderedDict
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import cleanupText
 from bluesky import plan_stubs as bps
+from bluesky.utils import FailedStatus
 from bluesky.utils import plan
 
 from usaxs.suspenders.beam_guard import beam_guarded
@@ -498,15 +499,22 @@ def Flyscan(
     # reading at every strobe, which is what the sequence program acts on.
     # Flyscan_internal_plan puts the electrometers in bulb mode and arms UPD's
     # autoranger.
+    # Autosave must re-enable itself (max_time = 0 at the end of the scan),
+    # never be written SR_disable = 0 by us: autosave clears its disable start
+    # time only when it times out, so a hand-written 0 leaves it stale and the
+    # next SR_disable = 1 is reset within a second -- which once failed this
+    # write's readback after 60 s and aborted the scan (2026-11-04).  max_time
+    # goes first so autosave never sees the disable with an old limit.
+    # Suppressing autosave is a nicety; failing to must not abort the scan.
     yield from bps.mv(
-        # fmt: off
-        lax_autosave.disable,
-        1,
         lax_autosave.max_time,
         usaxs_flyscan.scan_time.get() + 9,
         timeout=MASTER_TIMEOUT,
-        # fmt: on
     )
+    try:
+        yield from bps.abs_set(lax_autosave.disable, 1, timeout=5, wait=True)
+    except FailedStatus:
+        logger.warning("Could not disable usxLAX autosave; scanning anyway.")
 
     yield from user_data.set_state_plan("Running Flyscan")
 
@@ -571,8 +579,7 @@ def Flyscan(
 
     yield from bps.mv(
         # fmt: off
-        lax_autosave.disable,
-        0,
+        # Not lax_autosave.disable = 0: see the top of the scan.
         lax_autosave.max_time,
         0,
         usaxs_shutter,
