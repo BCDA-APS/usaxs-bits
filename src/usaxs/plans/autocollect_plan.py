@@ -10,6 +10,7 @@ import os
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
+from bluesky.utils import RunEngineControlException
 
 from .command_list import run_command_file
 from .mode_changes import mode_Radiography
@@ -85,6 +86,8 @@ def remote_ops():
                     yield from run_command_file(command)
                 else:
                     logger.warning("unrecognized command: %s", command)
+            except RunEngineControlException:
+                raise  # RE.abort()/RE.stop(): never swallow
             except Exception as exc:
                 logger.warning(
                     "Exception during execution of command %s:\n%s",

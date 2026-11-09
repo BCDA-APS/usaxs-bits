@@ -52,6 +52,7 @@ import numpy as np
 from apsbits.core.instrument_init import oregistry
 from bluesky import RunEngine
 from bluesky import plan_stubs as bps
+from bluesky.utils import RunEngineControlException
 from bluesky.utils import plan
 from ophyd.scaler import ScalerChannel
 from ophyd.signal import EpicsSignalRO
@@ -165,6 +166,8 @@ def autoscale_amplifiers(
                     control_list[0].nickname,
                     exc,
                 )
+            except RunEngineControlException:
+                raise  # RE.abort()/RE.stop(): never swallow
             except Exception as exc:
                 logger.error(
                     "%s: %s - will continue anyway",

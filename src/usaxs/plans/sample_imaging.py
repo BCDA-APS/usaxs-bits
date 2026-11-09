@@ -11,6 +11,7 @@ import os
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
+from bluesky.utils import RunEngineControlException
 
 from usaxs.utils.area_detector import area_detector_file_plugins
 from usaxs.utils.area_detector import path_template_fixer
@@ -82,9 +83,11 @@ def record_sample_image_on_demand(
                 # update the provided dictionary
                 _md["sample_image_name"] = image_name
                 logger.debug("Sample optical image file: %s", image_name)
+        except RunEngineControlException:
+            raise  # RE.abort()/RE.stop(): never swallow
         except Exception as exc:
             logger.warning(
-                ("Could not take sample image:" "path=%s, file=%s, order#=%d, exc=%s"),
+                ("Could not take sample image:path=%s, file=%s, order#=%d, exc=%s"),
                 path,
                 filename_base,
                 order_number,

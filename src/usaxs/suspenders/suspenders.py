@@ -26,6 +26,7 @@ import logging
 
 from apsbits.core.instrument_init import oregistry
 from bluesky import plan_stubs as bps
+from bluesky.utils import RunEngineControlException
 
 from usaxs.utils.obsidian import recordBeamDump
 from usaxs.utils.obsidian import recordBeamInHutchLost
@@ -160,6 +161,8 @@ def abort_flyscan_if_flying():
             wait=True,
             timeout=ABORT_TIMEOUT_S,
         )
+    except RunEngineControlException:
+        raise  # RE.abort()/RE.stop(): never swallow
     except Exception as exc:
         # Never let the abort itself break the suspension handling.
         logger.error("Could not abort the fly scan trajectory: %s", exc)
@@ -174,6 +177,8 @@ def abort_flyscan_if_flying():
         for det in usaxs_electrometers():
             yield from bps.mv(det.acquire, 0)
             yield from fx4_stop_timeseries(det)
+    except RunEngineControlException:
+        raise  # RE.abort()/RE.stop(): never swallow
     except Exception as exc:
         # Same rule as above: the suspension must still happen.
         logger.error("Could not stop the electrometers after the abort: %s", exc)

@@ -51,6 +51,7 @@ from typing import Optional
 from apsbits.core.instrument_init import oregistry
 from apstools.utils import run_in_thread
 from bluesky import plan_stubs as bps
+from bluesky.utils import RunEngineControlException
 from bluesky.utils import plan
 
 from ..devices.fx4_quadem import FX4AutorangeDirection as AutorangeDirection
@@ -354,11 +355,11 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
         logger.info(msg)
         if t > timeout:
             logger.error(
-                f"{time.time()-usaxs_flyscan.t0}s - progress_reporting timeout!!"
+                f"{time.time() - usaxs_flyscan.t0}s - progress_reporting timeout!!"
             )
         else:
             logger.debug(
-                f"{time.time()-usaxs_flyscan.t0}s - progress_reporting is done"
+                f"{time.time() - usaxs_flyscan.t0}s - progress_reporting is done"
             )
 
     # ------------------------------------------------------------------
@@ -526,8 +527,8 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
         yield from bps.abs_set(usaxs_flyscan.flying, False)
 
     # if bluesky_runengine_running:
-        # prepare HDF5 file to save fly scan data (background thread)
-        # Runs concurrently with the scan startup sequence to minimise dead time.
+    # prepare HDF5 file to save fly scan data (background thread)
+    # Runs concurrently with the scan startup sequence to minimise dead time.
     prepare_HDF5_file()
     # specwriter._cmt(f"HDF5 configuration file: {usaxs_flyscan.saveFlyData_config}")
 
@@ -621,6 +622,8 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     logger.debug(msg)
     try:
         yield from user_data.set_state_plan("writing fly scan HDF5 file")
+    except RunEngineControlException:
+        raise  # RE.abort()/RE.stop(): never swallow
     except Exception as exc:
         # do not fail the scan just because of updating program state
         logger.warning("Non-fatal error while %s\n%s\nPlan continues", msg, exc)

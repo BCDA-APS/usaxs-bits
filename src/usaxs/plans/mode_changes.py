@@ -25,6 +25,7 @@ import logging
 from apsbits.core.instrument_init import oregistry
 from apsbits.utils.config_loaders import get_config
 from bluesky import plan_stubs as bps
+from bluesky.utils import RunEngineControlException
 from ophyd.scaler import ScalerCH
 
 from .filter_plans import insertBlackflyFilters
@@ -135,6 +136,8 @@ def mode_DirectBeam(md=None):
 
     try:
         yield from bps.mv(blackfly_det.cam.acquire, 1)
+    except RunEngineControlException:
+        raise  # RE.abort()/RE.stop(): never swallow
     except Exception:
         logger.warning("Could not start BlackFly camera (IOC may be offline).")
 
@@ -202,6 +205,8 @@ def mode_USAXS(md=None):
 
     try:
         yield from bps.mv(blackfly_det.cam.acquire, 0)
+    except RunEngineControlException:
+        raise  # RE.abort()/RE.stop(): never swallow
     except Exception:
         logger.warning("Could not stop BlackFly camera (IOC may be offline).")
 
@@ -395,6 +400,8 @@ def mode_Radiography(md=None):
 
     try:
         yield from bps.mv(blackfly_det.cam.acquire, 1)
+    except RunEngineControlException:
+        raise  # RE.abort()/RE.stop(): never swallow
     except Exception:
         logger.warning("Could not start BlackFly camera (IOC may be offline).")
 

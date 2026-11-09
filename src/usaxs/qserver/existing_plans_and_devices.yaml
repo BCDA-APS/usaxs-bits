@@ -17416,6 +17416,12 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: usaxs.devices.general_terms
+  tr_debug:
+    classname: Signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.signal
   trd_autorange_controls:
     classname: AmplifierAutoDevice
     components:
@@ -17695,6 +17701,12 @@ existing_devices:
     is_movable: false
     is_readable: true
     module: usaxs.devices.amplifiers
+  tune_blank_debug:
+    classname: Signal
+    is_flyable: false
+    is_movable: true
+    is_readable: true
+    module: ophyd.signal
   undulator:
     classname: PlanarUndulator
     components:
@@ -24673,6 +24685,40 @@ existing_plans:
       name: md
     properties:
       is_generator: false
+  after_command_list:
+    description: Actions after a command list is run.
+    module: usaxs.plans.command_list
+    name: after_command_list
+    parameters:
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    - default: 'False'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: aborted
+    properties:
+      is_generator: false
+  before_command_list:
+    description: Actions before a command list is run.
+    module: usaxs.plans.command_list
+    name: before_command_list
+    parameters:
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    - default: None
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: commands
+    properties:
+      is_generator: false
   find_a2rp:
     description: 'Bluesky plan: wide-range A2RP search followed by a fine tune_a2rp.'
     module: usaxs.plans.axis_tuning
@@ -24990,6 +25036,73 @@ existing_plans:
       name: md
     properties:
       is_generator: false
+  sync_order_numbers:
+    description: Synchronize the order numbers between the various detectors.
+    module: usaxs.plans.command_list
+    name: sync_order_numbers
+    parameters: []
+    properties:
+      is_generator: false
+  timeResolvedTube:
+    description: Loop inlet -> mid -> outlet (USAXS+SAXS+WAXS each) for run_min minutes.
+    module: __main__
+    name: timeResolvedTube
+    parameters:
+    - description: Sample name (letters, digits, "_" only; keep it short).
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: scan_title
+    - description: 'Total run time in minutes, counted from t = 0 (after startup).
+
+        3.5 hours = 210.'
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: run_min
+    - description: (sx, sy) in mm of the three positions on the tube.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: inlet
+    - description: (sx, sy) in mm of the three positions on the tube.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: mid
+    - description: (sx, sy) in mm of the three positions on the tube.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: outlet
+    - default: None
+      description: Extra metadata.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    properties:
+      is_generator: true
+  tuneAndBlank:
+    description: Re-tune the USAXS optics at the tune position, then measure the capillary
+      blank.
+    module: __main__
+    name: tuneAndBlank
+    parameters:
+    - default: '2'
+      description: Number of times tune_usaxs_optics() is run.  Must be >= 2.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: numTunes
+    - default: None
+      description: Extra metadata.
+      kind:
+        name: POSITIONAL_OR_KEYWORD
+        value: 1
+      name: md
+    properties:
+      is_generator: true
   tune_a2rp:
     description: 'Bluesky plan: tune the analyzer second roll-pitch piezo (A2RP).'
     module: usaxs.plans.axis_tuning

@@ -16,6 +16,7 @@ from typing import Optional
 
 from apstools.utils import trim_string_for_EPICS
 from bluesky import plan_stubs as bps
+from bluesky.utils import RunEngineControlException
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignal
@@ -159,6 +160,8 @@ class UserDataDevice(Device):
         msg = trim_string_for_EPICS(msg)
         try:
             yield from bps.abs_set(self.state, msg, wait=confirm)
+        except RunEngineControlException:
+            raise  # RE.abort()/RE.stop(): never swallow
         except Exception as exc:
             logger.warning("Exception while reporting instrument state: %s", exc)
 

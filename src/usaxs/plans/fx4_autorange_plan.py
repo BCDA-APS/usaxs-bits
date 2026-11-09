@@ -52,6 +52,7 @@ import numpy as np
 from apsbits.core.instrument_init import oregistry
 from bluesky import RunEngine
 from bluesky import plan_stubs as bps
+from bluesky.utils import RunEngineControlException
 from bluesky.utils import plan
 
 from ..devices.fx4_quadem import MOST_SENSITIVE_RANGE
@@ -209,6 +210,8 @@ def autoscale_amplifiers(
             logger.warning(
                 "%s: %s - will continue despite warning", control.nickname, exc
             )
+        except RunEngineControlException:
+            raise  # RE.abort()/RE.stop(): never swallow
         except Exception as exc:
             logger.error("%s: %s - will continue anyway", control.nickname, exc)
 
