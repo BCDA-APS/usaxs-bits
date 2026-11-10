@@ -293,3 +293,12 @@ def test_fly_places_every_field():
         if is_string != (f.kind in ("str", "enum")):
             problems.append(f"{f.nexus}: string attribute wrong")
     assert not problems, "\n".join(sorted(set(problems)))
+
+
+def test_epics_database_has_one_record_per_field():
+    """The generated IOC database declares every field, booting unset."""
+    text = schema.epics_database()
+    for f in schema.FIELDS:
+        assert f'record({f.record_type}, "$(P){f.pv}")' in text, f.pv
+    assert text.count("record(") == len(schema.FIELDS)
+    assert "autosave" in text  # the header says why there is none

@@ -335,3 +335,60 @@ def fields_in_scope(scope):
 def is_blank_title(title):
     """True for a blank (background) scan title, by Matilda's rule."""
     return bool(BLANK_TITLE_RE.search(title or ""))
+
+
+_MBBO_STATES = ("ZR", "ON", "TW", "TH", "FR", "FV", "SX", "SV")
+
+
+def _record_desc(f):
+    """DESC field (40 characters max): the PV name split into words."""
+    words = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", f.pv)
+    if f.desc == "epoch":
+        words += " (epoch s)"
+    return words[:40]
+
+
+def epics_database():
+    """Text of the usxSample ``SampleTerms.db``, generated from :data:`FIELDS`.
+
+    Every record boots to *unset* (NaN, ``""``, state 0).  The IOC has no
+    autosave for these records, by design.
+    """
+    out = [
+        "# usxSample: sample metadata for the 12-ID-E USAXS/SAXS/WAXS data files.",
+        "#",
+        "# GENERATED from bits_usaxs src/usaxs/utils/sample_metadata_schema.py",
+        "# (epics_database()).  Edit the schema there and regenerate; the schema",
+        "# test in bits_usaxs checks the device and data-file templates against it.",
+        "#",
+        "# Unset = NaN for numbers, empty for strings, state 0 for enums.  No",
+        "# autosave: the IOC boots with everything unset.  Integer-valued fields",
+        "# are ao records with PREC=0 so that they can hold NaN.",
+        "",
+    ]
+    scope = None
+    for f in FIELDS:
+        if f.scope != scope:
+            scope = f.scope
+            out += [f"# ---- scope: {scope} " + "-" * (60 - len(scope)), ""]
+        out.append(f'record({f.record_type}, "$(P){f.pv}")')
+        out.append("{")
+        out.append(f'    field(DESC, "{_record_desc(f)}")')
+        if f.kind in ("float", "int"):
+            out.append(f'    field(EGU,  "{f.units}")')
+            out.append(f'    field(PREC, "{f.prec}")')
+            out.append('    field(VAL,  "nan")')
+        elif f.kind == "enum":
+            states = _MBBO_STATES[: len(f.choices)]
+            for state, label in zip(states, f.choices, strict=True):
+                out.append(f'    field({state}ST, "{label}")')
+            for value, state in enumerate(states):
+                out.append(f'    field({state}VL, "{value}")')
+            out.append('    field(VAL,  "0")')
+        elif f.long:
+            out.append('    field(FTVL, "CHAR")')
+            out.append(f'    field(NELM, "{WAVEFORM_NELM}")')
+        else:
+            out.append('    field(VAL,  "")')
+        out += ["}", ""]
+    return "\n".join(out)

@@ -4,10 +4,10 @@
 
 **Branch:** `December2026` (general development branch, off `main` @ ada1010).
 This project is one of several on it; `main` stays the known-good fallback.
-**Last updated:** 2026-11-10. **Status:** Steps 1 (survey) and 2 (schema)
-done; findings in §0.1, answers in §0.2, Step 2 choices in §0.3. Next: Step 3
-(IOC records; agree a restart time). The step-by-step order is §12.
-Decisions are in §11.
+**Last updated:** 2026-11-10. **Status:** Steps 1–2 done; Step 3 prepared
+and tested, **waiting on Kevin** to apply it (§0.4); fly-scan XML deployed.
+Next: Step 4 (device and API, offline tests). Findings §0.1, answers §0.2,
+schema choices §0.3. The step-by-step order is §12. Decisions are in §11.
 
 ### 0.1 Step 1 findings (2026-11-10)
 
@@ -141,6 +141,26 @@ check until Step 4, the XML checks until Step 7. Choices made beyond §4:
 * **Units chosen** where the IOC had none: `MagneticField` T, `StressField`
   MPa. `Density` g/cm3 (the IOC's `cm3/g` is wrong). **Check these with Jan.**
 * `BoundTitle` is a char waveform (titles go up to 255 characters).
+
+### 0.4 Step 3: IOC change, waiting on Kevin (2026-11-10)
+`usaxs` is not in group `aesbc`, so it can't write the IOC source, `db/` or
+`.git` (only `autosave/` and the running process). The change is therefore a
+patch, `/home/beams11/USAXS/IOC_patches/0001-SampleTerms-…patch`, made in a
+scratch copy of the IOC repo next to it. Install steps are in
+`/home/beams11/USAXS/IOC_patches/README_usxSample.md`: Kevin does
+`git am`, `make`, `rm db/SampleTerms_settings.req` and pushes; then, as
+`usaxs`, stop the IOC, strip the old entries from `built_settings.sav`, start
+it, and check.
+* `SampleTerms.db` is **generated** by `sample_metadata_schema.epics_database()`
+  (56 records, all boot unset; `Density` EGU now g/cm3). Regenerate it after
+  any schema change; a test checks that every field has a record.
+* Tested in a private localhost `softIoc` (`usxSampleTEST:`): loads clean;
+  boot values unset; NaN, a 300-character waveform string, enum by name and a
+  39-character stringout round-trip.
+* **Fly-scan XML deployed** to `/share1/AreaDetectorConfig/FlyScan_config/`
+  (backup `saveFlyData_20261110_preFX4strobe.xml`); it now matches `ADconfigs/`.
+  The `12ida2:` mono PVs were down after the 2026-11-09 power shutdown; staff
+  will restart that IOC.
 
 ---
 
