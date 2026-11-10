@@ -4,10 +4,12 @@
 
 **Branch:** `December2026` (general development branch, off `main` @ ada1010).
 This project is one of several on it; `main` stays the known-good fallback.
-**Last updated:** 2026-11-10. **Status:** design agreed, nothing implemented.
+**Last updated:** 2026-11-10. **Status:** design agreed, all decisions
+made, nothing implemented. Next: Step 1 on the beamline computer.
 Implementation happens **on the beamline computer**, which can reach the
 usxSample IOC and the AreaDetector / fly-scan config files. The step-by-step
-order is §12. Decisions are in §11; the items still open don't block Step 1.
+order is §12. Decisions are in §11; what remains are paths and PV names to
+ask for on the beamline computer.
 
 > **On the beamline computer, ask Jan for these paths before starting:**
 > * the usxSample IOC: host, `st.cmd`, `.db`/`.substitutions` location, how
@@ -54,9 +56,12 @@ procedures, series, exposure and rheometer, (b) code that writes the PVs, and
    writer can only read PVs, so any value that is not a PV cannot reach three of
    the four file types. Bluesky reads the same PVs (baseline plus a start-document
    snapshot). Never keep a Bluesky-only copy.
-2. **Titles keep their encoding.** Users, Matilda's `title_regex` searches and
-   the Obsidian notebook rely on it. One helper builds the title **and** writes
-   the PVs from the same values, so the two can't disagree.
+2. **Titles keep their encoding: critical, not optional.** Users and the
+   downstream software (Matilda, pyIrena) parse the `_200C_22min`-style
+   suffixes, and there is no other heater convention. The structured metadata
+   is **in addition to** the title encoding, never a replacement. One helper
+   builds the title **and** writes the PVs from the same values, so the two
+   can't disagree, and a test pins the title format byte for byte.
 3. **Unset is NaN or `""`, never a plausible value.** The one exception is
    **thickness** (`usxLAX:sampleThickness`, not a usxSample PV): its default
    stays **1**, because data reduction breaks on NaN, and 1 makes later
@@ -122,18 +127,28 @@ No shear rate, strain or program name: we can't know them reliably.
 plan-writing agent doesn't invent rheometer parameters.
 
 ### E. Radiation exposure — scope *environment* (new)
-Covers UV, visible, laser, deliberate X-ray irradiation, and any other light or
-radiation exposure. This is the sample's "dose" history. It is **independent of
-`EnvType`**: a sample can be heated and UV-exposed at once.
+Two separate things, because both can be true at once:
+
+**E1. X-ray self-exposure: tracked for every non-blank sample, always.**
+| PV | Type | Notes |
+|---|---|---|
+| `XrayExposureTime` | ao, s | cumulative time the USAXS shutter has been open on this sample **before** this scan started. The scan's own exposure is in its file. Accounting method in §7.6. |
+
+This is what the X-ray exposure experiments measured: the experiment's own beam
+as the dose. Recording it for every sample also gives radiation-damage history
+for free.
+
+**E2. Deliberate exposure: UV, visible, laser, other.** Independent of
+`EnvType`: a sample can be heated and UV-exposed at once.
 
 | PV | Type | Notes |
 |---|---|---|
-| `ExposureType` | mbbo | None, UV, Visible, Laser, X-ray, Other |
+| `ExposureType` | mbbo | None, UV, Visible, Laser, Other (X-ray is E1, not here) |
 | `ExposureSource` | stringout | free text, e.g. "365 nm LED", "405 nm laser" |
 | `ExposureWavelength` | ao, nm | NaN if not applicable |
 | `ExposureIntensity` | ao | units in `ExposureIntensityUnits` (e.g. mW/cm2); NaN if unknown |
 | `ExposureIntensityUnits` | stringout | |
-| `ExposureOn` | bo | whether the source was on at scan start |
+| `ExposureOn` | bo | whether the source was on at scan start (read from the control signal, not assumed) |
 | `ExposureStartTime` | ao, epoch s | first switch-on for this sample |
 | `ExposureTime` | ao, s | **cumulative** time on, at scan start: the "time at exposure" measured in the UV/X-ray experiments |
 | `ExposureDose` | ao | only if intensity is known (= intensity × time); NaN otherwise. Units in `ExposureDoseUnits` |
@@ -291,18 +306,51 @@ reaches future user plans**. Every template must show the full pattern.
   and the exposure template.
 
 ### 7.4 New template: `exposure_template.py`
-For UV / laser / X-ray / other exposure, measuring scattering against
-**time at exposure**. Two variants:
+Measures scattering against **time at exposure**. Three variants:
 
-1. **Continuous**: source on at t=0, scans repeat until a total exposure
-   time is reached. `ExposureTime` = now − start at each scan.
-2. **Stepwise dose**: expose N s, source off, measure, repeat.
-   `ExposureTime` = sum of on-intervals. The source is off during measurement.
+1. **UV continuous**: the UV source is switched on at t=0 through its **EPICS
+   TTL signal**, and scans repeat until a total exposure time is reached.
+   `ExposureTime` = now − start at each scan.
+2. **UV stepwise dose**: TTL on for N s, off, measure, repeat.
+   `ExposureTime` = sum of on-intervals; the source is off during measurement.
+3. **X-ray self-exposure**: no extra source. Repeated scans on one spot, with
+   `XrayExposureTime` (§7.6) as the exposure variable. Effectively a
+   `finite_loop` variant whose docstring explains it is a radiation-damage /
+   X-ray-dose series. The title keeps the usual `_{min}min` suffix (D10).
 
-Source control goes through a small user-supplied on/off object, either an
-ophyd `Signal`/`EpicsSignal` (TTL/relay PV), or **manual**, where the plan
-pauses and asks the operator to switch it and records the time. How the
-sources were switched last time is open (Q-B).
+The UV source is an `EpicsSignal` on/off (TTL), switched with
+`bps.mv(uv_ttl, 1/0)` and read back for `ExposureOn`. Ask Jan for the TTL PV at
+Step 6. If it is a Galil output like the rheometer's (`usxRIO:GalilAo1_SP`),
+follow the same pattern; if the source is used routinely, declare it in
+`devices.yml`. **Switch the TTL off in the template's `finalize_wrapper`**,
+so an abort can't leave the UV on. For time-based ordering, an abort must leave
+the source off before anything else is cleared.
+
+### 7.6 X-ray self-exposure accounting
+* **Method:** the data plans already open and close `usaxs_shutter` (the
+  12idc Uniblitz) around their counting. Next to each existing open/close call,
+  they report the open interval to a module-level accumulator in
+  `plans/sample_metadata.py`. This measures *actual* shutter-open time,
+  including transmission measurements, autoranging and fly-scan taxi with the
+  shutter open, not nominal count times.
+  `usaxs_shutter` is an `ApsPssShutter` with open/close PVs only, so its state
+  can't be monitored. Step 1 checks whether the Uniblitz IOC has a readable
+  state PV; if it does, a CA monitor on it is more complete and becomes the
+  preferred method.
+* **Step 1 must also check** every place `usaxs_shutter` is opened (data plans,
+  tunes, `a_shutter_autoopen` / `12ida2:AShtr:Enable`). Tunes count only if the
+  sample is in the beam during them; settle this with Jan.
+* **Scope:** the accumulator is keyed to the bound sample (`BoundTitle`).
+  * Blanks don't add.
+  * A template's `SampleState` owns the counter for its sample, so a blank in
+    the loop doesn't reset it.
+  * For manual and command-file use, the counter resets when the binding moves
+    to a different sample, and on `newUser()`.
+  * Re-measuring the same title later continues the count: same specimen,
+    more dose. Pass `reset_xray_exposure=True` to `set_sample_metadata` for a
+    fresh spot.
+* **Written** to `XrayExposureTime` in `check_sample_binding` / `prepare_scan`
+  at the start of each scan.
 
 ### 7.5 Command files (later, low priority)
 New actions:
@@ -326,7 +374,8 @@ entries before PARAM/FUNCTION). Because of `ndattr_default`, they appear under
                                               temperature_source
 /entry/sample/time_series    (NXcollection)   name, index, t0, elapsed_time
 /entry/sample/rheometer      (NXcollection)   pulse_count, last_pulse_time, phase
-/entry/sample/exposure       (NXcollection)   type, source, wavelength, intensity(+units),
+/entry/sample/exposure       (NXcollection)   xray_exposure_time,
+                                              type, source, wavelength, intensity(+units),
                                               on, start_time, time, dose(+units)
 /entry/sample/user_metadata  (NXcollection)   key/value/units slots
 /entry/sample/metadata_state (NXnote)         state, owner, set_time, bound_title
@@ -363,7 +412,10 @@ versions in `ADconfigs/` in this repo in sync with what is deployed.
   * a template blank in a loop is followed by a full rewrite;
   * `SampleState` adoption rule (§6.4);
   * `prepare_scan` titles match today's format byte for byte;
-  * cumulative exposure time over on/off intervals.
+  * cumulative exposure time over on/off intervals;
+  * X-ray accumulator: blanks don't add, a blank inside a template doesn't
+    reset it, a binding change does, `reset_xray_exposure=True` does;
+  * UV TTL is off after a simulated abort.
 
 ## 11. Decisions
 
@@ -378,18 +430,17 @@ versions in `ADconfigs/` in this repo in sync with what is deployed.
 | D6 | No autosave for usxSample. |
 | D7 | Support the template environments now (Ambient, Linkam, PTC10, Rheometer, time series) plus **radiation exposure**, with a new template. Others via generic slots until they recur. |
 | D8 | `before_command_list` does not clear; `after_command_list` does. |
-| D9 | `ProcedureName` is generated by templates from their arguments, as free text; no registry of procedure codes. |
+| D9 | `ProcedureName` is generated by templates from their arguments, as free text. No procedure codes, no `ProcedureID` field: there is no heater convention beyond the title suffixes. |
+| D10 | The existing title encodings (`_200C_22min`, `_sx.._sy.._pre1_..min`, …) are **critical** and stay exactly as they are; Matilda and pyIrena parse them. Metadata is additive. |
+| D11 | UV is switched by an EPICS TTL signal: the template drives it and reads it back. |
+| D12 | X-ray exposure = the experiment's own beam. Tracked as cumulative `usaxs_shutter` open time per sample, for every non-blank sample (§7.6). |
 
-### Still open — none block Step 1
-* **Q-A: Heater procedure codes.** You mentioned encoding heater procedures into
-  names. Is there a convention beyond the `_200C_22min` suffix the templates
-  already use (e.g. short codes like `HT-A`)? If yes, add a short
-  `ProcedureID` field; if no, D9 covers it.
-* **Q-B: Exposure source control** (needed for Step 6). In the recent UV / X-ray
-  exposure experiments, how was the source switched — by hand, by a TTL/relay
-  PV, or by a shutter? Was data collected during exposure or between exposure
-  steps? Was intensity known?
-* **Q-C: Where does the IOC database live** in version control (ask at Step 1).
+### To ask on the beamline computer (none block starting)
+* The usxSample IOC paths and where its database goes in version control (Step 1).
+* The AD and fly-scan config paths (Step 7).
+* Whether the Uniblitz has a readable state PV, and whether the sample sees
+  beam during tunes (Step 1, §7.6).
+* The UV TTL PV name, and whether UV intensity is normally known (Step 6).
 
 ## 12. Step-by-step implementation (beamline computer)
 
@@ -398,8 +449,9 @@ Each step ends with a commit on `December2026`. Stop and report at each ✋.
 **Step 1 — Survey (read-only)** ✋
 Ask Jan for the paths in §0. Inventory `usxSample:*` records. Check
 `Density`, string record types and ADCore version. Test NaN round-trip and
-long-string NDAttribute support on a scratch PV if possible. Write the
-findings into §0 of this file.
+long-string NDAttribute support on a scratch PV if possible. Find every
+`usaxs_shutter` open/close site and any readable Uniblitz state PV (§7.6).
+Write the findings into §0 of this file.
 
 **Step 2 — Schema**
 `utils/sample_metadata_schema.py` from §4, adjusted to Step 1's findings.
@@ -417,15 +469,15 @@ Extend `SampleDataDevice`; write `plans/sample_metadata.py` (§6.2) and
 the real PVs: set / update / clear / blank / different title.
 
 **Step 5 — Data-plan integration** ✋
-Binding check and start-document snapshot in the five data plans; Obsidian
-line; uascan NeXus links; `startup.py` public list; regenerate the queueserver
+Binding check and start-document snapshot in the five data plans; X-ray
+exposure accounting at the shutter open/close sites (§7.6); Obsidian line; uascan NeXus links; `startup.py` public list; regenerate the queueserver
 yaml. Run one each of `USAXSscan`, `saxsExp` and `waxsExp` on a test sample,
 with metadata set and with a blank, and check the start documents and Obsidian
 entries.
 
 **Step 6 — Templates**
-Update all seven templates, add `exposure_template.py` (needs Q-B), update the
-README and `SKILL.md`. Run each template in its debug mode. Then generate one
+Update all seven templates, add `exposure_template.py` (ask for the UV TTL
+PV), update the README and `SKILL.md`. Run each template in its debug mode. Then generate one
 plan through the agent from a template, as an end-to-end check that it sets
 metadata.
 
