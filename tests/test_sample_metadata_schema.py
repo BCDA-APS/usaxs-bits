@@ -35,9 +35,6 @@ LAYOUT_FILES = [
 ]
 FLY_FILE = AD / "Flyscan_config" / "saveFlyData.xml"
 
-UNTIL_STEP_4 = pytest.mark.xfail(
-    strict=True, reason="device not yet extended (plan step 4)"
-)
 UNTIL_STEP_7 = pytest.mark.xfail(
     strict=True, reason="XML not yet extended (plan step 7)"
 )
@@ -122,7 +119,7 @@ def test_blank_rule(title, blank):
 
 
 def _device_components():
-    """``{attribute: (suffix, string_kw)}`` for SampleDataDevice, via ast."""
+    """``{attribute: (class, suffix, string_kw)}`` for SampleDataDevice, via ast."""
     tree = ast.parse(DEVICE_FILE.read_text())
     cls = next(
         n
@@ -138,30 +135,36 @@ def _device_components():
         ):
             continue
         name = node.targets[0].id
+        signal_class = node.value.args[0].id
         suffix = node.value.args[1].value
         kw = {k.arg: k.value for k in node.value.keywords}
         string = isinstance(kw.get("string"), ast.Constant) and kw["string"].value
-        found[name] = (suffix, bool(string))
+        found[name] = (signal_class, suffix, bool(string))
     return found
 
 
 def test_device_has_no_unknown_usxsample_pvs():
     """Every usxSample: component of the device is in the schema."""
-    for name, (suffix, _) in _device_components().items():
+    for name, (_, suffix, _) in _device_components().items():
         if suffix.startswith(schema.PV_PREFIX):
             assert suffix in schema.FIELDS_BY_PV, f"{name} -> {suffix}"
 
 
-@UNTIL_STEP_4
 def test_device_matches_schema():
-    """One component per field, same name and PV, string=True for text."""
+    """One component per field, same name and PV, string=True for text.
+
+    Numeric fields must use ``NanSafeEpicsSignal``: a plain ``EpicsSignal``
+    cannot be ``set()`` to NaN (the unset value) without timing out.
+    """
     components = _device_components()
     missing = [f.name for f in schema.FIELDS if f.name not in components]
     assert not missing, f"device lacks: {missing}"
     for f in schema.FIELDS:
-        suffix, string = components[f.name]
+        signal_class, suffix, string = components[f.name]
         assert suffix == f.pvname, f.name
         assert string == (f.kind in ("str", "enum")), f.name
+        numeric = f.kind in ("float", "int")
+        assert (signal_class == "NanSafeEpicsSignal") == numeric, f.name
 
 
 # --- AD attributes.xml --------------------------------------------------------

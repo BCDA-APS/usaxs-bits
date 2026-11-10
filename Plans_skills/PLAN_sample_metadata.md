@@ -4,10 +4,16 @@
 
 **Branch:** `December2026` (general development branch, off `main` @ ada1010).
 This project is one of several on it; `main` stays the known-good fallback.
-**Last updated:** 2026-11-10. **Status:** Steps 1–2 done; Step 3 prepared
-and tested, **waiting on Kevin** to apply it (§0.4); fly-scan XML deployed.
-Next: Step 4 (device and API, offline tests). Findings §0.1, answers §0.2,
-schema choices §0.3. The step-by-step order is §12. Decisions are in §11.
+**Last updated:** 2026-11-10. **Status:** Steps 1, 2 and 4 done; Step 3
+prepared and tested, **waiting on Kevin** (§0.4); fly-scan XML deployed.
+Next: Kevin installs the IOC patch, then Step 4's live check at the IPython
+prompt, then Step 5. Findings §0.1, answers §0.2, schema choices §0.3, Step 4
+notes §0.5. The step-by-step order is §12. Decisions are in §11.
+
+> **Do not start a Bluesky session on this branch until the IOC patch is
+> installed.** `sample_data` is in the baseline, and 41 of its 56 PVs don't
+> exist on the current IOC, so every scan would fail reading the baseline.
+> `main` is unaffected.
 
 ### 0.1 Step 1 findings (2026-11-10)
 
@@ -161,6 +167,36 @@ it, and check.
   (backup `saveFlyData_20261110_preFX4strobe.xml`); it now matches `ADconfigs/`.
   The `12ida2:` mono PVs were down after the 2026-11-09 power shutdown; staff
   will restart that IOC.
+
+### 0.5 Step 4: device and API (2026-11-10)
+* `devices/sample_data.py`: one component per schema field (56) plus
+  `shutter_open` (the `usxLAX:userStringCalc10` tracker, `kind="omitted"`).
+  `resetAll()` now calls `clear_sample_metadata()`.
+* **ophyd cannot `set()` a signal to NaN**: `set` is done when the readback
+  `==` the setpoint, and `nan == nan` is False, so every clear would wait out
+  `PV_WRITE` (60 s) and fail. Numeric fields therefore use
+  `NanSafeEpicsSignal` (`NanSafeSetMixin`), and the schema test enforces it.
+* `plans/sample_metadata.py`: the §6.2 API, `SampleState` (§7.2), the X-ray
+  accumulator (§7.6), and `@sample_metadata_checked`, the decorator Step 5
+  puts on the five data plans (binding check, `md["sample_metadata"]`, exposure
+  window; outermost plan only, like `@obsidian_logged`).
+* Title encodings are format constants (`TITLE_TIME`,
+  `TITLE_TEMPERATURE_TIME`, `TITLE_INDEX`, `TITLE_RHEOMETER`,
+  `TITLE_DEVICE_TIME`), pinned against the templates' old f-strings,
+  rounding edges included.
+* X-ray counts are kept **per key** (bound title, or the scan title when
+  nothing is bound) instead of one counter that resets on a binding change.
+  This satisfies §7.6's rules (blanks don't add, a blank doesn't reset,
+  re-measuring continues) and also continues A's count after A→B→A.
+* `tests/test_sample_metadata.py`: 60 lifecycle tests on a stand-in device
+  with a real RunEngine. Mutation-checked: breaking the different-sample
+  clear, scope replacement, blank window or exposure-off count each fails.
+  Running them here needs pytest, which the `bits_usaxs` env lacks:
+  `PYTHONPATH=src:/tmp/pytest_shim python -m pytest tests/`, where
+  `/tmp/pytest_shim` holds symlinks to pytest, `_pytest`, `pluggy`,
+  `iniconfig` and `py.py` from the `bluesky_2024_3` env.
+* **Still to do for Step 4:** try set / update / clear / blank / different
+  title at the IPython prompt against the real PVs, once the IOC is updated.
 
 ---
 
