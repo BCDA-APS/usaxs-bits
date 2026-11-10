@@ -4,20 +4,101 @@
 
 **Branch:** `December2026` (general development branch, off `main` @ ada1010).
 This project is one of several on it; `main` stays the known-good fallback.
-**Last updated:** 2026-11-10. **Status:** design agreed, all decisions
-made, nothing implemented. Next: Step 1 on the beamline computer.
-Implementation happens **on the beamline computer**, which can reach the
-usxSample IOC and the AreaDetector / fly-scan config files. The step-by-step
-order is §12. Decisions are in §11; what remains are paths and PV names to
-ask for on the beamline computer.
+**Last updated:** 2026-11-10. **Status:** Step 1 (survey) done on
+`usaxscontrol`, findings below. Next: answer the open questions in §0.2,
+then Step 2. The step-by-step order is §12. Decisions are in §11.
 
-> **On the beamline computer, ask Jan for these paths before starting:**
-> * the usxSample IOC: host, `st.cmd`, `.db`/`.substitutions` location, how
->   it is restarted;
-> * the live AreaDetector config directory for the Pilatus (SAXS) and Eiger
->   (WAXS) IOCs (README says `/share1/AreaDetectorConfig/`; confirm), and how
->   each IOC is restarted;
-> * the live `saveFlyData.xml` the fly-scan writer reads.
+### 0.1 Step 1 findings (2026-11-10)
+
+**usxSample IOC**
+* Top: `/net/s12dserv/xorApps/epics/synApps_6_3/ioc/usxSample/`. Runs on
+  **`usaxsserver`** under procServ. Start/stop/restart with
+  `iocBoot/iocusxSample/softioc/usxSample.pl {start|stop|restart|status|console}`
+  (the `usxSample` alias in `bash_ioc_aliases` only exists on `usaxsserver`).
+  Logs: `iocBoot/iocusxSample/softioc/logs/iocConsole/`. Last boot 2026-11-09 12:05.
+* **Already version-controlled:** its own git repo,
+  `git@git.aps.anl.gov:12ID/usxSample.git` (owner kpetersn; working tree clean
+  except `temp/` and `autosave/dbior.log`). Git as `usaxs` needs
+  `-c safe.directory=…`. So §5.2 is settled: edit the IOC repo, don't copy the
+  database into this repo.
+* Database: `usxSampleApp/Db/SampleTerms.db`, installed to `db/` by `make`
+  (the two copies are identical now). Loaded in `st.cmd.Linux` with
+  `P=usxSample:`. **Add the new records to this file and run `make`.**
+* **All 15 records exist, including `Density`** (the Python device lacks it).
+  `Description` and `ChemicalFormula` are already **`waveform` FTVL=CHAR,
+  NELM=1024**, so long strings are solved. `ProcedureName` follows the same
+  pattern. Numeric fields are `ao` with no `PREC` (displays as integers); the
+  `*Dir` fields are `mbbo` X/Y/Z.
+* Units bugs in the `.db`: `Density` EGU is `cm3/g` (should be `g/cm3`);
+  `MagneticField`/`StressField` have no EGU.
+* **Autosave is ON, contrary to D6.** `auto_settings.req` is empty, but
+  `autosaveBuild` (`common.iocsh`) automatically adds
+  `SampleTerms_settings.req` to `autosave/built_settings.req`, and
+  `built_settings.sav` is restored in pass 0 and pass 1. That covers `.VAL`,
+  `.DESC` and `.EGU` of every field, which is why the IOC holds 20 / 1 / 1 / 1
+  after a reboot. **Step 3 must stop this**: delete (or empty)
+  `SampleTerms_settings.req` in `usxSampleApp/Db` and `db/`, then remove the
+  stale entries from `built_settings.sav` before restarting, or the restore
+  brings back the old `.EGU` values as well.
+* **Live values today are placeholders that every data file records as
+  real:** Temperature 20, Density 1, Concentration 1, VolumeFraction 1,
+  SLD 1, fields 0, directions X, strings empty. `usxLAX:sampleThickness` = 4.
+* **NaN round trip works.** `caput usxSample:Temperature nan` reads back NaN
+  in caget and pyepics (`math.isnan` True), and autosave stored `nan`. A NaN
+  `ao` goes to **SEVR INVALID / STAT UDF**: a usable "unset" marker on a
+  screen, and ophyd/pyepics still return the value. A 60-char string
+  round-trips through `Description`, and `""` clears it. (Test values were
+  restored: Temperature 20, Description empty.)
+
+**AreaDetector**
+* Live config dir confirmed: `/share1/AreaDetectorConfig/`, itself a git repo
+  with uncommitted changes. Layouts live in a **`hdf5_plugin/`** subdirectory:
+  `SAXS_config/hdf5_plugin/layout.xml`, `WAXS_config/hdf5_plugin/layout_waxs.xml`;
+  `attributes.xml` is directly in `SAXS_config/` / `WAXS_config/`. All four
+  are **identical to `ADconfigs/` in this repo**.
+* Eiger IOC (`usaxs_eiger1`, under the synApps_6_3 `ioc/` tree): **ADCore
+  R3-13**. `PVAttribute.cpp` reads a `DBF_CHAR` waveform requested as
+  `dbrtype="DBR_STRING"` as a full string of all NELM elements (lines 237-243,
+  270-274), so **long strings do reach the Eiger files**. The existing
+  `Sample_Description` attribute already uses that form.
+* Pilatus IOC (`usaxs_pilatus3:`): **not in the synApps_6_3 `ioc/` tree**,
+  and its PVs did not answer on 2026-11-10 (the Eiger's didn't either; both
+  were probably off). The ophyd device uses `ImagePlugin_V34`, so ADCore ≥ 3.4.
+  The char-waveform-as-string path dates from ADCore 2.x, so it very likely
+  works; verify in Step 8.
+
+**Fly scan**
+* The writer reads `/share1/AreaDetectorConfig/FlyScan_config/saveFlyData.xml`
+  (`saveFlyData.py:52`). It **differs from `ADconfigs/`**: the repo adds
+  `AR_PulseLength`/`AR_PulsePeriod`, which are not deployed. Deploy that change,
+  or decide against it, before Step 7, so the two don't drift further.
+* Confirmed: without `string="true"`, `Description`/`ChemicalFormula` are
+  written as uint8 arrays (`preliminaryWriteFile` only asks for
+  `as_string=True` when the attribute is set). Fly XML also lacks `Density`.
+
+**X-ray shutter (§7.6)**
+* `usaxs_shutter` = `12idc:uniblitz:shutter:{open,close}`, which are `fanout`
+  records into `…:open_action`/`close_action` (`stringout`) →
+  `12idc:uniblitz:asyn.AOUT`. The asyn record is **write-only (TMOD=Write)**,
+  so there is **no true state readback**.
+* Best available signal: a CA monitor on **`12idc:uniblitz:asyn.AOUT`**
+  (`'@'` = open, `'A'` = close). It posts on every command from any client
+  (Bluesky, caQtDM, scripts), even when the value doesn't change. It records
+  *commanded* state, not measured state, but it is far more complete than
+  instrumenting call sites. **Recommend it over §7.6's call-site method.**
+* Call sites for comparison: ~80 `bps.mv(usaxs_shutter, …)` in `src/usaxs/plans/`,
+  mostly `axis_tuning.py`, `plans_tune.py`, `mode_changes.py`,
+  `plans_usaxs.py`, `sample_transmission.py`, `move_instrument.py`,
+  `fly_scan_plan.py`, `uascan_plan.py`, `tune_guard_slits.py`.
+
+### 0.2 Still to ask
+* Is the sample in the beam during tunes (`tune_ar`, `tune_a2rp`, `tune_mr`,
+  `tune_guard_slits`, …)? This decides whether the AOUT monitor counts all
+  open time or only open time inside data plans.
+* Where the Pilatus IOC runs and how it is restarted (needed for Step 7).
+* Restart time for usxSample on `usaxsserver` (Step 3), and whether to commit
+  to the IOC repo as `usaxs` or have kpetersn/Jan push it.
+* The UV TTL PV (Step 6).
 
 ---
 
