@@ -4,9 +4,10 @@
 
 **Branch:** `December2026` (general development branch, off `main` @ ada1010).
 This project is one of several on it; `main` stays the known-good fallback.
-**Last updated:** 2026-11-10. **Status:** Step 1 (survey) done on
-`usaxscontrol`, findings below. Next: answer the open questions in §0.2,
-then Step 2. The step-by-step order is §12. Decisions are in §11.
+**Last updated:** 2026-11-10. **Status:** Steps 1 (survey) and 2 (schema)
+done; findings in §0.1, answers in §0.2, Step 2 choices in §0.3. Next: Step 3
+(IOC records; agree a restart time). The step-by-step order is §12.
+Decisions are in §11.
 
 ### 0.1 Step 1 findings (2026-11-10)
 
@@ -90,15 +91,56 @@ then Step 2. The step-by-step order is §12. Decisions are in §11.
   mostly `axis_tuning.py`, `plans_tune.py`, `mode_changes.py`,
   `plans_usaxs.py`, `sample_transmission.py`, `move_instrument.py`,
   `fly_scan_plan.py`, `uascan_plan.py`, `tune_guard_slits.py`.
+* **Use Jan's existing tracker: `usxLAX:userStringCalc10.VAL`** (DESC
+  "ShutterOpen-QT used"). A `scalcout` at 0.1 s SCAN with
+  `INAA = 12idc:uniblitz:asyn.AOUT`, `CALC = AA="@"`: VAL is 1 while the last
+  command was *open*, 0 otherwise. After a `12idc` IOC restart AOUT is empty,
+  so VAL reads 0 until the first shutter command re-syncs it; after that it
+  tracks well. Bluesky CA-monitors VAL and integrates the time spent at 1.
+  This replaces §7.6's call-site method; no plan's shutter calls need editing.
 
-### 0.2 Still to ask
-* Is the sample in the beam during tunes (`tune_ar`, `tune_a2rp`, `tune_mr`,
-  `tune_guard_slits`, …)? This decides whether the AOUT monitor counts all
-  open time or only open time inside data plans.
-* Where the Pilatus IOC runs and how it is restarted (needed for Step 7).
-* Restart time for usxSample on `usaxsserver` (Step 3), and whether to commit
-  to the IOC repo as `usaxs` or have kpetersn/Jan push it.
-* The UV TTL PV (Step 6).
+### 0.2 Answers (Jan, 2026-11-10)
+* **Tunes:** the sample is out of the beam during tunes, apart from rare
+  occasions, and exposure accounting may assume it is always out. So the
+  accumulator integrates tracker-open time **only while one of the five data
+  plans is running** (outermost scope, the same depth rule as
+  `@obsidian_logged`), not around the clock. Step 5 checks whether any data
+  plan runs a tune inside that scope, and pauses the accumulator there if so.
+* **AD IOCs:** Pilatus runs on its own Linux computer, Eiger on
+  `usaxsserver`. Staff restart both by hand, and Bluesky fails without them, so
+  code may assume they are up whenever the instrument is operating. Step 7
+  deploys the XML files and asks staff to restart both.
+* **usxSample commits:** neither `usaxs` nor Jan has push rights to
+  `12ID/usxSample`. Commit locally in the IOC working tree; **Kevin
+  (kpetersn) pushes.**
+* **UV TTL:** no fixed setup. Last time a generic TTL output on the LabJack
+  `usxLJ7` was cabled to the source, and something similar is likely. The
+  exposure template takes the TTL signal as a **parameter** and its docstring
+  says so (Step 6).
+* **Fly-scan XML:** the deployed `saveFlyData.xml` lacked the FX4 additions
+  from `f181f20` (`AR_PulseLength`/`AR_PulsePeriod`). Deploy the repo version
+  now, separately from this project (see §0.3).
+
+### 0.3 Step 2: schema choices (2026-11-10)
+`src/usaxs/utils/sample_metadata_schema.py` holds the table;
+`tests/test_sample_metadata_schema.py` checks it against the device and the
+four XML files. Checks for later steps are `xfail(strict=True)`: the device
+check until Step 4, the XML checks until Step 7. Choices made beyond §4:
+* **Integer fields** (`StepIndex`, `SeriesIndex`, `RheoPulseCount`) are `ao`
+  with `PREC=0`, not `longout`, so that they can be NaN when unset.
+* **`ExposureOn`** is an `mbbo` Unset/Off/On, not a `bo`, for the same reason.
+* **Field directions** (`*FieldDir`) keep their X/Y/Z states: a direction
+  means nothing while its field is NaN, and renumbering the states would change
+  the meaning of existing files.
+* **Enums are written as strings everywhere.** The AD attributes already use
+  `DBR_STRING`; Step 7 adds `string="true"` to the fly-scan enums too, which
+  were written as integer indices.
+* **Directions get their own datasets** (`magnetic_field_direction`, …) in the
+  AD layouts, as the fly-scan file already has. The existing `direction`
+  attribute stays, so the change is additive.
+* **Units chosen** where the IOC had none: `MagneticField` T, `StressField`
+  MPa. `Density` g/cm3 (the IOC's `cm3/g` is wrong). **Check these with Jan.**
+* `BoundTitle` is a char waveform (titles go up to 255 characters).
 
 ---
 
