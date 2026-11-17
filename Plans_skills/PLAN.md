@@ -2,6 +2,10 @@
 
 ## 0. Current state — read this first
 
+> **2026-11-13:** quadEM R9-8 + FX4 firmware 26.10.151957 remove the ~1 ms
+> PSO gate floor. Fly-scan gating is being redesigned (likely `Ext. Trig.`) in
+> **`PLAN_fx4_fast_trigger.md`**; the VPR=5 / 600 µs test in §5.2 is superseded.
+
 **Branch:** `fx4-conversion`, off `main` @ 89adbc4.
 **Last updated:** 2026-09-25. **All offline work is complete.**
 What remains needs the instrument.
