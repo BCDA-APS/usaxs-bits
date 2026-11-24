@@ -1,7 +1,18 @@
 # PLAN — FX4 fast gate input (quadEM R9-8, FX4 firmware ≥ 26.10.151957)
 
-**Status:** plan only, nothing implemented. Written 2026-11-13, implementation
-week of 2026-11-16.
+**Status:** 2026-11-17 — bluesky side implemented (mode B, `Ext. trig.`,
+Positive, `AcquireMode = Continuous`, i.e. decision 2(a); fly-scan VPR 20;
+HDF5 marker, config_version 2.1).  Not yet: deploy `saveFlyData.xml`,
+Matilda (§6), beam tests T4–T6.
+**T2/T3 results (2026-11-17, both boxes on 26.10.151957, no beam):** 4000 and
+8000 pulses of 20 µs at VPR 20 gave exactly 4000/8000 points on both boxes,
+Positive and Negative alike.  `channel_time[0]` = 31 ms (first PSO interval),
+`channel_time[-1]` = 1.000 s (`AveragingTime` tail).  Bulb file
+GC_SRM3600_0003.h5 (2026-11-06): `channel_time[0]` = 0.72 s (pre-sweep
+wait).  **So trig point i = bulb point i+1**; Matilda must branch.
+`TriggerCount` counts both edges (16000 for 8000 pulses on usxFX42; usxFX4
+read 0, unexplained).  `FX4_CPU` ~95 % on both boxes while armed at VPR 20.
+The original plan text follows.
 **Hardware state on 2026-11-13:** `usxFX42` (I0, I00) runs the new firmware and
 the new driver; it works under manual control. **`usxFX4` (UPD, TRD) is still
 on the old firmware and old driver.**

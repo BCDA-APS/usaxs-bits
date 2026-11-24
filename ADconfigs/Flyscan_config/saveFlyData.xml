@@ -37,7 +37,7 @@ Additionally, you can check this file for validity and that all PVs exist with t
 
                 <field name="program_name">
                     <!-- version of this configuration file -->
-                    <attribute name="config_version" value="2.0" />
+                    <attribute name="config_version" value="2.1" />
                     <attribute name="counting_chain" value="FX4" />
                     <text>saveFlyData.py</text>
                 </field>
@@ -194,9 +194,21 @@ Additionally, you can check this file for validity and that all PVs exist with t
                     <!-- ==========================================================
                          DETECTORS: FX4 electrometers      counting_chain = "FX4"
                          ==========================================================
-                         PSO-gated ("Ext. bulb") mode: each strobe closes one
-                         exposure and the driver appends that interval's average
-                         current to a per-channel time series.
+                         PSO-gated mode: each PSO pulse closes one point and the
+                         driver appends that interval's average current to a
+                         per-channel time series.  WHICH interval depends on
+                         fx4_trigger_mode (config_version 2.1; absent = bulb):
+
+                           "Ext. trig."  point i = pulse i -> pulse i+1.  N
+                                         points; the LAST is the AveragingTime
+                                         tail after the final pulse (channel_time
+                                         ~ averaging_time), not a PSO interval.
+                           "Ext. bulb"   point i = pulse i-1 -> pulse i.  N
+                                         points; the FIRST is the wait from
+                                         Acquire to the first pulse.
+
+                         So trig point i is bulb point i+1: reduction must branch
+                         on fx4_trigger_mode or Q shifts by one bin.
 
                          Units are pA and the reading is GAIN-INDEPENDENT.  There
                          is no amplifier gain to divide by and no per-range gain
@@ -229,6 +241,24 @@ Additionally, you can check this file for validity and that all PVs exist with t
                         <attribute name="meaning" value="ValuesPerRead x 10 us" />
                     </PV>
                     <PV label="values_per_read" pvname="usxFX4:FX4:ValuesPerRead" />
+                    <PV label="fx4_trigger_mode" pvname="usxFX4:FX4:TriggerMode" string="true">
+                        <attribute name="meaning" value="Ext. trig.: point i = pulse i to i+1, last point is the timeout tail; Ext. bulb: point i = pulse i-1 to i, first point is pre-sweep" />
+                    </PV>
+                    <PV label="fx42_trigger_mode" pvname="usxFX42:FX4:TriggerMode" string="true" />
+                    <PV label="trigger_polarity" pvname="usxFX4:FX4:TriggerPolarity" string="true" />
+                    <PV label="averaging_time" pvname="usxFX4:FX4:AveragingTime">
+                        <attribute name="units" value="s" />
+                        <attribute name="meaning" value="Ext. trig.: timeout closing each point; length of the last point" />
+                    </PV>
+                    <PV label="fx4_firmware" pvname="usxFX4:FX4:Firmware" string="true" />
+                    <PV label="fx42_firmware" pvname="usxFX42:FX4:Firmware" string="true" />
+                    <PV label="trigger_count" pvname="usxFX4:FX4:TriggerCount" acquire_after_scan="true">
+                        <attribute name="meaning" value="D1 edges counted (2 per short pulse); diagnostic" />
+                    </PV>
+                    <PV label="trigger_count_I0" pvname="usxFX42:FX4:TriggerCount" acquire_after_scan="true" />
+                    <PV label="n_points_I0" pvname="usxFX42:FX4:Current1:TS:TSCurrentPoint" acquire_after_scan="true">
+                        <attribute name="meaning" value="points captured on the I0 box; must equal n_points" />
+                    </PV>
                     <PV label="ring_overflows" pvname="usxFX4:FX4:RingOverflows" acquire_after_scan="true">
                         <attribute name="meaning" value="non-zero: samples dropped, means biased" />
                     </PV>

@@ -66,6 +66,7 @@ class UsaxsFlyScanDevice(Device):
     ``flying``     — soft signal; ``True`` while a fly scan is executing.
     ``timeout_s``  — extra padding beyond ``scan_time`` before declaring a timeout.
     ``values_per_read`` — soft override for the FX4 sample rate; see below.
+    ``trigger_mode`` — soft override for the FX4 fly-scan gating; see below.
     """
 
     busy = Component(
@@ -83,12 +84,15 @@ class UsaxsFlyScanDevice(Device):
     # restart -- the same reasoning as the autorange thresholds
     # ``FX4DetectorControls.min_fraction`` / ``max_fraction``.
     #
-    # The value under test is 5 (50 us sample period, 20 kHz streamed), which
-    # is what would let ``usxAERO:pm1:PulseLength`` come down from 1200 us to
-    # 600 us: the FX4 samples its gate input at the streamed rate, so the
-    # narrowest strobe it can resolve scales with ``ValuesPerRead``.  See
-    # PLAN.md section 5.2 and ``utils.count_time.min_strobe_width_us``.
+    # In "Ext. trig." mode the sample period only sets how finely each PSO
+    # edge is timed.  In the "Ext. bulb" rollback it also sets the narrowest
+    # strobe the box can see -- ``utils.count_time.min_strobe_width_us``.
     values_per_read = Component(Signal, value=0, kind="config")
+
+    # FX4 fly-scan trigger mode, or "" for the default ("Ext. trig.").  Set
+    # to "Ext. bulb" to roll back to level gating (old firmware, 1200 us
+    # strobe).  See ``utils.fx4_gate``.
+    trigger_mode = Component(Signal, value="", kind="config")
 
     # Padding added to scan_time for BOTH the progress-thread deadline and the
     # busy-record Status timeout (fly_scan_plan.py).  That Status is wall-clock

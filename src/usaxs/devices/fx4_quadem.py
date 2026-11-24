@@ -286,13 +286,24 @@ class QuadFX4(QuadEM):
     """
     conf = Component(QuadEMPort, port_name="FX4")
 
-    # FX4-only: which logic level of the gate is the integrating level.
-    # 0 = Positive (integrate while HIGH, read out on falling edge)
-    # 1 = Negative (integrate while LOW, read out on rising edge)  <- ours
-    # Not present in ophyd's QuadEM.  Ignored outside "Ext. bulb" mode.
+    # FX4-only: which edge or level of D1 counts.  Not in ophyd's QuadEM.
+    # "Ext. trig.": 0 = Positive (rising edge starts a point)  <- fly scans
+    # "Ext. bulb":  1 = Negative (integrate while LOW)          <- rollback
+    # See utils.fx4_gate.FLYSCAN_TRIGGER_POLARITY.
     trigger_polarity = Component(
         EpicsSignal, "TriggerPolarity", kind="config", string=True
     )
+
+    # Added by quadEM R9-8 / FX4 firmware 26.10.151957 (the fast D1 gate).
+    # ``firmware`` is a char waveform; utils.fx4_gate.check_fast_gate_firmware
+    # reads it before every "Ext. trig." fly scan.  ``trigger_count`` counts
+    # D1 *edges* -- 2 per short pulse, so 16000 for an 8000-pulse train.
+    firmware = Component(EpicsSignalRO, "Firmware", kind="config", string=True)
+    trigger_count = Component(EpicsSignalRO, "TriggerCount", kind="omitted")
+    trigger_level = Component(
+        EpicsSignalRO, "FX4TriggerLevel", kind="omitted", string=True
+    )
+    fx4_cpu = Component(EpicsSignalRO, "FX4_CPU", kind="omitted")
 
     image = None  # image not supported
     current1 = Component(StatsPluginQuadEM, "Current1:")

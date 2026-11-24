@@ -45,6 +45,10 @@ of 100 (1 ms sample period) rather than the 10 recorded at the time.
 
 The documented safe window is 3-5 sample periods; this is the conservative
 end of it.
+
+Applies only to the ``Ext. bulb`` rollback and to FX4 firmware older than
+26.10.151957.  The default ``Ext. trig.`` fly scan counts D1 edges and sees a
+20 us strobe -- see :mod:`usaxs.utils.fx4_gate`.
 """
 
 
@@ -129,7 +133,9 @@ def min_strobe_width_us(
 ) -> float:
     """Return the narrowest PSO strobe that *values_per_read* can resolve.
 
-    A fly scan in "Ext. bulb" mode delimits its exposures with the HIGH strobe
+    Relevant only to the "Ext. bulb" rollback (see
+    :data:`MIN_STROBE_SAMPLE_PERIODS`).  A fly scan in "Ext. bulb" mode
+    delimits its exposures with the HIGH strobe
     of the Aerotech PSO output (``usxAERO:pm1:PulseLength``, microseconds).
     The FX4 only sees that strobe if it is still HIGH when the device takes a
     sample, so the strobe has to be several sample periods wide -- see

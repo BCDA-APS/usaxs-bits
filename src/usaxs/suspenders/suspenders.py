@@ -98,7 +98,7 @@ def abort_flyscan_if_flying():
     2. **Write "Done" to the busy record.**  That is the whole abort.
     3. **Stop both electrometers and disarm their time series**, the same
        cleanup the end of a completed sweep does.  Otherwise they are left
-       acquiring in "Ext. bulb" mode with armed series: on 2026-10-25
+       acquiring in PSO-gated mode with armed series: on 2026-10-25
        ``usxFX42:FX4:Acquire`` was still 1 and five ``TSAcquire`` records
        still armed 70 minutes after the abort.
 

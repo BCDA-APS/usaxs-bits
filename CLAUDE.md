@@ -139,6 +139,16 @@ the code:
   baseline.
 - **Count times are quantised to whole mains cycles** so 60 Hz pickup averages
   out (`utils.count_time.quantize_count_time`).
+- **Fly scans run in `Ext. trig.`, Positive, since 2026-11-17** (firmware
+  26.10.151957 / quadEM R9-8 on both boxes): each PSO rising edge closes one
+  point and opens the next, no dead time; `AveragingTime` (1.0 s) is only a
+  timeout and the length of the final point.  N pulses give N points, **point
+  *i* = pulse *i* → *i+1*, the last a timeout tail.**  The old `Ext. bulb`
+  mode (`usaxs_flyscan.trigger_mode = "Ext. bulb"`) indexes one point the
+  other way (point 0 = pre-sweep wait), so reduction must branch on
+  `flyScan/fx4_trigger_mode` in the HDF5 (absent = bulb) or Q shifts a bin.
+  The plan refuses `Ext. trig.` unless both boxes report matching fast-gate
+  firmware — never fly the two boxes in different modes.  `utils/fx4_gate.py`.
 
 Key modules: `devices/fx4_quadem.py` (device layer), `plans/fx4_setup.py` (mode
 configuration, channel selection, plot selection), `plans/fx4_autorange_plan.py`

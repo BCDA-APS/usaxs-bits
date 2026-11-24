@@ -8,13 +8,16 @@ at each point.  The raw data are saved to an HDF5/NeXus file by
 
 How the FX4 collects a fly scan
 -------------------------------
-The FX4 cannot be hardware-triggered.  Instead the quadEM driver watches the
-PSO gate on digital input D1 and does the gating in software from the FX4's
-own hardware timestamps, so the bin edges carry no IOC scheduling jitter.  In
-``Ext. bulb`` mode with ``TriggerPolarity = Negative`` the integrating level
-is LOW -- the interval *between* strobes -- and each rising edge emits one
-average, appended to that channel's time series.  ``AveragingTime`` is ignored
-in this mode; the gate defines the window.
+The Aerotech PSO train drives digital input D1 of both FX4s.  Since quadEM
+R9-8 / FX4 firmware 26.10.151957, D1 is an edge counter streamed at the ADC
+output rate, so the point boundaries are resolved to one sample period and a
+20 us strobe registers.  The fly scan runs in ``Ext. trig.`` mode with
+``TriggerPolarity = Positive``: each rising edge closes the current point and
+starts the next, with no dead time.  Point *i* is the interval from pulse *i*
+to pulse *i+1*; the last point is the ``AveragingTime`` tail after the final
+pulse.  ``Ext. bulb`` remains selectable through ``usaxs_flyscan.trigger_mode``
+for rollback, and **indexes the data one point differently** -- see
+:mod:`usaxs.utils.fx4_gate`, and the ``fx4_trigger_mode`` field in the HDF5.
 
 Both electrometers take the same PSO train (the PRL-414B is a 1:4 driver), so
 index ``i`` means the same interval on UPD and on I0 and the ratio is valid
@@ -26,7 +29,8 @@ Sequence overview
 1. Record starting stage positions (ar, ax, dx) for later restoration.
 2. Open a Bluesky run and write SPEC comments.
 3. Hand usxFX4's shared Range to UPD and let the sequence program keep ranging.
-4. Put both electrometers in bulb mode and arm their time series.
+4. Check both boxes run fast-gate firmware (``Ext. trig.`` only), then put
+   both electrometers in PSO-gated mode and arm their time series.
 5. Launch a background thread to prepare the HDF5 output file.
 6. Start acquisition, then trigger the hardware fly-scan via the busy record.
 7. Launch a background thread to log periodic progress.
@@ -59,7 +63,14 @@ from ..devices.fx4_quadem import FX4AutorangeSettings as AutorangeSettings
 from ..usaxs_flyscan_support.saveFlyData import SaveFlyScan
 from ..utils.count_time import min_strobe_width_us
 from ..utils.count_time import sample_time
+from ..utils.fx4_gate import FLYSCAN_AVERAGING_TIME
+from ..utils.fx4_gate import TRIGGER_MODE_TRIG
+from ..utils.fx4_gate import expected_flyscan_points
+from ..utils.fx4_gate import point_count_problems
+from ..utils.fx4_gate import resolve_flyscan_trigger_mode
+from ..utils.fx4_gate import truncated_points
 from .fx4_setup import DEFAULT_FLYSCAN_VPR
+from .fx4_setup import check_fx4_fast_gate
 from .fx4_setup import check_ring_overflows
 from .fx4_setup import enable_fx4_autorange
 from .fx4_setup import fx4_flyscan_mode
@@ -78,6 +89,9 @@ terms = oregistry["terms"]  # general run-time terms / GUI-facing PVs
 flyscan_trajectories = oregistry["flyscan_trajectories"]  # PSO pulse positions
 FX4_DETECTORS = usaxs_electrometers()  # [fx4 (UPD, TRD), fx42 (I0, I00)]
 UPD_CHANNEL = oregistry["upd_controls"].channel_number
+I0_CHANNEL = oregistry["I0_controls"].channel_number
+# Extra wait, beyond AveragingTime, for the final "Ext. trig." point to close.
+FINAL_POINT_GRACE_S = 0.5
 # Margin on TSNumPoints.  The series is "Fixed length", so it stops itself at
 # this count; a few spare slots mean a trajectory that emits one extra strobe
 # is recorded rather than truncated.
@@ -174,20 +188,37 @@ def _flyscan_values_per_read():
     return DEFAULT_FLYSCAN_VPR
 
 
-def _check_strobe_width(values_per_read):
-    """Log the PSO strobe width against the FX4 sample period, and warn if thin.
+def _flyscan_trigger_mode():
+    """Return the FX4 trigger mode this fly scan should use.
 
-    In "Ext. bulb" mode the FX4 closes one exposure per PSO strobe, but it
-    only learns the gate state once per streamed sample.  A strobe narrower
-    than a few sample periods is missed **on the device**, before anything is
-    transmitted, and two exposures fuse into one -- which shows up as missing
-    pulses in ``TSCurrentPoint`` and roughly doubled ``NumAveraged`` on the
-    affected intervals.  Nothing on the IOC side can recover it.
+    ``usaxs_flyscan.trigger_mode`` is a soft override, empty meaning the
+    default (``Ext. trig.``).  Set it to ``"Ext. bulb"`` to roll back.
 
-    This is the pairing that went wrong before: ``usxAERO:pm1:PulseLength`` was
-    set to 1200 us from a width scan believed to be at ``ValuesPerRead = 10``,
-    while the boxes were actually at 100 (a 1 ms sample period, needing ~5 ms).
-    See ``docs/FX4_PSO_trigger_issue.md`` section 0.
+    Returns
+    -------
+    str
+
+    Raises
+    ------
+    ValueError
+        For an unrecognised override.
+    """
+    return resolve_flyscan_trigger_mode(_read_or_none(usaxs_flyscan.trigger_mode))
+
+
+def _check_strobe_width(values_per_read, trigger_mode):
+    """Log the PSO strobe against the FX4 sample period; warn if bulb can't see it.
+
+    In ``Ext. trig.`` mode the box counts D1 edges, so any strobe registers
+    and the width does not matter as long as it is narrower than the shortest
+    interval.  This only logs the settings.
+
+    In the ``Ext. bulb`` rollback the box learns the gate *level* once per
+    streamed sample, and on old firmware a strobe narrower than a few sample
+    periods is missed **on the device**: two exposures fuse into one, which
+    shows up as missing points in ``TSCurrentPoint``.  That is the pairing
+    that went wrong before (``docs/FX4_PSO_trigger_issue.md`` section 0), so
+    it warns.
 
     Silent about an unreadable PV, like the other reads in this module: a
     missing diagnostic must not stop a scan.
@@ -196,23 +227,26 @@ def _check_strobe_width(values_per_read):
     ----------
     values_per_read : int
         The ``ValuesPerRead`` this scan will configure.
+    trigger_mode : str
+        The FX4 trigger mode this scan will configure.
     """
     strobe_us = _read_or_none(flyscan_trajectories.pulse_length)
-    needed_us = min_strobe_width_us(values_per_read)
     logger.info(
-        "Flyscan gate: ValuesPerRead=%d (SampleTime %.0f us), PSO strobe %s"
-        " (needs >= %.0f us)",
+        "Flyscan gate: %s, ValuesPerRead=%d (SampleTime %.0f us), PSO strobe %s",
+        trigger_mode,
         values_per_read,
         sample_time(values_per_read) * 1e6,
         "unknown" if strobe_us is None else f"{float(strobe_us):.0f} us",
-        needed_us,
     )
+    if trigger_mode == TRIGGER_MODE_TRIG:
+        return
+    needed_us = min_strobe_width_us(values_per_read)
     if strobe_us is not None and float(strobe_us) < needed_us:
         logger.warning(
-            "PSO strobe %.0f us is narrower than the %.0f us the FX4 needs at"
-            " ValuesPerRead=%d -- exposures will merge and pulses will appear"
-            " to be missing. Widen usxAERO:pm1:PulseLength (raise PulsePeriod"
-            " first) or lower ValuesPerRead.",
+            "PSO strobe %.0f us is narrower than the %.0f us the FX4 needs in"
+            " Ext. bulb mode at ValuesPerRead=%d -- exposures will merge and"
+            " pulses will appear to be missing. Widen usxAERO:pm1:PulseLength"
+            " (raise PulsePeriod first) or lower ValuesPerRead.",
             float(strobe_us),
             needed_us,
             values_per_read,
@@ -230,6 +264,52 @@ def _ts_current_point():
     """
     stats = FX4_DETECTORS[0].channel_stats(UPD_CHANNEL)
     return _read_or_none(stats.ts_current_point)
+
+
+def _ts_current_points():
+    """Return ``{box name: TSCurrentPoint}`` for UPD's box and I0's box.
+
+    Both boxes must capture the same number of points, or UPD/I0 is not valid
+    point by point.
+
+    Returns
+    -------
+    dict
+    """
+    return {
+        FX4_DETECTORS[0].name: _ts_current_point(),
+        FX4_DETECTORS[1].name: _read_or_none(
+            FX4_DETECTORS[1].channel_stats(I0_CHANNEL).ts_current_point
+        ),
+    }
+
+
+def _i0_channel_time(n_points):
+    """Return I0's per-point dwell, seconds, as ``saveFlyData`` derives it.
+
+    ``TSTotal / TSMeanValue x SampleTime``.  I0 rather than UPD because I0
+    never approaches zero, so the ratio is well defined on every point.
+
+    Parameters
+    ----------
+    n_points : int
+        Number of valid points in the arrays.
+
+    Returns
+    -------
+    list of float, or None if the arrays cannot be read.
+    """
+    det = FX4_DETECTORS[1]
+    stats = det.channel_stats(I0_CHANNEL)
+    total = _read_or_none(stats.ts_total)
+    mean = _read_or_none(stats.ts_mean_value)
+    dt = _read_or_none(det.sample_time)
+    if total is None or mean is None or not dt or not n_points:
+        return None
+    return [
+        float(t) / float(m) * float(dt) if m else 0.0
+        for t, m in zip(total[:n_points], mean[:n_points], strict=False)
+    ]
 
 
 @plan
@@ -464,6 +544,14 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     _md["hdf5_file"] = usaxs_flyscan.saveFlyData_HDF5_file
     _md["hdf5_path"] = usaxs_flyscan.saveFlyData_HDF5_dir
 
+    # Decide the gating before anything is written.  "Ext. trig." needs
+    # fast-gate firmware on BOTH boxes; a mismatch would offset the UPD and I0
+    # series by a point, so it raises here rather than flying in mixed mode.
+    trigger_mode = _flyscan_trigger_mode()
+    if trigger_mode == TRIGGER_MODE_TRIG:
+        check_fx4_fast_gate(FX4_DETECTORS)
+    _md["fx4_trigger_mode"] = trigger_mode
+
     yield from bps.open_run(md=_md)
 
     # Suspender rewind boundary.  On resume the RunEngine replays every message
@@ -493,7 +581,8 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     # Put both electrometers in PSO-gated mode and arm their time series.  Both
     # take the same PSO train, so index i means the same interval on each.
     expected_pulses = _expected_pulse_count()
-    ts_points = max(expected_pulses + TS_POINTS_MARGIN, TS_POINTS_FLOOR)
+    expected_points = expected_flyscan_points(expected_pulses, trigger_mode)
+    ts_points = max(expected_points + TS_POINTS_MARGIN, TS_POINTS_FLOOR)
     if ts_points > TS_POINTS_MAX:
         # Writing a larger TSNumPoints is accepted and then ignored, so say so
         # here rather than let the operator read the short arrays as missed
@@ -509,14 +598,18 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
             expected_pulses,
         )
         ts_points = TS_POINTS_MAX
-    # The sample rate and the PSO strobe width are one setting in two places:
-    # the FX4 can only resolve a strobe several sample periods wide.  Report
-    # the pair before configuring, so a mismatch is in the log of the scan it
+    # Report the gating before configuring, so a mismatch (in bulb mode the
+    # strobe must span several sample periods) is in the log of the scan it
     # spoiled rather than inferred afterwards from a short point count.
     values_per_read = _flyscan_values_per_read()
-    _check_strobe_width(values_per_read)
+    _check_strobe_width(values_per_read, trigger_mode)
+    # "Ext. trig." overwrites AveragingTime with its timeout; put the count
+    # time back afterwards so the boxes' resting readings keep their cadence.
+    averaging_times = [_read_or_none(det.averaging_time) for det in FX4_DETECTORS]
     for det in FX4_DETECTORS:
-        yield from fx4_flyscan_mode(det, ts_points, values_per_read=values_per_read)
+        yield from fx4_flyscan_mode(
+            det, ts_points, values_per_read=values_per_read, trigger_mode=trigger_mode
+        )
 
     # Record the wall-clock start time and calculate the next progress log time.
     usaxs_flyscan.t0 = time.time()
@@ -585,32 +678,66 @@ def Flyscan_internal_plan(md: Optional[dict] = None):
     # Clear the flying flag so the progress thread exits its polling loop.
     yield from bps.abs_set(usaxs_flyscan.flying, False)
 
+    # In "Ext. trig." the point opened by the last pulse only closes when
+    # AveragingTime expires.  Wait for it, so the point count does not depend
+    # on how long the IOC took to return the busy record.  The point itself is
+    # not a PSO interval and data reduction discards it.
+    if trigger_mode == TRIGGER_MODE_TRIG and expected_points:
+        deadline = time.time() + FLYSCAN_AVERAGING_TIME + FINAL_POINT_GRACE_S
+        while time.time() < deadline:
+            counts = _ts_current_points().values()
+            if all(n is not None and n >= expected_points for n in counts):
+                break
+            yield from bps.sleep(0.05)
+
     # Stop the electrometers before anything reads the arrays.  saveFlyData
     # harvests them from a background thread, and a series still acquiring
     # could grow underneath it.  Stopping the quadEM is not sufficient: the
     # time series stays armed, and the cleanup after this scan returns both
     # boxes to free-running monitor mode, whose readings would then be appended
     # to the very arrays being harvested.
-    for det in FX4_DETECTORS:
+    for det, averaging_time in zip(FX4_DETECTORS, averaging_times, strict=True):
         yield from bps.mv(det.acquire, 0)
         yield from fx4_stop_timeseries(det)
+        if trigger_mode == TRIGGER_MODE_TRIG and averaging_time:
+            yield from bps.mv(det.averaging_time, averaging_time)
 
-    # Did every PSO pulse register?  Too few can mean the link dropped samples
-    # (raise ValuesPerRead) or that neighbouring exposures merged because the
-    # strobe was too narrow for the sample cadence (lower it).  The two look
-    # identical in this count but differ in NumAveraged, which the progress log
-    # has been printing all along: merged intervals show roughly double.
-    captured = _ts_current_point()
-    if captured is not None and expected_pulses and captured < expected_pulses:
+    # Did every PSO pulse register, on both boxes?  Too few can mean the link
+    # dropped samples (raise ValuesPerRead; watch FX4_CPU) or, in bulb mode,
+    # that neighbouring exposures merged because the strobe was too narrow for
+    # the sample cadence.  A disagreement between the boxes breaks UPD/I0.
+    captured = _ts_current_points()
+    problems = point_count_problems(captured, expected_points)
+    if problems:
         logger.warning(
-            "Flyscan captured %d of %d PSO pulses (%d missing). Check the"
-            " ValuesPerRead / strobe-width window -- see PLAN.md section 5.2.",
-            captured,
+            "Flyscan point count (%s, %d PSO pulses): %s",
+            trigger_mode,
             expected_pulses,
-            expected_pulses - captured,
+            "; ".join(problems),
         )
     else:
-        logger.info("Flyscan captured %s PSO pulses", captured)
+        logger.info("Flyscan captured %s points (%s)", captured, trigger_mode)
+    logger.info(
+        "FX4 D1 edge counts %s, FX4 CPU %s %%",
+        {det.name: _read_or_none(det.trigger_count) for det in FX4_DETECTORS},
+        {det.name: _read_or_none(det.fx4_cpu) for det in FX4_DETECTORS},
+    )
+    # In "Ext. trig." a point that ran into the AveragingTime timeout was not
+    # closed by the next pulse: the rest of that interval went unrecorded.
+    if trigger_mode == TRIGGER_MODE_TRIG:
+        n_points = captured.get(FX4_DETECTORS[1].name)
+        channel_time = _i0_channel_time(n_points)
+        if channel_time:
+            cut = truncated_points(channel_time, FLYSCAN_AVERAGING_TIME)
+            if cut:
+                logger.warning(
+                    "Flyscan: %d PSO interval(s) reached the %.2f s"
+                    " AveragingTime timeout (first at point %d) -- raise"
+                    " FLYSCAN_AVERAGING_TIME in utils/fx4_gate.py.",
+                    len(cut),
+                    FLYSCAN_AVERAGING_TIME,
+                    cut[0],
+                )
     # A ring-buffer overflow biases every mean toward the end of its interval
     # and is invisible in the data itself.
     yield from check_ring_overflows(FX4_DETECTORS, "flyscan")

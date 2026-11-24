@@ -495,9 +495,9 @@ def Flyscan(
 
     # The scaler block that used to live here set a 25 ms free-running count so
     # the Femto autoranger had something to re-range on during the sweep.  The
-    # FX4 needs no equivalent: in bulb mode the PSO gate itself completes a
-    # reading at every strobe, which is what the sequence program acts on.
-    # Flyscan_internal_plan puts the electrometers in bulb mode and arms UPD's
+    # FX4 needs no equivalent: in PSO-gated mode every pulse completes a
+    # reading, which is what the sequence program acts on.
+    # Flyscan_internal_plan puts the electrometers in that mode and arms UPD's
     # autoranger.
     # Autosave must re-enable itself (max_time = 0 at the end of the scan),
     # never be written SR_disable = 0 by us: autosave clears its disable start

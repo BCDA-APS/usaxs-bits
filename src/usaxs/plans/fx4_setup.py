@@ -8,8 +8,9 @@ it in the right one first.  See ``docs/FX4_config_cheatsheet.md``.
     Fixed-time counting: one integration per trigger, ``MeanValue_RBV`` holds
     the average current.  Used by tuning, step USAXS and transmission.
 ``fx4_flyscan_mode``
-    PSO-gated: one average per strobe interval, appended to a per-channel time
-    series.  Used by the USAXS fly scan.
+    PSO-gated: one average per PSO interval, appended to a per-channel time
+    series.  Used by the USAXS fly scan.  ``Ext. trig.`` by default, ``Ext.
+    bulb`` for rollback -- see :mod:`usaxs.utils.fx4_gate`.
 
 Also here: :func:`select_fx4_channel`, which points a sequence program at the
 detector in use, and :func:`group_controls_by_box`, which enforces the rule
@@ -41,10 +42,15 @@ from ..devices.fx4_quadem import FX4AutorangeDirection
 from ..devices.fx4_quadem import FX4RangeConflictError
 from ..utils.count_time import RING_SIZE_SAMPLES
 from ..utils.count_time import max_count_time
-from ..utils.count_time import min_strobe_width_us
 from ..utils.count_time import quantize_count_time
 from ..utils.count_time import sample_time
 from ..utils.count_time import samples_per_reading
+from ..utils.fx4_gate import DEFAULT_FLYSCAN_TRIGGER_MODE
+from ..utils.fx4_gate import FLYSCAN_AVERAGING_TIME
+from ..utils.fx4_gate import FLYSCAN_TRIGGER_POLARITY
+from ..utils.fx4_gate import TRIGGER_MODE_TRIG
+from ..utils.fx4_gate import check_fast_gate_firmware
+from ..utils.fx4_gate import resolve_flyscan_trigger_mode
 from ..utils.fx4_ranges import full_scale_pA
 
 logger = logging.getLogger(__name__)
@@ -60,22 +66,24 @@ unbiased exposure (10 s instead of 1 s).  Both FX4s share one host, so the
 link load is the real constraint.
 """
 
-DEFAULT_FLYSCAN_VPR = 10
+DEFAULT_FLYSCAN_VPR = 20
 """``ValuesPerRead`` for PSO-gated counting.
 
-Cannot follow the same "higher is better" logic: in bulb mode the device has to
-*see* the HIGH strobe in its own samples, or two exposures fuse into one.  The
-safe floor is 3-5 sample periods (:func:`~usaxs.utils.count_time.
-min_strobe_width_us`), so this value and ``usxAERO:pm1:PulseLength`` constrain
-each other in both directions -- raising it needs a wider strobe, and a
-narrower strobe needs it lowered.  10 is the value proven on a 2000-pulse
-train, and 500 us of the present 1200 us strobe.
+In ``Ext. trig.`` mode (FX4 firmware >= 26.10.151957) this only sets how
+finely each PSO edge is timed: 200 us at 20, against intervals of >= 8 ms.
+Lower values double the streamed rate per box for a resolution nobody needs.
+20 is the value the new firmware was verified at on 2026-11-17 (4000 and 8000
+pulses, exact counts on both boxes); the boxes reported ~95 % FX4 CPU there,
+so do not lower it without watching ``FX4_CPU`` and ``RingOverflows``.
+
+In the ``Ext. bulb`` rollback it also sets the narrowest strobe the box can
+see (:func:`~usaxs.utils.count_time.min_strobe_width_us`): 1 ms at 20, barely
+inside the 1200 us rollback strobe.  The proven bulb configuration is VPR 10,
+so set ``usaxs_flyscan.values_per_read = 10`` along with
+``usaxs_flyscan.trigger_mode``.
 
 Override per scan with ``usaxs_flyscan.values_per_read`` rather than editing
-this; **5** (50 us periods, 250 us strobe floor) is the value under test, as
-the one that would let the strobe come down to 600 us and halve the fly scan's
-dead time.  Change this constant only once that test passes -- PLAN.md
-section 5.2.
+this.
 """
 
 VPR_LADDER = (10, 20, 50, 100, 200, 500)
@@ -216,17 +224,30 @@ def fx4_stop_timeseries(det, channels=(1, 2, 3, 4)):
 
 
 @plan
-def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=None):
-    """Plan: put an FX4 into PSO-gated (bulb) mode and arm its time series.
+def fx4_flyscan_mode(
+    det,
+    num_points,
+    channels=(1, 2, 3, 4),
+    values_per_read=None,
+    trigger_mode=DEFAULT_FLYSCAN_TRIGGER_MODE,
+):
+    """Plan: put an FX4 into PSO-gated mode and arm its time series.
 
-    Each PSO strobe closes one exposure and appends one average per channel to
-    the time series.  ``AveragingTime`` is ignored in this mode -- the gate
-    defines the window.
+    Each PSO pulse closes one point and appends one average per channel to the
+    time series.  The two modes, and why they index the data differently, are
+    described in :mod:`usaxs.utils.fx4_gate`:
 
-    ``TriggerPolarity = Negative`` because the PSO signal idles LOW and strobes
-    HIGH, so the measurement windows are the LOW intervals *between* strobes.
-    With Positive it would integrate only the few-microsecond strobe and
-    capture essentially nothing.
+    ``Ext. trig.`` (default)
+        ``TriggerPolarity = Positive``: each rising edge starts a point and
+        closes the previous one, so there is no dead time.  ``AveragingTime``
+        is set to :data:`~usaxs.utils.fx4_gate.FLYSCAN_AVERAGING_TIME`; it is a
+        timeout here, longer than any PSO interval, and the length of the
+        final point after the last pulse.  Needs fast-gate firmware on the box
+        -- the caller checks with :func:`check_fx4_fast_gate` first.
+    ``Ext. bulb`` (rollback)
+        ``TriggerPolarity = Negative``: the LOW interval *between* strobes is
+        integrated and ``AveragingTime`` is ignored.  With Positive it would
+        integrate only the strobe itself.
 
     Does **not** start acquisition; the caller writes ``acquire = 1`` once
     everything else is armed, before the motion starts.
@@ -243,11 +264,14 @@ def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=Non
     values_per_read : int, optional
         ``ValuesPerRead``.  Defaults to ``DEFAULT_FLYSCAN_VPR``; see that
         constant before changing it.
+    trigger_mode : str
+        ``"Ext. trig."`` or ``"Ext. bulb"``.
 
     Yields
     ------
     Bluesky messages consumed by the RunEngine.
     """
+    trigger_mode = resolve_flyscan_trigger_mode(trigger_mode)
     if values_per_read is None:
         values_per_read = DEFAULT_FLYSCAN_VPR
 
@@ -259,14 +283,17 @@ def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=Non
 
     yield from bps.mv(
         det.trigger_mode,
-        "Ext. bulb",  # 3
+        trigger_mode,  # by string: the enum indices moved in quadEM R9-8
         det.trigger_polarity,
-        "Negative",  # 1
+        FLYSCAN_TRIGGER_POLARITY[trigger_mode],
         det.acquire_mode,
         "Continuous",  # 0
         det.values_per_read,
         values_per_read,
     )
+    if trigger_mode == TRIGGER_MODE_TRIG:
+        # Not quantised to mains cycles: it is a timeout, not a dwell.
+        yield from bps.mv(det.averaging_time, FLYSCAN_AVERAGING_TIME)
     # Stop the time series before touching its configuration.  TSAcquire is a
     # *busy* record that only clears itself when a "Fixed length" series fills;
     # the series is deliberately oversized (see TS_POINTS_FLOOR), so the
@@ -301,14 +328,41 @@ def fx4_flyscan_mode(det, num_points, channels=(1, 2, 3, 4), values_per_read=Non
         yield from bps.mv(det.channel_stats(ch).ts_acquire, "Acquire")
 
     logger.debug(
-        "%s: flyscan mode, %d points, VPR=%d, SampleTime=%.1f us,"
-        " narrowest resolvable PSO strobe %.0f us",
+        "%s: flyscan mode %r, %d points, VPR=%d, SampleTime=%.1f us",
         det.name,
+        trigger_mode,
         num_points,
         values_per_read,
         sample_time(values_per_read) * 1e6,
-        min_strobe_width_us(values_per_read),
     )
+
+
+def check_fx4_fast_gate(dets):
+    """Raise unless every electrometer in *dets* can run ``Ext. trig.``.
+
+    Reads each box's ``Firmware`` record and hands the result to
+    :func:`usaxs.utils.fx4_gate.check_fast_gate_firmware`, which refuses an
+    unreadable, old or mismatched set rather than letting the two series be
+    gated differently.  A plain function, not a plan: it reads, it does not
+    write, and it must run before the run is opened.
+
+    Parameters
+    ----------
+    dets : iterable of QuadFX4
+
+    Raises
+    ------
+    FX4FirmwareError
+    """
+    firmware = {}
+    for det in dets:
+        try:
+            firmware[det.name] = det.firmware.get()
+        except Exception as exc:  # noqa: BLE001 - unreadable is "not ready"
+            logger.debug("could not read %s: %s", det.firmware.name, exc)
+            firmware[det.name] = None
+    check_fast_gate_firmware(firmware)
+    logger.info("FX4 fast gate: firmware %s", firmware)
 
 
 @plan
@@ -565,7 +619,7 @@ def prepare_fx4_counting(count_time, dets=None):
     scaler's ``OneShot`` count mode.  Configures the full mode each time rather
     than only the count time: it is a handful of channel-access writes against
     a scan that takes seconds, and it means a plan cannot inherit a fly scan's
-    bulb-mode settings and silently take one average per PSO strobe.
+    PSO-gated settings and silently take one average per PSO pulse.
 
     Parameters
     ----------

@@ -32,12 +32,11 @@ class Trajectories(Device):
     .. note::
        ``pulse_length`` and ``pulse_period`` carry no ``.EGU``; the unit is
        microseconds, from the records' ``.DESC`` ("pulse length in
-       microseconds").  The strobe width matters to the counting chain, not
-       just to the motion controller: in "Ext. bulb" mode the FX4 delimits
-       its exposures on that strobe and can only see one that is several of
-       its sample periods wide -- see
-       ``utils.count_time.min_strobe_width_us`` and
-       ``docs/FX4_PSO_trigger_issue.md``.
+       microseconds").  In the default "Ext. trig." fly-scan mode the FX4
+       counts the strobe's edges and any width registers (20 us tested
+       2026-11-17).  Only in the "Ext. bulb" rollback must it be several
+       sample periods wide -- see ``utils.count_time.min_strobe_width_us``
+       and ``utils.fx4_gate``.
 
     .. note::
        Despite its name, ``num_pulse_positions`` is ``NumPoints`` -- the
